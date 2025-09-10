@@ -1,0 +1,333 @@
+import React from "react";
+import {
+  Heart,
+  Share2,
+  Phone,
+  Mail,
+  MapPin,
+  TrendingUp,
+  Shield,
+  Star,
+  Building,
+  Percent,
+  Users2,
+  Award,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
+import { Progress } from "@/components/ui/progress";
+import { Franchise } from "@/polymet/data/franchises-data";
+
+interface FranchiseCardProps {
+  franchise: Franchise;
+  onSave?: (franchiseId: string) => void;
+  onShare?: (franchiseId: string) => void;
+  onContact?: (franchiseId: string) => void;
+  onViewDetails?: (franchiseId: string) => void;
+  onMoreLikeThis?: (franchiseId: string) => void;
+  isSaved?: boolean;
+  className?: string;
+}
+
+export function FranchiseCard({
+  franchise,
+  onSave,
+  onShare,
+  onContact,
+  onViewDetails,
+  onMoreLikeThis,
+  isSaved = false,
+  className,
+}: FranchiseCardProps) {
+  const formatInvestment = (amount: number) => {
+    if (amount >= 10000000) return `₹${(amount / 10000000).toFixed(1)}Cr`;
+    if (amount >= 1000000) return `₹${(amount / 1000000).toFixed(1)}Cr`;
+    if (amount >= 100000) return `₹${(amount / 100000).toFixed(1)}L`;
+    return `₹${amount.toLocaleString()}`;
+  };
+
+  const getROIColor = (roi: number) => {
+    if (roi >= 50) return "text-green-600";
+    if (roi >= 30) return "text-yellow-600";
+    return "text-red-600";
+  };
+
+  const firstYearROI = franchise.roiProjections[0]?.roi || 0;
+
+  return (
+    <Card
+      className={`group hover:shadow-lg transition-shadow duration-200 ${className}`}
+    >
+      <CardContent className="p-0">
+        {/* Header with Logo and Brand */}
+        <div className="relative">
+          <div className="aspect-video bg-gradient-to-br from-blue-50 to-indigo-100 rounded-t-lg overflow-hidden">
+            {franchise.images && franchise.images.length > 0 ? (
+              <img
+                src={franchise.images[0]}
+                alt={franchise.brandName}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center">
+                <span className="text-3xl font-bold text-purple-600">
+                  {franchise.brandName.charAt(0)}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Logo overlay */}
+          <Avatar className="absolute -bottom-6 left-4 h-12 w-12 border-2 border-background">
+            <AvatarImage src={franchise.logo} alt={franchise.brandName} />
+
+            <AvatarFallback className="bg-primary text-primary-foreground">
+              {franchise.brandName.charAt(0)}
+            </AvatarFallback>
+          </Avatar>
+
+          {/* Save button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm hover:bg-background"
+            onClick={(e) => {
+              e.stopPropagation();
+              onSave?.(franchise.id);
+            }}
+          >
+            <Heart
+              className={`h-4 w-4 ${isSaved ? "fill-red-500 text-red-500" : ""}`}
+            />
+          </Button>
+
+          {/* Status badges */}
+          <div className="absolute top-2 left-2 flex flex-col gap-1">
+            {franchise.featured && (
+              <Badge className="bg-yellow-500 hover:bg-yellow-600 text-white">
+                <Award className="h-3 w-3 mr-1" />
+                Featured
+              </Badge>
+            )}
+            {franchise.trending && (
+              <Badge className="bg-orange-500 hover:bg-orange-600 text-white">
+                <TrendingUp className="h-3 w-3 mr-1" />
+                Trending
+              </Badge>
+            )}
+            {franchise.badges.includes("Hot Deal") && (
+              <Badge className="bg-red-500 hover:bg-red-600 text-white animate-pulse">
+                🔥 Hot Deal
+              </Badge>
+            )}
+            {franchise.badges.includes("New") && (
+              <Badge className="bg-green-500 hover:bg-green-600 text-white">
+                ✨ New
+              </Badge>
+            )}
+            {firstYearROI >= 50 && (
+              <Badge className="bg-emerald-500 hover:bg-emerald-600 text-white">
+                📈 High ROI
+              </Badge>
+            )}
+          </div>
+        </div>
+
+        <div className="p-4 pt-8">
+          {/* Brand Name and Industry */}
+          <div className="space-y-2 mb-3">
+            <h3 className="font-semibold text-lg leading-tight line-clamp-1">
+              {franchise.brandName}
+            </h3>
+            <div className="flex items-center justify-between">
+              <Badge variant="secondary">{franchise.industry}</Badge>
+              <div className="flex items-center text-sm text-muted-foreground">
+                <Building className="h-4 w-4 mr-1" />
+
+                <span>{franchise.outlets} outlets</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Investment and ROI */}
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <div className="text-sm text-muted-foreground">Investment</div>
+              <div className="font-semibold text-lg">
+                {franchise.investmentRequired}
+              </div>
+            </div>
+            <div>
+              <div className="text-sm text-muted-foreground">Expected ROI</div>
+              <div
+                className={`font-semibold text-lg ${getROIColor(firstYearROI)}`}
+              >
+                {firstYearROI}% (Y1)
+              </div>
+            </div>
+          </div>
+
+          {/* Franchise Details */}
+          <div className="space-y-2 mb-4">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Franchise Fee:</span>
+              <span className="font-medium">
+                {formatInvestment(franchise.franchiseFee)}
+              </span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Royalty:</span>
+              <span className="font-medium flex items-center">
+                <Percent className="h-3 w-3 mr-1" />
+                {franchise.royaltyPercentage}%
+              </span>
+            </div>
+          </div>
+
+          {/* Verification Badges */}
+          <div className="flex flex-wrap gap-1 mb-4">
+            {franchise.badges.map((badge) => (
+              <Badge
+                key={badge}
+                variant={badge === "Verified" ? "default" : "secondary"}
+                className={`text-xs ${
+                  badge === "Verified" ? "bg-green-500 hover:bg-green-600" : ""
+                }`}
+              >
+                {badge === "Verified" && <Shield className="h-3 w-3 mr-1" />}
+                {badge}
+              </Badge>
+            ))}
+          </div>
+
+          {/* Description */}
+          <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+            {franchise.description}
+          </p>
+
+          {/* Key Features */}
+          {franchise.competitiveEdge &&
+            franchise.competitiveEdge.length > 0 && (
+              <div className="mb-4">
+                <div className="text-sm font-medium mb-2">Competitive Edge</div>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  {franchise.competitiveEdge.slice(0, 2).map((edge, index) => (
+                    <li key={index} className="flex items-start">
+                      <Star className="h-3 w-3 mr-2 mt-0.5 flex-shrink-0 text-yellow-500" />
+
+                      <span className="line-clamp-1">{edge}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+          {/* Additional Features */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            {franchise.multiUnit && (
+              <Badge variant="outline" className="text-xs">
+                <Users2 className="h-3 w-3 mr-1" />
+                Multi-Unit
+              </Badge>
+            )}
+            {franchise.financing && (
+              <Badge variant="outline" className="text-xs">
+                Financing Available
+              </Badge>
+            )}
+          </div>
+
+          {/* Territories */}
+          {franchise.territories && franchise.territories.length > 0 && (
+            <div className="mb-4">
+              <div className="text-sm font-medium mb-1">
+                Available Territories
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {franchise.territories.slice(0, 3).map((territory, index) => (
+                  <Badge key={index} variant="outline" className="text-xs">
+                    <MapPin className="h-3 w-3 mr-1" />
+
+                    {territory}
+                  </Badge>
+                ))}
+                {franchise.territories.length > 3 && (
+                  <Badge variant="outline" className="text-xs">
+                    +{franchise.territories.length - 3} more
+                  </Badge>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </CardContent>
+
+      <CardFooter className="p-4 pt-0">
+        <div className="w-full space-y-3">
+          <Separator />
+
+          {/* Contact Info */}
+          <div className="text-sm text-muted-foreground">
+            Contact: {franchise.contact.franchiseDeveloper}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onContact?.(franchise.id);
+                }}
+              >
+                <Phone className="h-4 w-4 mr-2" />
+                Contact
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onShare?.(franchise.id);
+                }}
+              >
+                <Share2 className="h-4 w-4" />
+              </Button>
+              <Button
+                size="sm"
+                className="flex-1"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onViewDetails?.(franchise.id);
+                }}
+              >
+                View Details
+              </Button>
+            </div>
+
+            {/* AI-Powered More Like This */}
+            {onMoreLikeThis && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full text-xs text-muted-foreground hover:text-primary"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onMoreLikeThis?.(franchise.id);
+                }}
+              >
+                🤖 More Like This (AI)
+              </Button>
+            )}
+          </div>
+        </div>
+      </CardFooter>
+    </Card>
+  );
+}
