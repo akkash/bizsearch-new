@@ -5,43 +5,47 @@ export interface Business {
   location: string;
   city: string;
   state: string;
-  priceRange: string;
+  priceRange?: string;
   price: number;
-  revenueRange: string;
-  revenue: number;
+  revenueRange?: string;
+  revenue?: number;
   establishedYear: number;
   employees: number;
-  businessType: string;
+  businessType?: string;
   description: string;
-  highlights: string[];
-  badges: string[];
-  images: string[];
+  highlights?: string[] | any;
+  badges?: string[] | any;
+  images?: string[] | any;
   logo?: string;
-  financials: {
+  // Database fields (snake_case)
+  broker_name?: string;
+  // Dummy data fields
+  financials?: {
     year: number;
     revenue: number;
     profit: number;
     expenses: number;
   }[];
-  assets: string[];
-  operations: {
+  assets?: string[];
+  operations?: {
     hours: string;
     daysOpen: number;
     seasonality: string;
   };
-  verification: {
+  verification?: {
     verified: boolean;
     documentsVerified: boolean;
     identityVerified: boolean;
   };
-  contact: {
+  contact?: {
     brokerName?: string;
     phone: string;
     email: string;
   };
-  featured: boolean;
-  trending: boolean;
-  createdAt: string;
+  featured?: boolean;
+  trending?: boolean;
+  createdAt?: string;
+  created_at?: string;
 }
 
 export const businessesData: Business[] = [

@@ -1,9 +1,7 @@
-import React from "react";
 import {
   Heart,
   Share2,
   Phone,
-  Mail,
   MapPin,
   Calendar,
   Users,
@@ -157,7 +155,7 @@ export function BusinessCard({
             <div>
               <div className="text-sm text-muted-foreground">Revenue</div>
               <div className="font-semibold text-lg">
-                {formatRevenue(business.revenue)}
+                {business.revenue ? formatRevenue(business.revenue) : 'N/A'}
               </div>
             </div>
           </div>
@@ -178,7 +176,7 @@ export function BusinessCard({
 
           {/* Verification Badges */}
           <div className="flex flex-wrap gap-1 mb-4">
-            {business.badges.map((badge) => (
+            {business.badges && business.badges.map((badge: any) => (
               <Badge
                 key={badge}
                 variant={badge === "Verified" ? "default" : "secondary"}
@@ -202,7 +200,7 @@ export function BusinessCard({
             <div className="mb-4">
               <div className="text-sm font-medium mb-2">Key Highlights</div>
               <ul className="text-sm text-muted-foreground space-y-1">
-                {business.highlights.slice(0, 2).map((highlight, index) => (
+                {business.highlights.slice(0, 2).map((highlight: any, index: number) => (
                   <li key={index} className="flex items-start">
                     <Star className="h-3 w-3 mr-2 mt-0.5 flex-shrink-0 text-yellow-500" />
 
@@ -220,9 +218,9 @@ export function BusinessCard({
           <Separator />
 
           {/* Contact Info */}
-          {business.contact.brokerName && (
+          {business.broker_name && (
             <div className="text-sm text-muted-foreground">
-              Contact: {business.contact.brokerName}
+              Contact: {business.broker_name}
             </div>
           )}
 

@@ -1,4 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { Toaster } from "@/components/ui/sonner";
 import { MainLayout } from "@/polymet/layouts/main-layout";
 import { HomePage } from "@/polymet/pages/home";
 import { BusinessListings } from "@/polymet/pages/business-listings";
@@ -11,13 +13,20 @@ import { ProfilePage } from "@/polymet/pages/profile";
 import { ProfileEditPage } from "@/polymet/pages/profile-edit";
 import { ProfileDocumentsPage } from "@/polymet/pages/profile-documents";
 import { ProfileSettingsPage } from "@/polymet/pages/profile-settings";
+import { ProfileSettingsEnhancedPage } from "@/polymet/pages/profile-settings-enhanced";
 import { AddBusinessListingPage } from "@/polymet/pages/add-business-listing";
 import { AddFranchiseListingPage } from "@/polymet/pages/add-franchise-listing";
+import { LoginPage } from "@/pages/auth/login";
+import { SignUpPage } from "@/pages/auth/signup";
+import { ForgotPasswordPage } from "@/pages/auth/forgot-password";
+import { ResetPasswordPage } from "@/pages/auth/reset-password";
+import { ProtectedRoute } from "@/components/auth/protected-route";
 
 export default function BizSearchApp() {
   return (
-    <Router>
-      <Routes>
+    <AuthProvider>
+      <Router>
+        <Routes>
         {/* Homepage */}
         <Route
           path="/"
@@ -88,40 +97,66 @@ export default function BizSearchApp() {
           }
         />
 
-        {/* Profile Routes */}
+        {/* Authentication Routes */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignUpPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+
+        {/* Profile Routes - Protected */}
         <Route
           path="/profile"
           element={
-            <MainLayout>
-              <ProfilePage />
-            </MainLayout>
+            <ProtectedRoute>
+              <MainLayout>
+                <ProfilePage />
+              </MainLayout>
+            </ProtectedRoute>
           }
         />
 
         <Route
           path="/profile/edit"
           element={
-            <MainLayout>
-              <ProfileEditPage />
-            </MainLayout>
+            <ProtectedRoute>
+              <MainLayout>
+                <ProfileEditPage />
+              </MainLayout>
+            </ProtectedRoute>
           }
         />
 
         <Route
           path="/profile/documents"
           element={
-            <MainLayout>
-              <ProfileDocumentsPage />
-            </MainLayout>
+            <ProtectedRoute>
+              <MainLayout>
+                <ProfileDocumentsPage />
+              </MainLayout>
+            </ProtectedRoute>
           }
         />
 
         <Route
           path="/profile/settings"
           element={
-            <MainLayout>
-              <ProfileSettingsPage />
-            </MainLayout>
+            <ProtectedRoute>
+              <MainLayout>
+                <ProfileSettingsEnhancedPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        
+        {/* Legacy settings page - can be removed if not needed */}
+        <Route
+          path="/profile/settings/legacy"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <ProfileSettingsPage />
+              </MainLayout>
+            </ProtectedRoute>
           }
         />
 
@@ -164,7 +199,9 @@ export default function BizSearchApp() {
             </MainLayout>
           }
         />
-      </Routes>
-    </Router>
+        </Routes>
+        <Toaster />
+      </Router>
+    </AuthProvider>
   );
 }

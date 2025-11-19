@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { businessesData } from "@/polymet/data/businesses-data";
+import { BusinessService } from "@/lib/business-service";
+import type { Business } from "@/polymet/data/businesses-data";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,7 +12,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,15 +21,12 @@ import {
   HeartIcon,
   ShareIcon,
   PhoneIcon,
-  MailIcon,
   MapPinIcon,
   CalendarIcon,
   UsersIcon,
   TrendingUpIcon,
   IndianRupeeIcon,
-  BuildingIcon,
   FileTextIcon,
-  ImageIcon,
   ShieldCheckIcon,
   AlertTriangleIcon,
   DownloadIcon,
@@ -42,12 +39,47 @@ interface BusinessDetailProps {
 
 export function BusinessDetail({ className }: BusinessDetailProps) {
   const { id } = useParams();
+  const [business, setBusiness] = useState<Business | null>(null);
+  const [loading, setLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
   const [showContactForm, setShowContactForm] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
 
-  // Find business by ID (in real app, this would be an API call)
-  const business = businessesData.find((b) => b.id === id) || businessesData[0];
+  // Fetch business from Supabase
+  useEffect(() => {
+    const fetchBusiness = async () => {
+      if (!id) return;
+      setLoading(true);
+      const result = await BusinessService.getBusinessById(id);
+      if (result && !Array.isArray(result)) {
+        setBusiness(result as Business);
+      }
+      setLoading(false);
+    };
+    fetchBusiness();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+          <p className="text-muted-foreground">Loading business details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!business) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-2">Business Not Found</h2>
+          <p className="text-muted-foreground">The business you're looking for doesn't exist.</p>
+        </div>
+      </div>
+    );
+  }
 
   const formatCurrency = (amount: number) => {
     if (amount >= 10000000) return `₹${(amount / 10000000).toFixed(1)} Cr`;
@@ -58,21 +90,21 @@ export function BusinessDetail({ className }: BusinessDetailProps) {
   const financialData = business.financials || [
     {
       year: 2023,
-      revenue: business.revenue,
-      profit: business.revenue * 0.15,
-      expenses: business.revenue * 0.85,
+      revenue: business.revenue ?? 0,
+      profit: (business.revenue ?? 0) * 0.15,
+      expenses: (business.revenue ?? 0) * 0.85,
     },
     {
       year: 2022,
-      revenue: business.revenue * 0.9,
-      profit: business.revenue * 0.9 * 0.12,
-      expenses: business.revenue * 0.9 * 0.88,
+      revenue: (business.revenue ?? 0) * 0.9,
+      profit: (business.revenue ?? 0) * 0.9 * 0.12,
+      expenses: (business.revenue ?? 0) * 0.9 * 0.88,
     },
     {
       year: 2021,
-      revenue: business.revenue * 0.8,
-      profit: business.revenue * 0.8 * 0.1,
-      expenses: business.revenue * 0.8 * 0.9,
+      revenue: (business.revenue ?? 0) * 0.8,
+      profit: (business.revenue ?? 0) * 0.8 * 0.1,
+      expenses: (business.revenue ?? 0) * 0.8 * 0.9,
     },
   ];
 
@@ -214,7 +246,7 @@ export function BusinessDetail({ className }: BusinessDetailProps) {
                 </div>
                 <div className="p-4">
                   <div className="flex gap-2 overflow-x-auto">
-                    {images.map((image, index) => (
+                    {images.map((image: any, index: number) => (
                       <button
                         key={index}
                         onClick={() => setSelectedImage(index)}
@@ -280,7 +312,7 @@ export function BusinessDetail({ className }: BusinessDetailProps) {
                           Annual Revenue
                         </div>
                         <div className="text-lg font-bold">
-                          {formatCurrency(business.revenue)}
+                          {business.revenue ? formatCurrency(business.revenue) : 'N/A'}
                         </div>
                       </div>
                       <div className="text-center">
@@ -346,19 +378,16 @@ export function BusinessDetail({ className }: BusinessDetailProps) {
                             <tr key={year.year} className="border-b">
                               <td className="py-2 font-medium">{year.year}</td>
                               <td className="text-right py-2">
-                                {formatCurrency(year.revenue)}
+                                {year.revenue ? formatCurrency(year.revenue) : 'N/A'}
                               </td>
                               <td className="text-right py-2 text-green-600">
-                                {formatCurrency(year.profit)}
+                                {year.profit ? formatCurrency(year.profit) : 'N/A'}
                               </td>
                               <td className="text-right py-2">
-                                {formatCurrency(year.expenses)}
+                                {year.expenses ? formatCurrency(year.expenses) : 'N/A'}
                               </td>
                               <td className="text-right py-2">
-                                {((year.profit / year.revenue) * 100).toFixed(
-                                  1
-                                )}
-                                %
+                                {year.revenue ? ((year.profit / year.revenue) * 100).toFixed(1) : '0.0'}%
                               </td>
                             </tr>
                           ))}
@@ -575,7 +604,7 @@ export function BusinessDetail({ className }: BusinessDetailProps) {
                   <div className="flex justify-between">
                     <span className="text-sm">Annual Revenue</span>
                     <span className="text-sm font-medium">
-                      {formatCurrency(business.revenue)}
+                      {business.revenue ? formatCurrency(business.revenue) : 'N/A'}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -603,7 +632,7 @@ export function BusinessDetail({ className }: BusinessDetailProps) {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  {business.badges.map((badge, index) => (
+                  {business.badges && business.badges.map((badge: any, index: number) => (
                     <Badge
                       key={index}
                       variant="secondary"

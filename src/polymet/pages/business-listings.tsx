@@ -1,9 +1,10 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { BusinessCard } from "@/polymet/components/business-card";
 import { Filters, FilterState } from "@/polymet/components/filters";
 import { SearchBar } from "@/polymet/components/search-bar";
-import { businessesData, Business } from "@/polymet/data/businesses-data";
+import { BusinessService } from "@/lib/business-service";
+import type { Business } from "@/polymet/data/businesses-data";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -41,6 +42,8 @@ type SortOption =
 
 export function BusinessListings({ className }: BusinessListingsProps) {
   const navigate = useNavigate();
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState<FilterState | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
@@ -52,9 +55,31 @@ export function BusinessListings({ className }: BusinessListingsProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 
+  // Fetch businesses from Supabase
+  useEffect(() => {
+    const fetchBusinesses = async () => {
+      console.log('📥 BusinessListings: Starting fetch...');
+      setLoading(true);
+      try {
+        const result = await BusinessService.getBusinesses({});
+        console.log('📦 BusinessListings: Received result:', result);
+        if (result && Array.isArray(result)) {
+          setBusinesses(result as Business[]);
+          console.log('✅ BusinessListings: Set', result.length, 'businesses');
+        }
+      } catch (error) {
+        console.error('❌ BusinessListings: Error fetching businesses:', error);
+      } finally {
+        setLoading(false);
+        console.log('🏁 BusinessListings: Loading complete');
+      }
+    };
+    fetchBusinesses();
+  }, []);
+
   // Filter and search logic
   const filteredBusinesses = useMemo(() => {
-    let filtered = [...businessesData];
+    let filtered = [...businesses];
 
     // Apply search query
     if (searchQuery.trim()) {
@@ -97,7 +122,7 @@ export function BusinessListings({ className }: BusinessListingsProps) {
       // Revenue range filter
       if (filters.revenueRange[0] > 0 || filters.revenueRange[1] < 50000000) {
         filtered = filtered.filter((business) => {
-          const revenue = business.annualRevenue;
+          const revenue = business.revenue || 0;
           return (
             revenue >= filters.revenueRange[0] &&
             revenue <= filters.revenueRange[1]
@@ -169,7 +194,7 @@ export function BusinessListings({ className }: BusinessListingsProps) {
         filtered.sort((a, b) => b.price - a.price);
         break;
       case "revenue-high":
-        filtered.sort((a, b) => b.annualRevenue - a.annualRevenue);
+        filtered.sort((a, b) => (b.revenue || 0) - (a.revenue || 0));
         break;
       case "newest":
         filtered.sort((a, b) => b.establishedYear - a.establishedYear);
@@ -183,7 +208,7 @@ export function BusinessListings({ className }: BusinessListingsProps) {
     }
 
     return filtered;
-  }, [searchQuery, filters, sortBy]);
+  }, [searchQuery, filters, sortBy, businesses]);
 
   // Pagination
   const totalPages = Math.ceil(filteredBusinesses.length / itemsPerPage);
@@ -364,7 +389,16 @@ export function BusinessListings({ className }: BusinessListingsProps) {
             )}
 
             {/* Results */}
-            {viewMode === "grid" && (
+            {loading ? (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+                    <p className="text-muted-foreground">Loading businesses...</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : viewMode === "grid" && (
               <>
                 {/* Mobile Horizontal Scroll */}
                 <div className="md:hidden">

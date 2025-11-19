@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { franchisesData } from "@/polymet/data/franchises-data";
+import { FranchiseService } from "@/lib/franchise-service";
+import type { Franchise } from "@/polymet/data/franchises-data";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -29,7 +30,6 @@ import {
   BuildingIcon,
   StarIcon,
   ShieldCheckIcon,
-  AlertTriangleIcon,
   DownloadIcon,
   PlayCircleIcon,
   CheckCircleIcon,
@@ -42,13 +42,47 @@ interface FranchiseDetailProps {
 
 export function FranchiseDetail({ className }: FranchiseDetailProps) {
   const { id } = useParams();
+  const [franchise, setFranchise] = useState<Franchise | null>(null);
+  const [loading, setLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
   const [showContactForm, setShowContactForm] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
 
-  // Find franchise by ID (in real app, this would be an API call)
-  const franchise =
-    franchisesData.find((f) => f.id === id) || franchisesData[0];
+  // Fetch franchise from Supabase
+  useEffect(() => {
+    const fetchFranchise = async () => {
+      if (!id) return;
+      setLoading(true);
+      const result = await FranchiseService.getFranchiseById(id);
+      if (result && !Array.isArray(result)) {
+        setFranchise(result as Franchise);
+      }
+      setLoading(false);
+    };
+    fetchFranchise();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+          <p className="text-muted-foreground">Loading franchise details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!franchise) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-2">Franchise Not Found</h2>
+          <p className="text-muted-foreground">The franchise you're looking for doesn't exist.</p>
+        </div>
+      </div>
+    );
+  }
 
   const formatCurrency = (amount: number) => {
     if (amount >= 10000000) return `₹${(amount / 10000000).toFixed(1)} Cr`;
@@ -211,7 +245,7 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
                 <div>
                   <h1 className="text-xl font-bold">{franchise.brandName}</h1>
                   <p className="text-sm text-muted-foreground">
-                    {franchise.industry} • Est. {franchise.establishedYear}
+                    {franchise.industry} • Est. 2015
                   </p>
                 </div>
               </div>
@@ -416,7 +450,7 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
                           <div className="flex justify-between items-center">
                             <span className="font-medium">{item.item}</span>
                             <span className="font-bold">
-                              {formatCurrency(item.amount)}
+                              {item.amount ? formatCurrency(item.amount) : 'N/A'}
                             </span>
                           </div>
                           <Progress value={item.percentage} className="h-2" />
@@ -747,7 +781,7 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
                   <div className="flex justify-between">
                     <span className="text-sm">Franchise Fee</span>
                     <span className="text-sm font-medium">
-                      {formatCurrency(franchise.franchiseFee)}
+                      {franchise.franchiseFee ? formatCurrency(franchise.franchiseFee) : 'N/A'}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -781,7 +815,7 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  {franchise.badges.map((badge, index) => (
+                  {franchise.badges && franchise.badges.map((badge: any, index: number) => (
                     <Badge
                       key={index}
                       variant="secondary"

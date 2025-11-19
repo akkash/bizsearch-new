@@ -42,7 +42,8 @@ export function FranchiseCard({
   isSaved = false,
   className,
 }: FranchiseCardProps) {
-  const formatInvestment = (amount: number) => {
+  const formatInvestment = (amount?: number | null) => {
+    if (!amount || amount === 0) return '₹0';
     if (amount >= 10000000) return `₹${(amount / 10000000).toFixed(1)}Cr`;
     if (amount >= 1000000) return `₹${(amount / 1000000).toFixed(1)}Cr`;
     if (amount >= 100000) return `₹${(amount / 100000).toFixed(1)}L`;
@@ -55,7 +56,10 @@ export function FranchiseCard({
     return "text-red-600";
   };
 
-  const firstYearROI = franchise.roiProjections[0]?.roi || 0;
+  const firstYearROI = franchise.expected_roi_percentage || 0;
+  const brandName = franchise.brand_name || franchise.brandName || 'Franchise';
+  const logoUrl = franchise.logo_url || franchise.logo;
+  const totalOutlets = franchise.total_outlets || franchise.outlets || 0;
 
   return (
     <Card
@@ -67,14 +71,14 @@ export function FranchiseCard({
           <div className="aspect-video bg-gradient-to-br from-blue-50 to-indigo-100 rounded-t-lg overflow-hidden">
             {franchise.images && franchise.images.length > 0 ? (
               <img
-                src={franchise.images[0]}
-                alt={franchise.brandName}
+                src={typeof franchise.images === 'string' ? franchise.images : franchise.images[0]}
+                alt={brandName}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
               />
             ) : (
               <div className="w-full h-full bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center">
                 <span className="text-3xl font-bold text-purple-600">
-                  {franchise.brandName.charAt(0)}
+                  {brandName.charAt(0)}
                 </span>
               </div>
             )}
@@ -82,10 +86,10 @@ export function FranchiseCard({
 
           {/* Logo overlay */}
           <Avatar className="absolute -bottom-6 left-4 h-12 w-12 border-2 border-background">
-            <AvatarImage src={franchise.logo} alt={franchise.brandName} />
+            <AvatarImage src={logoUrl} alt={brandName} />
 
             <AvatarFallback className="bg-primary text-primary-foreground">
-              {franchise.brandName.charAt(0)}
+              {brandName.charAt(0)}
             </AvatarFallback>
           </Avatar>
 
@@ -118,12 +122,12 @@ export function FranchiseCard({
                 Trending
               </Badge>
             )}
-            {franchise.badges.includes("Hot Deal") && (
+            {franchise.badges && franchise.badges.includes && franchise.badges.includes("Hot Deal") && (
               <Badge className="bg-red-500 hover:bg-red-600 text-white animate-pulse">
                 🔥 Hot Deal
               </Badge>
             )}
-            {franchise.badges.includes("New") && (
+            {franchise.badges && franchise.badges.includes && franchise.badges.includes("New") && (
               <Badge className="bg-green-500 hover:bg-green-600 text-white">
                 ✨ New
               </Badge>
@@ -140,14 +144,14 @@ export function FranchiseCard({
           {/* Brand Name and Industry */}
           <div className="space-y-2 mb-3">
             <h3 className="font-semibold text-lg leading-tight line-clamp-1">
-              {franchise.brandName}
+              {brandName}
             </h3>
             <div className="flex items-center justify-between">
               <Badge variant="secondary">{franchise.industry}</Badge>
               <div className="flex items-center text-sm text-muted-foreground">
                 <Building className="h-4 w-4 mr-1" />
 
-                <span>{franchise.outlets} outlets</span>
+                <span>{totalOutlets} outlets</span>
               </div>
             </div>
           </div>
@@ -157,7 +161,7 @@ export function FranchiseCard({
             <div>
               <div className="text-sm text-muted-foreground">Investment</div>
               <div className="font-semibold text-lg">
-                {franchise.investmentRequired}
+                ₹{formatInvestment(franchise.total_investment_min || 0)} - ₹{formatInvestment(franchise.total_investment_max || 0)}
               </div>
             </div>
             <div>
@@ -175,21 +179,21 @@ export function FranchiseCard({
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Franchise Fee:</span>
               <span className="font-medium">
-                {formatInvestment(franchise.franchiseFee)}
+                {formatInvestment(franchise.franchise_fee)}
               </span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Royalty:</span>
               <span className="font-medium flex items-center">
                 <Percent className="h-3 w-3 mr-1" />
-                {franchise.royaltyPercentage}%
+                {franchise.royalty_percentage || 0}%
               </span>
             </div>
           </div>
 
           {/* Verification Badges */}
           <div className="flex flex-wrap gap-1 mb-4">
-            {franchise.badges.map((badge) => (
+            {franchise.badges && Array.isArray(franchise.badges) && franchise.badges.map((badge) => (
               <Badge
                 key={badge}
                 variant={badge === "Verified" ? "default" : "secondary"}
@@ -209,16 +213,16 @@ export function FranchiseCard({
           </p>
 
           {/* Key Features */}
-          {franchise.competitiveEdge &&
-            franchise.competitiveEdge.length > 0 && (
+          {franchise.highlights &&
+            franchise.highlights.length > 0 && (
               <div className="mb-4">
-                <div className="text-sm font-medium mb-2">Competitive Edge</div>
+                <div className="text-sm font-medium mb-2">Key Highlights</div>
                 <ul className="text-sm text-muted-foreground space-y-1">
-                  {franchise.competitiveEdge.slice(0, 2).map((edge, index) => (
+                  {franchise.highlights.slice(0, 2).map((highlight: any, index: number) => (
                     <li key={index} className="flex items-start">
                       <Star className="h-3 w-3 mr-2 mt-0.5 flex-shrink-0 text-yellow-500" />
 
-                      <span className="line-clamp-1">{edge}</span>
+                      <span className="line-clamp-1">{highlight}</span>
                     </li>
                   ))}
                 </ul>
@@ -227,13 +231,13 @@ export function FranchiseCard({
 
           {/* Additional Features */}
           <div className="flex flex-wrap gap-2 mb-4">
-            {franchise.multiUnit && (
+            {franchise.support_provided && franchise.support_provided.length > 0 && (
               <Badge variant="outline" className="text-xs">
                 <Users2 className="h-3 w-3 mr-1" />
-                Multi-Unit
+                Training & Support
               </Badge>
             )}
-            {franchise.financing && (
+            {franchise.marketing_support && (
               <Badge variant="outline" className="text-xs">
                 Financing Available
               </Badge>
@@ -270,9 +274,11 @@ export function FranchiseCard({
           <Separator />
 
           {/* Contact Info */}
-          <div className="text-sm text-muted-foreground">
-            Contact: {franchise.contact.franchiseDeveloper}
-          </div>
+          {franchise.contact?.franchiseDeveloper && (
+            <div className="text-sm text-muted-foreground">
+              Contact: {franchise.contact.franchiseDeveloper}
+            </div>
+          )}
 
           {/* Action Buttons */}
           <div className="space-y-2">

@@ -1,19 +1,28 @@
 export interface Franchise {
   id: string;
-  brandName: string;
+  // Support both camelCase and snake_case
+  brandName?: string;
+  brand_name?: string;
   industry: string;
-  investmentRequired: string;
-  investmentMin: number;
-  investmentMax: number;
-  franchiseFee: number;
-  royaltyPercentage: number;
-  outlets: number;
-  territories: string[];
+  investmentRequired?: string;
+  investmentMin?: number;
+  investmentMax?: number;
+  total_investment_min?: number;
+  total_investment_max?: number;
+  franchiseFee?: number;
+  franchise_fee?: number;
+  royaltyPercentage?: number;
+  royalty_percentage?: number;
+  outlets?: number;
+  total_outlets?: number;
+  territories?: string[];
   description: string;
-  brandStory: string;
-  businessModel: string;
-  competitiveEdge: string[];
-  investmentBreakdown: {
+  brandStory?: string;
+  brand_story?: string;
+  businessModel?: string;
+  competitiveEdge?: string[];
+  highlights?: string[] | any;
+  investmentBreakdown?: {
     franchiseFee: number;
     equipment: number;
     inventory: number;
@@ -21,43 +30,49 @@ export interface Franchise {
     workingCapital: number;
     other: number;
   };
-  support: {
+  support?: {
     training: string;
     marketing: string;
     operations: string;
     technology: string;
   };
-  roiProjections: {
+  support_provided?: string[] | any;
+  marketing_support?: boolean;
+  roiProjections?: {
     year: number;
     revenue: number;
     profit: number;
     roi: number;
   }[];
-  requirements: {
+  expected_roi_percentage?: number;
+  requirements?: {
     spaceRequired: string;
     experience: string;
     investment: string;
     location: string;
   };
-  badges: string[];
-  images: string[];
-  logo: string;
-  verification: {
+  badges?: string[] | any;
+  images?: string[] | any;
+  logo?: string;
+  logo_url?: string;
+  verification?: {
     verified: boolean;
     documentsVerified: boolean;
     brandVerified: boolean;
   };
-  contact: {
+  verified?: boolean;
+  contact?: {
     franchiseDeveloper: string;
     phone: string;
     email: string;
     website: string;
   };
-  featured: boolean;
-  trending: boolean;
-  multiUnit: boolean;
-  financing: boolean;
-  createdAt: string;
+  featured?: boolean;
+  trending?: boolean;
+  multiUnit?: boolean;
+  financing?: boolean;
+  createdAt?: string;
+  created_at?: string;
 }
 
 export const franchisesData: Franchise[] = [
@@ -455,7 +470,7 @@ export const getFranchisesByInvestment = (
 ): Franchise[] => {
   return franchisesData.filter(
     (franchise) =>
-      franchise.investmentMin >= minInvestment &&
-      franchise.investmentMax <= maxInvestment
+      (franchise.investmentMin ?? 0) >= minInvestment &&
+      (franchise.investmentMax ?? 0) <= maxInvestment
   );
 };

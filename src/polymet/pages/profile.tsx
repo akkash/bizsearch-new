@@ -1,5 +1,7 @@
-import React, { useState } from "react";
-import { useParams } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { ProfileService } from "@/lib/profile-service";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -32,13 +34,15 @@ import { ActivityTimeline } from "@/polymet/components/activity-timeline";
 import { TeamManagement } from "@/polymet/components/team-management";
 import { BusinessCard } from "@/polymet/components/business-card";
 import { FranchiseCard } from "@/polymet/components/franchise-card";
-import {
-  getCurrentUserProfile,
-  getProfileById,
-  type UserProfile,
-} from "@/polymet/data/profile-data";
+import type { Database } from "@/types/supabase";
+import type { UserProfile } from "@/polymet/data/profile-data";
+import { adaptSupabaseProfileToUserProfile } from "@/lib/profile-adapter";
 import { businessesData } from "@/polymet/data/businesses-data";
 import { franchisesData } from "@/polymet/data/franchises-data";
+import type { Business } from "@/polymet/data/businesses-data";
+import type { Franchise } from "@/polymet/data/franchises-data";
+
+type SupabaseProfile = Database['public']['Tables']['profiles']['Row'];
 
 interface ProfilePageProps {
   className?: string;
@@ -46,11 +50,51 @@ interface ProfilePageProps {
 
 export function ProfilePage({ className = "" }: ProfilePageProps) {
   const { userId } = useParams();
+  const navigate = useNavigate();
+  const { user, profile: currentUserProfile, loading: authLoading } = useAuth();
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
   const [activeRole, setActiveRole] = useState<UserProfile["role"]>("seller");
 
-  // Get profile data (current user or specific user)
-  const profile = userId ? getProfileById(userId) : getCurrentUserProfile();
-  const isOwnProfile = !userId || userId === getCurrentUserProfile().id;
+  const isOwnProfile = !userId || userId === user?.id;
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (authLoading) return;
+
+      try {
+        if (userId) {
+          // Load specific user profile
+          const data = await ProfileService.getProfile(userId);
+          const adaptedProfile = adaptSupabaseProfileToUserProfile(data);
+          setProfile(adaptedProfile);
+        } else {
+          // Load current user profile
+          if (currentUserProfile) {
+            const adaptedProfile = adaptSupabaseProfileToUserProfile(currentUserProfile);
+            setProfile(adaptedProfile);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading profile:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProfile();
+  }, [userId, currentUserProfile, authLoading]);
+
+  if (loading || authLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!profile) {
     return (
@@ -60,14 +104,19 @@ export function ProfilePage({ className = "" }: ProfilePageProps) {
           <p className="text-muted-foreground">
             The requested profile could not be found.
           </p>
+          <Button
+            onClick={() => navigate('/')}
+            className="mt-4"
+          >
+            Go Home
+          </Button>
         </div>
       </div>
     );
   }
 
   const handleEdit = () => {
-    console.log("Edit profile");
-    // Navigate to edit page
+    navigate('/profile/edit');
   };
 
   const handleShare = () => {
@@ -77,14 +126,16 @@ export function ProfilePage({ className = "" }: ProfilePageProps) {
 
   const handleMessage = () => {
     console.log("Send message to", profile.displayName);
+    // TODO: Implement messaging
   };
 
   // Get user's listings based on role
-  const getUserListings = () => {
+  const getUserListings = (): Business[] | Franchise[] => {
+    // TODO: Fetch actual user listings from Supabase
     if (profile.role === "seller") {
-      return businessesData.filter((b) => b.id === "b1" || b.id === "b2"); // Mock user's businesses
+      return businessesData.filter((b) => b.id === "biz-001" || b.id === "biz-002");
     } else if (profile.role === "franchisor") {
-      return franchisesData.filter((f) => f.id === "f1" || f.id === "f2"); // Mock user's franchises
+      return franchisesData.filter((f) => f.id === "fran-001" || f.id === "fran-002");
     }
     return [];
   };
@@ -109,7 +160,7 @@ export function ProfilePage({ className = "" }: ProfilePageProps) {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div className="text-center p-4 bg-muted/30 rounded-lg">
                     <div className="text-2xl font-bold text-primary">
-                      {sellerProfile.foundedYear}
+                      {sellerProfile.yearEstablished || 'N/A'}
                     </div>
                     <div className="text-sm text-muted-foreground">Founded</div>
                   </div>
@@ -131,11 +182,9 @@ export function ProfilePage({ className = "" }: ProfilePageProps) {
                   </div>
                   <div className="text-center p-4 bg-muted/30 rounded-lg">
                     <div className="text-2xl font-bold text-primary">
-                      ₹
-                      {(
-                        sellerProfile.privateInfo?.askingPrice / 10000000
-                      ).toFixed(1)}
-                      Cr
+                      {sellerProfile.privateInfo?.askingPrice 
+                        ? `₹${(sellerProfile.privateInfo.askingPrice / 10000000).toFixed(1)} Cr`
+                        : 'N/A'}
                     </div>
                     <div className="text-sm text-muted-foreground">
                       Asking Price
@@ -146,15 +195,15 @@ export function ProfilePage({ className = "" }: ProfilePageProps) {
                 <div className="mt-6">
                   <h4 className="font-medium mb-3">Business Description</h4>
                   <p className="text-muted-foreground">
-                    {sellerProfile.description}
+                    {sellerProfile.publicInfo?.shortDescription || sellerProfile.bio}
                   </p>
                 </div>
 
-                {sellerProfile.keyProducts && (
+                {sellerProfile.publicInfo?.keyFeatures && Array.isArray(sellerProfile.publicInfo.keyFeatures) && (
                   <div className="mt-4">
                     <h4 className="font-medium mb-3">Key Products/Services</h4>
                     <div className="flex flex-wrap gap-2">
-                      {sellerProfile.keyProducts.map((product: string) => (
+                      {sellerProfile.publicInfo.keyFeatures.map((product: string) => (
                         <Badge key={product} variant="secondary">
                           {product}
                         </Badge>
@@ -177,7 +226,7 @@ export function ProfilePage({ className = "" }: ProfilePageProps) {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {userListings.map((business) => (
+                    {(userListings as Business[]).map((business) => (
                       <BusinessCard
                         key={business.id}
                         business={business}
@@ -206,7 +255,7 @@ export function ProfilePage({ className = "" }: ProfilePageProps) {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="text-center p-4 bg-muted/30 rounded-lg">
                     <div className="text-lg font-bold text-primary capitalize">
-                      {buyerProfile.buyerType?.replace("_", " ")}
+                      {buyerProfile.buyerType?.replace("_", " ") || 'N/A'}
                     </div>
                     <div className="text-sm text-muted-foreground">
                       Buyer Type
@@ -214,15 +263,10 @@ export function ProfilePage({ className = "" }: ProfilePageProps) {
                   </div>
                   <div className="text-center p-4 bg-muted/30 rounded-lg">
                     <div className="text-lg font-bold text-primary">
-                      ₹
-                      {(buyerProfile.investmentRange?.min / 10000000).toFixed(
-                        1
-                      )}
-                      -
-                      {(buyerProfile.investmentRange?.max / 10000000).toFixed(
-                        1
-                      )}
-                      Cr
+                      {buyerProfile.investmentRange?.min && buyerProfile.investmentRange?.max
+                        ? `₹${(buyerProfile.investmentRange.min / 10000000).toFixed(1)}-${(buyerProfile.investmentRange.max / 10000000).toFixed(1)} Cr`
+                        : 'N/A'
+                      }
                     </div>
                     <div className="text-sm text-muted-foreground">
                       Investment Range
@@ -230,7 +274,7 @@ export function ProfilePage({ className = "" }: ProfilePageProps) {
                   </div>
                   <div className="text-center p-4 bg-muted/30 rounded-lg">
                     <div className="text-lg font-bold text-primary">
-                      {buyerProfile.preferredIndustries?.length || 0}
+                      {Array.isArray(buyerProfile.preferredIndustries) ? buyerProfile.preferredIndustries.length : 0}
                     </div>
                     <div className="text-sm text-muted-foreground">
                       Industries
@@ -238,7 +282,7 @@ export function ProfilePage({ className = "" }: ProfilePageProps) {
                   </div>
                 </div>
 
-                {buyerProfile.preferredIndustries && (
+                {Array.isArray(buyerProfile.preferredIndustries) && buyerProfile.preferredIndustries.length > 0 && (
                   <div className="mt-6">
                     <h4 className="font-medium mb-3">Preferred Industries</h4>
                     <div className="flex flex-wrap gap-2">
@@ -253,11 +297,11 @@ export function ProfilePage({ className = "" }: ProfilePageProps) {
                   </div>
                 )}
 
-                {buyerProfile.investmentCriteria && (
+                {buyerProfile.experience && (
                   <div className="mt-4">
                     <h4 className="font-medium mb-3">Investment Criteria</h4>
                     <p className="text-muted-foreground">
-                      {buyerProfile.investmentCriteria}
+                      {buyerProfile.experience}
                     </p>
                   </div>
                 )}
@@ -281,7 +325,7 @@ export function ProfilePage({ className = "" }: ProfilePageProps) {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="text-center p-4 bg-muted/30 rounded-lg">
                     <div className="text-2xl font-bold text-primary">
-                      {franchisorProfile.totalOutlets}
+                      {franchisorProfile.totalOutlets || 0}
                     </div>
                     <div className="text-sm text-muted-foreground">
                       Total Outlets
@@ -289,13 +333,16 @@ export function ProfilePage({ className = "" }: ProfilePageProps) {
                   </div>
                   <div className="text-center p-4 bg-muted/30 rounded-lg">
                     <div className="text-2xl font-bold text-primary">
-                      {franchisorProfile.royaltyPercentage}%
+                      {franchisorProfile.royaltyPercentage || 0}%
                     </div>
                     <div className="text-sm text-muted-foreground">Royalty</div>
                   </div>
                   <div className="text-center p-4 bg-muted/30 rounded-lg">
                     <div className="text-2xl font-bold text-primary">
-                      ₹{(franchisorProfile.franchiseFee / 100000).toFixed(0)}L
+                      {franchisorProfile.franchiseFee 
+                        ? `₹${(franchisorProfile.franchiseFee / 100000).toFixed(0)}L`
+                        : 'N/A'
+                      }
                     </div>
                     <div className="text-sm text-muted-foreground">
                       Franchise Fee
@@ -303,8 +350,10 @@ export function ProfilePage({ className = "" }: ProfilePageProps) {
                   </div>
                   <div className="text-center p-4 bg-muted/30 rounded-lg">
                     <div className="text-2xl font-bold text-primary">
-                      ₹{(franchisorProfile.investmentMin / 100000).toFixed(0)}-
-                      {(franchisorProfile.investmentMax / 100000).toFixed(0)}L
+                      {franchisorProfile.investmentRange?.min && franchisorProfile.investmentRange?.max
+                        ? `₹${(franchisorProfile.investmentRange.min / 10000000).toFixed(1)}-${(franchisorProfile.investmentRange.max / 10000000).toFixed(1)} Cr`
+                        : 'N/A'
+                      }
                     </div>
                     <div className="text-sm text-muted-foreground">
                       Investment
@@ -315,28 +364,28 @@ export function ProfilePage({ className = "" }: ProfilePageProps) {
                 <div className="mt-6">
                   <h4 className="font-medium mb-3">Brand Description</h4>
                   <p className="text-muted-foreground">
-                    {franchisorProfile.description}
+                    {franchisorProfile.publicInfo?.brandStory || franchisorProfile.bio}
                   </p>
                 </div>
 
-                {franchisorProfile.support && (
+                {franchisorProfile.publicInfo?.supportProvided && franchisorProfile.publicInfo.supportProvided.length > 0 && (
                   <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="p-4 border rounded-lg">
                       <h5 className="font-medium mb-2">Training Support</h5>
                       <p className="text-sm text-muted-foreground">
-                        {franchisorProfile.support.training}
+                        {franchisorProfile.publicInfo.supportProvided[0] || 'Comprehensive training provided'}
                       </p>
                     </div>
                     <div className="p-4 border rounded-lg">
                       <h5 className="font-medium mb-2">Marketing Support</h5>
                       <p className="text-sm text-muted-foreground">
-                        {franchisorProfile.support.marketing}
+                        {franchisorProfile.publicInfo.supportProvided[1] || 'Marketing assistance available'}
                       </p>
                     </div>
                     <div className="p-4 border rounded-lg">
                       <h5 className="font-medium mb-2">Operations Support</h5>
                       <p className="text-sm text-muted-foreground">
-                        {franchisorProfile.support.operations}
+                        {franchisorProfile.publicInfo.supportProvided[2] || 'Ongoing operational support'}
                       </p>
                     </div>
                   </div>
@@ -356,7 +405,7 @@ export function ProfilePage({ className = "" }: ProfilePageProps) {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {userListings.map((franchise) => (
+                    {(userListings as Franchise[]).map((franchise) => (
                       <FranchiseCard
                         key={franchise.id}
                         franchise={franchise}

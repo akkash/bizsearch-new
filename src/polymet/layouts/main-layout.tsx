@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Menu,
   X,
@@ -16,6 +17,7 @@ import {
   ChevronDown,
   MessageCircle,
   Bookmark,
+  LogOut,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -38,6 +40,8 @@ export function MainLayout({ children }: MainLayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, profile, signOut } = useAuth();
 
   const handleSearch = () => {
     // This will be handled by Link component instead
@@ -57,8 +61,7 @@ export function MainLayout({ children }: MainLayoutProps) {
   };
 
   const handleProfile = () => {
-    console.log("Profile clicked");
-    alert("Profile feature - would navigate to user profile page");
+    navigate("/profile");
   };
 
   const handleSavedListings = () => {
@@ -76,9 +79,18 @@ export function MainLayout({ children }: MainLayoutProps) {
     console.log("Help & Support clicked");
   };
 
-  const handleSignOut = () => {
-    console.log("Sign out clicked");
-    alert("Sign out feature - would log out the user");
+  const handleSignOut = async () => {
+    try {
+      const { error } = await signOut();
+      if (error) {
+        console.error('Sign out error:', error);
+        return;
+      }
+      // Force navigation after successful sign out
+      navigate('/', { replace: true });
+    } catch (error) {
+      console.error('Sign out failed:', error);
+    }
   };
 
   const handleAIChatOpen = () => {
@@ -192,55 +204,80 @@ export function MainLayout({ children }: MainLayoutProps) {
                 </Badge>
               </Button>
 
-              {/* User Menu */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="flex items-center space-x-2"
-                  >
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src="https://github.com/polymet-ai.png" />
-
-                      <AvatarFallback>U</AvatarFallback>
-                    </Avatar>
-                    <ChevronDown className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <Link to="/profile">
-                    <DropdownMenuItem>
-                      <User className="mr-2 h-4 w-4" />
-                      Profile
+              {/* User Menu - Show only if logged in */}
+              {user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="flex items-center space-x-2"
+                    >
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={profile?.avatar_url || undefined} />
+                        <AvatarFallback>
+                          {profile?.display_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    {profile && (
+                      <div className="px-2 py-1.5 text-sm">
+                        <p className="font-medium">{profile.display_name}</p>
+                        <p className="text-xs text-muted-foreground">{profile.email}</p>
+                      </div>
+                    )}
+                    <DropdownMenuSeparator />
+                    <Link to="/profile">
+                      <DropdownMenuItem>
+                        <User className="mr-2 h-4 w-4" />
+                        Profile
+                      </DropdownMenuItem>
+                    </Link>
+                    <DropdownMenuItem onClick={handleSavedListings}>
+                      <Bookmark className="mr-2 h-4 w-4" />
+                      <div className="flex items-center justify-between w-full">
+                        <span>Saved Listings</span>
+                        <Badge variant="secondary" className="ml-2 text-xs">
+                          5
+                        </Badge>
+                      </div>
                     </DropdownMenuItem>
-                  </Link>
-                  <DropdownMenuItem onClick={handleSavedListings}>
-                    <Bookmark className="mr-2 h-4 w-4" />
-
-                    <div className="flex items-center justify-between w-full">
-                      <span>Saved Listings</span>
-                      <Badge variant="secondary" className="ml-2 text-xs">
-                        5
-                      </Badge>
-                    </div>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleNotificationsMenu}>
-                    <Bell className="mr-2 h-4 w-4" />
-                    Notifications
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-
-                  <Link to="/contact">
-                    <DropdownMenuItem onClick={handleHelpSupport}>
-                      <HelpCircle className="mr-2 h-4 w-4" />
-                      Help & Support
+                    <DropdownMenuItem onClick={handleNotificationsMenu}>
+                      <Bell className="mr-2 h-4 w-4" />
+                      Notifications
                     </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <Link to="/contact">
+                      <DropdownMenuItem onClick={handleHelpSupport}>
+                        <HelpCircle className="mr-2 h-4 w-4" />
+                        Help & Support
+                      </DropdownMenuItem>
+                    </Link>
+                    <DropdownMenuItem 
+                      onClick={handleSignOut}
+                      className="text-destructive focus:text-destructive cursor-pointer"
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Sign Out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <Link to="/login">
+                    <Button variant="ghost" size="sm">
+                      Sign In
+                    </Button>
                   </Link>
-                  <DropdownMenuItem onClick={handleSignOut}>
-                    Sign Out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                  <Link to="/signup">
+                    <Button variant="default" size="sm">
+                      Sign Up
+                    </Button>
+                  </Link>
+                </div>
+              )}
 
               {/* Mobile Menu */}
               <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>

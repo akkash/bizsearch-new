@@ -1,9 +1,10 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FranchiseCard } from "@/polymet/components/franchise-card";
 import { Filters, FilterState } from "@/polymet/components/filters";
 import { SearchBar } from "@/polymet/components/search-bar";
-import { franchisesData, Franchise } from "@/polymet/data/franchises-data";
+import { FranchiseService } from "@/lib/franchise-service";
+import type { Franchise } from "@/polymet/data/franchises-data";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -49,6 +50,8 @@ const investmentRanges = [
 
 export function FranchiseListings({ className }: FranchiseListingsProps) {
   const navigate = useNavigate();
+  const [franchises, setFranchises] = useState<Franchise[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState<FilterState | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
@@ -62,20 +65,33 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
     useState<string>("");
   const itemsPerPage = 12;
 
+  // Fetch franchises from Supabase
+  useEffect(() => {
+    const fetchFranchises = async () => {
+      setLoading(true);
+      const result = await FranchiseService.getFranchises({});
+      if (result && Array.isArray(result)) {
+        setFranchises(result as Franchise[]);
+      }
+      setLoading(false);
+    };
+    fetchFranchises();
+  }, []);
+
   // Filter and search logic
   const filteredFranchises = useMemo(() => {
-    let filtered = [...franchisesData];
+    let filtered = [...franchises];
 
     // Apply search query
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
         (franchise) =>
-          franchise.brandName.toLowerCase().includes(query) ||
+          franchise.brandName?.toLowerCase().includes(query) ||
           franchise.industry.toLowerCase().includes(query) ||
           franchise.description.toLowerCase().includes(query) ||
-          franchise.competitiveAdvantages.some((advantage) =>
-            advantage.toLowerCase().includes(query)
+          (franchise.competitiveEdge || franchise.highlights || []).some((advantage: any) =>
+            advantage?.toLowerCase().includes(query)
           )
       );
     }
@@ -87,7 +103,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
       );
       if (range) {
         filtered = filtered.filter((franchise) => {
-          const investment = franchise.totalInvestment;
+          const investment = franchise.total_investment_min || franchise.total_investment_max || 0;
           return investment >= range.min && investment <= range.max;
         });
       }
@@ -105,7 +121,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
       // Investment range filter
       if (filters.franchiseFee[0] > 0 || filters.franchiseFee[1] < 5000000) {
         filtered = filtered.filter((franchise) => {
-          const investment = franchise.totalInvestment;
+          const investment = franchise.total_investment_min || franchise.total_investment_max || 0;
           return (
             investment >= filters.franchiseFee[0] &&
             investment <= filters.franchiseFee[1]
@@ -119,9 +135,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
         filters.royaltyPercentage[1] < 20
       ) {
         filtered = filtered.filter((franchise) => {
-          const royalty = parseFloat(
-            franchise.royaltyPercentage.replace("%", "")
-          );
+          const royalty = franchise.royalty_percentage || franchise.royaltyPercentage || 0;
           return (
             royalty >= filters.royaltyPercentage[0] &&
             royalty <= filters.royaltyPercentage[1]
@@ -132,7 +146,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
       // Outlets filter
       if (filters.outlets) {
         filtered = filtered.filter((franchise) => {
-          const outlets = franchise.outlets;
+          const outlets = franchise.total_outlets || franchise.outlets || 0;
           switch (filters.outlets) {
             case "1-10":
               return outlets <= 10;
@@ -175,23 +189,23 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
     // Apply sorting
     switch (sortBy) {
       case "investment-low":
-        filtered.sort((a, b) => a.totalInvestment - b.totalInvestment);
+        filtered.sort((a, b) => (a.total_investment_min || 0) - (b.total_investment_min || 0));
         break;
       case "investment-high":
-        filtered.sort((a, b) => b.totalInvestment - a.totalInvestment);
+        filtered.sort((a, b) => (b.total_investment_min || 0) - (a.total_investment_min || 0));
         break;
       case "roi-high":
         filtered.sort((a, b) => {
-          const roiA = parseFloat(a.expectedROI.replace("%", ""));
-          const roiB = parseFloat(b.expectedROI.replace("%", ""));
+          const roiA = a.expected_roi_percentage || 0;
+          const roiB = b.expected_roi_percentage || 0;
           return roiB - roiA;
         });
         break;
       case "outlets-high":
-        filtered.sort((a, b) => b.outlets - a.outlets);
+        filtered.sort((a, b) => (b.total_outlets || b.outlets || 0) - (a.total_outlets || a.outlets || 0));
         break;
       case "newest":
-        filtered.sort((a, b) => b.establishedYear - a.establishedYear);
+        // Since establishedYear doesn't exist, skip this sort
         break;
       default:
         // Keep original order for relevance
@@ -199,7 +213,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
     }
 
     return filtered;
-  }, [searchQuery, filters, sortBy, selectedInvestmentRange]);
+  }, [searchQuery, filters, sortBy, selectedInvestmentRange, franchises]);
 
   // Pagination
   const totalPages = Math.ceil(filteredFranchises.length / itemsPerPage);
@@ -210,8 +224,8 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
 
   const handleSearch = (
     query: string,
-    type: "business" | "franchise",
-    searchFilters: any
+    _type: "business" | "franchise",
+    _searchFilters: any
   ) => {
     setSearchQuery(query);
     setCurrentPage(1);
@@ -426,7 +440,16 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
             )}
 
             {/* Results */}
-            {viewMode === "grid" && (
+            {loading ? (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+                    <p className="text-muted-foreground">Loading franchises...</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : viewMode === "grid" && (
               <>
                 {/* Mobile Horizontal Scroll */}
                 <div className="md:hidden">

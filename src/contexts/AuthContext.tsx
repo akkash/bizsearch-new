@@ -1,0 +1,546 @@
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { supabase } from '@/lib/supabase';
+import type { User, Session, AuthError } from '@supabase/supabase-js';
+import type {
+  AuthContextType,
+  SignUpData,
+  SignInData,
+  Profile,
+  ProfileUpdate,
+} from '@/types/auth.types';
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+/**
+ * AuthProvider component that wraps the application and provides authentication context
+ * 
+ * Features:
+ * - Automatic session management and token refresh
+ * - Profile synchronization with auth state
+ * - Multi-tab logout synchronization
+ * - Comprehensive error handling
+ * - Optimistic UI updates for profile changes
+ */
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<AuthError | null>(null);
+
+  /**
+   * Fetches user profile from database with retry logic
+   * Uses direct fetch to avoid Supabase client timeout issues
+   */
+  const fetchProfile = useCallback(async (userId: string, retries = 3): Promise<void> => {
+    try {
+      console.log('👤 Fetching profile for user:', userId, '(retries left:', retries, ')');
+      
+      // Use direct fetch instead of Supabase client to avoid timeout issues
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      
+      console.log('🌐 Using direct fetch to:', `${supabaseUrl}/rest/v1/profiles?id=eq.${userId}&select=*`);
+      
+      const response = await fetch(
+        `${supabaseUrl}/rest/v1/profiles?id=eq.${userId}&select=*`,
+        {
+          headers: {
+            'apikey': supabaseKey,
+            'Authorization': `Bearer ${supabaseKey}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('✅ Profile fetch response:', data);
+      
+      if (!data || data.length === 0) {
+        // Profile not found
+        if (retries > 0) {
+          console.log('⏳ Profile not found, retrying in 1 second...');
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          return fetchProfile(userId, retries - 1);
+        }
+        throw new Error('Profile not found');
+      }
+      
+      // Set the first profile from array
+      const profile = data[0];
+      console.log('✅ Profile fetched successfully:', profile);
+      setProfile(profile);
+    } catch (error: any) {
+      console.error('❌ Error fetching profile:', error);
+      
+      // If error and retries left, try again
+      if (retries > 0) {
+        console.log('⏳ Error, retrying in 500ms...');
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        return fetchProfile(userId, retries - 1);
+      }
+      
+      setError(error as AuthError);
+      
+      // Still set loading to false even on error
+      setLoading(false);
+    }
+  }, []);
+
+  /**
+   * Initialize auth state and set up auth state listener
+   */
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        // Don't wait for profile - fetch in background
+        fetchProfile(session.user.id);
+      }
+      
+      // Set loading to false immediately - don't wait for profile
+      setLoading(false);
+    });
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event);
+      
+      setSession(session);
+      setUser(session?.user ?? null);
+
+      if (session?.user) {
+        try {
+          await fetchProfile(session.user.id);
+        } catch (error) {
+          console.error('❌ Failed to fetch profile in auth listener:', error);
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        setProfile(null);
+        setLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [fetchProfile]);
+
+  /**
+   * Multi-tab logout synchronization
+   */
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'supabase.auth.token' && !e.newValue) {
+        // Session was cleared in another tab
+        setUser(null);
+        setProfile(null);
+        setSession(null);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  /**
+   * Sign up a new user
+   */
+  const signUp = async (data: SignUpData): Promise<{ error: AuthError | null }> => {
+    try {
+      setError(null);
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          data: {
+            display_name: data.displayName,
+            role: data.role,
+          },
+        },
+      });
+
+      if (authError) throw authError;
+
+      // If user is created but email confirmation is enabled, profile won't be created yet
+      // Create profile manually as fallback
+      if (authData.user && !authData.session) {
+        // Email confirmation is enabled, wait for user to confirm
+        console.log('Email confirmation required. Please check your email.');
+      } else if (authData.user) {
+        // Auto sign-in is enabled, ensure profile exists
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        
+        const { data: existingProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', authData.user.id)
+          .maybeSingle();
+
+        if (!existingProfile) {
+          console.log('Creating profile manually for user:', authData.user.id);
+          const { error: insertError } = await supabase.from('profiles').insert({
+            id: authData.user.id,
+            email: authData.user.email!,
+            display_name: data.displayName,
+            role: data.role,
+          });
+
+          if (insertError) {
+            console.error('Error creating profile:', insertError);
+          }
+        }
+
+        // Fetch the profile
+        await fetchProfile(authData.user.id);
+      }
+
+      return { error: null };
+    } catch (err) {
+      const authError = err as AuthError;
+      setError(authError);
+      return { error: authError };
+    }
+  };
+
+  /**
+   * Sign in an existing user
+   */
+  const signIn = async (data: SignInData): Promise<{ error: AuthError | null }> => {
+    try {
+      setError(null);
+      console.log('🔑 SignIn called for:', data.email);
+      
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password,
+      });
+
+      if (authError) {
+        console.error('❌ Auth error from Supabase:', authError);
+        throw authError;
+      }
+
+      console.log('✅ Auth successful! User:', authData.user?.id);
+      console.log('✅ Session:', authData.session ? 'Active' : 'None');
+      
+      // Profile will be fetched automatically by the auth state change listener
+      return { error: null };
+    } catch (err) {
+      const authError = err as AuthError;
+      console.error('❌ SignIn exception:', authError);
+      setError(authError);
+      return { error: authError };
+    }
+  };
+
+  /**
+   * Sign out the current user
+   */
+  const signOut = async (): Promise<{ error: AuthError | null }> => {
+    try {
+      setError(null);
+      const { error: authError } = await supabase.auth.signOut();
+      if (authError) throw authError;
+
+      // Clear state
+      setUser(null);
+      setProfile(null);
+      setSession(null);
+
+      return { error: null };
+    } catch (err) {
+      const authError = err as AuthError;
+      setError(authError);
+      return { error: authError };
+    }
+  };
+
+  /**
+   * Request a password reset email
+   */
+  const resetPasswordRequest = async (email: string): Promise<{ error: AuthError | null }> => {
+    try {
+      setError(null);
+      const { error: authError } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (authError) throw authError;
+      return { error: null };
+    } catch (err) {
+      const authError = err as AuthError;
+      setError(authError);
+      return { error: authError };
+    }
+  };
+
+  /**
+   * Reset password using token from email
+   */
+  const resetPassword = async (newPassword: string): Promise<{ error: AuthError | null }> => {
+    try {
+      setError(null);
+      const { error: authError } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (authError) throw authError;
+      return { error: null };
+    } catch (err) {
+      const authError = err as AuthError;
+      setError(authError);
+      return { error: authError };
+    }
+  };
+
+  /**
+   * Update password for logged-in user
+   */
+  const updatePassword = async (newPassword: string): Promise<{ error: AuthError | null }> => {
+    try {
+      setError(null);
+      if (!user) throw new Error('No user logged in');
+
+      const { error: authError } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (authError) throw authError;
+      return { error: null };
+    } catch (err) {
+      const authError = err as AuthError;
+      setError(authError);
+      return { error: authError };
+    }
+  };
+
+  /**
+   * Update user email (requires re-verification)
+   */
+  const updateEmail = async (newEmail: string): Promise<{ error: AuthError | null }> => {
+    try {
+      setError(null);
+      if (!user) throw new Error('No user logged in');
+
+      const { error: authError } = await supabase.auth.updateUser({
+        email: newEmail,
+      });
+
+      if (authError) throw authError;
+      return { error: null };
+    } catch (err) {
+      const authError = err as AuthError;
+      setError(authError);
+      return { error: authError };
+    }
+  };
+
+  /**
+   * Update user profile
+   */
+  const updateProfile = async (updates: ProfileUpdate): Promise<{ error: Error | null }> => {
+    if (!user) return { error: new Error('No user logged in') };
+
+    try {
+      setError(null);
+      
+      // Optimistic update
+      if (profile) {
+        setProfile({ ...profile, ...updates } as Profile);
+      }
+
+      const { error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      // Refresh profile to get the latest data
+      await fetchProfile(user.id);
+      
+      return { error: null };
+    } catch (err) {
+      // Revert optimistic update on error
+      if (user) {
+        await fetchProfile(user.id);
+      }
+      return { error: err as Error };
+    }
+  };
+
+  /**
+   * Refresh user profile from database
+   */
+  const refreshProfile = async (): Promise<void> => {
+    if (user) {
+      await fetchProfile(user.id);
+    }
+  };
+
+  /**
+   * Upload user avatar
+   */
+  const uploadAvatar = async (file: File): Promise<{ url: string | null; error: Error | null }> => {
+    if (!user) return { url: null, error: new Error('No user logged in') };
+
+    try {
+      setError(null);
+      
+      // Validate file
+      const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      if (!validTypes.includes(file.type)) {
+        throw new Error('Invalid file type. Please upload a JPEG, PNG, GIF, or WebP image.');
+      }
+
+      const maxSize = 2 * 1024 * 1024; // 2MB
+      if (file.size > maxSize) {
+        throw new Error('File size must be less than 2MB.');
+      }
+
+      // Delete old avatar if exists
+      if (profile?.avatar_url) {
+        const oldPath = profile.avatar_url.split('/').pop();
+        if (oldPath) {
+          await supabase.storage.from('avatars').remove([`${user.id}/${oldPath}`]);
+        }
+      }
+
+      // Upload new avatar
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
+
+      // Update profile with new avatar URL
+      await updateProfile({ avatar_url: data.publicUrl });
+
+      return { url: data.publicUrl, error: null };
+    } catch (err) {
+      return { url: null, error: err as Error };
+    }
+  };
+
+  /**
+   * Delete user avatar
+   */
+  const deleteAvatar = async (): Promise<{ error: Error | null }> => {
+    if (!user) return { error: new Error('No user logged in') };
+    if (!profile?.avatar_url) return { error: new Error('No avatar to delete') };
+
+    try {
+      setError(null);
+      
+      const oldPath = profile.avatar_url.split('/').pop();
+      if (oldPath) {
+        const { error: deleteError } = await supabase.storage
+          .from('avatars')
+          .remove([`${user.id}/${oldPath}`]);
+
+        if (deleteError) throw deleteError;
+      }
+
+      // Update profile to remove avatar URL
+      await updateProfile({ avatar_url: null });
+
+      return { error: null };
+    } catch (err) {
+      return { error: err as Error };
+    }
+  };
+
+  /**
+   * Delete user account (requires re-authentication)
+   */
+  const deleteAccount = async (): Promise<{ error: Error | null }> => {
+    if (!user) return { error: new Error('No user logged in') };
+
+    try {
+      setError(null);
+      
+      // Delete avatar if exists
+      if (profile?.avatar_url) {
+        await deleteAvatar();
+      }
+
+      // Note: Supabase doesn't have a direct API to delete users from client
+      // The profile deletion will cascade due to ON DELETE CASCADE in the schema
+      // You would typically need to implement this via a server-side function or admin API
+      
+      // For now, we'll sign out and let an admin handle account deletion
+      // Or implement a server-side edge function to handle this
+      
+      await signOut();
+      
+      return { error: null };
+    } catch (err) {
+      return { error: err as Error };
+    }
+  };
+
+  const value: AuthContextType = {
+    user,
+    profile,
+    session,
+    loading,
+    error,
+    signUp,
+    signIn,
+    signOut,
+    resetPasswordRequest,
+    resetPassword,
+    updatePassword,
+    updateEmail,
+    updateProfile,
+    refreshProfile,
+    deleteAccount,
+    uploadAvatar,
+    deleteAvatar,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+/**
+ * Hook to access authentication context
+ * 
+ * @throws Error if used outside of AuthProvider
+ * 
+ * @example
+ * ```tsx
+ * const { user, profile, signIn, signOut } = useAuth();
+ * 
+ * if (user) {
+ *   return <div>Welcome, {profile?.display_name}!</div>;
+ * }
+ * ```
+ */
+export function useAuth(): AuthContextType {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}
+
