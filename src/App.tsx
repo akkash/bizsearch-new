@@ -1,5 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { SavedListingsProvider } from "@/contexts/SavedListingsContext";
+import { NotificationsProvider } from "@/contexts/NotificationsContext";
 import { Toaster } from "@/components/ui/sonner";
 import { MainLayout } from "@/polymet/layouts/main-layout";
 import { HomePage } from "@/polymet/pages/home";
@@ -16,6 +18,9 @@ import { ProfileSettingsPage } from "@/polymet/pages/profile-settings";
 import { ProfileSettingsEnhancedPage } from "@/polymet/pages/profile-settings-enhanced";
 import { AddBusinessListingPage } from "@/polymet/pages/add-business-listing";
 import { AddFranchiseListingPage } from "@/polymet/pages/add-franchise-listing";
+import { MyListingsPage } from "@/polymet/pages/my-listings";
+import { SavedListingsPage } from "@/polymet/pages/saved-listings";
+import { NotificationsPage } from "@/polymet/pages/notifications";
 import { LoginPage } from "@/pages/auth/login";
 import { SignUpPage } from "@/pages/auth/signup";
 import { ForgotPasswordPage } from "@/pages/auth/forgot-password";
@@ -25,7 +30,9 @@ import { ProtectedRoute } from "@/components/auth/protected-route";
 export default function BizSearchApp() {
   return (
     <AuthProvider>
-      <Router>
+      <SavedListingsProvider>
+        <NotificationsProvider>
+          <Router>
         <Routes>
         {/* Homepage */}
         <Route
@@ -160,6 +167,42 @@ export default function BizSearchApp() {
           }
         />
 
+        {/* My Listings - Protected */}
+        <Route
+          path="/my-listings"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <MyListingsPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Saved Listings - Protected */}
+        <Route
+          path="/saved"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <SavedListingsPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Notifications - Protected */}
+        <Route
+          path="/notifications"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <NotificationsPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+
         {/* Additional Routes */}
         <Route
           path="/search"
@@ -170,23 +213,27 @@ export default function BizSearchApp() {
           }
         />
 
-        {/* Add Business Listing */}
+        {/* Add Business Listing - Protected */}
         <Route
           path="/add-business-listing"
           element={
-            <MainLayout>
-              <AddBusinessListingPage />
-            </MainLayout>
+            <ProtectedRoute>
+              <MainLayout>
+                <AddBusinessListingPage />
+              </MainLayout>
+            </ProtectedRoute>
           }
         />
 
-        {/* Add Franchise Listing */}
+        {/* Add Franchise Listing - Protected */}
         <Route
           path="/add-franchise-listing"
           element={
-            <MainLayout>
-              <AddFranchiseListingPage />
-            </MainLayout>
+            <ProtectedRoute>
+              <MainLayout>
+                <AddFranchiseListingPage />
+              </MainLayout>
+            </ProtectedRoute>
           }
         />
 
@@ -202,6 +249,8 @@ export default function BizSearchApp() {
         </Routes>
         <Toaster />
       </Router>
+      </NotificationsProvider>
+      </SavedListingsProvider>
     </AuthProvider>
   );
 }

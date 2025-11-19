@@ -2,12 +2,11 @@ import { supabase } from './supabase';
 
 export interface FranchiseFilters {
   industry?: string[];
-  investmentMin?: number;
-  investmentMax?: number;
+  state?: string[];
   franchiseFeeMin?: number;
   franchiseFeeMax?: number;
-  royaltyMin?: number;
-  royaltyMax?: number;
+  investmentMin?: number;
+  investmentMax?: number;
   totalOutletsMin?: number;
   featured?: boolean;
   trending?: boolean;
@@ -19,24 +18,47 @@ export interface FranchiseCreateInput {
   brand_name: string;
   industry: string;
   description: string;
+  headquarters_state?: string;
+  headquarters_city?: string;
+  headquarters_country?: string;
   franchise_fee: number;
   total_investment_min?: number;
   total_investment_max?: number;
   royalty_percentage?: number;
+  marketing_fee_percentage?: number;
+  established_year?: number;
+  total_outlets?: number;
+  company_owned_outlets?: number;
+  franchise_outlets?: number;
+  space_required_sqft?: number;
   tagline?: string;
   brand_story?: string;
-  logo_url?: string;
-  images?: string[];
-  highlights?: string[];
+  operating_locations?: string[];
+  expansion_territories?: string[];
   support_provided?: string[];
+  images?: string[];
+  logo_url?: string;
+  highlights?: string[];
   contact_email?: string;
   contact_phone?: string;
+  contact_person?: string;
+  website?: string;
+  training_provided?: boolean;
+  training_duration_days?: number;
+  marketing_support?: boolean;
+  minimum_net_worth?: number;
+  minimum_liquid_capital?: number;
+  experience_required?: string;
+  average_unit_revenue?: number;
+  average_unit_profit?: number;
+  payback_period_months?: number;
+  expected_roi_percentage?: number;
   // Add other fields as needed
   [key: string]: any;
 }
 
 export interface FranchiseUpdateInput extends Partial<FranchiseCreateInput> {
-  status?: 'draft' | 'pending_review' | 'active' | 'sold' | 'inactive' | 'rejected';
+  status?: 'draft' | 'pending_review' | 'active' | 'inactive' | 'rejected';
 }
 
 export class FranchiseService {
@@ -44,14 +66,11 @@ export class FranchiseService {
    * Get all active franchises with optional filters
    */
   static async getFranchises(filters?: FranchiseFilters) {
-    console.log('🍔 Fetching franchises with filters:', filters);
+    console.log('🏪 Fetching franchises with filters:', filters);
     
     try {
-      // Use direct fetch as fallback
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-      
-      console.log('🌐 Using direct fetch to:', `${supabaseUrl}/rest/v1/franchises?select=*&order=created_at.desc`);
       
       const response = await fetch(
         `${supabaseUrl}/rest/v1/franchises?select=*&order=created_at.desc`,
@@ -70,7 +89,7 @@ export class FranchiseService {
       }
       
       const data = await response.json();
-      console.log('✅ Franchises fetched via direct fetch:', data?.length || 0, 'franchises');
+      console.log('✅ Franchises fetched:', data?.length || 0, 'franchises');
       return data;
     } catch (err) {
       console.error('❌ Exception in getFranchises:', err);
@@ -123,22 +142,6 @@ export class FranchiseService {
   }
 
   /**
-   * Get trending franchises
-   */
-  static async getTrendingFranchises(limit = 10) {
-    const { data, error } = await supabase
-      .from('franchises')
-      .select('*')
-      .eq('status', 'active')
-      .eq('trending', true)
-      .order('views_count', { ascending: false })
-      .limit(limit);
-
-    if (error) throw error;
-    return data;
-  }
-
-  /**
    * Create a new franchise listing
    */
   static async createFranchise(userId: string, franchise: FranchiseCreateInput) {
@@ -147,6 +150,7 @@ export class FranchiseService {
       .insert({
         franchisor_id: userId,
         ...franchise,
+        status: 'pending_review', // Start as pending review
       })
       .select()
       .single();
@@ -197,126 +201,16 @@ export class FranchiseService {
   }
 
   /**
-   * Search franchises
+   * Submit franchise for review
    */
-  static async searchFranchises(searchTerm: string, filters?: FranchiseFilters) {
-    let query = supabase
-      .from('franchises')
-      .select('*')
-      .eq('status', 'active')
-      .or(`brand_name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,industry.ilike.%${searchTerm}%`);
-
-    if (filters?.industry && filters.industry.length > 0) {
-      query = query.in('industry', filters.industry);
-    }
-
-    const { data, error } = await query.order('created_at', { ascending: false });
-
-    if (error) throw error;
-    return data;
+  static async submitForReview(franchiseId: string) {
+    return this.updateFranchise(franchiseId, {
+      status: 'pending_review',
+    });
   }
 
   /**
-   * Save/bookmark a franchise
-   */
-  static async saveFranchise(userId: string, franchiseId: string, notes?: string) {
-    const { data, error } = await supabase
-      .from('saved_listings')
-      .insert({
-        user_id: userId,
-        listing_type: 'franchise',
-        listing_id: franchiseId,
-        notes,
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
-  }
-
-  /**
-   * Unsave/unbookmark a franchise
-   */
-  static async unsaveFranchise(userId: string, franchiseId: string) {
-    const { error } = await supabase
-      .from('saved_listings')
-      .delete()
-      .eq('user_id', userId)
-      .eq('listing_type', 'franchise')
-      .eq('listing_id', franchiseId);
-
-    if (error) throw error;
-  }
-
-  /**
-   * Get user's saved franchises
-   */
-  static async getSavedFranchises(userId: string) {
-    const { data, error } = await supabase
-      .from('saved_listings')
-      .select('*, franchises(*)')
-      .eq('user_id', userId)
-      .eq('listing_type', 'franchise')
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
-    return data;
-  }
-
-  /**
-   * Send inquiry about a franchise
-   */
-  static async sendInquiry(
-    senderId: string,
-    franchiseId: string,
-    recipientId: string,
-    message: string,
-    subject?: string,
-    contactEmail?: string,
-    contactPhone?: string
-  ) {
-    const { data, error } = await supabase
-      .from('inquiries')
-      .insert({
-        sender_id: senderId,
-        listing_type: 'franchise',
-        listing_id: franchiseId,
-        recipient_id: recipientId,
-        message,
-        subject,
-        contact_email: contactEmail,
-        contact_phone: contactPhone,
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    // Increment inquiries count (non-blocking, silent failure)
-    try {
-      const { data: franchise } = await supabase
-        .from('franchises')
-        .select('inquiries_count')
-        .eq('id', franchiseId)
-        .single();
-      
-      if (franchise) {
-        const newCount = (franchise.inquiries_count || 0) + 1;
-        await supabase
-          .from('franchises')
-          .update({ inquiries_count: newCount })
-          .eq('id', franchiseId);
-      }
-    } catch (error) {
-      // Silently fail - don't block inquiry creation
-    }
-
-    return data;
-  }
-
-  /**
-   * Publish a draft franchise
+   * Publish a franchise (admin action)
    */
   static async publishFranchise(franchiseId: string) {
     const { data, error } = await supabase
@@ -331,5 +225,16 @@ export class FranchiseService {
 
     if (error) throw error;
     return data;
+  }
+
+  /**
+   * Increment view count
+   */
+  static async incrementViews(franchiseId: string) {
+    const { error } = await supabase.rpc('increment_franchise_views', {
+      franchise_id: franchiseId,
+    });
+
+    if (error) console.error('Error incrementing views:', error);
   }
 }

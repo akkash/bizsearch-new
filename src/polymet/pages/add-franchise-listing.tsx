@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +20,8 @@ import {
   mockFranchiseListing,
   type FranchiseListingFormValues,
 } from "@/polymet/data/franchise-listing-data";
+import { useAuth } from "@/contexts/AuthContext";
+import { FranchiseService, type FranchiseCreateInput } from "@/lib/franchise-service";
 
 interface AddFranchiseListingPageProps {
   className?: string;
@@ -27,10 +30,19 @@ interface AddFranchiseListingPageProps {
 export function AddFranchiseListingPage({
   className,
 }: AddFranchiseListingPageProps) {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [showWizard, setShowWizard] = useState(false);
   const [savedDrafts, setSavedDrafts] = useState<any[]>([]);
   const [currentDraft, setCurrentDraft] =
     useState<Partial<FranchiseListingFormValues> | null>(null);
+
+  // Redirect if not logged in
+  useEffect(() => {
+    if (!user) {
+      navigate('/login?redirect=/add-franchise-listing');
+    }
+  }, [user, navigate]);
 
   // Load saved drafts on component mount
   useEffect(() => {
@@ -81,12 +93,74 @@ export function AddFranchiseListingPage({
     }
   };
 
-  const handleSubmit = (data: FranchiseListingFormValues) => {
-    console.log("Submitting franchise listing:", data);
-    alert(
-      "Franchise listing submitted successfully! Our team will review and publish it within 24 hours."
-    );
-    setShowWizard(false);
+  const handleSubmit = async (data: FranchiseListingFormValues) => {
+    if (!user) {
+      alert("You must be logged in to submit a listing.");
+      return;
+    }
+
+    try {
+      console.log("Submitting franchise listing:", data);
+
+      // Transform form data to database format
+      const franchiseInput: FranchiseCreateInput = {
+        brand_name: data.brandOverview?.brandName || '',
+        industry: data.brandOverview?.industry?.[0] || '',
+        description: data.description?.brandDescription || '',
+        franchise_fee: data.investment?.franchiseFee || 0,
+        total_investment_min: data.investment?.totalInvestment?.min,
+        total_investment_max: data.investment?.totalInvestment?.max,
+        royalty_percentage: data.investment?.royaltyStructure?.baseTiers?.[0]?.percentage || 0,
+        marketing_fee_percentage: data.investment?.marketingFee?.value || 0,
+        established_year: data.brandOverview?.yearEstablished,
+        total_outlets: data.brandOverview?.totalOutlets,
+        company_owned_outlets: data.brandOverview?.companyOutlets,
+        franchise_outlets: data.brandOverview?.franchiseOutlets,
+        headquarters_state: data.contact?.companyAddress?.state,
+        headquarters_city: data.contact?.companyAddress?.city,
+        headquarters_country: data.contact?.companyAddress?.country || 'India',
+        tagline: data.brandOverview?.tagline,
+        brand_story: data.description?.brandDescription,
+        operating_locations: data.brandOverview?.territories || [],
+        expansion_territories: data.territory?.selectedTerritories?.map(t => t.name) || [],
+        support_provided: data.support?.ongoingSupport || [],
+        training_provided: true,
+        training_duration_days: data.support?.initialTrainingDuration,
+        marketing_support: (data.support?.marketingSupport?.length || 0) > 0,
+        minimum_net_worth: data.investment?.liquidCapitalRequired,
+        minimum_liquid_capital: data.investment?.liquidCapitalRequired,
+        experience_required: data.franchiseeProfile?.experienceRequired,
+        average_unit_revenue: data.investment?.totalInvestment?.min,
+        average_unit_profit: data.investment?.averageROI,
+        payback_period_months: data.investment?.breakEvenPeriod,
+        expected_roi_percentage: data.investment?.averageROI,
+        space_required_sqft: data.territory?.populationRequirement,
+        images: data.media?.outletPhotos?.map(p => p.url) || [],
+        logo_url: data.media?.brandLogo?.[0]?.url,
+        contact_email: data.contact?.primaryContact?.email,
+        contact_phone: data.contact?.primaryContact?.phone,
+        contact_person: data.contact?.primaryContact?.name,
+        website: data.brandOverview?.website,
+        highlights: data.description?.uniqueSellingPoints || [],
+      };
+
+      // Create franchise listing
+      const response = await FranchiseService.createFranchise(user.id, franchiseInput);
+
+      console.log('✅ Franchise listing created:', response);
+
+      alert(
+        "Franchise listing submitted successfully! Your listing is now under review. You'll be notified once it's approved."
+      );
+
+      // Redirect to profile
+      setTimeout(() => {
+        navigate('/profile');
+      }, 1500);
+    } catch (error: any) {
+      console.error('Error submitting franchise listing:', error);
+      alert(`Failed to submit franchise listing: ${error.message || 'Please try again.'}`);
+    }
   };
 
   const handlePreview = (data: Partial<FranchiseListingFormValues>) => {

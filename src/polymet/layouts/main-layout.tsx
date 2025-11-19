@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSavedListings } from "@/contexts/SavedListingsContext";
+import { useNotifications } from "@/contexts/NotificationsContext";
 import {
   Menu,
   X,
@@ -18,6 +20,8 @@ import {
   MessageCircle,
   Bookmark,
   LogOut,
+  Plus,
+  Store,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -42,6 +46,8 @@ export function MainLayout({ children }: MainLayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
+  const { savedCount } = useSavedListings();
+  const { unreadCount } = useNotifications();
 
   const handleSearch = () => {
     // This will be handled by Link component instead
@@ -49,15 +55,11 @@ export function MainLayout({ children }: MainLayoutProps) {
   };
 
   const handleNotifications = () => {
-    setShowNotifications(!showNotifications);
-    // In a real app, this would show a notifications panel
-    console.log("Notifications clicked");
+    navigate("/notifications");
   };
 
   const handleSavedItems = () => {
-    // In a real app, this would navigate to saved items page
-    console.log("Saved items clicked");
-    alert("Saved items feature - would navigate to saved listings page");
+    navigate("/saved");
   };
 
   const handleProfile = () => {
@@ -65,13 +67,11 @@ export function MainLayout({ children }: MainLayoutProps) {
   };
 
   const handleSavedListings = () => {
-    console.log("Saved listings clicked");
-    alert("Saved listings feature - would show user's saved listings");
+    navigate("/saved");
   };
 
   const handleNotificationsMenu = () => {
-    console.log("Notifications menu clicked");
-    alert("Notifications feature - would show user notifications");
+    navigate("/notifications");
   };
 
   const handleHelpSupport = () => {
@@ -154,17 +154,55 @@ export function MainLayout({ children }: MainLayoutProps) {
 
             {/* Right Side Actions */}
             <div className="flex items-center space-x-2">
-              {/* List Your Business Dropdown - Removed per user request */}
+              {/* Sell Business Dropdown - NEW */}
+              {user && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      className="hidden sm:flex items-center gap-2"
+                    >
+                      <Plus className="h-4 w-4" />
+                      <span>List Your Business</span>
+                      <ChevronDown className="h-3 w-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <Link to="/add-business-listing">
+                      <DropdownMenuItem>
+                        <Store className="mr-2 h-4 w-4" />
+                        <div>
+                          <div className="font-medium">Sell a Business</div>
+                          <div className="text-xs text-muted-foreground">
+                            List your business for sale
+                          </div>
+                        </div>
+                      </DropdownMenuItem>
+                    </Link>
+                    <Link to="/add-franchise-listing">
+                      <DropdownMenuItem>
+                        <Briefcase className="mr-2 h-4 w-4" />
+                        <div>
+                          <div className="font-medium">List Franchise</div>
+                          <div className="text-xs text-muted-foreground">
+                            Offer franchise opportunities
+                          </div>
+                        </div>
+                      </DropdownMenuItem>
+                    </Link>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
 
-              {/* AI Chat Button - Prominent */}
+              {/* AI Chat Button */}
               <Button
-                variant="default"
+                variant="outline"
                 size="sm"
                 onClick={handleAIChatOpen}
-                className="hidden sm:flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                className="hidden sm:flex items-center space-x-2"
               >
                 <MessageCircle className="h-4 w-4" />
-
                 <span className="text-sm font-medium">AI Advisor</span>
                 <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
               </Button>
@@ -177,32 +215,36 @@ export function MainLayout({ children }: MainLayoutProps) {
               </Link>
 
               {/* Saved Items - Enhanced */}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleSavedItems}
-                className="relative"
-              >
-                <Bookmark className="h-4 w-4" />
-
-                <Badge className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center p-0 text-xs bg-blue-600">
-                  5
-                </Badge>
-              </Button>
+              <Link to="/saved">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="relative"
+                >
+                  <Bookmark className="h-4 w-4" />
+                  {savedCount > 0 && (
+                    <Badge className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center p-0 text-xs bg-blue-600">
+                      {savedCount}
+                    </Badge>
+                  )}
+                </Button>
+              </Link>
 
               {/* Notifications */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="relative"
-                onClick={handleNotifications}
-              >
-                <Bell className="h-4 w-4" />
-
-                <Badge className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center p-0 text-xs">
-                  3
-                </Badge>
-              </Button>
+              <Link to="/notifications">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="relative"
+                >
+                  <Bell className="h-4 w-4" />
+                  {unreadCount > 0 && (
+                    <Badge className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center p-0 text-xs">
+                      {unreadCount}
+                    </Badge>
+                  )}
+                </Button>
+              </Link>
 
               {/* User Menu - Show only if logged in */}
               {user ? (
@@ -235,19 +277,38 @@ export function MainLayout({ children }: MainLayoutProps) {
                         Profile
                       </DropdownMenuItem>
                     </Link>
-                    <DropdownMenuItem onClick={handleSavedListings}>
-                      <Bookmark className="mr-2 h-4 w-4" />
-                      <div className="flex items-center justify-between w-full">
-                        <span>Saved Listings</span>
-                        <Badge variant="secondary" className="ml-2 text-xs">
-                          5
-                        </Badge>
-                      </div>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleNotificationsMenu}>
-                      <Bell className="mr-2 h-4 w-4" />
-                      Notifications
-                    </DropdownMenuItem>
+                    <Link to="/my-listings">
+                      <DropdownMenuItem>
+                        <Store className="mr-2 h-4 w-4" />
+                        My Listings
+                      </DropdownMenuItem>
+                    </Link>
+                    <Link to="/saved">
+                      <DropdownMenuItem>
+                        <Bookmark className="mr-2 h-4 w-4" />
+                        <div className="flex items-center justify-between w-full">
+                          <span>Saved Listings</span>
+                          {savedCount > 0 && (
+                            <Badge variant="secondary" className="ml-2 text-xs">
+                              {savedCount}
+                            </Badge>
+                          )}
+                        </div>
+                      </DropdownMenuItem>
+                    </Link>
+                    <Link to="/notifications">
+                      <DropdownMenuItem>
+                        <Bell className="mr-2 h-4 w-4" />
+                        <div className="flex items-center justify-between w-full">
+                          <span>Notifications</span>
+                          {unreadCount > 0 && (
+                            <Badge className="ml-2 text-xs">
+                              {unreadCount}
+                            </Badge>
+                          )}
+                        </div>
+                      </DropdownMenuItem>
+                    </Link>
                     <DropdownMenuSeparator />
                     <Link to="/contact">
                       <DropdownMenuItem onClick={handleHelpSupport}>

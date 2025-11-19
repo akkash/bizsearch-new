@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +16,8 @@ import {
 } from "lucide-react";
 import { ListingWizard } from "@/polymet/components/listing-wizard";
 import { type BusinessListingFormValues } from "@/polymet/data/listing-data";
+import { useAuth } from "@/contexts/AuthContext";
+import { BusinessService, type BusinessCreateInput } from "@/lib/business-service";
 
 interface Draft {
   id: string;
@@ -25,6 +28,8 @@ interface Draft {
 }
 
 export function AddBusinessListingPage() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [currentDraft, setCurrentDraft] = useState<Draft | null>(null);
   const [savedDrafts, setSavedDrafts] = useState<Draft[]>([]);
   const [showDraftSelector, setShowDraftSelector] = useState(false);
@@ -33,6 +38,13 @@ export function AddBusinessListingPage() {
     type: "success" | "error" | null;
     message: string;
   }>({ type: null, message: "" });
+
+  // Redirect if not logged in
+  useEffect(() => {
+    if (!user) {
+      navigate('/login?redirect=/add-business-listing');
+    }
+  }, [user, navigate]);
 
   // Load drafts from localStorage on component mount
   useEffect(() => {
@@ -152,49 +164,82 @@ export function AddBusinessListingPage() {
   };
 
   const handleSubmit = async (data: BusinessListingFormValues) => {
+    if (!user) {
+      setSubmitStatus({
+        type: "error",
+        message: "You must be logged in to submit a listing.",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     setSubmitStatus({ type: null, message: "" });
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // Mock API response
-      const response = {
-        listingId: `listing_${Date.now()}`,
-        status: "submitted" as const,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+      // Transform form data to database format
+      const businessInput: BusinessCreateInput = {
+        name: data.overview?.businessName || '',
+        industry: data.overview?.industry?.[0] || '', // Use first industry
+        description: data.description?.longDescription || '',
+        city: data.overview?.city || '',
+        state: data.overview?.state || '',
+        location: `${data.overview?.city}, ${data.overview?.state}`,
+        price: data.financials?.askingPrice || 0,
+        revenue: data.financials?.revenue?.year1,
+        monthly_profit: data.financials?.monthlyCashFlow,
+        established_year: data.overview?.establishedYear,
+        employees: data.overview?.numberOfEmployees,
+        business_type: data.overview?.businessType as any,
+        tagline: data.overview?.tagline,
+        business_model: data.description?.businessModel,
+        images: data.media?.businessPhotos?.map(p => p.url) || [],
+        logo_url: data.media?.businessPhotos?.[0]?.url,
+        highlights: [], // Add highlights logic if needed
+        contact_email: data.contact?.contactEmail,
+        contact_phone: data.contact?.contactPhone,
+        operating_hours: '', // Add if available in form
+        days_open_per_week: 7, // Add if available in form
+        full_address: data.overview?.fullAddress,
+        assets_included: data.assets?.assetsIncluded || [],
+        equipment_details: data.assets?.equipmentDetails,
+        inventory_value: data.assets?.inventoryValue,
+        lease_type: data.description?.leaseDetails?.type,
+        monthly_rent: data.description?.leaseDetails?.monthlyRent,
+        customer_profile: data.description?.customerProfile,
+        ebitda: data.financials?.ebitda?.year1,
+        profit_margin: data.financials?.profitMargins,
       };
 
-      // Update draft status
-      if (currentDraft) {
-        const updatedDraft = {
-          ...currentDraft,
-          status: "submitted" as const,
-          data,
-        };
-        setCurrentDraft(updatedDraft);
+      // Create business listing
+      const response = await BusinessService.createBusiness(user.id, businessInput);
 
-        const updatedDrafts = savedDrafts.map((d) =>
-          d.id === currentDraft.id ? updatedDraft : d
-        );
+      console.log('✅ Business listing created:', response);
+
+      // Clear draft on successful submission
+      if (currentDraft) {
+        const updatedDrafts = savedDrafts.filter((d) => d.id !== currentDraft.id);
         setSavedDrafts(updatedDrafts);
         localStorage.setItem(
           "bizsearch_listing_drafts",
           JSON.stringify(updatedDrafts)
         );
+        setCurrentDraft(null);
       }
 
       setSubmitStatus({
         type: "success",
-        message: `Listing submitted successfully! ID: ${response.listingId}`,
+        message: `Listing submitted successfully! Your listing is now under review. You'll be notified once it's approved.`,
       });
-    } catch (error) {
+
+      // Redirect to profile after 3 seconds
+      setTimeout(() => {
+        navigate('/profile');
+      }, 3000);
+    } catch (error: any) {
       console.error("Submission error:", error);
       setSubmitStatus({
         type: "error",
-        message: "Failed to submit listing. Please try again.",
+        message: error.message || "Failed to submit listing. Please try again.",
       });
     } finally {
       setIsSubmitting(false);
