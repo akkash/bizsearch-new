@@ -9,26 +9,26 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
-import { Loader2, Eye, EyeOff } from 'lucide-react';
-import { signUpSchema } from '@/utils/validation';
+import { Loader2, Eye, EyeOff, Phone, KeyRound } from 'lucide-react';
 import {
-  formatZodError,
-  formatSupabaseError,
   validatePasswordStrength,
   getPasswordStrengthColor,
   getPasswordStrengthLabel,
+  formatSupabaseError,
 } from '@/utils/validation';
 import type { UserRole } from '@/types/auth.types';
 
-export function SignUpForm() {
+export function PhoneSignUpForm() {
   const navigate = useNavigate();
-  const { signUp } = useAuth();
+  const { signUpWithPhone, verifyOTP } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [step, setStep] = useState<'phone' | 'otp'>('phone');
+  const [otp, setOtp] = useState('');
   const [formData, setFormData] = useState({
-    email: '',
+    phone: '',
     password: '',
     confirmPassword: '',
     displayName: '',
@@ -39,29 +39,90 @@ export function SignUpForm() {
 
   const passwordStrength = validatePasswordStrength(formData.password);
 
+  const validateForm = () => {
+    const errors: Record<string, string> = {};
+
+    // Phone validation
+    if (!formData.phone.match(/^\+?[1-9]\d{1,14}$/)) {
+      errors.phone = 'Please enter a valid phone number with country code (e.g., +919876543210)';
+    }
+
+    // Display name validation
+    if (formData.displayName.length < 2) {
+      errors.displayName = 'Name must be at least 2 characters';
+    }
+
+    // Password validation
+    if (formData.password.length < 8) {
+      errors.password = 'Password must be at least 8 characters';
+    }
+
+    if (passwordStrength.score < 3) {
+      errors.password = 'Password is too weak. Please use a stronger password.';
+    }
+
+    // Confirm password validation
+    if (formData.password !== formData.confirmPassword) {
+      errors.confirmPassword = "Passwords don't match";
+    }
+
+    // Terms acceptance
+    if (!formData.acceptTerms) {
+      errors.acceptTerms = 'You must accept the terms and conditions';
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setFieldErrors({});
 
-    // Validate input
-    const result = signUpSchema.safeParse(formData);
-    if (!result.success) {
-      setFieldErrors(formatZodError(result.error));
+    if (!validateForm()) {
       return;
     }
 
     setLoading(true);
 
     try {
-      const { error: signUpError } = await signUp({
-        email: formData.email,
+      const { error: signUpError } = await signUpWithPhone({
+        phone: formData.phone,
         password: formData.password,
         displayName: formData.displayName,
         role: formData.role,
       });
 
       if (signUpError) throw signUpError;
+
+      // Move to OTP verification step
+      setStep('otp');
+    } catch (err: any) {
+      setError(formatSupabaseError(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOTP = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    if (otp.length !== 6) {
+      setError('Please enter a valid 6-digit OTP code');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const { error: verifyError } = await verifyOTP({
+        phone: formData.phone,
+        token: otp,
+      });
+
+      if (verifyError) throw verifyError;
 
       // Wait a moment for the database trigger to create the profile
       await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -75,10 +136,85 @@ export function SignUpForm() {
     }
   };
 
+  const handleChangePhone = () => {
+    setStep('phone');
+    setOtp('');
+    setError(null);
+  };
+
+  if (step === 'otp') {
+    return (
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader>
+          <CardTitle>Verify Your Phone</CardTitle>
+          <CardDescription>
+            Enter the verification code sent to {formData.phone}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleVerifyOTP} className="space-y-4">
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="otp">Enter OTP</Label>
+              <div className="relative">
+                <KeyRound className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="otp"
+                  type="text"
+                  placeholder="123456"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  className="pl-10 text-center text-2xl tracking-widest"
+                  maxLength={6}
+                  required
+                  disabled={loading}
+                  autoFocus
+                />
+              </div>
+              <p className="text-xs text-muted-foreground text-center">
+                Enter the 6-digit code sent to your phone
+              </p>
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={loading || otp.length !== 6}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Verifying...
+                </>
+              ) : (
+                'Verify & Create Account'
+              )}
+            </Button>
+
+            <Button
+              type="button"
+              variant="link"
+              onClick={handleChangePhone}
+              disabled={loading}
+              className="w-full text-sm"
+            >
+              Change Phone Number
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle>Create Account</CardTitle>
+        <CardTitle>Create Account with Phone</CardTitle>
         <CardDescription>
           Join BizSearch to buy, sell, or invest in businesses
         </CardDescription>
@@ -101,27 +237,33 @@ export function SignUpForm() {
               onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
               placeholder="John Doe"
               disabled={loading}
-              className={fieldErrors.display_name ? 'border-red-500' : ''}
+              className={fieldErrors.displayName ? 'border-red-500' : ''}
             />
-            {fieldErrors.display_name && (
-              <p className="text-sm text-red-500">{fieldErrors.display_name}</p>
+            {fieldErrors.displayName && (
+              <p className="text-sm text-red-500">{fieldErrors.displayName}</p>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              required
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              placeholder="you@example.com"
-              disabled={loading}
-              className={fieldErrors.email ? 'border-red-500' : ''}
-            />
-            {fieldErrors.email && (
-              <p className="text-sm text-red-500">{fieldErrors.email}</p>
+            <Label htmlFor="phone">Phone Number</Label>
+            <div className="relative">
+              <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="phone"
+                type="tel"
+                required
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                placeholder="+919876543210"
+                className={fieldErrors.phone ? 'border-red-500 pl-10' : 'pl-10'}
+                disabled={loading}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Include country code (e.g., +91 for India, +1 for USA)
+            </p>
+            {fieldErrors.phone && (
+              <p className="text-sm text-red-500">{fieldErrors.phone}</p>
             )}
           </div>
 
@@ -274,7 +416,7 @@ export function SignUpForm() {
             disabled={loading || passwordStrength.score < 3}
           >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Create Account
+            Send Verification Code
           </Button>
 
           <p className="text-sm text-center text-muted-foreground">
@@ -288,7 +430,7 @@ export function SignUpForm() {
             </Button>
           </p>
 
-          {/* Phone Sign Up Option */}
+          {/* Email Sign Up Option */}
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t" />
@@ -302,10 +444,10 @@ export function SignUpForm() {
             type="button"
             variant="outline"
             className="w-full"
-            onClick={() => navigate('/signup/phone')}
+            onClick={() => navigate('/signup')}
             disabled={loading}
           >
-            Sign up with Phone Number
+            Sign up with Email
           </Button>
         </form>
       </CardContent>

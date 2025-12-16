@@ -24,6 +24,7 @@ import { NotificationsPage } from "@/polymet/pages/notifications";
 import { LoginPage } from "@/pages/auth/login";
 import { PhoneLoginPage } from "@/pages/auth/phone-login";
 import { SignUpPage } from "@/pages/auth/signup";
+import PhoneSignUpPage from "@/pages/auth/phone-signup";
 import { ForgotPasswordPage } from "@/pages/auth/forgot-password";
 import { ResetPasswordPage } from "@/pages/auth/reset-password";
 import { ProtectedRoute } from "@/components/auth/protected-route";
@@ -112,6 +113,7 @@ export default function BizSearchApp() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/login/phone" element={<PhoneLoginPage />} />
         <Route path="/signup" element={<SignUpPage />} />
+        <Route path="/signup/phone" element={<PhoneSignUpPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
 
