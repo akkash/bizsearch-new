@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { MobileBottomNav } from "@/polymet/components/mobile-bottom-nav";
+import { AIChat } from "@/polymet/components/ai-chat";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -43,6 +44,7 @@ interface MainLayoutProps {
 export function MainLayout({ children }: MainLayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showAIChat, setShowAIChat] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
@@ -94,8 +96,7 @@ export function MainLayout({ children }: MainLayoutProps) {
   };
 
   const handleAIChatOpen = () => {
-    console.log("AI Chat opened from bottom nav");
-    alert("AI Chat feature - would open floating AI chat interface");
+    setShowAIChat(true);
   };
 
   const navigation = [
@@ -201,6 +202,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                 size="sm"
                 onClick={handleAIChatOpen}
                 className="hidden sm:flex items-center space-x-2"
+                data-ai-chat
               >
                 <MessageCircle className="h-4 w-4" />
                 <span className="text-sm font-medium">AI Advisor</span>
@@ -413,6 +415,9 @@ export function MainLayout({ children }: MainLayoutProps) {
 
       {/* Mobile Bottom Navigation */}
       <MobileBottomNav onAIChatOpen={handleAIChatOpen} />
+
+      {/* AI Chat Widget */}
+      {showAIChat && <AIChat />}
 
       {/* Footer */}
       <footer className="bg-muted/50 border-t">

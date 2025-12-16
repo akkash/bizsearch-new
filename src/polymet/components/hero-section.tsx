@@ -109,24 +109,22 @@ export function HeroSection({ onSearch, className }: HeroSectionProps) {
             <Link to="/businesses">
               <Button
                 size="lg"
-                className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-3"
+                className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-3 w-full sm:w-auto"
               >
                 Browse Businesses
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
-            <Button
-              size="lg"
-              variant="outline"
-              className="border-white/30 text-white hover:bg-white/10 px-8 py-3"
-              onClick={handleWatchDemo}
-            >
-              <Play className="mr-2 h-5 w-5" />
-
-              {currentSearchType === "business"
-                ? "List Your Business"
-                : "List Your Franchise"}
-            </Button>
+            <Link to="/add-business-listing">
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-white/30 text-white hover:bg-white/10 px-8 py-3 w-full sm:w-auto"
+              >
+                <Play className="mr-2 h-5 w-5" />
+                List Your Business
+              </Button>
+            </Link>
           </div>
 
           {/* Stats - Mobile Optimized */}

@@ -35,6 +35,7 @@ import {
   CheckCircleIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AIInsights } from "@/polymet/components/ai-insights";
 
 interface FranchiseDetailProps {
   className?: string;
@@ -436,6 +437,17 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
                     </div>
                   </CardContent>
                 </Card>
+
+                {/* AI Insights */}
+                <AIInsights
+                  type="franchise"
+                  businessId={franchise.id}
+                  businessName={franchise.brandName || "Franchise Opportunity"}
+                  price={franchise.investmentMin || 0}
+                  revenue={roiProjections[0]?.revenue}
+                  industry={franchise.industry}
+                  location={franchise.territories?.[0] || "India"}
+                />
               </TabsContent>
 
               <TabsContent value="investment" className="space-y-6">

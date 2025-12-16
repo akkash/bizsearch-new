@@ -12,8 +12,10 @@ import {
   RefreshCw,
   Copy,
   Check,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { GeminiService } from "@/lib/gemini-service";
 
 interface AISuggestion {
   type: "valuation" | "description" | "comparable" | "improvement";
@@ -51,43 +53,76 @@ export function AIAssistant({
 
   const generateSuggestions = async () => {
     setIsLoading(true);
+    setSuggestions([]);
 
-    // Simulate AI API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      // Generate real AI suggestions based on business data
+      const suggestions: AISuggestion[] = [];
 
-    const mockSuggestions: AISuggestion[] = [
-      {
-        type: "valuation",
-        title: "Suggested Asking Price",
-        content: `Based on similar ${businessData.industry?.[0] || "food & beverage"} businesses in ${businessData.location || "Mumbai"}, the recommended asking price range is ₹22-28 lakhs. This factors in your revenue of ₹${(businessData.revenue || 4200000).toLocaleString()}, location premium, and current market conditions.`,
-        confidence: 87,
-        action: "Apply Price Range",
-      },
-      {
-        type: "description",
-        title: "Enhanced Description",
-        content: `${businessData.name || "Your business"} stands out in the competitive ${businessData.industry?.[0] || "food service"} market with its prime location and established customer base. Key selling points include: proven revenue track record, loyal customer following, streamlined operations, and growth potential through extended hours and delivery services.`,
-        confidence: 92,
-        action: "Use Description",
-      },
-      {
-        type: "comparable",
-        title: "Market Comparables",
-        content: `Similar businesses recently sold: "Bandra Bistro" (₹24L, 2023), "Express Cafe Chain" (₹31L, 2024), "Mumbai Food Corner" (₹19L, 2023). Your business shows competitive metrics with higher foot traffic and better profit margins than average.`,
-        confidence: 78,
-        action: "View Details",
-      },
-      {
+      // 1. Business Valuation
+      if (businessData.revenue || businessData.employees) {
+        const valuationResponse = await GeminiService.generateValuation({
+          revenue: businessData.revenue,
+          industry: businessData.industry?.[0],
+          location: businessData.location,
+          yearEstablished: 2018,
+        });
+
+        suggestions.push({
+          type: "valuation",
+          title: "AI Business Valuation",
+          content: valuationResponse.substring(0, 300) + '...',
+          confidence: 85,
+          action: "View Full Analysis",
+        });
+      }
+
+      // 2. Market Analysis
+      if (businessData.industry) {
+        const marketResponse = await GeminiService.generateMarketAnalysis({
+          industry: businessData.industry?.[0] || 'general',
+          location: businessData.location || 'India',
+          businessType: 'for sale',
+        });
+
+        suggestions.push({
+          type: "comparable",
+          title: "Market Analysis",
+          content: marketResponse.substring(0, 250) + '...',
+          confidence: 78,
+          action: "View Full Report",
+        });
+      }
+
+      // 3. Due Diligence Checklist
+      const dueDiligenceResponse = await GeminiService.generateDueDiligenceChecklist({
+        industry: businessData.industry?.[0],
+        businessType: 'acquisition',
+        transactionSize: businessData.revenue,
+      });
+
+      suggestions.push({
         type: "improvement",
-        title: "Listing Optimization",
-        content: `To increase buyer interest: Add photos of peak hours showing customer flow, highlight your social media following (if any), mention any unique recipes or supplier relationships, and consider offering seller financing to attract more buyers.`,
-        confidence: 85,
-        action: "Apply Tips",
-      },
-    ];
+        title: "Due Diligence Checklist",
+        content: dueDiligenceResponse.substring(0, 250) + '...',
+        confidence: 92,
+        action: "View Checklist",
+      });
 
-    setSuggestions(mockSuggestions);
-    setIsLoading(false);
+      setSuggestions(suggestions);
+    } catch (error: any) {
+      console.error('AI Suggestion Error:', error);
+      
+      // Fallback to basic suggestion if AI fails
+      setSuggestions([{
+        type: "improvement",
+        title: "AI Service Unavailable",
+        content: `Unable to generate AI suggestions: ${error.message}. Please check your API key configuration or try again later.`,
+        confidence: 0,
+      }]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleCopy = async (content: string, id: string) => {
@@ -161,7 +196,7 @@ export function AIAssistant({
             >
               {isLoading ? (
                 <>
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   Analyzing Your Business...
                 </>
               ) : (

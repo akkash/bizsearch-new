@@ -105,6 +105,8 @@ const partnerLogos = [
 ];
 
 export function HomePage({ className }: HomePageProps) {
+  const [showAIChat, setShowAIChat] = React.useState(false);
+
   const handleSearch = (
     query: string,
     type: "business" | "franchise",
@@ -126,27 +128,23 @@ export function HomePage({ className }: HomePageProps) {
   };
 
   const handleViewAllStories = () => {
-    // In a real app, this would navigate to a success stories page
-    alert("Success stories feature - would navigate to success stories page");
+    // Navigate to about page which has success stories
+    window.location.href = '/about#success-stories';
   };
 
   const handleWatchAIDemo = () => {
-    // In a real app, this would open a demo video modal
-    alert("AI Demo feature - would show AI capabilities demo video");
+    // Open AI chat to demonstrate capabilities
+    setShowAIChat(true);
   };
 
-  const handleTryAINow = (agentType: "business" | "franchise") => {
-    // In a real app, this would open the AI chat with specific agent
-    const agentName =
-      agentType === "business"
-        ? "Ajay (Business Acquisitions)"
-        : "Vijay (Franchises)";
-    alert(`Opening AI chat with ${agentName}...`);
+  const handleTryAINow = () => {
+    // Open AI chat widget
+    setShowAIChat(true);
   };
 
-  const handleMoreLikeThis = (id: string, type: "business" | "franchise") => {
-    // In a real app, this would show AI-powered similar recommendations
-    alert(`AI is finding similar ${type} opportunities like ${id}...`);
+  const handleMoreLikeThis = () => {
+    // Open AI chat for personalized recommendations
+    setShowAIChat(true);
   };
 
   return (
@@ -242,18 +240,19 @@ export function HomePage({ className }: HomePageProps) {
               <Button
                 size="lg"
                 className="gap-2 bg-blue-600 hover:bg-blue-700"
-                onClick={() => handleTryAINow("business")}
+                onClick={handleTryAINow}
               >
-                🤖 Try Ajay (Acquisitions)
+                🤖 Try AI Assistant Now
               </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="gap-2"
-                onClick={() => handleTryAINow("franchise")}
-              >
-                🤖 Try Vijay (Franchises)
-              </Button>
+              <Link to="/businesses">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="gap-2 w-full sm:w-auto"
+                >
+                  🔍 Browse All Opportunities
+                </Button>
+              </Link>
             </div>
             <Button
               variant="ghost"
@@ -261,7 +260,7 @@ export function HomePage({ className }: HomePageProps) {
               onClick={handleWatchAIDemo}
             >
               <PlayCircleIcon className="h-5 w-5" />
-              Watch AI Demo
+              See AI in Action
             </Button>
           </div>
         </div>
@@ -424,19 +423,16 @@ export function HomePage({ className }: HomePageProps) {
                 <p className="text-sm opacity-80 mb-4">
                   List your business and reach qualified buyers
                 </p>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  onClick={() =>
-                    alert(
-                      "Sell business feature - would navigate to listing form"
-                    )
-                  }
-                  className="w-full gap-2 bg-transparent border-white text-white hover:bg-white hover:text-blue-600"
-                >
-                  List My Business
-                  <ArrowRightIcon className="h-5 w-5" />
-                </Button>
+                <Link to="/add-business-listing" className="w-full">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="w-full gap-2 bg-transparent border-white text-white hover:bg-white hover:text-blue-600"
+                  >
+                    List My Business
+                    <ArrowRightIcon className="h-5 w-5" />
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
           </div>
@@ -455,8 +451,8 @@ export function HomePage({ className }: HomePageProps) {
         </div>
       </section>
 
-      {/* AI Chat Component */}
-      <AIChat />
+      {/* AI Chat Component - Controlled visibility */}
+      {showAIChat && <AIChat />}
     </div>
   );
 }

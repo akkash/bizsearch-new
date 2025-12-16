@@ -32,6 +32,7 @@ import {
   DownloadIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AIInsights } from "@/polymet/components/ai-insights";
 
 interface BusinessDetailProps {
   className?: string;
@@ -354,6 +355,17 @@ export function BusinessDetail({ className }: BusinessDetailProps) {
                     </div>
                   </CardContent>
                 </Card>
+
+                {/* AI Insights */}
+                <AIInsights
+                  type="business"
+                  businessId={business.id}
+                  businessName={business.name}
+                  price={business.price}
+                  revenue={business.revenue}
+                  industry={business.industry}
+                  location={business.location}
+                />
               </TabsContent>
 
               <TabsContent value="financials" className="space-y-6">

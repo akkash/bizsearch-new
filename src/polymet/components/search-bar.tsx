@@ -79,6 +79,36 @@ const businessTypes = [
   "Franchise",
 ];
 
+const popularSearches = {
+  business: [
+    { icon: "🍽️", text: "Restaurant Mumbai", query: "restaurant in Mumbai" },
+    { icon: "☕", text: "Café under ₹25L", query: "café under ₹25L" },
+    { icon: "💻", text: "Tech Business", query: "tech business Bangalore" },
+    { icon: "🏭", text: "Manufacturing", query: "manufacturing business" },
+    { icon: "🛍️", text: "Retail Store", query: "retail store" },
+  ],
+  franchise: [
+    { icon: "🍕", text: "Food Franchise", query: "food franchise under ₹20L" },
+    { icon: "📚", text: "Education", query: "education franchise" },
+    { icon: "💪", text: "Fitness", query: "fitness franchise" },
+    { icon: "🛒", text: "Retail Franchise", query: "retail franchise under ₹15L" },
+    { icon: "🏪", text: "Convenience Store", query: "convenience store franchise" },
+  ],
+};
+
+const quickFilters = {
+  business: [
+    { label: "Under ₹10L", priceRange: [0, 1000000] },
+    { label: "₹10L - ₹50L", priceRange: [1000000, 5000000] },
+    { label: "₹50L - ₹1Cr", priceRange: [5000000, 10000000] },
+  ],
+  franchise: [
+    { label: "Under ₹5L", priceRange: [0, 500000] },
+    { label: "₹5L - ₹20L", priceRange: [500000, 2000000] },
+    { label: "₹20L+", priceRange: [2000000, 10000000] },
+  ],
+};
+
 export function SearchBar({
   onSearch,
   onSearchTypeChange,
@@ -89,6 +119,7 @@ export function SearchBar({
   );
   const [query, setQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [filters, setFilters] = useState<SearchFilters>({
     industry: "All Industries",
     location: "All Locations",
@@ -203,19 +234,120 @@ export function SearchBar({
       {/* Main Search Bar */}
       <div className="flex flex-col sm:flex-row gap-3 items-center">
         <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
 
           <Input
             placeholder={
               searchType === "business"
-                ? "Search businesses (e.g., restaurant in Mumbai under ₹50L)"
-                : "Search franchises (e.g., food franchise under ₹20L)"
+                ? "🔍 Search for restaurants, retail stores, tech startups..."
+                : "🔍 Search for food, education, fitness franchises..."
             }
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="pl-10 pr-12 h-12 text-base shadow-sm border-2 focus:border-primary transition-all duration-200"
-            onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setShowSuggestions(e.target.value.length > 0);
+            }}
+            onFocus={() => query.length === 0 && setShowSuggestions(true)}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+            className="pl-12 pr-12 h-14 text-base shadow-lg border-2 focus:border-primary transition-all duration-200 rounded-xl font-medium"
+            onKeyPress={(e) => {
+              if (e.key === "Enter") {
+                handleSearch();
+                setShowSuggestions(false);
+              }
+            }}
           />
+
+          {/* Autocomplete Suggestions Dropdown */}
+          {showSuggestions && (
+            <div className="absolute top-full mt-2 left-0 right-0 bg-white rounded-xl shadow-2xl border-2 border-muted z-50 max-h-96 overflow-y-auto">
+              {query.length === 0 ? (
+                <>
+                  {/* Popular Searches */}
+                  <div className="p-4">
+                    <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+                      🔥 Popular Searches
+                    </div>
+                    <div className="space-y-1">
+                      {popularSearches[searchType].map((item, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => {
+                            setQuery(item.query);
+                            setShowSuggestions(false);
+                          }}
+                          className="w-full text-left px-3 py-2.5 hover:bg-primary/10 rounded-lg transition-colors flex items-center gap-3 group"
+                        >
+                          <span className="text-xl">{item.icon}</span>
+                          <span className="font-medium group-hover:text-primary">
+                            {item.text}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <Separator />
+                  {/* Quick Filters */}
+                  <div className="p-4">
+                    <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+                      💰 Quick Price Filters
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {quickFilters[searchType].map((filter, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => {
+                            handleFilterChange("priceRange", filter.priceRange);
+                            setShowSuggestions(false);
+                          }}
+                          className="px-4 py-2 bg-muted hover:bg-primary hover:text-white rounded-full text-sm font-medium transition-colors"
+                        >
+                          {filter.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Filtered suggestions based on query */}
+                  <div className="p-4">
+                    <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+                      💡 Suggestions
+                    </div>
+                    <div className="space-y-1">
+                      {popularSearches[searchType]
+                        .filter((item) =>
+                          item.query.toLowerCase().includes(query.toLowerCase())
+                        )
+                        .map((item, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => {
+                              setQuery(item.query);
+                              setShowSuggestions(false);
+                            }}
+                            className="w-full text-left px-3 py-2.5 hover:bg-primary/10 rounded-lg transition-colors flex items-center gap-3 group"
+                          >
+                            <Search className="h-4 w-4 text-muted-foreground" />
+                            <span className="font-medium group-hover:text-primary">
+                              {item.query}
+                            </span>
+                          </button>
+                        ))}
+                      {popularSearches[searchType].filter((item) =>
+                        item.query.toLowerCase().includes(query.toLowerCase())
+                      ).length === 0 && (
+                        <div className="px-3 py-4 text-center text-muted-foreground text-sm">
+                          Press Enter to search for "{query}"
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
 
           <Button
             type="button"
@@ -397,64 +529,37 @@ export function SearchBar({
           </Popover>
 
           <Button
-            onClick={handleSearch}
+            onClick={() => {
+              handleSearch();
+              setShowSuggestions(false);
+            }}
             size="lg"
-            className="px-8 h-12 shadow-sm bg-primary hover:bg-primary/90 transition-all duration-200 font-semibold"
+            className="px-10 h-14 shadow-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-bold text-base rounded-xl"
           >
+            <Search className="h-5 w-5 mr-2" />
             Search
           </Button>
         </div>
       </div>
 
-      {/* Example Queries - Mobile Optimized */}
+      {/* Quick Industry Filters */}
       <div className="text-center">
-        <p className="text-sm text-muted-foreground mb-4 font-medium">
-          💡 Try searching:
+        <p className="text-sm text-muted-foreground mb-3 font-semibold">
+          🎯 Browse by Industry:
         </p>
-        <div className="flex flex-wrap justify-center gap-3 max-w-2xl mx-auto">
-          {searchType === "business" ? (
-            <>
-              <button
-                onClick={() => setQuery("restaurant in Mumbai under ₹50L")}
-                className="text-sm px-5 py-2.5 bg-muted hover:bg-primary/10 hover:text-primary rounded-full transition-all duration-200 font-medium border border-transparent hover:border-primary/20"
-              >
-                "Café in Chennai under ₹25L"
-              </button>
-              <button
-                onClick={() => setQuery("tech business Bangalore")}
-                className="text-sm px-5 py-2.5 bg-muted hover:bg-primary/10 hover:text-primary rounded-full transition-all duration-200 font-medium border border-transparent hover:border-primary/20"
-              >
-                "tech business Bangalore"
-              </button>
-              <button
-                onClick={() => setQuery("manufacturing business under ₹1Cr")}
-                className="text-sm px-5 py-2.5 bg-muted hover:bg-primary/10 hover:text-primary rounded-full transition-all duration-200 font-medium border border-transparent hover:border-primary/20"
-              >
-                "manufacturing under ₹1Cr"
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                onClick={() => setQuery("food franchise under ₹20L")}
-                className="text-sm px-5 py-2.5 bg-muted hover:bg-primary/10 hover:text-primary rounded-full transition-all duration-200 font-medium border border-transparent hover:border-primary/20"
-              >
-                "food franchise under ₹20L"
-              </button>
-              <button
-                onClick={() => setQuery("education franchise Delhi")}
-                className="text-sm px-5 py-2.5 bg-muted hover:bg-primary/10 hover:text-primary rounded-full transition-all duration-200 font-medium border border-transparent hover:border-primary/20"
-              >
-                "education franchise Delhi"
-              </button>
-              <button
-                onClick={() => setQuery("retail franchise under ₹15L")}
-                className="text-sm px-5 py-2.5 bg-muted hover:bg-primary/10 hover:text-primary rounded-full transition-all duration-200 font-medium border border-transparent hover:border-primary/20"
-              >
-                "retail franchise under ₹15L"
-              </button>
-            </>
-          )}
+        <div className="flex flex-wrap justify-center gap-2 max-w-3xl mx-auto">
+          {industries.slice(1, 7).map((industry) => (
+            <button
+              key={industry}
+              onClick={() => {
+                handleFilterChange("industry", industry);
+                handleSearch();
+              }}
+              className="text-sm px-4 py-2 bg-white hover:bg-primary hover:text-white rounded-full transition-all duration-200 font-medium border-2 border-muted hover:border-primary shadow-sm"
+            >
+              {industry}
+            </button>
+          ))}
         </div>
       </div>
 

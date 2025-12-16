@@ -12,6 +12,7 @@ import {
   TrendingUp,
   BarChart3,
   Calculator,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { GeminiService, type ChatMessage as GeminiChatMessage } from "@/lib/gemini-service";
 
 interface Message {
   id: string;
@@ -130,8 +132,8 @@ export function AIChat({ className }: AIChatProps) {
     setMessages([welcomeMessage]);
   };
 
-  const handleSendMessage = () => {
-    if (!inputValue.trim() || !selectedAgent) return;
+  const handleSendMessage = async () => {
+    if (!inputValue.trim() || !selectedAgent || isTyping) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -144,19 +146,47 @@ export function AIChat({ className }: AIChatProps) {
     setInputValue("");
     setIsTyping(true);
 
-    // Simulate AI response
-    setTimeout(() => {
+    try {
+      // Convert messages to Gemini format
+      const chatHistory: GeminiChatMessage[] = messages.map(msg => ({
+        role: msg.type === 'user' ? 'user' : 'model',
+        parts: msg.content,
+        timestamp: msg.timestamp,
+      }));
+
+      // Call real AI service
+      const aiResponse = await GeminiService.sendMessage(
+        inputValue,
+        selectedAgent,
+        {},
+        chatHistory
+      );
+
       const agentResponse: Message = {
         id: (Date.now() + 1).toString(),
         type: "agent",
-        content: generateResponse(inputValue, selectedAgent),
+        content: aiResponse,
         timestamp: new Date(),
         agent: selectedAgent,
         suggestions: generateSuggestions(inputValue, selectedAgent),
       };
+      
       setMessages((prev) => [...prev, agentResponse]);
+    } catch (error: any) {
+      console.error('AI Error:', error);
+      
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: "agent",
+        content: `I apologize, but I'm having trouble connecting to the AI service. ${error.message || 'Please try again.'}`,
+        timestamp: new Date(),
+        agent: selectedAgent,
+      };
+      
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   const generateResponse = (input: string, agent: "ajay" | "vijay") => {
@@ -202,7 +232,7 @@ export function AIChat({ className }: AIChatProps) {
     }
   };
 
-  const handleQuickAction = (action: string) => {
+  const handleQuickAction = async (action: string) => {
     const actionMessages = {
       valuation:
         "I need help with business valuation for a potential acquisition",
@@ -215,7 +245,15 @@ export function AIChat({ className }: AIChatProps) {
       guide: "I need a comprehensive franchise investment guide",
     };
 
-    setInputValue(actionMessages[action as keyof typeof actionMessages] || "");
+    const message = actionMessages[action as keyof typeof actionMessages] || "";
+    if (message) {
+      setInputValue(message);
+      // Auto-send the message
+      setTimeout(() => {
+        const sendButton = document.querySelector('[data-send-button="true"]') as HTMLButtonElement;
+        sendButton?.click();
+      }, 100);
+    }
   };
 
   const handleSuggestionClick = (suggestion: string) => {
@@ -470,15 +508,25 @@ export function AIChat({ className }: AIChatProps) {
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   placeholder="Type your message..."
-                  onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
+                  onKeyPress={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
                   className="flex-1"
                 />
 
                 <Button
                   onClick={handleSendMessage}
-                  disabled={!inputValue.trim()}
+                  disabled={!inputValue.trim() || isTyping}
+                  data-send-button="true"
                 >
-                  <Send className="h-4 w-4" />
+                  {isTyping ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
               <input
