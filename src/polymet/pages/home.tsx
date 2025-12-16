@@ -4,8 +4,15 @@ import { FeaturedCarousel } from "@/polymet/components/featured-carousel";
 import { TrustIndicators } from "@/polymet/components/trust-indicators";
 import { AIChat } from "@/polymet/components/ai-chat";
 import { Footer } from "@/polymet/components/footer";
+import { SmartSearchBar } from "@/components/smart-search-bar";
+import { AIBusinessMatchmaker } from "@/components/ai-business-matchmaker";
+import { DueDiligenceDashboard } from "@/components/due-diligence-dashboard";
+import { DocumentAnalyzer } from "@/components/document-analyzer";
+import { BuyerQualifierDashboard } from "@/components/buyer-qualifier-dashboard";
+import { FranchiseeMatcher } from "@/components/franchisee-matcher";
+import { TerritoryAnalyzer } from "@/components/territory-analyzer";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   ArrowRightIcon,
@@ -15,9 +22,20 @@ import {
   StarIcon,
   PlayCircleIcon,
   Building2,
+  Sparkles,
+  Target,
+  Zap,
+  Shield,
+  BarChart3,
+  CheckCircle,
+  Upload,
+  FileText,
+  MapPin,
+  Flame,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface HomePageProps {
   className?: string;
@@ -131,6 +149,14 @@ const partnerLogos = [
 
 export function HomePage({ className }: HomePageProps) {
   const [showAIChat, setShowAIChat] = React.useState(false);
+  const [showMatchmaker, setShowMatchmaker] = React.useState(false);
+  const [showDueDiligence, setShowDueDiligence] = React.useState(false);
+  const [showDocAnalyzer, setShowDocAnalyzer] = React.useState(false);
+  const [showBuyerQualifier, setShowBuyerQualifier] = React.useState(false);
+  const [showFranchiseeMatcher, setShowFranchiseeMatcher] = React.useState(false);
+  const [showTerritoryAnalyzer, setShowTerritoryAnalyzer] = React.useState(false);
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
   const handleSearch = (
     query: string,
@@ -177,6 +203,115 @@ export function HomePage({ className }: HomePageProps) {
       {/* Hero Section */}
       <HeroSection onSearch={handleSearch} />
 
+      {/* NEW: AI-Powered Features Highlight */}
+      <section className="py-12 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-purple-950/20 dark:via-blue-950/20 dark:to-indigo-950/20">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-8">
+            <Badge className="mb-4" variant="secondary">
+              <Sparkles className="h-3 w-3 mr-1" />
+              NEW: AI-Powered Phase 1 Features
+            </Badge>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Find Your Perfect Business with AI
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
+              Our AI assistants help you discover, evaluate, and acquire businesses faster and smarter
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {/* Smart Search */}
+            <Card className="hover:shadow-xl transition-all hover:-translate-y-1">
+              <CardHeader>
+                <div className="w-12 h-12 rounded-lg bg-blue-100 dark:bg-blue-900 flex items-center justify-center mb-3">
+                  <Zap className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                </div>
+                <CardTitle className="text-xl">Smart Search</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">
+                  Use natural language to find businesses. Try "coffee shop in Mumbai under 50 lakhs"
+                </p>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    const searchElement = document.querySelector('[data-smart-search]');
+                    searchElement?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                >
+                  Try Smart Search
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* AI Matchmaker */}
+            <Card className="hover:shadow-xl transition-all hover:-translate-y-1 border-purple-200 dark:border-purple-800">
+              <CardHeader>
+                <div className="w-12 h-12 rounded-lg bg-purple-100 dark:bg-purple-900 flex items-center justify-center mb-3">
+                  <Target className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                </div>
+                <CardTitle className="text-xl">AI Matchmaker</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">
+                  Get personalized business recommendations based on your budget, skills, and goals
+                </p>
+                <Button
+                  className="w-full bg-purple-600 hover:bg-purple-700"
+                  onClick={() => setShowMatchmaker(true)}
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Find My Match
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* AI Chatbot */}
+            <Card className="hover:shadow-xl transition-all hover:-translate-y-1">
+              <CardHeader>
+                <div className="w-12 h-12 rounded-lg bg-green-100 dark:bg-green-900 flex items-center justify-center mb-3">
+                  <Sparkles className="h-6 w-6 text-green-600 dark:text-green-400" />
+                </div>
+                <CardTitle className="text-xl">AI Advisor</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">
+                  Chat with Ajay or Vijay for expert advice on acquisitions, valuations, and more
+                </p>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => setShowAIChat(true)}
+                >
+                  Chat with AI Advisor
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Smart Search Bar */}
+          <Card className="bg-white/50 dark:bg-gray-900/50 backdrop-blur" data-smart-search>
+            <CardHeader>
+              <CardTitle className="text-center flex items-center justify-center gap-2">
+                <Zap className="h-5 w-5 text-blue-600" />
+                Try Smart Search Now
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <SmartSearchBar
+                onSearch={(query, intent) => {
+                  console.log('Smart search:', query, intent);
+                  // Navigate to business listings with search results
+                  navigate('/businesses', { state: { searchQuery: query, searchIntent: intent } });
+                }}
+                placeholder="Try: 'profitable restaurant Mumbai under 1 crore' or 'tech startup Bangalore'"
+              />
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
       {/* Featured Listings - Mobile Optimized */}
       <section className="py-8 md:py-16 bg-background">
         <FeaturedCarousel
@@ -187,6 +322,282 @@ export function HomePage({ className }: HomePageProps) {
           onMoreLikeThis={handleMoreLikeThis}
           className="space-y-6 md:space-y-4"
         />
+      </section>
+
+      {/* NEW: Phase 2 AI Features - Decision Support */}
+      <section className="py-16 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/20 dark:via-purple-950/20 dark:to-pink-950/20">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <Badge className="mb-4" variant="secondary">
+              <Shield className="h-3 w-3 mr-1" />
+              Phase 2: Decision Support Tools
+            </Badge>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Make Informed Decisions with AI
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
+              Advanced AI tools to assess risk, verify documents, and conduct due diligence
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* AI Valuation Advisor */}
+            <Card className="hover:shadow-2xl transition-all hover:-translate-y-1 border-blue-200 dark:border-blue-800">
+              <CardHeader>
+                <div className="w-12 h-12 rounded-lg bg-blue-100 dark:bg-blue-900 flex items-center justify-center mb-3">
+                  <BarChart3 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                </div>
+                <CardTitle className="text-xl">AI Valuation Advisor</CardTitle>
+                <CardDescription>
+                  Get instant business valuations using multiple methods (DCF, EBITDA, asset-based)
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm text-muted-foreground mb-4">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Revenue & profit multiples
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Market comparables analysis
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Fair price recommendations
+                  </li>
+                </ul>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => setShowAIChat(true)}
+                >
+                  Try Valuation Tool
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Due Diligence Assistant */}
+            <Card className="hover:shadow-2xl transition-all hover:-translate-y-1 border-purple-200 dark:border-purple-800">
+              <CardHeader>
+                <div className="w-12 h-12 rounded-lg bg-purple-100 dark:bg-purple-900 flex items-center justify-center mb-3">
+                  <Shield className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                </div>
+                <CardTitle className="text-xl">Due Diligence Assistant</CardTitle>
+                <CardDescription>
+                  Comprehensive risk assessment and due diligence checklist generation
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm text-muted-foreground mb-4">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Financial, legal & operational analysis
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Risk scoring & red flag detection
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Custom checklist creation
+                  </li>
+                </ul>
+                <Button
+                  className="w-full bg-purple-600 hover:bg-purple-700"
+                  onClick={() => setShowDueDiligence(true)}
+                >
+                  Start Due Diligence
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Document Analyzer */}
+            <Card className="hover:shadow-2xl transition-all hover:-translate-y-1 border-pink-200 dark:border-pink-800">
+              <CardHeader>
+                <div className="w-12 h-12 rounded-lg bg-pink-100 dark:bg-pink-900 flex items-center justify-center mb-3">
+                  <FileText className="h-6 w-6 text-pink-600 dark:text-pink-400" />
+                </div>
+                <CardTitle className="text-xl">Document Analyzer</CardTitle>
+                <CardDescription>
+                  Upload and analyze financial statements, contracts, and legal documents
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm text-muted-foreground mb-4">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Auto data extraction from PDFs
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Red flag identification
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Document authenticity check
+                  </li>
+                </ul>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => setShowDocAnalyzer(true)}
+                >
+                  <Upload className="mr-2 h-4 w-4" />
+                  Upload Documents
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Fraud Detection Badge */}
+          <Card className="mt-8 bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900 flex items-center justify-center">
+                  <Shield className="h-6 w-6 text-red-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-red-900 dark:text-red-100 mb-1">
+                    AI Fraud Detection Active
+                  </h3>
+                  <p className="text-sm text-red-700 dark:text-red-300">
+                    All listings are automatically scanned for suspicious activity, unrealistic claims, and fraud patterns.
+                    Your safety is our priority.
+                  </p>
+                </div>
+                <Badge variant="destructive">LIVE</Badge>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {/* NEW: Seller & Franchisor Tools */}
+      <section className="py-16 bg-gradient-to-br from-green-50 via-teal-50 to-emerald-50 dark:from-green-950/20 dark:via-teal-950/20 dark:to-emerald-950/20">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <Badge className="mb-4" variant="secondary">
+              <Flame className="h-3 w-3 mr-1" />
+              For Sellers & Franchisors
+            </Badge>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Qualify Buyers & Analyze Markets with AI
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
+              Advanced tools to identify serious buyers and find the best locations
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Buyer Qualifier */}
+            <Card className="hover:shadow-2xl transition-all hover:-translate-y-1 border-orange-200 dark:border-orange-800">
+              <CardHeader>
+                <div className="w-12 h-12 rounded-lg bg-orange-100 dark:bg-orange-900 flex items-center justify-center mb-3">
+                  <Flame className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+                </div>
+                <CardTitle className="text-xl">AI Buyer Qualifier</CardTitle>
+                <CardDescription>
+                  Score and prioritize buyer inquiries - identify hot leads instantly
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm text-muted-foreground mb-4">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Financial capacity scoring
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Experience & seriousness analysis
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Deal close probability
+                  </li>
+                </ul>
+                <Button
+                  className="w-full bg-orange-600 hover:bg-orange-700"
+                  onClick={() => user ? setShowBuyerQualifier(true) : navigate('/signin')}
+                >
+                  Qualify Buyers
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Franchisee Matcher */}
+            <Card className="hover:shadow-2xl transition-all hover:-translate-y-1 border-teal-200 dark:border-teal-800">
+              <CardHeader>
+                <div className="w-12 h-12 rounded-lg bg-teal-100 dark:bg-teal-900 flex items-center justify-center mb-3">
+                  <Target className="h-6 w-6 text-teal-600 dark:text-teal-400" />
+                </div>
+                <CardTitle className="text-xl">Franchisee Matcher</CardTitle>
+                <CardDescription>
+                  Find franchisees that perfectly match your brand requirements
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm text-muted-foreground mb-4">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Financial & experience fit scoring
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Personality compatibility
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Success probability prediction
+                  </li>
+                </ul>
+                <Button
+                  className="w-full bg-teal-600 hover:bg-teal-700"
+                  onClick={() => setShowFranchiseeMatcher(true)}
+                >
+                  Find Franchisees
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Territory Analyzer */}
+            <Card className="hover:shadow-2xl transition-all hover:-translate-y-1 border-emerald-200 dark:border-emerald-800">
+              <CardHeader>
+                <div className="w-12 h-12 rounded-lg bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center mb-3">
+                  <MapPin className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <CardTitle className="text-xl">Territory Analyzer</CardTitle>
+                <CardDescription>
+                  AI-powered location analysis for franchise expansion
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-sm text-muted-foreground mb-4">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Demographics & economics scoring
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Competition & market analysis
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    ROI & break-even projections
+                  </li>
+                </ul>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => setShowTerritoryAnalyzer(true)}
+                >
+                  <MapPin className="mr-2 h-4 w-4" />
+                  Analyze Territory
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </section>
 
       {/* Platform Statistics - Mobile Optimized */}
@@ -494,6 +905,75 @@ export function HomePage({ className }: HomePageProps) {
 
       {/* AI Chat Component - Controlled visibility */}
       {showAIChat && <AIChat />}
+
+      {/* AI Matchmaker Modal */}
+      {showMatchmaker && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <AIBusinessMatchmaker onClose={() => setShowMatchmaker(false)} />
+          </div>
+        </div>
+      )}
+
+      {/* Due Diligence Dashboard Modal */}
+      {showDueDiligence && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="w-full max-w-6xl max-h-[90vh] overflow-y-auto">
+            <DueDiligenceDashboard
+              businessData={{
+                name: 'Sample Business',
+                industry: 'Technology',
+                price: 5000000,
+                revenue: 10000000,
+                profit: 2000000,
+                employees: 25,
+                established_year: 2018,
+                location: 'Mumbai, Maharashtra',
+              }}
+              onClose={() => setShowDueDiligence(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Document Analyzer Modal */}
+      {showDocAnalyzer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DocumentAnalyzer onClose={() => setShowDocAnalyzer(false)} />
+          </div>
+        </div>
+      )}
+
+      {/* Buyer Qualifier Dashboard Modal */}
+      {showBuyerQualifier && user && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="w-full max-w-6xl max-h-[90vh] overflow-y-auto">
+            <BuyerQualifierDashboard 
+              sellerId={user.id}
+              onClose={() => setShowBuyerQualifier(false)} 
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Franchisee Matcher Modal */}
+      {showFranchiseeMatcher && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <FranchiseeMatcher onClose={() => setShowFranchiseeMatcher(false)} />
+          </div>
+        </div>
+      )}
+
+      {/* Territory Analyzer Modal */}
+      {showTerritoryAnalyzer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <TerritoryAnalyzer onClose={() => setShowTerritoryAnalyzer(false)} />
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <Footer />
