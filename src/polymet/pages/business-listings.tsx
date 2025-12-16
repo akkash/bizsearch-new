@@ -4,6 +4,8 @@ import { BusinessCard } from "@/polymet/components/business-card";
 import { Filters, FilterState } from "@/polymet/components/filters";
 import { SearchBar } from "@/polymet/components/search-bar";
 import { BusinessService } from "@/lib/business-service";
+import { SkeletonLoader } from "@/polymet/components/skeleton-loader";
+import { EmptyState } from "@/polymet/components/empty-state";
 import type { Business } from "@/polymet/data/businesses-data";
 import { Button } from "@/components/ui/button";
 import {
@@ -65,10 +67,14 @@ export function BusinessListings({ className }: BusinessListingsProps) {
         console.log('📦 BusinessListings: Received result:', result);
         if (result && Array.isArray(result)) {
           setBusinesses(result as Business[]);
-          console.log('✅ BusinessListings: Set', result.length, 'businesses');
+          console.log('✅ BusinessListings: Set', result.length, 'businesses from database');
+        } else {
+          setBusinesses([]);
+          console.log('ℹ️ BusinessListings: No businesses in database');
         }
       } catch (error) {
         console.error('❌ BusinessListings: Error fetching businesses:', error);
+        setBusinesses([]);
       } finally {
         setLoading(false);
         console.log('🏁 BusinessListings: Loading complete');
@@ -254,6 +260,36 @@ export function BusinessListings({ className }: BusinessListingsProps) {
   const handleViewDetails = (businessId: string) => {
     navigate(`/business/${businessId}`);
   };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className={cn("min-h-screen bg-background", className)}>
+        <div className="container mx-auto px-4 py-8">
+          <h1 className="text-3xl font-bold mb-6">Businesses for Sale</h1>
+          <SkeletonLoader type="card" count={6} />
+        </div>
+      </div>
+    );
+  }
+
+  // Empty state
+  if (!loading && filteredBusinesses.length === 0 && businesses.length === 0) {
+    return (
+      <div className={cn("min-h-screen bg-background", className)}>
+        <div className="container mx-auto px-4 py-8">
+          <h1 className="text-3xl font-bold mb-6">Businesses for Sale</h1>
+          <EmptyState 
+            type="no-data"
+            title="No Businesses Available Yet"
+            description="We're constantly adding new business opportunities. Check back soon or get notified when new listings are added."
+            actionText="List Your Business"
+            actionLink="/add-business-listing"
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={cn("min-h-screen bg-background", className)}>

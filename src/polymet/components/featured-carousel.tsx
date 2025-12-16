@@ -42,6 +42,8 @@ export function FeaturedCarousel({
   const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
 
   // Get data based on type
   const getCarouselData = () => {
@@ -94,6 +96,27 @@ export function FeaturedCarousel({
   const goToSlide = (index: number) => {
     setIsAutoPlaying(false);
     setCurrentIndex(index);
+  };
+
+  // Touch handlers for mobile swipe
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStart - touchEnd > 75) {
+      // Swipe left - go to next
+      goToNext();
+    }
+
+    if (touchStart - touchEnd < -75) {
+      // Swipe right - go to previous
+      goToPrevious();
+    }
   };
 
   const defaultTitles = {
@@ -167,14 +190,16 @@ export function FeaturedCarousel({
 
         {/* Carousel - Mobile-First Design */}
         <div className="relative">
-          {/* Mobile: Horizontal Scroll */}
+          {/* Mobile: Touch-enabled Horizontal Scroll */}
           <div className="md:hidden">
             <div
-              className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory"
+              className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide"
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
               style={{
                 scrollbarWidth: "none",
                 msOverflowStyle: "none",
-                WebkitScrollbar: { display: "none" },
               }}
             >
               {items.map((item, index) => (
@@ -268,11 +293,18 @@ export function FeaturedCarousel({
           </Button>
         </div>
 
-        {/* Mobile Scroll Indicator */}
-        <div className="md:hidden flex justify-center mt-4">
-          <p className="text-xs text-muted-foreground flex items-center gap-2">
-            <span>👈</span> Swipe to see more opportunities <span>👉</span>
-          </p>
+        {/* Mobile Navigation Dots */}
+        <div className="md:hidden flex justify-center gap-2 mt-6">
+          {Array.from({ length: Math.min(items.length, 5) }).map((_, index) => (
+            <div
+              key={index}
+              className={`h-2 rounded-full transition-all ${
+                index === currentIndex % Math.min(items.length, 5)
+                  ? "bg-primary w-8"
+                  : "bg-muted w-2"
+              }`}
+            />
+          ))}
         </div>
       </div>
     </section>

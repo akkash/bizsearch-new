@@ -36,6 +36,7 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { MobileBottomNav } from "@/polymet/components/mobile-bottom-nav";
 import { AIChat } from "@/polymet/components/ai-chat";
+import { Footer } from "@/polymet/components/footer";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -584,6 +585,9 @@ export function MainLayout({ children }: MainLayoutProps) {
           </div>
         </div>
       </footer>
+
+      {/* Footer - Only show on non-home pages since home has its own */}
+      {location.pathname !== "/" && <Footer />}
     </div>
   );
 }

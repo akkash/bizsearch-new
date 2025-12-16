@@ -4,6 +4,8 @@ import { FranchiseCard } from "@/polymet/components/franchise-card";
 import { Filters, FilterState } from "@/polymet/components/filters";
 import { SearchBar } from "@/polymet/components/search-bar";
 import { FranchiseService } from "@/lib/franchise-service";
+import { SkeletonLoader } from "@/polymet/components/skeleton-loader";
+import { EmptyState } from "@/polymet/components/empty-state";
 import type { Franchise } from "@/polymet/data/franchises-data";
 import { Button } from "@/components/ui/button";
 import {
@@ -69,11 +71,21 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
   useEffect(() => {
     const fetchFranchises = async () => {
       setLoading(true);
-      const result = await FranchiseService.getFranchises({});
-      if (result && Array.isArray(result)) {
-        setFranchises(result as Franchise[]);
+      try {
+        const result = await FranchiseService.getFranchises({});
+        if (result && Array.isArray(result)) {
+          setFranchises(result as Franchise[]);
+          console.log('✅ FranchiseListings: Set', result.length, 'franchises from database');
+        } else {
+          setFranchises([]);
+          console.log('ℹ️ FranchiseListings: No franchises in database');
+        }
+      } catch (error) {
+        console.error('❌ FranchiseListings: Error:', error);
+        setFranchises([]);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     fetchFranchises();
   }, []);
@@ -259,6 +271,36 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
   const handleViewDetails = (franchiseId: string) => {
     navigate(`/franchise/${franchiseId}`);
   };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className={cn("min-h-screen bg-background", className)}>
+        <div className="container mx-auto px-4 py-8">
+          <h1 className="text-3xl font-bold mb-6">Franchise Opportunities</h1>
+          <SkeletonLoader type="card" count={6} />
+        </div>
+      </div>
+    );
+  }
+
+  // Empty state
+  if (!loading && filteredFranchises.length === 0 && franchises.length === 0) {
+    return (
+      <div className={cn("min-h-screen bg-background", className)}>
+        <div className="container mx-auto px-4 py-8">
+          <h1 className="text-3xl font-bold mb-6">Franchise Opportunities</h1>
+          <EmptyState 
+            type="no-data"
+            title="No Franchises Available Yet"
+            description="We're constantly adding new franchise opportunities. Check back soon!"
+            actionText="List Your Franchise"
+            actionLink="/add-franchise-listing"
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={cn("min-h-screen bg-background", className)}>

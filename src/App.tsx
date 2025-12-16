@@ -26,13 +26,16 @@ import { SignUpPage } from "@/pages/auth/signup";
 import { ForgotPasswordPage } from "@/pages/auth/forgot-password";
 import { ResetPasswordPage } from "@/pages/auth/reset-password";
 import { ProtectedRoute } from "@/components/auth/protected-route";
+import { NotFoundPage } from "@/pages/404";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 export default function BizSearchApp() {
   return (
-    <AuthProvider>
-      <SavedListingsProvider>
-        <NotificationsProvider>
-          <Router>
+    <ErrorBoundary>
+      <AuthProvider>
+        <SavedListingsProvider>
+          <NotificationsProvider>
+            <Router>
         <Routes>
         {/* Homepage */}
         <Route
@@ -237,20 +240,14 @@ export default function BizSearchApp() {
           }
         />
 
-        {/* Catch-all route - redirect to home */}
-        <Route
-          path="*"
-          element={
-            <MainLayout>
-              <HomePage />
-            </MainLayout>
-          }
-        />
+        {/* Catch-all route - 404 page */}
+        <Route path="*" element={<NotFoundPage />} />
         </Routes>
         <Toaster />
       </Router>
       </NotificationsProvider>
       </SavedListingsProvider>
     </AuthProvider>
+    </ErrorBoundary>
   );
 }

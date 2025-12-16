@@ -3,6 +3,7 @@ import { HeroSection } from "@/polymet/components/hero-section";
 import { FeaturedCarousel } from "@/polymet/components/featured-carousel";
 import { TrustIndicators } from "@/polymet/components/trust-indicators";
 import { AIChat } from "@/polymet/components/ai-chat";
+import { Footer } from "@/polymet/components/footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -96,12 +97,36 @@ const aiFeatures = [
 ];
 
 const partnerLogos = [
-  { name: "HDFC Bank", logo: "🏦" },
-  { name: "ICICI Bank", logo: "🏛️" },
-  { name: "Kotak Mahindra", logo: "🏪" },
-  { name: "Axis Bank", logo: "🏢" },
-  { name: "SBI", logo: "🏦" },
-  { name: "Yes Bank", logo: "🏛️" },
+  { 
+    name: "HDFC Bank", 
+    logo: "https://logo.clearbit.com/hdfcbank.com",
+    fallback: "HDFC"
+  },
+  { 
+    name: "ICICI Bank", 
+    logo: "https://logo.clearbit.com/icicibank.com",
+    fallback: "ICICI"
+  },
+  { 
+    name: "Kotak Mahindra", 
+    logo: "https://logo.clearbit.com/kotak.com",
+    fallback: "Kotak"
+  },
+  { 
+    name: "Axis Bank", 
+    logo: "https://logo.clearbit.com/axisbank.com",
+    fallback: "Axis"
+  },
+  { 
+    name: "SBI", 
+    logo: "https://logo.clearbit.com/sbi.co.in",
+    fallback: "SBI"
+  },
+  { 
+    name: "Yes Bank", 
+    logo: "https://logo.clearbit.com/yesbank.in",
+    fallback: "Yes"
+  },
 ];
 
 export function HomePage({ className }: HomePageProps) {
@@ -367,11 +392,27 @@ export function HomePage({ className }: HomePageProps) {
             <h3 className="text-xl font-semibold mb-6">
               Trusted by Leading Financial Partners
             </h3>
-            <div className="flex flex-wrap justify-center items-center gap-8 opacity-60">
+            <div className="flex flex-wrap justify-center items-center gap-8 opacity-70 hover:opacity-100 transition-opacity">
               {partnerLogos.map((partner, index) => (
-                <div key={index} className="flex items-center gap-2 text-2xl">
-                  <span>{partner.logo}</span>
-                  <span className="text-sm font-medium text-muted-foreground">
+                <div 
+                  key={index} 
+                  className="group flex items-center gap-3 px-4 py-2 bg-white rounded-lg shadow-sm hover:shadow-md transition-all"
+                >
+                  <div className="w-8 h-8 flex items-center justify-center">
+                    <img
+                      src={partner.logo}
+                      alt={partner.name}
+                      className="w-full h-full object-contain"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        e.currentTarget.nextElementSibling!.classList.remove('hidden');
+                      }}
+                    />
+                    <div className="hidden w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                      {partner.fallback.substring(0, 2)}
+                    </div>
+                  </div>
+                  <span className="text-sm font-medium text-slate-700 group-hover:text-blue-600 transition-colors">
                     {partner.name}
                   </span>
                 </div>
@@ -453,6 +494,9 @@ export function HomePage({ className }: HomePageProps) {
 
       {/* AI Chat Component - Controlled visibility */}
       {showAIChat && <AIChat />}
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

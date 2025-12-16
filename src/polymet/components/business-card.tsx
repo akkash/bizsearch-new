@@ -53,7 +53,8 @@ export function BusinessCard({
 
   return (
     <Card
-      className={`group hover:shadow-lg transition-shadow duration-200 ${className}`}
+      className={`group hover:shadow-2xl transition-all duration-300 card-hover-lift cursor-pointer ${className}`}
+      onClick={() => onViewDetails?.(business.id)}
     >
       <CardContent className="p-0">
         {/* Image and Logo */}
