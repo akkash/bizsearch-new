@@ -4,73 +4,119 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Eye, EyeOff } from 'lucide-react';
-import { signInSchema } from '@/utils/validation';
-import { formatZodError, formatSupabaseError } from '@/utils/validation';
+import { Loader2, Mail, KeyRound } from 'lucide-react';
 
 export function SignInForm() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signIn } = useAuth();
+  const { signInWithEmail, verifyEmailOTP, resendEmailOTP } = useAuth();
+  
+  const [email, setEmail] = useState('');
+  const [otp, setOtp] = useState('');
+  const [step, setStep] = useState<'email' | 'otp'>('email');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    rememberMe: false,
-  });
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [canResend, setCanResend] = useState(false);
+  const [resendTimer, setResendTimer] = useState(60);
 
   // Get the redirect path from location state (set by ProtectedRoute)
   const from = (location.state as any)?.from?.pathname || '/';
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Start countdown timer for resend OTP
+  React.useEffect(() => {
+    if (step === 'otp' && resendTimer > 0) {
+      const timer = setTimeout(() => {
+        setResendTimer(resendTimer - 1);
+        if (resendTimer === 1) {
+          setCanResend(true);
+        }
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [step, resendTimer]);
+
+  const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setFieldErrors({});
+    setLoading(true);
 
-    // Validate input
-    const result = signInSchema.safeParse(formData);
-    if (!result.success) {
-      setFieldErrors(formatZodError(result.error));
+    // Validate email format
+    if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      setError('Please enter a valid email address');
+      setLoading(false);
       return;
     }
 
+    const { error: otpError } = await signInWithEmail(email);
+
+    setLoading(false);
+
+    if (otpError) {
+      setError(otpError.message);
+      return;
+    }
+
+    // Move to OTP verification step
+    setStep('otp');
+    setResendTimer(60);
+    setCanResend(false);
+  };
+
+  const handleVerifyOTP = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
     setLoading(true);
 
-    try {
-      console.log('🔐 Attempting sign-in for:', formData.email);
-      
-      const { error: signInError } = await signIn({
-        email: formData.email,
-        password: formData.password,
-        rememberMe: formData.rememberMe,
-      });
-
-      if (signInError) {
-        console.error('❌ Sign-in error:', signInError);
-        throw signInError;
-      }
-
-      console.log('✅ Sign-in successful, waiting for profile...');
-      
-      // Small delay to ensure profile is created by database trigger
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      console.log('✅ Navigating to:', from);
-      
-      // Redirect to the intended page or home
-      navigate(from, { replace: true });
-    } catch (err: any) {
-      console.error('❌ Sign-in failed:', err);
-      setError(formatSupabaseError(err));
-    } finally {
+    if (otp.length !== 6) {
+      setError('Please enter a valid 6-digit OTP code');
       setLoading(false);
+      return;
     }
+
+    const { error: verifyError } = await verifyEmailOTP({
+      email,
+      token: otp,
+    });
+
+    setLoading(false);
+
+    if (verifyError) {
+      setError(verifyError.message);
+      return;
+    }
+
+    // Small delay to ensure profile is loaded
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Redirect to the intended page or home
+    navigate(from, { replace: true });
+  };
+
+  const handleResendOTP = async () => {
+    setError(null);
+    setLoading(true);
+    setCanResend(false);
+
+    const { error: resendError } = await resendEmailOTP(email);
+
+    setLoading(false);
+
+    if (resendError) {
+      setError(resendError.message);
+      setCanResend(true);
+      return;
+    }
+
+    // Restart timer
+    setResendTimer(60);
+  };
+
+  const handleChangeEmail = () => {
+    setStep('email');
+    setOtp('');
+    setError(null);
   };
 
   return (
@@ -82,94 +128,119 @@ export function SignInForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={step === 'email' ? handleSendOTP : handleVerifyOTP} className="space-y-4">
           {error && (
             <Alert variant="destructive">
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
 
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              required
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              placeholder="you@example.com"
-              disabled={loading}
-              className={fieldErrors.email ? 'border-red-500' : ''}
-            />
-            {fieldErrors.email && (
-              <p className="text-sm text-red-500">{fieldErrors.email}</p>
-            )}
-          </div>
+          {step === 'email' ? (
+            <>
+              {/* Email */}
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-10"
+                    required
+                    disabled={loading}
+                  />
+                </div>
+              </div>
 
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="password">Password</Label>
+              {/* Send OTP Button */}
               <Button
-                variant="link"
-                className="p-0 h-auto text-sm"
-                onClick={() => navigate('/forgot-password')}
+                type="submit"
+                className="w-full"
                 disabled={loading}
               >
-                Forgot password?
-              </Button>
-            </div>
-            <div className="relative">
-              <Input
-                id="password"
-                type={showPassword ? 'text' : 'password'}
-                required
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                placeholder="••••••••"
-                disabled={loading}
-                className={fieldErrors.password ? 'border-red-500 pr-10' : 'pr-10'}
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                onClick={() => setShowPassword(!showPassword)}
-                disabled={loading}
-              >
-                {showPassword ? (
-                  <EyeOff className="h-4 w-4 text-muted-foreground" />
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Sending OTP...
+                  </>
                 ) : (
-                  <Eye className="h-4 w-4 text-muted-foreground" />
+                  'Send OTP'
                 )}
               </Button>
-            </div>
-            {fieldErrors.password && (
-              <p className="text-sm text-red-500">{fieldErrors.password}</p>
-            )}
-          </div>
+            </>
+          ) : (
+            <>
+              {/* OTP Verification */}
+              <div className="space-y-2">
+                <Label htmlFor="otp">Enter OTP</Label>
+                <div className="relative">
+                  <KeyRound className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="otp"
+                    type="text"
+                    placeholder="123456"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    className="pl-10 text-center text-2xl tracking-widest"
+                    maxLength={6}
+                    required
+                    disabled={loading}
+                    autoFocus
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground text-center">
+                  Enter the 6-digit code sent to {email}
+                </p>
+              </div>
 
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="rememberMe"
-              checked={formData.rememberMe}
-              onCheckedChange={(checked) =>
-                setFormData({ ...formData, rememberMe: checked as boolean })
-              }
-              disabled={loading}
-            />
-            <Label
-              htmlFor="rememberMe"
-              className="text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-            >
-              Remember me
-            </Label>
-          </div>
+              {/* Verify OTP Button */}
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={loading || otp.length !== 6}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Verifying...
+                  </>
+                ) : (
+                  'Verify OTP'
+                )}
+              </Button>
 
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Sign In
-          </Button>
+              {/* Resend OTP */}
+              <div className="text-center space-y-2">
+                {canResend ? (
+                  <Button
+                    type="button"
+                    variant="link"
+                    onClick={handleResendOTP}
+                    disabled={loading}
+                    className="text-sm"
+                  >
+                    Resend OTP
+                  </Button>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Resend OTP in {resendTimer}s
+                  </p>
+                )}
+                <Button
+                  type="button"
+                  variant="link"
+                  onClick={handleChangeEmail}
+                  disabled={loading}
+                  className="text-sm"
+                >
+                  Change Email Address
+                </Button>
+              </div>
+            </>
+          )}
 
           <p className="text-sm text-center text-muted-foreground">
             Don't have an account?{' '}
@@ -181,6 +252,26 @@ export function SignInForm() {
               Sign up
             </Button>
           </p>
+
+          {/* Phone Sign In Option */}
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">Or</span>
+            </div>
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            onClick={() => navigate('/login/phone')}
+            disabled={loading}
+          >
+            Sign in with Phone Number
+          </Button>
         </form>
       </CardContent>
     </Card>

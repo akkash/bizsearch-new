@@ -5,6 +5,10 @@ import type {
   AuthContextType,
   SignUpData,
   SignInData,
+  PhoneSignUpData,
+  PhoneSignInData,
+  PhoneVerifyData,
+  EmailVerifyData,
   Profile,
   ProfileUpdate,
 } from '@/types/auth.types';
@@ -266,6 +270,265 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   /**
+   * Sign up with phone number using Authentication Hook method
+   */
+  const signUpWithPhone = async (data: PhoneSignUpData): Promise<{ error: AuthError | null }> => {
+    try {
+      setError(null);
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        phone: data.phone,
+        password: data.password,
+        options: {
+          data: {
+            display_name: data.displayName,
+            role: data.role,
+          },
+        },
+      });
+
+      if (authError) throw authError;
+
+      // OTP will be sent to the phone number
+      // User needs to verify using verifyOTP method
+      console.log('📱 OTP sent to phone:', data.phone);
+      
+      return { error: null };
+    } catch (err) {
+      const authError = err as AuthError;
+      setError(authError);
+      return { error: authError };
+    }
+  };
+
+  /**
+   * Sign in with phone number and password
+   */
+  const signInWithPhone = async (data: PhoneSignInData): Promise<{ error: AuthError | null }> => {
+    try {
+      setError(null);
+      console.log('🔑 SignIn with phone called for:', data.phone);
+      
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        phone: data.phone,
+        password: data.password,
+      });
+
+      if (authError) {
+        console.error('❌ Auth error from Supabase:', authError);
+        throw authError;
+      }
+
+      console.log('✅ Phone auth successful! User:', authData.user?.id);
+      console.log('✅ Session:', authData.session ? 'Active' : 'None');
+      
+      // Profile will be fetched automatically by the auth state change listener
+      return { error: null };
+    } catch (err) {
+      const authError = err as AuthError;
+      console.error('❌ SignIn with phone exception:', authError);
+      setError(authError);
+      return { error: authError };
+    }
+  };
+
+  /**
+   * Verify OTP for phone authentication
+   */
+  const verifyOTP = async (data: PhoneVerifyData): Promise<{ error: AuthError | null }> => {
+    try {
+      setError(null);
+      console.log('🔐 Verifying OTP for phone:', data.phone);
+      
+      const { data: authData, error: authError } = await supabase.auth.verifyOtp({
+        phone: data.phone,
+        token: data.token,
+        type: 'sms',
+      });
+
+      if (authError) {
+        console.error('❌ OTP verification error:', authError);
+        throw authError;
+      }
+
+      console.log('✅ OTP verified successfully! User:', authData.user?.id);
+      
+      // Check if profile exists, create if not
+      if (authData.user) {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        
+        const { data: existingProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', authData.user.id)
+          .maybeSingle();
+
+        if (!existingProfile) {
+          console.log('Creating profile for phone user:', authData.user.id);
+          const { error: insertError } = await supabase.from('profiles').insert({
+            id: authData.user.id,
+            phone: authData.user.phone!,
+            display_name: authData.user.user_metadata?.display_name || 'User',
+            role: authData.user.user_metadata?.role || 'buyer',
+          });
+
+          if (insertError) {
+            console.error('Error creating profile:', insertError);
+          }
+        }
+
+        // Fetch the profile
+        await fetchProfile(authData.user.id);
+      }
+      
+      return { error: null };
+    } catch (err) {
+      const authError = err as AuthError;
+      console.error('❌ Verify OTP exception:', authError);
+      setError(authError);
+      return { error: authError };
+    }
+  };
+
+  /**
+   * Resend OTP to phone number
+   */
+  const resendOTP = async (phone: string): Promise<{ error: AuthError | null }> => {
+    try {
+      setError(null);
+      console.log('📱 Resending OTP to:', phone);
+      
+      const { error: authError } = await supabase.auth.signInWithOtp({
+        phone: phone,
+      });
+
+      if (authError) {
+        console.error('❌ Resend OTP error:', authError);
+        throw authError;
+      }
+
+      console.log('✅ OTP resent successfully');
+      return { error: null };
+    } catch (err) {
+      const authError = err as AuthError;
+      console.error('❌ Resend OTP exception:', authError);
+      setError(authError);
+      return { error: authError };
+    }
+  };
+
+  /**
+   * Sign in with email (OTP-based)
+   */
+  const signInWithEmail = async (email: string): Promise<{ error: AuthError | null }> => {
+    try {
+      setError(null);
+      console.log('📧 Sending OTP to email:', email);
+      
+      const { error: authError } = await supabase.auth.signInWithOtp({
+        email: email,
+      });
+
+      if (authError) {
+        console.error('❌ Email OTP error:', authError);
+        throw authError;
+      }
+
+      console.log('✅ OTP sent to email successfully');
+      return { error: null };
+    } catch (err) {
+      const authError = err as AuthError;
+      console.error('❌ Email OTP exception:', authError);
+      setError(authError);
+      return { error: authError };
+    }
+  };
+
+  /**
+   * Verify OTP for email authentication
+   */
+  const verifyEmailOTP = async (data: EmailVerifyData): Promise<{ error: AuthError | null }> => {
+    try {
+      setError(null);
+      console.log('🔐 Verifying email OTP for:', data.email);
+      
+      const { data: authData, error: authError } = await supabase.auth.verifyOtp({
+        email: data.email,
+        token: data.token,
+        type: 'email',
+      });
+
+      if (authError) {
+        console.error('❌ Email OTP verification error:', authError);
+        throw authError;
+      }
+
+      console.log('✅ Email OTP verified successfully! User:', authData.user?.id);
+      
+      // Check if profile exists, create if not
+      if (authData.user) {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        
+        const { data: existingProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', authData.user.id)
+          .maybeSingle();
+
+        if (!existingProfile) {
+          console.log('Creating profile for email user:', authData.user.id);
+          const { error: insertError } = await supabase.from('profiles').insert({
+            id: authData.user.id,
+            email: authData.user.email!,
+            display_name: authData.user.user_metadata?.display_name || 'User',
+            role: authData.user.user_metadata?.role || 'buyer',
+          });
+
+          if (insertError) {
+            console.error('Error creating profile:', insertError);
+          }
+        }
+
+        // Fetch the profile
+        await fetchProfile(authData.user.id);
+      }
+      
+      return { error: null };
+    } catch (err) {
+      const authError = err as AuthError;
+      console.error('❌ Verify email OTP exception:', authError);
+      setError(authError);
+      return { error: authError };
+    }
+  };
+
+  /**
+   * Resend OTP to email
+   */
+  const resendEmailOTP = async (email: string): Promise<{ error: AuthError | null }> => {
+    try {
+      setError(null);
+      console.log('📧 Resending OTP to email:', email);
+      
+      const { error: authError } = await supabase.auth.signInWithOtp({
+        email: email,
+      });
+
+      if (authError) {
+        console.error('❌ Resend email OTP error:', authError);
+        throw authError;
+      }
+
+      console.log('✅ Email OTP resent successfully');
+      return { error: null };
+    } catch (err) {
+      const authError = err as AuthError;
+      console.error('❌ Resend email OTP exception:', authError);
+      setError(authError);
+      return { error: authError };
+    }
+  };
+
+  /**
    * Request a password reset email
    */
   const resetPasswordRequest = async (email: string): Promise<{ error: AuthError | null }> => {
@@ -508,6 +771,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signUp,
     signIn,
     signOut,
+    signUpWithPhone,
+    signInWithPhone,
+    verifyOTP,
+    resendOTP,
+    signInWithEmail,
+    verifyEmailOTP,
+    resendEmailOTP,
     resetPasswordRequest,
     resetPassword,
     updatePassword,

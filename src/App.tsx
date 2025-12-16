@@ -22,6 +22,7 @@ import { MyListingsPage } from "@/polymet/pages/my-listings";
 import { SavedListingsPage } from "@/polymet/pages/saved-listings";
 import { NotificationsPage } from "@/polymet/pages/notifications";
 import { LoginPage } from "@/pages/auth/login";
+import { PhoneLoginPage } from "@/pages/auth/phone-login";
 import { SignUpPage } from "@/pages/auth/signup";
 import { ForgotPasswordPage } from "@/pages/auth/forgot-password";
 import { ResetPasswordPage } from "@/pages/auth/reset-password";
@@ -109,6 +110,7 @@ export default function BizSearchApp() {
 
         {/* Authentication Routes */}
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/login/phone" element={<PhoneLoginPage />} />
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />

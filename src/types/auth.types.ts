@@ -21,10 +21,33 @@ export interface SignUpData {
   role: UserRole;
 }
 
+export interface PhoneSignUpData {
+  phone: string;
+  password: string;
+  displayName: string;
+  role: UserRole;
+}
+
 export interface SignInData {
   email: string;
   password: string;
   rememberMe?: boolean;
+}
+
+export interface PhoneSignInData {
+  phone: string;
+  password: string;
+  rememberMe?: boolean;
+}
+
+export interface PhoneVerifyData {
+  phone: string;
+  token: string;
+}
+
+export interface EmailVerifyData {
+  email: string;
+  token: string;
 }
 
 export interface AuthContextType extends AuthState {
@@ -32,6 +55,15 @@ export interface AuthContextType extends AuthState {
   signUp: (data: SignUpData) => Promise<{ error: AuthError | null }>;
   signIn: (data: SignInData) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<{ error: AuthError | null }>;
+  
+  // Phone authentication methods
+  signUpWithPhone: (data: PhoneSignUpData) => Promise<{ error: AuthError | null }>;
+  signInWithPhone: (data: PhoneSignInData) => Promise<{ error: AuthError | null }>;
+  verifyOTP: (data: PhoneVerifyData) => Promise<{ error: AuthError | null }>;
+  resendOTP: (phone: string) => Promise<{ error: AuthError | null }>;
+  signInWithEmail: (email: string) => Promise<{ error: AuthError | null }>;
+  verifyEmailOTP: (data: EmailVerifyData) => Promise<{ error: AuthError | null }>;
+  resendEmailOTP: (email: string) => Promise<{ error: AuthError | null }>;
   
   // Password management
   resetPasswordRequest: (email: string) => Promise<{ error: AuthError | null }>;
