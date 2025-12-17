@@ -211,10 +211,11 @@ USING (
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, email, display_name, role)
+  INSERT INTO public.profiles (id, email, phone, display_name, role)
   VALUES (
     NEW.id,
     NEW.email,
+    COALESCE(NEW.raw_user_meta_data->>'phone', NEW.phone),
     COALESCE(NEW.raw_user_meta_data->>'display_name', ''),
     COALESCE((NEW.raw_user_meta_data->>'role')::user_role, 'buyer')
   );

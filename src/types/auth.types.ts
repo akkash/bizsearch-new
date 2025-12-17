@@ -19,6 +19,7 @@ export interface SignUpData {
   password: string;
   displayName: string;
   role: UserRole;
+  phone?: string; // Optional phone number
 }
 
 export interface PhoneSignUpData {

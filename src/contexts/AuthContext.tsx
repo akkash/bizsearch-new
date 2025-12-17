@@ -169,6 +169,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           data: {
             display_name: data.displayName,
             role: data.role,
+            phone: data.phone || null,
           },
         },
       });
@@ -192,12 +193,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (!existingProfile) {
           console.log('Creating profile manually for user:', authData.user.id);
-          const { error: insertError } = await supabase.from('profiles').insert({
+          const profileData: any = {
             id: authData.user.id,
             email: authData.user.email!,
             display_name: data.displayName,
             role: data.role,
-          });
+          };
+          
+          // Add phone if provided
+          if (data.phone) {
+            profileData.phone = data.phone;
+          }
+          
+          const { error: insertError } = await supabase.from('profiles').insert(profileData);
 
           if (insertError) {
             console.error('Error creating profile:', insertError);
