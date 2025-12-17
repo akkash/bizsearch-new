@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { MapPin, Building2, Upload } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -33,9 +33,15 @@ export function FranchiseLocationsPage() {
     }
   }, [id]);
 
+  // Helper to check if string is a valid UUID
+  const isValidUUID = (str: string) => {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(str);
+  };
+
   const loadData = async () => {
     if (!id) return;
-    
+
     setLoading(true);
     try {
       const [locs, locStats] = await Promise.all([
@@ -46,15 +52,19 @@ export function FranchiseLocationsPage() {
       setLocations(locs);
       setLocationStats(locStats);
 
-      // Check if current user is the franchisor
+      // Check if current user is the franchisor (supports both UUID and slug)
       if (user && profile) {
         const { supabase } = await import('@/lib/supabase');
-        const { data: franchise } = await supabase
+
+        // Determine if id is UUID or slug and query accordingly
+        const query = supabase
           .from('franchises')
-          .select('franchisor_id')
-          .eq('id', id)
-          .single();
-        
+          .select('franchisor_id');
+
+        const { data: franchise } = await (isValidUUID(id)
+          ? query.eq('id', id).single()
+          : query.eq('slug', id).single());
+
         setIsFranchisor(franchise?.franchisor_id === user.id);
       }
     } catch (error) {
@@ -121,7 +131,7 @@ export function FranchiseLocationsPage() {
               Red pins: Operating franchises • White pins: Available for new franchisors
             </p>
           </div>
-          
+
           {/* Franchisor Tools */}
           {isFranchisor && (
             <Dialog open={showBulkUpload} onOpenChange={setShowBulkUpload}>

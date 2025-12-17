@@ -50,14 +50,31 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
   const [showContactForm, setShowContactForm] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
 
-  // Fetch franchise from Supabase
+  // Helper to check if string is a valid UUID
+  const isValidUUID = (str: string) => {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(str);
+  };
+
+  // Fetch franchise from Supabase (supports both UUID and slug)
   useEffect(() => {
     const fetchFranchise = async () => {
       if (!id) return;
       setLoading(true);
-      const result = await FranchiseService.getFranchiseById(id);
-      if (result && !Array.isArray(result)) {
-        setFranchise(result as Franchise);
+      try {
+        let result;
+        if (isValidUUID(id)) {
+          // If id is a valid UUID, fetch by id
+          result = await FranchiseService.getFranchiseById(id);
+        } else {
+          // Otherwise, treat it as a slug
+          result = await FranchiseService.getFranchiseBySlug(id);
+        }
+        if (result && !Array.isArray(result)) {
+          setFranchise(result as Franchise);
+        }
+      } catch (error) {
+        console.error('Error fetching franchise:', error);
       }
       setLoading(false);
     };
