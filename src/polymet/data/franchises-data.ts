@@ -1,5 +1,6 @@
 export interface Franchise {
   id: string;
+  slug?: string;
   // Support both camelCase and snake_case
   brandName?: string;
   brand_name?: string;

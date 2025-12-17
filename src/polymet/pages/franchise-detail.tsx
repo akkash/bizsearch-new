@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { FranchiseService } from "@/lib/franchise-service";
 import type { Franchise } from "@/polymet/data/franchises-data";
 import { Button } from "@/components/ui/button";
@@ -43,6 +43,7 @@ interface FranchiseDetailProps {
 
 export function FranchiseDetail({ className }: FranchiseDetailProps) {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [franchise, setFranchise] = useState<Franchise | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
@@ -252,6 +253,14 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate(`/franchise/${franchise.slug || id}/locations`)}
+              >
+                <MapPinIcon className="h-4 w-4 mr-2" />
+                View Locations
+              </Button>
               <Button variant="outline" size="sm" onClick={handleSave}>
                 <HeartIcon
                   className={cn(

@@ -9,6 +9,7 @@ import { BusinessListings } from "@/polymet/pages/business-listings";
 import { FranchiseListings } from "@/polymet/pages/franchise-listings";
 import { BusinessDetail } from "@/polymet/pages/business-detail";
 import { FranchiseDetail } from "@/polymet/pages/franchise-detail";
+import { FranchiseLocationsPage } from "@/polymet/pages/franchise-locations";
 import { AboutPage } from "@/polymet/pages/about";
 import { ContactPage } from "@/polymet/pages/contact";
 import { ProfilePage } from "@/polymet/pages/profile";
@@ -85,6 +86,16 @@ export default function BizSearchApp() {
           element={
             <MainLayout>
               <FranchiseDetail />
+            </MainLayout>
+          }
+        />
+
+        {/* Franchise Locations */}
+        <Route
+          path="/franchise/:id/locations"
+          element={
+            <MainLayout>
+              <FranchiseLocationsPage />
             </MainLayout>
           }
         />
