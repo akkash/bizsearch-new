@@ -6,38 +6,25 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Mail, KeyRound } from 'lucide-react';
+import { Loader2, Mail, Eye, EyeOff } from 'lucide-react';
 
 export function SignInForm() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signInWithEmail, verifyEmailOTP, resendEmailOTP } = useAuth();
-  
+  const { signIn, resetPasswordRequest } = useAuth();
+
   const [email, setEmail] = useState('');
-  const [otp, setOtp] = useState('');
-  const [step, setStep] = useState<'email' | 'otp'>('email');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [canResend, setCanResend] = useState(false);
-  const [resendTimer, setResendTimer] = useState(60);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmailSent, setResetEmailSent] = useState(false);
 
   // Get the redirect path from location state (set by ProtectedRoute)
   const from = (location.state as any)?.from?.pathname || '/';
 
-  // Start countdown timer for resend OTP
-  React.useEffect(() => {
-    if (step === 'otp' && resendTimer > 0) {
-      const timer = setTimeout(() => {
-        setResendTimer(resendTimer - 1);
-        if (resendTimer === 1) {
-          setCanResend(true);
-        }
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [step, resendTimer]);
-
-  const handleSendOTP = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
@@ -49,41 +36,21 @@ export function SignInForm() {
       return;
     }
 
-    const { error: otpError } = await signInWithEmail(email);
-
-    setLoading(false);
-
-    if (otpError) {
-      setError(otpError.message);
-      return;
-    }
-
-    // Move to OTP verification step
-    setStep('otp');
-    setResendTimer(60);
-    setCanResend(false);
-  };
-
-  const handleVerifyOTP = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
-
-    if (otp.length !== 6) {
-      setError('Please enter a valid 6-digit OTP code');
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
       setLoading(false);
       return;
     }
 
-    const { error: verifyError } = await verifyEmailOTP({
+    const { error: signInError } = await signIn({
       email,
-      token: otp,
+      password,
     });
 
     setLoading(false);
 
-    if (verifyError) {
-      setError(verifyError.message);
+    if (signInError) {
+      setError(signInError.message);
       return;
     }
 
@@ -94,30 +61,105 @@ export function SignInForm() {
     navigate(from, { replace: true });
   };
 
-  const handleResendOTP = async () => {
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
     setError(null);
     setLoading(true);
-    setCanResend(false);
 
-    const { error: resendError } = await resendEmailOTP(email);
-
-    setLoading(false);
-
-    if (resendError) {
-      setError(resendError.message);
-      setCanResend(true);
+    if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      setError('Please enter a valid email address');
+      setLoading(false);
       return;
     }
 
-    // Restart timer
-    setResendTimer(60);
+    const { error: resetError } = await resetPasswordRequest(email);
+
+    setLoading(false);
+
+    if (resetError) {
+      setError(resetError.message);
+      return;
+    }
+
+    setResetEmailSent(true);
   };
 
-  const handleChangeEmail = () => {
-    setStep('email');
-    setOtp('');
-    setError(null);
-  };
+  if (showForgotPassword) {
+    return (
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader>
+          <CardTitle>Reset Password</CardTitle>
+          <CardDescription>
+            Enter your email to receive a password reset link
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleForgotPassword} className="space-y-4">
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            {resetEmailSent ? (
+              <Alert>
+                <AlertDescription>
+                  Password reset email sent! Check your inbox and follow the link to reset your password.
+                </AlertDescription>
+              </Alert>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="reset-email">Email</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="reset-email"
+                      type="email"
+                      placeholder="you@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="pl-10"
+                      required
+                      disabled={loading}
+                    />
+                  </div>
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    'Send Reset Link'
+                  )}
+                </Button>
+              </>
+            )}
+
+            <Button
+              type="button"
+              variant="link"
+              className="w-full"
+              onClick={() => {
+                setShowForgotPassword(false);
+                setError(null);
+                setResetEmailSent(false);
+              }}
+            >
+              Back to Sign In
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="w-full max-w-md mx-auto">
@@ -128,119 +170,87 @@ export function SignInForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={step === 'email' ? handleSendOTP : handleVerifyOTP} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
             <Alert variant="destructive">
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
 
-          {step === 'email' ? (
-            <>
-              {/* Email */}
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10"
-                    required
-                    disabled={loading}
-                  />
-                </div>
-              </div>
+          {/* Email */}
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="pl-10"
+                required
+                disabled={loading}
+              />
+            </div>
+          </div>
 
-              {/* Send OTP Button */}
+          {/* Password */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">Password</Label>
               <Button
-                type="submit"
-                className="w-full"
+                type="button"
+                variant="link"
+                className="p-0 h-auto text-sm"
+                onClick={() => setShowForgotPassword(true)}
+              >
+                Forgot password?
+              </Button>
+            </div>
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="pr-10"
+                required
+                disabled={loading}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                onClick={() => setShowPassword(!showPassword)}
                 disabled={loading}
               >
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Sending OTP...
-                  </>
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4 text-muted-foreground" />
                 ) : (
-                  'Send OTP'
+                  <Eye className="h-4 w-4 text-muted-foreground" />
                 )}
               </Button>
-            </>
-          ) : (
-            <>
-              {/* OTP Verification */}
-              <div className="space-y-2">
-                <Label htmlFor="otp">Enter OTP</Label>
-                <div className="relative">
-                  <KeyRound className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="otp"
-                    type="text"
-                    placeholder="123456"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    className="pl-10 text-center text-2xl tracking-widest"
-                    maxLength={6}
-                    required
-                    disabled={loading}
-                    autoFocus
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground text-center">
-                  Enter the 6-digit code sent to {email}
-                </p>
-              </div>
+            </div>
+          </div>
 
-              {/* Verify OTP Button */}
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={loading || otp.length !== 6}
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Verifying...
-                  </>
-                ) : (
-                  'Verify OTP'
-                )}
-              </Button>
-
-              {/* Resend OTP */}
-              <div className="text-center space-y-2">
-                {canResend ? (
-                  <Button
-                    type="button"
-                    variant="link"
-                    onClick={handleResendOTP}
-                    disabled={loading}
-                    className="text-sm"
-                  >
-                    Resend OTP
-                  </Button>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    Resend OTP in {resendTimer}s
-                  </p>
-                )}
-                <Button
-                  type="button"
-                  variant="link"
-                  onClick={handleChangeEmail}
-                  disabled={loading}
-                  className="text-sm"
-                >
-                  Change Email Address
-                </Button>
-              </div>
-            </>
-          )}
+          {/* Sign In Button */}
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Signing in...
+              </>
+            ) : (
+              'Sign In'
+            )}
+          </Button>
 
           <p className="text-sm text-center text-muted-foreground">
             Don't have an account?{' '}
@@ -252,26 +262,6 @@ export function SignInForm() {
               Sign up
             </Button>
           </p>
-
-          {/* Phone Sign In Option */}
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">Or</span>
-            </div>
-          </div>
-
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            onClick={() => navigate('/login/phone')}
-            disabled={loading}
-          >
-            Sign in with Phone Number
-          </Button>
         </form>
       </CardContent>
     </Card>

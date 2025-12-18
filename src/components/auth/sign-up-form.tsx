@@ -184,15 +184,14 @@ export function SignUpForm() {
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Password strength:</span>
                   <span
-                    className={`font-medium ${
-                      passwordStrength.score <= 1
+                    className={`font-medium ${passwordStrength.score <= 1
                         ? 'text-red-500'
                         : passwordStrength.score === 2
-                        ? 'text-orange-500'
-                        : passwordStrength.score === 3
-                        ? 'text-yellow-500'
-                        : 'text-green-500'
-                    }`}
+                          ? 'text-orange-500'
+                          : passwordStrength.score === 3
+                            ? 'text-yellow-500'
+                            : 'text-green-500'
+                      }`}
                   >
                     {getPasswordStrengthLabel(passwordStrength.score)}
                   </span>
@@ -287,26 +286,6 @@ export function SignUpForm() {
               Sign in
             </Button>
           </p>
-
-          {/* Phone Sign Up Option */}
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">Or</span>
-            </div>
-          </div>
-
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            onClick={() => navigate('/signup/phone')}
-            disabled={loading}
-          >
-            Sign up with Phone Number
-          </Button>
         </form>
       </CardContent>
     </Card>

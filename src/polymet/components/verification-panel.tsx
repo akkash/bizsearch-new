@@ -1,4 +1,3 @@
-import React from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -7,13 +6,13 @@ import {
   ShieldCheck,
   Clock,
   AlertCircle,
-  FileText,
   Upload,
   CheckCircle,
   XCircle,
   Eye,
 } from "lucide-react";
 import { type UserProfile } from "@/polymet/data/profile-data";
+import { PhoneVerification } from "@/components/auth/phone-verification";
 
 interface VerificationDocument {
   id: string;
@@ -258,122 +257,128 @@ export function VerificationPanel({
   };
 
   return (
-    <div className={`bg-white border rounded-lg p-6 ${className}`}>
-      {/* Verification Status Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          {getVerificationStatusIcon()}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">
-              Verification Status
-            </h3>
-            <p className="text-sm text-gray-600 capitalize">
-              {profile.verificationStatus === "verified" &&
-                "Your profile is fully verified"}
-              {profile.verificationStatus === "pending" &&
-                "Verification in progress"}
-              {profile.verificationStatus === "unverified" &&
-                "Complete verification to build trust"}
-            </p>
+    <div className={`space-y-6 ${className}`}>
+      {/* Phone Verification Section */}
+      <PhoneVerification />
+
+      {/* Document Verification Panel */}
+      <div className="bg-white border rounded-lg p-6">
+        {/* Verification Status Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            {getVerificationStatusIcon()}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">
+                Verification Status
+              </h3>
+              <p className="text-sm text-gray-600 capitalize">
+                {profile.verificationStatus === "verified" &&
+                  "Your profile is fully verified"}
+                {profile.verificationStatus === "pending" &&
+                  "Verification in progress"}
+                {profile.verificationStatus === "unverified" &&
+                  "Complete verification to build trust"}
+              </p>
+            </div>
           </div>
+
+          {profile.verificationStatus === "unverified" && (
+            <Button onClick={onStartVerification}>Start Verification</Button>
+          )}
         </div>
 
-        {profile.verificationStatus === "unverified" && (
-          <Button onClick={onStartVerification}>Start Verification</Button>
-        )}
-      </div>
-
-      {/* Progress Bar */}
-      <div className="mb-6">
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-sm font-medium text-gray-700">
-            Progress ({completedRequired}/{totalRequired} required documents)
-          </span>
-          <span className="text-sm text-gray-600">
-            {Math.round(verificationProgress)}%
-          </span>
+        {/* Progress Bar */}
+        <div className="mb-6">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm font-medium text-gray-700">
+              Progress ({completedRequired}/{totalRequired} required documents)
+            </span>
+            <span className="text-sm text-gray-600">
+              {Math.round(verificationProgress)}%
+            </span>
+          </div>
+          <Progress value={verificationProgress} className="h-2" />
         </div>
-        <Progress value={verificationProgress} className="h-2" />
-      </div>
 
-      {/* Documents List */}
-      <div className="space-y-4">
-        <h4 className="font-medium text-gray-900">Required Documents</h4>
+        {/* Documents List */}
+        <div className="space-y-4">
+          <h4 className="font-medium text-gray-900">Required Documents</h4>
 
-        {documents.map((doc) => (
-          <div
-            key={doc.id}
-            className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            <div className="flex items-start gap-3 flex-1">
-              {getStatusIcon(doc.status)}
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <h5 className="font-medium text-gray-900">{doc.name}</h5>
-                  {doc.required && (
-                    <Badge variant="outline" className="text-xs">
-                      Required
-                    </Badge>
+          {documents.map((doc) => (
+            <div
+              key={doc.id}
+              className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <div className="flex items-start gap-3 flex-1">
+                {getStatusIcon(doc.status)}
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h5 className="font-medium text-gray-900">{doc.name}</h5>
+                    {doc.required && (
+                      <Badge variant="outline" className="text-xs">
+                        Required
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-600 mb-2">{doc.description}</p>
+
+                  {doc.uploadDate && (
+                    <p className="text-xs text-gray-500">
+                      Uploaded on {new Date(doc.uploadDate).toLocaleDateString()}
+                    </p>
+                  )}
+
+                  {doc.status === "rejected" && doc.rejectionReason && (
+                    <p className="text-xs text-red-600 mt-1">
+                      Rejected: {doc.rejectionReason}
+                    </p>
                   )}
                 </div>
-                <p className="text-sm text-gray-600 mb-2">{doc.description}</p>
+              </div>
 
-                {doc.uploadDate && (
-                  <p className="text-xs text-gray-500">
-                    Uploaded on {new Date(doc.uploadDate).toLocaleDateString()}
-                  </p>
-                )}
+              <div className="flex items-center gap-2">
+                {getStatusBadge(doc.status)}
 
-                {doc.status === "rejected" && doc.rejectionReason && (
-                  <p className="text-xs text-red-600 mt-1">
-                    Rejected: {doc.rejectionReason}
-                  </p>
+                {doc.status === "not_uploaded" ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => onUploadDocument?.(doc.id)}
+                    className="flex items-center gap-1"
+                  >
+                    <Upload className="w-3 h-3" />
+                    Upload
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => onViewDocument?.(doc.id)}
+                    className="flex items-center gap-1"
+                  >
+                    <Eye className="w-3 h-3" />
+                    View
+                  </Button>
                 )}
               </div>
             </div>
+          ))}
+        </div>
 
-            <div className="flex items-center gap-2">
-              {getStatusBadge(doc.status)}
-
-              {doc.status === "not_uploaded" ? (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => onUploadDocument?.(doc.id)}
-                  className="flex items-center gap-1"
-                >
-                  <Upload className="w-3 h-3" />
-                  Upload
-                </Button>
-              ) : (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => onViewDocument?.(doc.id)}
-                  className="flex items-center gap-1"
-                >
-                  <Eye className="w-3 h-3" />
-                  View
-                </Button>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Verification Benefits */}
-      <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-        <h4 className="font-medium text-blue-900 mb-2 flex items-center gap-2">
-          <ShieldCheck className="w-4 h-4" />
-          Verification Benefits
-        </h4>
-        <ul className="text-sm text-blue-800 space-y-1">
-          <li>• Higher visibility in search results</li>
-          <li>• Increased trust from potential partners</li>
-          <li>• Access to premium features and tools</li>
-          <li>• Priority customer support</li>
-          <li>• Verified badge on your profile</li>
-        </ul>
+        {/* Verification Benefits */}
+        <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+          <h4 className="font-medium text-blue-900 mb-2 flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4" />
+            Verification Benefits
+          </h4>
+          <ul className="text-sm text-blue-800 space-y-1">
+            <li>• Higher visibility in search results</li>
+            <li>• Increased trust from potential partners</li>
+            <li>• Access to premium features and tools</li>
+            <li>• Priority customer support</li>
+            <li>• Verified badge on your profile</li>
+          </ul>
+        </div>
       </div>
     </div>
   );

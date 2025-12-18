@@ -45,6 +45,8 @@ export interface Database {
           royalty_percentage: number | null
           franchise_fee: number | null
           support: Json | null
+          phone_verified: boolean
+          phone_verified_at: string | null
         }
         Insert: {
           id: string
@@ -78,6 +80,8 @@ export interface Database {
           royalty_percentage?: number | null
           franchise_fee?: number | null
           support?: Json | null
+          phone_verified?: boolean
+          phone_verified_at?: string | null
         }
         Update: {
           id?: string
@@ -111,6 +115,8 @@ export interface Database {
           royalty_percentage?: number | null
           franchise_fee?: number | null
           support?: Json | null
+          phone_verified?: boolean
+          phone_verified_at?: string | null
         }
       }
       verification_documents: {
