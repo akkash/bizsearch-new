@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,85 +19,97 @@ import {
   AlertTriangle,
   CheckCircle,
   Clock,
+  Loader2,
 } from "lucide-react";
 import { DocumentsVault } from "@/polymet/components/documents-vault";
 import { VerificationPanel } from "@/polymet/components/verification-panel";
 import {
   getCurrentUserProfile,
   getProfileById,
-  type UserProfile,
 } from "@/polymet/data/profile-data";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/lib/supabase";
 
 interface ProfileDocumentsPageProps {
   className?: string;
 }
 
-// Mock document data
-const mockDocuments = [
-  {
-    id: "doc1",
-    name: "Financial Statements 2023",
-    type: "financial",
-    size: "2.4 MB",
-    uploadDate: "2024-03-10",
-    status: "verified",
-    requiresNDA: true,
-    category: "Financial",
-  },
-  {
-    id: "doc2",
-    name: "Business Registration Certificate",
-    type: "legal",
-    size: "1.2 MB",
-    uploadDate: "2024-03-08",
-    status: "verified",
-    requiresNDA: false,
-    category: "Legal",
-  },
-  {
-    id: "doc3",
-    name: "Tax Returns 2022-2023",
-    type: "financial",
-    size: "3.1 MB",
-    uploadDate: "2024-03-05",
-    status: "pending",
-    requiresNDA: true,
-    category: "Financial",
-  },
-  {
-    id: "doc4",
-    name: "Franchise Disclosure Document",
-    type: "franchise",
-    size: "5.8 MB",
-    uploadDate: "2024-03-01",
-    status: "verified",
-    requiresNDA: true,
-    category: "Franchise",
-  },
-  {
-    id: "doc5",
-    name: "Operational Manual",
-    type: "operations",
-    size: "12.3 MB",
-    uploadDate: "2024-02-28",
-    status: "verified",
-    requiresNDA: false,
-    category: "Operations",
-  },
-];
+interface ProfileDocument {
+  id: string;
+  name: string;
+  type: string;
+  size: string;
+  uploadDate: string;
+  status: string;
+  requiresNDA: boolean;
+  category: string;
+}
 
 export function ProfileDocumentsPage({
   className = "",
 }: ProfileDocumentsPageProps) {
   const { userId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [hasSignedNDA, setHasSignedNDA] = useState(false);
+  const [documents, setDocuments] = useState<ProfileDocument[]>([]);
+  const [loading, setLoading] = useState(true);
 
   // Get profile data (current user or specific user)
   const profile = userId ? getProfileById(userId) : getCurrentUserProfile();
   const isOwnProfile = !userId || userId === getCurrentUserProfile().id;
+
+  useEffect(() => {
+    loadDocuments();
+  }, [user]);
+
+  const loadDocuments = async () => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('verification_documents')
+        .select('*')
+        .eq('user_id', userId || user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const formattedDocs: ProfileDocument[] = (data || []).map((doc: any) => ({
+        id: doc.id,
+        name: doc.name || doc.file_name || 'Document',
+        type: doc.document_type || 'other',
+        size: formatFileSize(doc.file_size || 0),
+        uploadDate: doc.created_at,
+        status: doc.verification_status || 'pending',
+        requiresNDA: doc.requires_nda || false,
+        category: doc.category || 'General',
+      }));
+
+      setDocuments(formattedDocs);
+    } catch (error) {
+      console.error('Error loading documents:', error);
+      setDocuments([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   if (!profile) {
     return (
@@ -122,21 +134,18 @@ export function ProfileDocumentsPage({
 
   const handleUploadDocument = () => {
     console.log("Upload document");
-    // Open file picker or upload modal
   };
 
   const handleDownloadDocument = (documentId: string) => {
     console.log("Download document:", documentId);
-    // Handle document download
   };
 
   const handleSignNDA = () => {
     console.log("Sign NDA");
     setHasSignedNDA(true);
-    // Handle NDA signing process
   };
 
-  const filteredDocuments = mockDocuments.filter((doc) => {
+  const filteredDocuments = documents.filter((doc) => {
     const matchesSearch = doc.name
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
@@ -147,7 +156,7 @@ export function ProfileDocumentsPage({
 
   const categories = [
     "all",
-    ...new Set(mockDocuments.map((doc) => doc.category)),
+    ...new Set(documents.map((doc) => doc.category)),
   ];
 
   const getStatusIcon = (status: string) => {
@@ -297,7 +306,7 @@ export function ProfileDocumentsPage({
           {/* Documents Vault */}
           <DocumentsVault
             profile={profile}
-            documents={filteredDocuments}
+            documents={filteredDocuments as any}
             isOwnVault={isOwnProfile}
             hasSignedNDA={hasSignedNDA}
             onUploadDocument={handleUploadDocument}
@@ -364,8 +373,8 @@ export function ProfileDocumentsPage({
 
                       <div className="flex items-center gap-2">
                         {document.requiresNDA &&
-                        !hasSignedNDA &&
-                        !isOwnProfile ? (
+                          !hasSignedNDA &&
+                          !isOwnProfile ? (
                           <Button variant="outline" size="sm" disabled>
                             <Lock className="w-4 h-4 mr-2" />
                             NDA Required
