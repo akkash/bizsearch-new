@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
-import { Loader2, Eye, EyeOff, Mail, CheckCircle } from 'lucide-react';
+import { Loader2, Eye, EyeOff, Mail, CheckCircle, RefreshCw } from 'lucide-react';
 import { signUpSchema } from '@/utils/validation';
 import {
   formatZodError,
@@ -19,13 +19,17 @@ import {
   getPasswordStrengthLabel,
 } from '@/utils/validation';
 import type { UserRole } from '@/types/auth.types';
+import { supabase } from '@/lib/supabase';
 
 export function SignUpForm() {
   const navigate = useNavigate();
-  const { signUp } = useAuth();
+  const { } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [signupSuccess, setSignupSuccess] = useState(false);
+  const [existingUnconfirmedUser, setExistingUnconfirmedUser] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -40,10 +44,31 @@ export function SignUpForm() {
 
   const passwordStrength = validatePasswordStrength(formData.password);
 
+  const handleResendConfirmation = async () => {
+    setResending(true);
+    setError(null);
+    setResendSuccess(false);
+
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: formData.email,
+      });
+
+      if (error) throw error;
+      setResendSuccess(true);
+    } catch (err: any) {
+      setError(formatSupabaseError(err));
+    } finally {
+      setResending(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setFieldErrors({});
+    setExistingUnconfirmedUser(false);
 
     // Validate input
     const result = signUpSchema.safeParse(formData);
@@ -55,32 +80,51 @@ export function SignUpForm() {
     setLoading(true);
 
     try {
-      const { error: signUpError } = await signUp({
+      // Try to sign up
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
-        displayName: formData.displayName,
-        role: formData.role,
+        options: {
+          data: {
+            display_name: formData.displayName,
+            role: formData.role,
+          },
+        },
       });
 
       if (signUpError) throw signUpError;
+
+      // Check if user already exists but is unconfirmed
+      // Supabase returns the user but with identities as empty array for existing unconfirmed users
+      if (signUpData.user && signUpData.user.identities && signUpData.user.identities.length === 0) {
+        // User already exists but hasn't confirmed email
+        setExistingUnconfirmedUser(true);
+        setLoading(false);
+        return;
+      }
 
       // Wait a moment for auth state to update
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
       // Check if we have a session (auto-confirm is enabled)
-      // If session exists, redirect to home
-      // If no session, show confirmation message
-      const { data: { session: currentSession } } = await (await import('@/lib/supabase')).supabase.auth.getSession();
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
 
       if (currentSession) {
         // User is logged in, redirect to home
         navigate('/', { replace: true });
       } else {
-        // Email confirmation required
+        // Email confirmation required - new user
         setSignupSuccess(true);
       }
     } catch (err: any) {
-      setError(formatSupabaseError(err));
+      // Check for "User already registered" error
+      const errorMessage = err.message || '';
+      if (errorMessage.toLowerCase().includes('already registered') ||
+        errorMessage.toLowerCase().includes('already exists')) {
+        setExistingUnconfirmedUser(true);
+      } else {
+        setError(formatSupabaseError(err));
+      }
     } finally {
       setLoading(false);
     }
@@ -107,6 +151,21 @@ export function SignUpForm() {
             </AlertDescription>
           </Alert>
 
+          {resendSuccess && (
+            <Alert className="bg-green-50 border-green-200">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-green-700">
+                Confirmation email sent! Check your inbox.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {error && (
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
           <div className="text-center text-sm text-muted-foreground">
             <p>Didn't receive the email?</p>
             <ul className="mt-2 space-y-1">
@@ -118,6 +177,25 @@ export function SignUpForm() {
           <Button
             variant="outline"
             className="w-full"
+            onClick={handleResendConfirmation}
+            disabled={resending}
+          >
+            {resending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Sending...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Resend Confirmation Email
+              </>
+            )}
+          </Button>
+
+          <Button
+            variant="ghost"
+            className="w-full"
             onClick={() => navigate('/login')}
           >
             Back to Sign In
@@ -127,6 +205,84 @@ export function SignUpForm() {
     );
   }
 
+  // Show UI for existing unconfirmed user
+  if (existingUnconfirmedUser) {
+    return (
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader className="text-center">
+          <div className="mx-auto w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mb-4">
+            <Mail className="h-6 w-6 text-amber-600" />
+          </div>
+          <CardTitle>Email Already Registered</CardTitle>
+          <CardDescription>
+            An account with <strong>{formData.email}</strong> already exists but hasn't been verified yet.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Alert className="bg-amber-50 border-amber-200">
+            <Mail className="h-4 w-4 text-amber-600" />
+            <AlertDescription className="text-amber-700">
+              We can send you a new confirmation email to verify your account.
+            </AlertDescription>
+          </Alert>
+
+          {resendSuccess && (
+            <Alert className="bg-green-50 border-green-200">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-green-700">
+                Confirmation email sent! Check your inbox.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {error && (
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          <Button
+            variant="default"
+            className="w-full"
+            onClick={handleResendConfirmation}
+            disabled={resending}
+          >
+            {resending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Sending...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Resend Confirmation Email
+              </>
+            )}
+          </Button>
+
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => {
+                setExistingUnconfirmedUser(false);
+                setFormData({ ...formData, email: '' });
+              }}
+            >
+              Use Different Email
+            </Button>
+            <Button
+              variant="ghost"
+              className="flex-1"
+              onClick={() => navigate('/login')}
+            >
+              Sign In Instead
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="w-full max-w-md mx-auto">
