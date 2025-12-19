@@ -1,23 +1,18 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSavedListings } from "@/contexts/SavedListingsContext";
 import { useNotifications } from "@/contexts/NotificationsContext";
 import {
   Menu,
-  X,
   Search,
   User,
-  Heart,
   Bell,
   Phone,
   Mail,
   MapPin,
   Building2,
   Briefcase,
-  HelpCircle,
-  ChevronDown,
-  MessageCircle,
   Bookmark,
   LogOut,
   Plus,
@@ -44,43 +39,12 @@ interface MainLayoutProps {
 
 export function MainLayout({ children }: MainLayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
   const [showAIChat, setShowAIChat] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
   const { savedCount } = useSavedListings();
   const { unreadCount } = useNotifications();
-
-  const handleSearch = () => {
-    // This will be handled by Link component instead
-    console.log("Search clicked");
-  };
-
-  const handleNotifications = () => {
-    navigate("/notifications");
-  };
-
-  const handleSavedItems = () => {
-    navigate("/saved");
-  };
-
-  const handleProfile = () => {
-    navigate("/profile");
-  };
-
-  const handleSavedListings = () => {
-    navigate("/saved");
-  };
-
-  const handleNotificationsMenu = () => {
-    navigate("/notifications");
-  };
-
-  const handleHelpSupport = () => {
-    // This will be handled by Link component instead
-    console.log("Help & Support clicked");
-  };
 
   const handleSignOut = async () => {
     try {
@@ -89,7 +53,6 @@ export function MainLayout({ children }: MainLayoutProps) {
         console.error('Sign out error:', error);
         return;
       }
-      // Force navigation after successful sign out
       navigate('/', { replace: true });
     } catch (error) {
       console.error('Sign out failed:', error);
@@ -100,180 +63,131 @@ export function MainLayout({ children }: MainLayoutProps) {
     setShowAIChat(true);
   };
 
-  const navigation = [
-    { name: "Home", href: "/", icon: Building2 },
-    { name: "Businesses", href: "/businesses", icon: Building2 },
-    { name: "Franchises", href: "/franchises", icon: Briefcase },
-    { name: "About", href: "/about", icon: HelpCircle },
-    { name: "Contact", href: "/contact", icon: Phone },
-  ];
-
   const isActivePath = (path: string) => {
     if (path === "/") return location.pathname === "/";
     return location.pathname.startsWith(path);
   };
 
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      {/* Header - Minimalistic Professional Design */}
+      <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-100">
         <div className="container mx-auto px-4">
-          <div className="flex h-16 items-center justify-between">
-            {/* Logo */}
-            <Link to="/" className="flex items-center space-x-2">
-              <div className="flex items-center justify-center w-8 h-8 bg-primary rounded-lg">
-                <Building2 className="h-5 w-5 text-primary-foreground" />
-              </div>
-              <span className="text-xl font-bold">BizSearch</span>
-              <Badge variant="secondary" className="hidden sm:inline-flex">
-                AI-Powered
-              </Badge>
+          <div className="flex h-14 items-center justify-between">
+            {/* Logo - Clean and Simple */}
+            <Link to="/" className="flex items-center gap-2">
+              <span className="text-lg font-semibold tracking-tight">BizSearch</span>
             </Link>
 
-            {/* Desktop Navigation - Business & Franchise Links */}
-            <nav className="hidden md:flex items-center space-x-6">
+            {/* Center Navigation - Desktop */}
+            <nav className="hidden md:flex items-center gap-8">
               <Link
                 to="/businesses"
-                className={`text-sm font-medium transition-colors hover:text-primary ${
-                  isActivePath("/businesses")
-                    ? "text-primary"
-                    : "text-muted-foreground"
-                }`}
+                className={`text-sm font-medium transition-colors hover:text-gray-900 ${isActivePath("/businesses")
+                  ? "text-gray-900"
+                  : "text-gray-500"
+                  }`}
               >
                 Business for Sale
               </Link>
               <Link
                 to="/franchises"
-                className={`text-sm font-medium transition-colors hover:text-primary ${
-                  isActivePath("/franchises")
-                    ? "text-primary"
-                    : "text-muted-foreground"
-                }`}
+                className={`text-sm font-medium transition-colors hover:text-gray-900 ${isActivePath("/franchises")
+                  ? "text-gray-900"
+                  : "text-gray-500"
+                  }`}
               >
                 Franchise
               </Link>
             </nav>
 
             {/* Right Side Actions */}
-            <div className="flex items-center space-x-2">
-              {/* Sell Business Dropdown - NEW */}
+            <div className="flex items-center gap-1">
+              {/* List Business - Only for logged in users */}
               {user && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
-                      variant="default"
+                      variant="ghost"
                       size="sm"
-                      className="hidden sm:flex items-center gap-2"
+                      className="hidden sm:flex items-center gap-1 text-gray-600 hover:text-gray-900"
                     >
                       <Plus className="h-4 w-4" />
-                      <span>List Your Business</span>
-                      <ChevronDown className="h-3 w-3" />
+                      <span className="text-sm">List</span>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuContent align="end" className="w-48">
                     <Link to="/add-business-listing">
                       <DropdownMenuItem>
                         <Store className="mr-2 h-4 w-4" />
-                        <div>
-                          <div className="font-medium">Sell a Business</div>
-                          <div className="text-xs text-muted-foreground">
-                            List your business for sale
-                          </div>
-                        </div>
+                        Sell Business
                       </DropdownMenuItem>
                     </Link>
                     <Link to="/add-franchise-listing">
                       <DropdownMenuItem>
                         <Briefcase className="mr-2 h-4 w-4" />
-                        <div>
-                          <div className="font-medium">List Franchise</div>
-                          <div className="text-xs text-muted-foreground">
-                            Offer franchise opportunities
-                          </div>
-                        </div>
+                        List Franchise
                       </DropdownMenuItem>
                     </Link>
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
 
-              {/* AI Chat Button */}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleAIChatOpen}
-                className="hidden sm:flex items-center space-x-2"
-                data-ai-chat
-              >
-                <MessageCircle className="h-4 w-4" />
-                <span className="text-sm font-medium">AI Advisor</span>
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-              </Button>
-
-              {/* Search Button */}
+              {/* Search */}
               <Link to="/businesses">
-                <Button variant="ghost" size="icon" className="hidden sm:flex">
+                <Button variant="ghost" size="icon" className="text-gray-500 hover:text-gray-900">
                   <Search className="h-4 w-4" />
                 </Button>
               </Link>
 
-              {/* Saved Items - Enhanced */}
+              {/* Saved - with count badge */}
               <Link to="/saved">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="relative"
-                >
+                <Button variant="ghost" size="icon" className="relative text-gray-500 hover:text-gray-900">
                   <Bookmark className="h-4 w-4" />
                   {savedCount > 0 && (
-                    <Badge className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center p-0 text-xs bg-blue-600">
-                      {savedCount}
-                    </Badge>
+                    <span className="absolute -top-0.5 -right-0.5 h-4 w-4 flex items-center justify-center text-[10px] font-medium bg-gray-900 text-white rounded-full">
+                      {savedCount > 9 ? '9+' : savedCount}
+                    </span>
                   )}
                 </Button>
               </Link>
 
               {/* Notifications */}
               <Link to="/notifications">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="relative"
-                >
+                <Button variant="ghost" size="icon" className="relative text-gray-500 hover:text-gray-900">
                   <Bell className="h-4 w-4" />
                   {unreadCount > 0 && (
-                    <Badge className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center p-0 text-xs">
-                      {unreadCount}
-                    </Badge>
+                    <span className="absolute -top-0.5 -right-0.5 h-4 w-4 flex items-center justify-center text-[10px] font-medium bg-red-500 text-white rounded-full">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
                   )}
                 </Button>
               </Link>
 
-              {/* User Menu - Show only if logged in */}
+              {/* User Menu or Auth Buttons */}
               {user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="flex items-center space-x-2"
-                    >
-                      <Avatar className="h-8 w-8">
+                    <Button variant="ghost" size="icon" className="ml-1">
+                      <Avatar className="h-7 w-7">
                         <AvatarImage src={profile?.avatar_url || undefined} />
-                        <AvatarFallback>
+                        <AvatarFallback className="text-xs bg-gray-100 text-gray-600">
                           {profile?.display_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || "U"}
                         </AvatarFallback>
                       </Avatar>
-                      <ChevronDown className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuContent align="end" className="w-48">
                     {profile && (
-                      <div className="px-2 py-1.5 text-sm">
-                        <p className="font-medium">{profile.display_name}</p>
-                        <p className="text-xs text-muted-foreground">{profile.email}</p>
-                      </div>
+                      <>
+                        <div className="px-2 py-1.5">
+                          <p className="text-sm font-medium">{profile.display_name}</p>
+                          <p className="text-xs text-gray-500 truncate">{profile.email}</p>
+                        </div>
+                        <DropdownMenuSeparator />
+                      </>
                     )}
-                    <DropdownMenuSeparator />
                     <Link to="/profile">
                       <DropdownMenuItem>
                         <User className="mr-2 h-4 w-4" />
@@ -286,42 +200,10 @@ export function MainLayout({ children }: MainLayoutProps) {
                         My Listings
                       </DropdownMenuItem>
                     </Link>
-                    <Link to="/saved">
-                      <DropdownMenuItem>
-                        <Bookmark className="mr-2 h-4 w-4" />
-                        <div className="flex items-center justify-between w-full">
-                          <span>Saved Listings</span>
-                          {savedCount > 0 && (
-                            <Badge variant="secondary" className="ml-2 text-xs">
-                              {savedCount}
-                            </Badge>
-                          )}
-                        </div>
-                      </DropdownMenuItem>
-                    </Link>
-                    <Link to="/notifications">
-                      <DropdownMenuItem>
-                        <Bell className="mr-2 h-4 w-4" />
-                        <div className="flex items-center justify-between w-full">
-                          <span>Notifications</span>
-                          {unreadCount > 0 && (
-                            <Badge className="ml-2 text-xs">
-                              {unreadCount}
-                            </Badge>
-                          )}
-                        </div>
-                      </DropdownMenuItem>
-                    </Link>
                     <DropdownMenuSeparator />
-                    <Link to="/contact">
-                      <DropdownMenuItem onClick={handleHelpSupport}>
-                        <HelpCircle className="mr-2 h-4 w-4" />
-                        Help & Support
-                      </DropdownMenuItem>
-                    </Link>
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={handleSignOut}
-                      className="text-destructive focus:text-destructive cursor-pointer"
+                      className="text-red-600"
                     >
                       <LogOut className="mr-2 h-4 w-4" />
                       Sign Out
@@ -329,15 +211,15 @@ export function MainLayout({ children }: MainLayoutProps) {
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center gap-2 ml-2">
                   <Link to="/login">
-                    <Button variant="ghost" size="sm">
+                    <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
                       Sign In
                     </Button>
                   </Link>
                   <Link to="/signup">
-                    <Button variant="default" size="sm">
-                      Sign Up
+                    <Button size="sm" className="bg-gray-900 hover:bg-gray-800 text-white">
+                      Get Started
                     </Button>
                   </Link>
                 </div>
@@ -346,62 +228,59 @@ export function MainLayout({ children }: MainLayoutProps) {
               {/* Mobile Menu */}
               <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="md:hidden">
+                  <Button variant="ghost" size="icon" className="md:hidden ml-1 text-gray-500">
                     <Menu className="h-5 w-5" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="w-80">
-                  <div className="flex flex-col space-y-4 mt-8">
-                    {navigation.map((item) => (
-                      <Link
-                        key={item.name}
-                        to={item.href}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className={`flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                          isActivePath(item.href)
-                            ? "bg-primary text-primary-foreground"
-                            : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                        }`}
-                      >
-                        <item.icon className="h-5 w-5" />
+                <SheetContent side="right" className="w-72 p-0">
+                  <div className="flex flex-col h-full">
+                    <div className="p-4 border-b">
+                      <span className="text-lg font-semibold">BizSearch</span>
+                    </div>
+                    <div className="flex-1 py-4">
+                      <nav className="space-y-1 px-2">
+                        {[
+                          { name: "Businesses", href: "/businesses" },
+                          { name: "Franchises", href: "/franchises" },
+                          { name: "Advisors", href: "/advisors" },
+                          { name: "About", href: "/about" },
+                          { name: "Contact", href: "/contact" },
+                        ].map((item) => (
+                          <Link
+                            key={item.name}
+                            to={item.href}
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActivePath(item.href)
+                              ? "bg-gray-100 text-gray-900"
+                              : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                              }`}
+                          >
+                            {item.name}
+                          </Link>
+                        ))}
+                      </nav>
 
-                        <span>{item.name}</span>
-                      </Link>
-                    ))}
-
-                    {/* List Your Business - Mobile */}
-                    <div className="space-y-2">
-                      <div className="px-4 py-2 text-sm font-medium text-muted-foreground">
-                        List Your Business
-                      </div>
-                      <Link
-                        to="/add-business-listing"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className="flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium bg-primary text-primary-foreground"
-                      >
-                        <Building2 className="h-5 w-5" />
-
-                        <div className="flex flex-col">
-                          <span>Sell Your Business</span>
-                          <span className="text-xs opacity-80">
-                            List your business for sale
-                          </span>
+                      {user && (
+                        <div className="mt-6 px-2">
+                          <p className="px-3 text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+                            List Your Business
+                          </p>
+                          <Link
+                            to="/add-business-listing"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className="block px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-50"
+                          >
+                            Sell Business
+                          </Link>
+                          <Link
+                            to="/add-franchise-listing"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className="block px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-50"
+                          >
+                            List Franchise
+                          </Link>
                         </div>
-                      </Link>
-                      <Link
-                        to="/add-franchise-listing"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className="flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium border border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-                      >
-                        <Briefcase className="h-5 w-5" />
-
-                        <div className="flex flex-col">
-                          <span>List Franchise</span>
-                          <span className="text-xs opacity-80">
-                            Offer franchise opportunities
-                          </span>
-                        </div>
-                      </Link>
+                      )}
                     </div>
                   </div>
                 </SheetContent>
