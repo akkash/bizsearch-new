@@ -110,8 +110,8 @@ export function SignUpForm() {
       const { data: { session: currentSession } } = await supabase.auth.getSession();
 
       if (currentSession) {
-        // User is logged in, redirect to home
-        navigate('/', { replace: true });
+        // User is logged in, redirect to onboarding to complete profile
+        navigate('/onboarding', { replace: true });
       } else {
         // Email confirmation required - new user
         setSignupSuccess(true);

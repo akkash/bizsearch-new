@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { FranchiseService } from "@/lib/franchise-service";
+import { MessagingService } from "@/lib/messaging-service";
+import { useAuth } from "@/contexts/AuthContext";
 import type { Franchise } from "@/polymet/data/franchises-data";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +36,7 @@ import {
   DownloadIcon,
   PlayCircleIcon,
   CheckCircleIcon,
+  MessageSquareIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AIInsights } from "@/polymet/components/ai-insights";
@@ -44,11 +48,13 @@ interface FranchiseDetailProps {
 export function FranchiseDetail({ className }: FranchiseDetailProps) {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [franchise, setFranchise] = useState<Franchise | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
   const [showContactForm, setShowContactForm] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [startingConversation, setStartingConversation] = useState(false);
 
   // Helper to check if string is a valid UUID
   const isValidUUID = (str: string) => {
@@ -232,6 +238,37 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
     setShowContactForm(true);
   };
 
+  const handleMessage = async () => {
+    if (!user) {
+      navigate('/login', { state: { from: `/franchise/${id}` } });
+      return;
+    }
+    if (!franchise?.owner_id && !franchise?.franchisor_id) {
+      toast.error('Unable to message franchisor');
+      return;
+    }
+    setStartingConversation(true);
+    try {
+      const franchisorId = (franchise as any).franchisor_id || (franchise as any).owner_id;
+      const conversationId = await MessagingService.getOrCreateConversation(
+        user.id,
+        franchisorId,
+        franchise.id,
+        'franchise'
+      );
+      if (conversationId) {
+        navigate(`/messages?conversation=${conversationId}`);
+      } else {
+        toast.error('Failed to start conversation');
+      }
+    } catch (error) {
+      console.error('Error starting conversation:', error);
+      toast.error('Failed to start conversation');
+    } finally {
+      setStartingConversation(false);
+    }
+  };
+
   return (
     <div className={cn("min-h-screen bg-background", className)}>
       {/* Header */}
@@ -291,6 +328,10 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
               <Button variant="outline" size="sm" onClick={handleShare}>
                 <ShareIcon className="h-4 w-4 mr-2" />
                 Share
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleMessage} disabled={startingConversation}>
+                <MessageSquareIcon className="h-4 w-4 mr-2" />
+                {startingConversation ? 'Starting...' : 'Message'}
               </Button>
               <Button onClick={handleContact}>
                 <PhoneIcon className="h-4 w-4 mr-2" />

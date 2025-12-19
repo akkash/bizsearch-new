@@ -34,6 +34,7 @@ import { ActivityTimeline } from "@/polymet/components/activity-timeline";
 import { TeamManagement } from "@/polymet/components/team-management";
 import { BusinessCard } from "@/polymet/components/business-card";
 import { FranchiseCard } from "@/polymet/components/franchise-card";
+import { ProfileCompletenessCard } from "@/components/profile/ProfileCompletenessCard";
 import type { Database } from "@/types/supabase";
 import type { UserProfile } from "@/polymet/data/profile-data";
 import { adaptSupabaseProfileToUserProfile } from "@/lib/profile-adapter";
@@ -182,7 +183,7 @@ export function ProfilePage({ className = "" }: ProfilePageProps) {
                   </div>
                   <div className="text-center p-4 bg-muted/30 rounded-lg">
                     <div className="text-2xl font-bold text-primary">
-                      {sellerProfile.privateInfo?.askingPrice 
+                      {sellerProfile.privateInfo?.askingPrice
                         ? `₹${(sellerProfile.privateInfo.askingPrice / 10000000).toFixed(1)} Cr`
                         : 'N/A'}
                     </div>
@@ -339,7 +340,7 @@ export function ProfilePage({ className = "" }: ProfilePageProps) {
                   </div>
                   <div className="text-center p-4 bg-muted/30 rounded-lg">
                     <div className="text-2xl font-bold text-primary">
-                      {franchisorProfile.franchiseFee 
+                      {franchisorProfile.franchiseFee
                         ? `₹${(franchisorProfile.franchiseFee / 100000).toFixed(0)}L`
                         : 'N/A'
                       }
@@ -467,6 +468,11 @@ export function ProfilePage({ className = "" }: ProfilePageProps) {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
+          {/* Profile Completeness Card for Own Profile */}
+          {isOwnProfile && (
+            <ProfileCompletenessCard className="mb-4" />
+          )}
+
           {/* Role Tabs for Multi-role Users */}
           {isOwnProfile && (
             <RoleTabs

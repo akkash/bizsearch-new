@@ -36,6 +36,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { ProfileNudgeBanner } from "@/components/profile/ProfileNudgeBanner";
 
 interface HomePageProps {
   className?: string;
@@ -115,33 +116,33 @@ const aiFeatures = [
 ];
 
 const partnerLogos = [
-  { 
-    name: "HDFC Bank", 
+  {
+    name: "HDFC Bank",
     logo: "https://logo.clearbit.com/hdfcbank.com",
     fallback: "HDFC"
   },
-  { 
-    name: "ICICI Bank", 
+  {
+    name: "ICICI Bank",
     logo: "https://logo.clearbit.com/icicibank.com",
     fallback: "ICICI"
   },
-  { 
-    name: "Kotak Mahindra", 
+  {
+    name: "Kotak Mahindra",
     logo: "https://logo.clearbit.com/kotak.com",
     fallback: "Kotak"
   },
-  { 
-    name: "Axis Bank", 
+  {
+    name: "Axis Bank",
     logo: "https://logo.clearbit.com/axisbank.com",
     fallback: "Axis"
   },
-  { 
-    name: "SBI", 
+  {
+    name: "SBI",
     logo: "https://logo.clearbit.com/sbi.co.in",
     fallback: "SBI"
   },
-  { 
-    name: "Yes Bank", 
+  {
+    name: "Yes Bank",
     logo: "https://logo.clearbit.com/yesbank.in",
     fallback: "Yes"
   },
@@ -202,6 +203,13 @@ export function HomePage({ className }: HomePageProps) {
     <div className={cn("min-h-screen", className)}>
       {/* Hero Section */}
       <HeroSection onSearch={handleSearch} />
+
+      {/* Profile Completion Nudge for logged-in users */}
+      {user && (
+        <div className="container mx-auto px-4 mt-6">
+          <ProfileNudgeBanner variant="banner" />
+        </div>
+      )}
 
       {/* NEW: AI-Powered Features Highlight */}
       <section className="py-12 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-purple-950/20 dark:via-blue-950/20 dark:to-indigo-950/20">
@@ -805,8 +813,8 @@ export function HomePage({ className }: HomePageProps) {
             </h3>
             <div className="flex flex-wrap justify-center items-center gap-8 opacity-70 hover:opacity-100 transition-opacity">
               {partnerLogos.map((partner, index) => (
-                <div 
-                  key={index} 
+                <div
+                  key={index}
                   className="group flex items-center gap-3 px-4 py-2 bg-white rounded-lg shadow-sm hover:shadow-md transition-all"
                 >
                   <div className="w-8 h-8 flex items-center justify-center">
@@ -949,9 +957,9 @@ export function HomePage({ className }: HomePageProps) {
       {showBuyerQualifier && user && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="w-full max-w-6xl max-h-[90vh] overflow-y-auto">
-            <BuyerQualifierDashboard 
+            <BuyerQualifierDashboard
               sellerId={user.id}
-              onClose={() => setShowBuyerQualifier(false)} 
+              onClose={() => setShowBuyerQualifier(false)}
             />
           </div>
         </div>

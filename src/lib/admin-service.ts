@@ -345,9 +345,48 @@ export class AdminService {
     }
 
     /**
-     * Approve a document
+     * Get all verification documents with optional filters
+     */
+    static async getAllDocuments(filters?: { status?: 'pending' | 'verified' | 'rejected' | 'all' }): Promise<AdminDocument[]> {
+        let query = supabase
+            .from('verification_documents')
+            .select('*, profile:profiles!profile_id(display_name, email)')
+            .order('created_at', { ascending: false });
+
+        if (filters?.status && filters.status !== 'all') {
+            query = query.eq('status', filters.status);
+        }
+
+        const { data, error } = await query;
+
+        if (error) {
+            console.error('Error fetching documents:', error);
+            return [];
+        }
+
+        return (data || []).map((doc: any) => ({
+            ...doc,
+            profile: doc.profile || { display_name: 'Unknown', email: '' },
+        }));
+    }
+
+    /**
+     * Approve a document and update user verification status
      */
     static async approveDocument(documentId: string, adminId: string): Promise<boolean> {
+        // Get the document to find the profile_id
+        const { data: doc, error: docError } = await supabase
+            .from('verification_documents')
+            .select('profile_id, document_type')
+            .eq('id', documentId)
+            .single();
+
+        if (docError || !doc) {
+            console.error('Error fetching document:', docError);
+            throw new Error('Document not found');
+        }
+
+        // Update the document status
         const { error } = await supabase
             .from('verification_documents')
             .update({
@@ -362,11 +401,14 @@ export class AdminService {
             throw error;
         }
 
+        // Check if user now has verified documents and update profile
+        await this.updateUserVerificationStatus(doc.profile_id);
+
         return true;
     }
 
     /**
-     * Reject a document
+     * Reject a document with reason
      */
     static async rejectDocument(documentId: string, adminId: string, reason?: string): Promise<boolean> {
         const { error } = await supabase
@@ -375,12 +417,50 @@ export class AdminService {
                 status: 'rejected',
                 verified_at: new Date().toISOString(),
                 verified_by: adminId,
+                rejection_reason: reason || null,
             })
             .eq('id', documentId);
 
         if (error) {
             console.error('Error rejecting document:', error);
             throw error;
+        }
+
+        return true;
+    }
+
+    /**
+     * Update user's verification status based on their verified documents
+     */
+    static async updateUserVerificationStatus(profileId: string): Promise<boolean> {
+        // Get all verified documents for this user
+        const { data: verifiedDocs, error: docsError } = await supabase
+            .from('verification_documents')
+            .select('document_type')
+            .eq('profile_id', profileId)
+            .eq('status', 'verified');
+
+        if (docsError) {
+            console.error('Error fetching verified docs:', docsError);
+            return false;
+        }
+
+        const docTypes = (verifiedDocs || []).map(d => d.document_type);
+        const hasIdentity = docTypes.includes('identity');
+        const hasBusiness = docTypes.includes('business');
+
+        // User is verified if they have at least identity document verified
+        const shouldBeVerified = hasIdentity;
+
+        // Update profile verification status
+        const { error: updateError } = await supabase
+            .from('profiles')
+            .update({ verified: shouldBeVerified })
+            .eq('id', profileId);
+
+        if (updateError) {
+            console.error('Error updating profile verification:', updateError);
+            return false;
         }
 
         return true;

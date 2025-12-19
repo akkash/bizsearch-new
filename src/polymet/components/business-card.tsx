@@ -15,6 +15,8 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Business } from "@/polymet/data/businesses-data";
+import { VerificationIcon } from "@/components/verification/VerificationBadge";
+import type { VerificationTier } from "@/hooks/use-verification-tier";
 
 interface BusinessCardProps {
   business: Business;
@@ -139,10 +141,15 @@ export function BusinessCard({
             </div>
           </div>
 
-          {/* Industry and Type */}
+          {/* Industry, Type, and Verification */}
           <div className="flex items-center gap-2 mb-3">
             <Badge variant="secondary">{business.industry}</Badge>
             <Badge variant="outline">{business.businessType}</Badge>
+            {business.verification?.verified && (
+              <VerificationIcon
+                tier={(business.verification.documentsVerified ? 4 : 3) as VerificationTier}
+              />
+            )}
           </div>
 
           {/* Key Metrics */}
@@ -181,9 +188,8 @@ export function BusinessCard({
               <Badge
                 key={badge}
                 variant={badge === "Verified" ? "default" : "secondary"}
-                className={`text-xs ${
-                  badge === "Verified" ? "bg-green-500 hover:bg-green-600" : ""
-                }`}
+                className={`text-xs ${badge === "Verified" ? "bg-green-500 hover:bg-green-600" : ""
+                  }`}
               >
                 {badge === "Verified" && <Shield className="h-3 w-3 mr-1" />}
                 {badge}

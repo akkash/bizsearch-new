@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { BusinessService } from "@/lib/business-service";
+import { MessagingService } from "@/lib/messaging-service";
+import { useAuth } from "@/contexts/AuthContext";
 import type { Business } from "@/polymet/data/businesses-data";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +33,7 @@ import {
   ShieldCheckIcon,
   AlertTriangleIcon,
   DownloadIcon,
+  MessageSquareIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AIInsights } from "@/polymet/components/ai-insights";
@@ -40,11 +44,14 @@ interface BusinessDetailProps {
 
 export function BusinessDetail({ className }: BusinessDetailProps) {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [business, setBusiness] = useState<Business | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
   const [showContactForm, setShowContactForm] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [startingConversation, setStartingConversation] = useState(false);
 
   // Fetch business from Supabase
   useEffect(() => {
@@ -145,12 +152,12 @@ export function BusinessDetail({ className }: BusinessDetailProps) {
     business.images && business.images.length > 0
       ? business.images
       : [
-          business.logo ||
-            "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&h=600&fit=crop",
-          "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&h=600&fit=crop",
-          "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=800&h=600&fit=crop",
-          "https://images.unsplash.com/photo-1556761175-b413da4baf72?w=800&h=600&fit=crop",
-        ];
+        business.logo ||
+        "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=800&h=600&fit=crop",
+        "https://images.unsplash.com/photo-1556761175-b413da4baf72?w=800&h=600&fit=crop",
+      ];
 
   const handleSave = () => {
     setIsSaved(!isSaved);
@@ -170,6 +177,37 @@ export function BusinessDetail({ className }: BusinessDetailProps) {
 
   const handleContact = () => {
     setShowContactForm(true);
+  };
+
+  const handleMessage = async () => {
+    if (!user) {
+      navigate('/login', { state: { from: `/business/${id}` } });
+      return;
+    }
+    if (!business?.seller_id && !business?.owner_id) {
+      toast.error('Unable to message seller');
+      return;
+    }
+    setStartingConversation(true);
+    try {
+      const sellerId = business.seller_id || business.owner_id;
+      const conversationId = await MessagingService.getOrCreateConversation(
+        user.id,
+        sellerId!,
+        business.id,
+        'business'
+      );
+      if (conversationId) {
+        navigate(`/messages?conversation=${conversationId}`);
+      } else {
+        toast.error('Failed to start conversation');
+      }
+    } catch (error) {
+      console.error('Error starting conversation:', error);
+      toast.error('Failed to start conversation');
+    } finally {
+      setStartingConversation(false);
+    }
   };
 
   return (
@@ -215,6 +253,10 @@ export function BusinessDetail({ className }: BusinessDetailProps) {
               <Button variant="outline" size="sm" onClick={handleShare}>
                 <ShareIcon className="h-4 w-4 mr-2" />
                 Share
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleMessage} disabled={startingConversation}>
+                <MessageSquareIcon className="h-4 w-4 mr-2" />
+                {startingConversation ? 'Starting...' : 'Message'}
               </Button>
               <Button onClick={handleContact}>
                 <PhoneIcon className="h-4 w-4 mr-2" />

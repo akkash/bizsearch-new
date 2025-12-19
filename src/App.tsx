@@ -41,6 +41,7 @@ import { AdminContentManagement } from "@/polymet/pages/admin/admin-content";
 import { AdminSettings } from "@/polymet/pages/admin/admin-settings";
 import { FranchiseApplicationPage } from "@/polymet/pages/franchise-application";
 import { MyApplicationsPage } from "@/polymet/pages/my-applications";
+import { FranchisorApplicationsPage } from "@/polymet/pages/franchisor-applications";
 import { FinancingOptionsPage } from "@/polymet/pages/financing-options";
 import { MessagesPage } from "@/polymet/pages/messages";
 import { BusinessValuationPage } from "@/polymet/pages/business-valuation";
@@ -55,8 +56,16 @@ import { CommissionTrackingPage } from "@/polymet/pages/commission-tracking";
 import { AdvisorDirectoryPage } from "@/polymet/pages/advisor-directory";
 import { ReportGeneratorPage } from "@/polymet/pages/report-generator";
 import { LeadManagementPage } from "@/polymet/pages/lead-management";
+import { OnboardingPage } from "@/pages/onboarding";
 import { NotFoundPage } from "@/pages/404";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+
+// Advisor Dashboard
+import { AdvisorLayout } from "@/polymet/layouts/advisor-layout";
+import { AdvisorDashboard } from "@/polymet/pages/advisor/advisor-dashboard";
+import { AdvisorClients } from "@/polymet/pages/advisor/advisor-clients";
+import { AdvisorDeals } from "@/polymet/pages/advisor/advisor-deals";
+import { AdvisorCommissions } from "@/polymet/pages/advisor/advisor-commissions";
 
 export default function BizSearchApp() {
   return (
@@ -161,6 +170,16 @@ export default function BizSearchApp() {
                 <Route path="/signup" element={<SignUpPage />} />
                 <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                 <Route path="/reset-password" element={<ResetPasswordPage />} />
+
+                {/* Onboarding Route - Protected */}
+                <Route
+                  path="/onboarding"
+                  element={
+                    <ProtectedRoute>
+                      <OnboardingPage />
+                    </ProtectedRoute>
+                  }
+                />
 
                 {/* Profile Routes - Protected */}
                 <Route
@@ -333,6 +352,18 @@ export default function BizSearchApp() {
                   }
                 />
 
+                {/* Franchisor Applications Review - Protected */}
+                <Route
+                  path="/franchisor/applications"
+                  element={
+                    <ProtectedRoute>
+                      <MainLayout>
+                        <FranchisorApplicationsPage />
+                      </MainLayout>
+                    </ProtectedRoute>
+                  }
+                />
+
                 {/* Financing Options */}
                 <Route
                   path="/financing"
@@ -474,6 +505,22 @@ export default function BizSearchApp() {
                     </ProtectedRoute>
                   }
                 />
+
+                {/* Advisor Dashboard - Protected */}
+                <Route
+                  path="/advisor"
+                  element={
+                    <ProtectedRoute>
+                      <AdvisorLayout />
+                    </ProtectedRoute>
+                  }
+                >
+                  <Route path="dashboard" element={<AdvisorDashboard />} />
+                  <Route path="clients" element={<AdvisorClients />} />
+                  <Route path="deals" element={<AdvisorDeals />} />
+                  <Route path="commissions" element={<AdvisorCommissions />} />
+                  <Route index element={<AdvisorDashboard />} />
+                </Route>
 
                 {/* Catch-all route - 404 page */}
                 <Route path="*" element={<NotFoundPage />} />
