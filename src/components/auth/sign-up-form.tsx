@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
-import { Loader2, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Eye, EyeOff, Mail, CheckCircle } from 'lucide-react';
 import { signUpSchema } from '@/utils/validation';
 import {
   formatZodError,
@@ -25,6 +25,7 @@ export function SignUpForm() {
   const { signUp } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [signupSuccess, setSignupSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -63,17 +64,69 @@ export function SignUpForm() {
 
       if (signUpError) throw signUpError;
 
-      // Wait a moment for the database trigger to create the profile
+      // Wait a moment for auth state to update
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      // Redirect to home page
-      navigate('/', { replace: true });
+      // Check if we have a session (auto-confirm is enabled)
+      // If session exists, redirect to home
+      // If no session, show confirmation message
+      const { data: { session: currentSession } } = await (await import('@/lib/supabase')).supabase.auth.getSession();
+
+      if (currentSession) {
+        // User is logged in, redirect to home
+        navigate('/', { replace: true });
+      } else {
+        // Email confirmation required
+        setSignupSuccess(true);
+      }
     } catch (err: any) {
       setError(formatSupabaseError(err));
     } finally {
       setLoading(false);
     }
   };
+
+  // Show success message if signup was successful but email confirmation needed
+  if (signupSuccess) {
+    return (
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader className="text-center">
+          <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
+            <CheckCircle className="h-6 w-6 text-green-600" />
+          </div>
+          <CardTitle>Check Your Email</CardTitle>
+          <CardDescription>
+            We've sent a confirmation link to <strong>{formData.email}</strong>
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Alert>
+            <Mail className="h-4 w-4" />
+            <AlertDescription>
+              Click the link in your email to activate your account. The link will expire in 24 hours.
+            </AlertDescription>
+          </Alert>
+
+          <div className="text-center text-sm text-muted-foreground">
+            <p>Didn't receive the email?</p>
+            <ul className="mt-2 space-y-1">
+              <li>• Check your spam folder</li>
+              <li>• Make sure you entered the correct email</li>
+            </ul>
+          </div>
+
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => navigate('/login')}
+          >
+            Back to Sign In
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
 
   return (
     <Card className="w-full max-w-md mx-auto">
@@ -185,12 +238,12 @@ export function SignUpForm() {
                   <span className="text-muted-foreground">Password strength:</span>
                   <span
                     className={`font-medium ${passwordStrength.score <= 1
-                        ? 'text-red-500'
-                        : passwordStrength.score === 2
-                          ? 'text-orange-500'
-                          : passwordStrength.score === 3
-                            ? 'text-yellow-500'
-                            : 'text-green-500'
+                      ? 'text-red-500'
+                      : passwordStrength.score === 2
+                        ? 'text-orange-500'
+                        : passwordStrength.score === 3
+                          ? 'text-yellow-500'
+                          : 'text-green-500'
                       }`}
                   >
                     {getPasswordStrengthLabel(passwordStrength.score)}
