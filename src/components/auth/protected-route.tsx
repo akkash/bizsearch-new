@@ -38,7 +38,7 @@ interface ProtectedRouteProps {
  * ```
  */
 export function ProtectedRoute({ children, requiredRole, requiredRoles }: ProtectedRouteProps) {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, profileMissing } = useAuth();
   const location = useLocation();
 
   // Show loading state while checking authentication
@@ -58,18 +58,23 @@ export function ProtectedRoute({ children, requiredRole, requiredRoles }: Protec
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  // Redirect to profile setup if profile is missing (but allow access to the setup page itself)
+  if (profileMissing && location.pathname !== '/profile/setup') {
+    return <Navigate to="/profile/setup" state={{ from: location }} replace />;
+  }
+
   // Check role requirements
   const hasRequiredRole = () => {
     if (!profile) return false;
-    
+
     if (requiredRole) {
       return profile.role === requiredRole;
     }
-    
+
     if (requiredRoles && requiredRoles.length > 0) {
       return requiredRoles.includes(profile.role);
     }
-    
+
     return true;
   };
 

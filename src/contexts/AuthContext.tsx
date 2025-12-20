@@ -31,21 +31,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<AuthError | null>(null);
+  const [profileMissing, setProfileMissing] = useState(false);
 
   /**
-   * Fetches user profile from database with retry logic
+   * Fetches user profile from database
    * Uses direct fetch to avoid Supabase client timeout issues
    */
-  const fetchProfile = useCallback(async (userId: string, retries = 3): Promise<void> => {
+  const fetchProfile = useCallback(async (userId: string): Promise<void> => {
     try {
-      console.log('👤 Fetching profile for user:', userId, '(retries left:', retries, ')');
-      
+      console.log('👤 Fetching profile for user:', userId);
+
       // Use direct fetch instead of Supabase client to avoid timeout issues
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-      
-      console.log('🌐 Using direct fetch to:', `${supabaseUrl}/rest/v1/profiles?id=eq.${userId}&select=*`);
-      
+
       const response = await fetch(
         `${supabaseUrl}/rest/v1/profiles?id=eq.${userId}&select=*`,
         {
@@ -56,44 +55,81 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
       );
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const data = await response.json();
-      console.log('✅ Profile fetch response:', data);
-      
+
       if (!data || data.length === 0) {
-        // Profile not found
-        if (retries > 0) {
-          console.log('⏳ Profile not found, retrying in 1 second...');
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-          return fetchProfile(userId, retries - 1);
-        }
-        throw new Error('Profile not found');
+        // Profile not found - create minimal profile immediately
+        console.warn('⚠️ Profile not found, creating minimal profile...');
+        await createMinimalProfile(userId);
+        return;
       }
-      
+
       // Set the first profile from array
       const profile = data[0];
-      console.log('✅ Profile fetched successfully:', profile);
+      console.log('✅ Profile fetched successfully:', profile.display_name);
       setProfile(profile);
+      setProfileMissing(false);
     } catch (error: any) {
       console.error('❌ Error fetching profile:', error);
-      
-      // If error and retries left, try again
-      if (retries > 0) {
-        console.log('⏳ Error, retrying in 500ms...');
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        return fetchProfile(userId, retries - 1);
-      }
-      
-      setError(error as AuthError);
-      
-      // Still set loading to false even on error
-      setLoading(false);
+      // On error, create minimal profile instead of failing
+      console.warn('⚠️ Creating minimal profile after fetch error...');
+      await createMinimalProfile(userId);
     }
   }, []);
+
+  /**
+   * Creates a minimal profile for users who don't have one
+   * Sets profileMissing flag to redirect them to profile setup
+   */
+  const createMinimalProfile = async (userId: string): Promise<void> => {
+    try {
+      console.log('📝 Creating minimal profile for user:', userId);
+
+      // Get user data from auth
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) {
+        console.error('❌ No auth user found');
+        setLoading(false);
+        return;
+      }
+
+      const minimalProfile = {
+        id: userId,
+        email: authUser.email || null,
+        display_name: authUser.user_metadata?.display_name || authUser.email?.split('@')[0] || 'User',
+        role: authUser.user_metadata?.role || 'buyer',
+        phone: authUser.phone || authUser.user_metadata?.phone || null,
+      };
+
+      // Try to insert the profile
+      const { data, error } = await supabase
+        .from('profiles')
+        .upsert(minimalProfile, { onConflict: 'id' })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('❌ Error creating minimal profile:', error);
+        setProfileMissing(true);
+        setLoading(false);
+        return;
+      }
+
+      console.log('✅ Minimal profile created:', data);
+      setProfile(data as Profile);
+      setProfileMissing(true); // Flag that user needs to complete profile
+      setLoading(false);
+    } catch (error) {
+      console.error('❌ Exception creating minimal profile:', error);
+      setProfileMissing(true);
+      setLoading(false);
+    }
+  };
 
   /**
    * Initialize auth state and set up auth state listener
@@ -103,12 +139,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
         // Don't wait for profile - fetch in background
         fetchProfile(session.user.id);
       }
-      
+
       // Set loading to false immediately - don't wait for profile
       setLoading(false);
     });
@@ -118,7 +154,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state changed:', event);
-      
+
       setSession(session);
       setUser(session?.user ?? null);
 
@@ -184,7 +220,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else if (authData.user) {
         // Auto sign-in is enabled, ensure profile exists
         await new Promise((resolve) => setTimeout(resolve, 1000));
-        
+
         const { data: existingProfile } = await supabase
           .from('profiles')
           .select('id')
@@ -199,12 +235,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             display_name: data.displayName,
             role: data.role,
           };
-          
+
           // Add phone if provided
           if (data.phone) {
             profileData.phone = data.phone;
           }
-          
+
           const { error: insertError } = await supabase.from('profiles').insert(profileData);
 
           if (insertError) {
@@ -231,7 +267,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setError(null);
       console.log('🔑 SignIn called for:', data.email);
-      
+
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email: data.email,
         password: data.password,
@@ -244,7 +280,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       console.log('✅ Auth successful! User:', authData.user?.id);
       console.log('✅ Session:', authData.session ? 'Active' : 'None');
-      
+
       // Profile will be fetched automatically by the auth state change listener
       return { error: null };
     } catch (err) {
@@ -299,7 +335,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // OTP will be sent to the phone number
       // User needs to verify using verifyOTP method
       console.log('📱 OTP sent to phone:', data.phone);
-      
+
       return { error: null };
     } catch (err) {
       const authError = err as AuthError;
@@ -315,7 +351,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setError(null);
       console.log('🔑 SignIn with phone called for:', data.phone);
-      
+
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         phone: data.phone,
         password: data.password,
@@ -328,7 +364,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       console.log('✅ Phone auth successful! User:', authData.user?.id);
       console.log('✅ Session:', authData.session ? 'Active' : 'None');
-      
+
       // Profile will be fetched automatically by the auth state change listener
       return { error: null };
     } catch (err) {
@@ -346,7 +382,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setError(null);
       console.log('🔐 Verifying OTP for phone:', data.phone);
-      
+
       const { data: authData, error: authError } = await supabase.auth.verifyOtp({
         phone: data.phone,
         token: data.token,
@@ -359,11 +395,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       console.log('✅ OTP verified successfully! User:', authData.user?.id);
-      
+
       // Check if profile exists, create if not
       if (authData.user) {
         await new Promise((resolve) => setTimeout(resolve, 1000));
-        
+
         const { data: existingProfile } = await supabase
           .from('profiles')
           .select('id')
@@ -387,7 +423,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Fetch the profile
         await fetchProfile(authData.user.id);
       }
-      
+
       return { error: null };
     } catch (err) {
       const authError = err as AuthError;
@@ -404,7 +440,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setError(null);
       console.log('📱 Resending OTP to:', phone);
-      
+
       const { error: authError } = await supabase.auth.signInWithOtp({
         phone: phone,
       });
@@ -431,7 +467,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setError(null);
       console.log('📧 Sending OTP to email:', email);
-      
+
       const { error: authError } = await supabase.auth.signInWithOtp({
         email: email,
       });
@@ -458,7 +494,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setError(null);
       console.log('🔐 Verifying email OTP for:', data.email);
-      
+
       const { data: authData, error: authError } = await supabase.auth.verifyOtp({
         email: data.email,
         token: data.token,
@@ -471,11 +507,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       console.log('✅ Email OTP verified successfully! User:', authData.user?.id);
-      
+
       // Check if profile exists, create if not
       if (authData.user) {
         await new Promise((resolve) => setTimeout(resolve, 1000));
-        
+
         const { data: existingProfile } = await supabase
           .from('profiles')
           .select('id')
@@ -499,7 +535,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Fetch the profile
         await fetchProfile(authData.user.id);
       }
-      
+
       return { error: null };
     } catch (err) {
       const authError = err as AuthError;
@@ -516,7 +552,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setError(null);
       console.log('📧 Resending OTP to email:', email);
-      
+
       const { error: authError } = await supabase.auth.signInWithOtp({
         email: email,
       });
@@ -624,7 +660,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     try {
       setError(null);
-      
+
       // Optimistic update
       if (profile) {
         setProfile({ ...profile, ...updates } as Profile);
@@ -639,7 +675,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Refresh profile to get the latest data
       await fetchProfile(user.id);
-      
+
       return { error: null };
     } catch (err) {
       // Revert optimistic update on error
@@ -667,7 +703,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     try {
       setError(null);
-      
+
       // Validate file
       const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
       if (!validTypes.includes(file.type)) {
@@ -722,7 +758,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     try {
       setError(null);
-      
+
       const oldPath = profile.avatar_url.split('/').pop();
       if (oldPath) {
         const { error: deleteError } = await supabase.storage
@@ -749,7 +785,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     try {
       setError(null);
-      
+
       // Delete avatar if exists
       if (profile?.avatar_url) {
         await deleteAvatar();
@@ -758,12 +794,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Note: Supabase doesn't have a direct API to delete users from client
       // The profile deletion will cascade due to ON DELETE CASCADE in the schema
       // You would typically need to implement this via a server-side function or admin API
-      
+
       // For now, we'll sign out and let an admin handle account deletion
       // Or implement a server-side edge function to handle this
-      
+
       await signOut();
-      
+
       return { error: null };
     } catch (err) {
       return { error: err as Error };
@@ -776,6 +812,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     session,
     loading,
     error,
+    profileMissing,
     signUp,
     signIn,
     signOut,

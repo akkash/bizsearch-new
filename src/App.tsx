@@ -57,6 +57,7 @@ import { AdvisorDirectoryPage } from "@/polymet/pages/advisor-directory";
 import { ReportGeneratorPage } from "@/polymet/pages/report-generator";
 import { LeadManagementPage } from "@/polymet/pages/lead-management";
 import { OnboardingPage } from "@/pages/onboarding";
+import { ProfileSetupPage } from "@/polymet/pages/profile-setup";
 import { NotFoundPage } from "@/pages/404";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
@@ -177,6 +178,16 @@ export default function BizSearchApp() {
                   element={
                     <ProtectedRoute>
                       <OnboardingPage />
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Profile Setup Route - Protected but allows profile missing */}
+                <Route
+                  path="/profile/setup"
+                  element={
+                    <ProtectedRoute>
+                      <ProfileSetupPage />
                     </ProtectedRoute>
                   }
                 />

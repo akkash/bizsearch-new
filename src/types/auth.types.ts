@@ -12,6 +12,7 @@ export interface AuthState {
   session: Session | null;
   loading: boolean;
   error: AuthError | null;
+  profileMissing: boolean;
 }
 
 export interface SignUpData {
@@ -56,7 +57,7 @@ export interface AuthContextType extends AuthState {
   signUp: (data: SignUpData) => Promise<{ error: AuthError | null }>;
   signIn: (data: SignInData) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<{ error: AuthError | null }>;
-  
+
   // Phone authentication methods
   signUpWithPhone: (data: PhoneSignUpData) => Promise<{ error: AuthError | null }>;
   signInWithPhone: (data: PhoneSignInData) => Promise<{ error: AuthError | null }>;
@@ -65,22 +66,22 @@ export interface AuthContextType extends AuthState {
   signInWithEmail: (email: string) => Promise<{ error: AuthError | null }>;
   verifyEmailOTP: (data: EmailVerifyData) => Promise<{ error: AuthError | null }>;
   resendEmailOTP: (email: string) => Promise<{ error: AuthError | null }>;
-  
+
   // Password management
   resetPasswordRequest: (email: string) => Promise<{ error: AuthError | null }>;
   resetPassword: (newPassword: string) => Promise<{ error: AuthError | null }>;
   updatePassword: (newPassword: string) => Promise<{ error: AuthError | null }>;
-  
+
   // Email management
   updateEmail: (newEmail: string) => Promise<{ error: AuthError | null }>;
-  
+
   // Profile management
   updateProfile: (updates: ProfileUpdate) => Promise<{ error: Error | null }>;
   refreshProfile: () => Promise<void>;
-  
+
   // Account management
   deleteAccount: () => Promise<{ error: Error | null }>;
-  
+
   // Avatar management
   uploadAvatar: (file: File) => Promise<{ url: string | null; error: Error | null }>;
   deleteAvatar: () => Promise<{ error: Error | null }>;
