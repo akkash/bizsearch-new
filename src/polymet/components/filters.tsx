@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -23,13 +23,15 @@ import {
   UsersIcon,
   CalendarIcon,
   TrendingUpIcon,
-  CheckIcon,
+  ChevronRightIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SMERGERS_BUSINESS_CATEGORIES, FRANCHISE_CATEGORIES } from "@/data/categories";
 
 export interface FilterState {
   searchType: "business" | "franchise";
   industry: string[];
+  subcategory: string[];
   location: string[];
   priceRange: [number, number];
   revenueRange: [number, number];
@@ -53,20 +55,7 @@ interface FiltersProps {
   className?: string;
 }
 
-const industries = [
-  "Technology",
-  "Food & Beverage",
-  "Retail",
-  "Healthcare",
-  "Manufacturing",
-  "Education",
-  "Real Estate",
-  "Automotive",
-  "Finance",
-  "Hospitality",
-  "Beauty & Wellness",
-  "Agriculture",
-];
+// Dynamic categories based on listing type - now imported from data/categories
 
 const locations = [
   "Mumbai",
@@ -107,6 +96,7 @@ export function Filters({
   const [filters, setFilters] = useState<FilterState>({
     searchType: type,
     industry: [],
+    subcategory: [],
     location: [],
     priceRange: [0, 10000000],
     revenueRange: [0, 50000000],
@@ -121,6 +111,19 @@ export function Filters({
     outlets: "",
     multiUnit: false,
   });
+
+  // Get categories based on listing type
+  const categories = useMemo(() => {
+    return type === "business" ? SMERGERS_BUSINESS_CATEGORIES : FRANCHISE_CATEGORIES;
+  }, [type]);
+
+  // Get available subcategories based on selected industries
+  const availableSubcategories = useMemo(() => {
+    if (filters.industry.length === 0) return [];
+    return categories
+      .filter(cat => filters.industry.includes(cat.name))
+      .flatMap(cat => cat.subcategories);
+  }, [categories, filters.industry]);
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [hasUnappliedChanges, setHasUnappliedChanges] = useState(false);
@@ -149,6 +152,7 @@ export function Filters({
     const clearedFilters: FilterState = {
       searchType: type,
       industry: [],
+      subcategory: [],
       location: [],
       priceRange: [0, 10000000],
       revenueRange: [0, 50000000],
@@ -171,6 +175,7 @@ export function Filters({
   const getActiveFiltersCount = () => {
     let count = 0;
     if (filters.industry.length > 0) count++;
+    if (filters.subcategory.length > 0) count++;
     if (filters.location.length > 0) count++;
     if (filters.priceRange[0] > 0 || filters.priceRange[1] < 10000000) count++;
     if (filters.revenueRange[0] > 0 || filters.revenueRange[1] < 50000000)
@@ -236,32 +241,75 @@ export function Filters({
       </CardHeader>
 
       <CardContent className="space-y-6">
-        {/* Industry Filter */}
+        {/* Industry/Category Filter */}
         <div className="space-y-3">
           <Label className="flex items-center gap-2">
             <BuildingIcon className="h-4 w-4" />
-            Industry
+            {type === "business" ? "Industry" : "Category"}
           </Label>
           <div className="flex flex-wrap gap-2">
-            {industries
-              .slice(0, isExpanded ? industries.length : 6)
-              .map((industry) => (
+            {categories
+              .slice(0, isExpanded ? categories.length : 6)
+              .map((category) => (
                 <Badge
-                  key={industry}
+                  key={category.id}
                   variant={
-                    filters.industry.includes(industry) ? "default" : "outline"
+                    filters.industry.includes(category.name) ? "default" : "outline"
                   }
                   className="cursor-pointer hover:bg-primary/90"
-                  onClick={() => toggleArrayFilter("industry", industry)}
+                  onClick={() => {
+                    toggleArrayFilter("industry", category.name);
+                    // Clear subcategories if unchecking category
+                    if (filters.industry.includes(category.name)) {
+                      const remainingSubcats = filters.subcategory.filter(
+                        sub => !category.subcategories.some(s => s.name === sub)
+                      );
+                      updateFilters({ subcategory: remainingSubcats });
+                    }
+                  }}
                 >
-                  {industry}
-                  {filters.industry.includes(industry) && (
+                  {category.name}
+                  {filters.industry.includes(category.name) && (
                     <XIcon className="h-3 w-3 ml-1" />
                   )}
                 </Badge>
               ))}
           </div>
         </div>
+
+        {/* Subcategory Filter - Show when categories selected */}
+        {availableSubcategories.length > 0 && (
+          <div className="space-y-3">
+            <Label className="flex items-center gap-2">
+              <ChevronRightIcon className="h-4 w-4" />
+              Subcategory
+            </Label>
+            <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+              {availableSubcategories
+                .slice(0, isExpanded ? availableSubcategories.length : 8)
+                .map((subcategory) => (
+                  <Badge
+                    key={subcategory.id}
+                    variant={
+                      filters.subcategory.includes(subcategory.name) ? "default" : "outline"
+                    }
+                    className="cursor-pointer hover:bg-primary/90 text-xs"
+                    onClick={() => toggleArrayFilter("subcategory", subcategory.name)}
+                  >
+                    {subcategory.name}
+                    {filters.subcategory.includes(subcategory.name) && (
+                      <XIcon className="h-3 w-3 ml-1" />
+                    )}
+                  </Badge>
+                ))}
+              {!isExpanded && availableSubcategories.length > 8 && (
+                <Badge variant="secondary" className="text-xs text-muted-foreground">
+                  +{availableSubcategories.length - 8} more
+                </Badge>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Location Filter */}
         <div className="space-y-3">

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { BusinessCard } from "@/polymet/components/business-card";
 import { Filters, FilterState } from "@/polymet/components/filters";
 import { SearchBar } from "@/polymet/components/search-bar";
@@ -26,8 +26,11 @@ import {
   FilterIcon,
   SortAscIcon,
   SearchIcon,
+  ChevronRightIcon,
+  HomeIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SMERGERS_BUSINESS_CATEGORIES, getBusinessCategoryBySlug } from "@/data/categories";
 
 interface BusinessListingsProps {
   className?: string;
@@ -44,6 +47,7 @@ type SortOption =
 
 export function BusinessListings({ className }: BusinessListingsProps) {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -56,6 +60,12 @@ export function BusinessListings({ className }: BusinessListingsProps) {
   );
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
+
+  // Parse URL params for category filtering
+  const categorySlug = searchParams.get('category');
+  const subcategorySlug = searchParams.get('subcategory');
+  const currentCategory = categorySlug ? getBusinessCategoryBySlug(categorySlug) : null;
+  const currentSubcategory = currentCategory?.subcategories.find(s => s.slug === subcategorySlug);
 
   // Fetch businesses from Supabase
   useEffect(() => {
@@ -105,6 +115,13 @@ export function BusinessListings({ className }: BusinessListingsProps) {
       if (filters.industry.length > 0) {
         filtered = filtered.filter((business) =>
           filters.industry.includes(business.industry)
+        );
+      }
+
+      // Subcategory filter (check if business has subcategory field)
+      if (filters.subcategory && filters.subcategory.length > 0) {
+        filtered = filtered.filter((business) =>
+          filters.subcategory.includes((business as any).subcategory || '')
         );
       }
 
@@ -273,15 +290,63 @@ export function BusinessListings({ className }: BusinessListingsProps) {
     );
   }
 
-  // Empty state
+  // Empty state - still show header with category navigation
   if (!loading && filteredBusinesses.length === 0 && businesses.length === 0) {
     return (
       <div className={cn("min-h-screen bg-background", className)}>
+        {/* Header with breadcrumbs and category chips */}
+        <div className="bg-white border-b">
+          <div className="container mx-auto px-4 py-6">
+            {/* Breadcrumb Navigation */}
+            {currentCategory && (
+              <nav className="flex items-center gap-2 text-sm mb-4">
+                <Link to="/" className="text-muted-foreground hover:text-foreground flex items-center gap-1">
+                  <HomeIcon className="h-4 w-4" />
+                  Home
+                </Link>
+                <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
+                <Link to="/businesses" className="text-muted-foreground hover:text-foreground">
+                  Businesses
+                </Link>
+                <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
+                <span className="font-medium text-foreground">{currentCategory.name}</span>
+              </nav>
+            )}
+
+            <div className="text-center mb-6">
+              <h1 className="text-2xl font-bold mb-2">
+                {currentCategory?.name || 'Businesses for Sale'}
+              </h1>
+              <p className="text-muted-foreground mb-6">
+                {currentCategory
+                  ? `Find ${currentCategory.name.toLowerCase()} businesses for sale`
+                  : 'Discover verified businesses ready for acquisition'
+                }
+              </p>
+            </div>
+
+            {/* Quick Filter Category Chips */}
+            <div className="flex flex-wrap justify-center gap-2 mt-4">
+              {SMERGERS_BUSINESS_CATEGORIES.slice(0, 8).map((cat) => (
+                <Link
+                  key={cat.id}
+                  to={`/businesses?category=${cat.slug}`}
+                  className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${currentCategory?.id === cat.id
+                      ? 'bg-blue-600 text-white border-blue-600'
+                      : 'border-gray-200 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50'
+                    }`}
+                >
+                  {cat.name}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+
         <div className="container mx-auto px-4 py-8">
-          <h1 className="text-3xl font-bold mb-6">Businesses for Sale</h1>
-          <EmptyState 
+          <EmptyState
             type="no-data"
-            title="No Businesses Available Yet"
+            title={currentCategory ? `No ${currentCategory.name} Businesses Yet` : "No Businesses Available Yet"}
             description="We're constantly adding new business opportunities. Check back soon or get notified when new listings are added."
             actionText="List Your Business"
             actionLink="/add-business-listing"
@@ -296,15 +361,98 @@ export function BusinessListings({ className }: BusinessListingsProps) {
       {/* Header */}
       <div className="bg-white border-b">
         <div className="container mx-auto px-4 py-6">
+          {/* Breadcrumb Navigation */}
+          {(currentCategory || currentSubcategory) && (
+            <nav className="flex items-center gap-2 text-sm mb-4">
+              <Link to="/" className="text-muted-foreground hover:text-foreground flex items-center gap-1">
+                <HomeIcon className="h-4 w-4" />
+                Home
+              </Link>
+              <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
+              <Link to="/businesses" className="text-muted-foreground hover:text-foreground">
+                Businesses
+              </Link>
+              {currentCategory && (
+                <>
+                  <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
+                  <Link
+                    to={`/businesses?category=${currentCategory.slug}`}
+                    className={currentSubcategory ? "text-muted-foreground hover:text-foreground" : "font-medium text-foreground"}
+                  >
+                    {currentCategory.name}
+                  </Link>
+                </>
+              )}
+              {currentSubcategory && (
+                <>
+                  <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
+                  <span className="font-medium text-foreground">{currentSubcategory.name}</span>
+                </>
+              )}
+            </nav>
+          )}
+
           <div className="text-center mb-6">
-            <h1 className="text-2xl font-bold mb-2">Business Listings</h1>
+            <h1 className="text-2xl font-bold mb-2">
+              {currentSubcategory?.name || currentCategory?.name || 'Business Listings'}
+            </h1>
             <p className="text-muted-foreground mb-6">
-              Discover verified businesses ready for acquisition
+              {currentCategory
+                ? `Explore ${currentCategory.name.toLowerCase()} businesses for sale`
+                : 'Discover verified businesses ready for acquisition'
+              }
             </p>
             <div className="flex justify-center">
               <SearchBar onSearch={handleSearch} />
             </div>
           </div>
+
+          {/* Quick Filter Category Chips */}
+          {!currentCategory && (
+            <div className="flex flex-wrap justify-center gap-2 mt-4">
+              {SMERGERS_BUSINESS_CATEGORIES.slice(0, 8).map((cat) => (
+                <Link
+                  key={cat.id}
+                  to={`/businesses?category=${cat.slug}`}
+                  className="px-3 py-1.5 text-sm rounded-full border border-gray-200 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                >
+                  {cat.name}
+                </Link>
+              ))}
+            </div>
+          )}
+
+          {/* Subcategory Chips when category is selected */}
+          {currentCategory && currentCategory.subcategories.length > 0 && (
+            <div className="flex flex-wrap justify-center gap-2 mt-4">
+              <Link
+                to={`/businesses?category=${currentCategory.slug}`}
+                className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${!currentSubcategory
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'border-gray-200 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50'
+                  }`}
+              >
+                All {currentCategory.name}
+              </Link>
+              {currentCategory.subcategories.slice(0, 10).map((sub) => (
+                <Link
+                  key={sub.id}
+                  to={`/businesses?category=${currentCategory.slug}&subcategory=${sub.slug}`}
+                  className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${currentSubcategory?.id === sub.id
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'border-gray-200 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50'
+                    }`}
+                >
+                  {sub.name}
+                </Link>
+              ))}
+              {currentCategory.subcategories.length > 10 && (
+                <span className="px-3 py-1.5 text-sm text-muted-foreground">
+                  +{currentCategory.subcategories.length - 10} more
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -416,11 +564,11 @@ export function BusinessListings({ className }: BusinessListingsProps) {
                 ))}
                 {(filters.priceRange[0] > 0 ||
                   filters.priceRange[1] < 10000000) && (
-                  <Badge variant="secondary">
-                    Price: ₹{(filters.priceRange[0] / 100000).toFixed(1)}L - ₹
-                    {(filters.priceRange[1] / 100000).toFixed(1)}L
-                  </Badge>
-                )}
+                    <Badge variant="secondary">
+                      Price: ₹{(filters.priceRange[0] / 100000).toFixed(1)}L - ₹
+                      {(filters.priceRange[1] / 100000).toFixed(1)}L
+                    </Badge>
+                  )}
               </div>
             )}
 
@@ -473,9 +621,8 @@ export function BusinessListings({ className }: BusinessListingsProps) {
                       (_, i) => (
                         <div
                           key={i}
-                          className={`w-2 h-2 rounded-full ${
-                            i === 0 ? "bg-primary" : "bg-muted"
-                          }`}
+                          className={`w-2 h-2 rounded-full ${i === 0 ? "bg-primary" : "bg-muted"
+                            }`}
                         />
                       )
                     )}

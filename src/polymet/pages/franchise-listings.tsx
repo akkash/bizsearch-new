@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { FranchiseCard } from "@/polymet/components/franchise-card";
 import { Filters, FilterState } from "@/polymet/components/filters";
 import { SearchBar } from "@/polymet/components/search-bar";
@@ -26,8 +26,11 @@ import {
   SortAscIcon,
   SearchIcon,
   TrendingUpIcon,
+  ChevronRightIcon,
+  HomeIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { FRANCHISE_CATEGORIES, getCategoryBySlug } from "@/data/categories";
 
 interface FranchiseListingsProps {
   className?: string;
@@ -52,6 +55,7 @@ const investmentRanges = [
 
 export function FranchiseListings({ className }: FranchiseListingsProps) {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [franchises, setFranchises] = useState<Franchise[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -66,6 +70,12 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
   const [selectedInvestmentRange, setSelectedInvestmentRange] =
     useState<string>("");
   const itemsPerPage = 12;
+
+  // Parse URL params for category filtering
+  const categorySlug = searchParams.get('category');
+  const subcategorySlug = searchParams.get('subcategory');
+  const currentCategory = categorySlug ? getCategoryBySlug(categorySlug) : null;
+  const currentSubcategory = currentCategory?.subcategories.find(s => s.slug === subcategorySlug);
 
   // Fetch franchises from Supabase
   useEffect(() => {
@@ -290,7 +300,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
       <div className={cn("min-h-screen bg-background", className)}>
         <div className="container mx-auto px-4 py-8">
           <h1 className="text-3xl font-bold mb-6">Franchise Opportunities</h1>
-          <EmptyState 
+          <EmptyState
             type="no-data"
             title="No Franchises Available Yet"
             description="We're constantly adding new franchise opportunities. Check back soon!"
@@ -307,26 +317,106 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
       {/* Header */}
       <div className="bg-background border-b border-border">
         <div className="container mx-auto px-4 py-6">
+          {/* Breadcrumb Navigation */}
+          {(currentCategory || currentSubcategory) && (
+            <nav className="flex items-center gap-2 text-sm mb-4">
+              <Link to="/" className="text-muted-foreground hover:text-foreground flex items-center gap-1">
+                <HomeIcon className="h-4 w-4" />
+                Home
+              </Link>
+              <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
+              <Link to="/franchises" className="text-muted-foreground hover:text-foreground">
+                Franchises
+              </Link>
+              {currentCategory && (
+                <>
+                  <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
+                  <Link
+                    to={`/franchises?category=${currentCategory.slug}`}
+                    className={currentSubcategory ? "text-muted-foreground hover:text-foreground" : "font-medium text-foreground"}
+                  >
+                    {currentCategory.name}
+                  </Link>
+                </>
+              )}
+              {currentSubcategory && (
+                <>
+                  <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
+                  <span className="font-medium text-foreground">{currentSubcategory.name}</span>
+                </>
+              )}
+            </nav>
+          )}
+
           <div className="text-center mb-6">
             <h1 className="text-2xl font-bold mb-2 text-foreground">
-              Franchise Opportunities
+              {currentSubcategory?.name || currentCategory?.name || 'Franchise Opportunities'}
             </h1>
             <p className="text-muted-foreground mb-6">
-              Discover proven franchise opportunities with high ROI potential
+              {currentCategory
+                ? `Explore ${currentCategory.name.toLowerCase()} franchise opportunities`
+                : 'Discover proven franchise opportunities with high ROI potential'
+              }
             </p>
             <div className="flex justify-center">
               <SearchBar onSearch={handleSearch} />
             </div>
           </div>
 
-          {/* Investment Range Quick Filters */}
-          <div className="mt-6">
-            <div className="flex items-center gap-2 mb-3">
-              <TrendingUpIcon className="h-4 w-4" />
+          {/* Quick Filter Category Chips */}
+          {!currentCategory && (
+            <div className="flex flex-wrap justify-center gap-2 mt-4 mb-4">
+              {FRANCHISE_CATEGORIES.slice(0, 8).map((cat) => (
+                <Link
+                  key={cat.id}
+                  to={`/franchises?category=${cat.slug}`}
+                  className="px-3 py-1.5 text-sm rounded-full border border-gray-200 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                >
+                  {cat.name}
+                </Link>
+              ))}
+            </div>
+          )}
 
+          {/* Subcategory Chips when category is selected */}
+          {currentCategory && currentCategory.subcategories.length > 0 && (
+            <div className="flex flex-wrap justify-center gap-2 mt-4 mb-4">
+              <Link
+                to={`/franchises?category=${currentCategory.slug}`}
+                className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${!currentSubcategory
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'border-gray-200 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50'
+                  }`}
+              >
+                All {currentCategory.name}
+              </Link>
+              {currentCategory.subcategories.slice(0, 10).map((sub) => (
+                <Link
+                  key={sub.id}
+                  to={`/franchises?category=${currentCategory.slug}&subcategory=${sub.slug}`}
+                  className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${currentSubcategory?.id === sub.id
+                      ? 'bg-blue-600 text-white border-blue-600'
+                      : 'border-gray-200 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50'
+                    }`}
+                >
+                  {sub.name}
+                </Link>
+              ))}
+              {currentCategory.subcategories.length > 10 && (
+                <span className="px-3 py-1.5 text-sm text-muted-foreground">
+                  +{currentCategory.subcategories.length - 10} more
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* Investment Range Quick Filters */}
+          <div className="mt-4">
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <TrendingUpIcon className="h-4 w-4" />
               <span className="text-sm font-medium">Investment Range:</span>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap justify-center gap-2">
               <Button
                 variant={selectedInvestmentRange === "" ? "default" : "outline"}
                 size="sm"
@@ -530,9 +620,8 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
                       (_, i) => (
                         <div
                           key={i}
-                          className={`w-2 h-2 rounded-full ${
-                            i === 0 ? "bg-primary" : "bg-muted"
-                          }`}
+                          className={`w-2 h-2 rounded-full ${i === 0 ? "bg-primary" : "bg-muted"
+                            }`}
                         />
                       )
                     )}

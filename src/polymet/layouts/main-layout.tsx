@@ -33,7 +33,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { MobileBottomNav } from "@/polymet/components/mobile-bottom-nav";
 import { AIChat } from "@/polymet/components/ai-chat";
 import { Footer } from "@/polymet/components/footer";
-import { FRANCHISE_CATEGORIES } from "@/data/categories";
+import { FRANCHISE_CATEGORIES, SMERGERS_BUSINESS_CATEGORIES } from "@/data/categories";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -47,6 +47,7 @@ export function MainLayout({ children }: MainLayoutProps) {
   const { user, profile, signOut } = useAuth();
   const { savedCount } = useSavedListings();
   const { unreadCount } = useNotifications();
+  const [categoryTab, setCategoryTab] = useState<"business" | "franchise">("business");
 
   const handleSignOut = async () => {
     try {
@@ -111,38 +112,98 @@ export function MainLayout({ children }: MainLayoutProps) {
                     <ChevronDown className="h-4 w-4" />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="center" className="w-[600px] p-4">
-                  <div className="grid grid-cols-3 gap-4">
-                    {FRANCHISE_CATEGORIES.map((category) => (
-                      <div key={category.id} className="space-y-2">
-                        <Link
-                          to={`/franchises?category=${category.slug}`}
-                          className="font-medium text-sm text-gray-900 hover:text-blue-600 block"
-                        >
-                          {category.name}
-                        </Link>
-                        <div className="space-y-1">
-                          {category.subcategories.slice(0, 4).map((sub) => (
-                            <Link
-                              key={sub.id}
-                              to={`/franchises?category=${category.slug}&subcategory=${sub.slug}`}
-                              className="block text-xs text-gray-500 hover:text-gray-900 py-0.5"
-                            >
-                              {sub.name}
-                            </Link>
-                          ))}
-                          {category.subcategories.length > 4 && (
-                            <Link
-                              to={`/franchises?category=${category.slug}`}
-                              className="block text-xs text-blue-600 hover:text-blue-700 py-0.5 font-medium"
-                            >
-                              +{category.subcategories.length - 4} more
-                            </Link>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+                <DropdownMenuContent align="center" className="w-[700px] p-0">
+                  {/* Category Type Tabs */}
+                  <div className="flex border-b">
+                    <button
+                      onClick={() => setCategoryTab("business")}
+                      className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${categoryTab === "business"
+                          ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50/50"
+                          : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                        }`}
+                    >
+                      Business Categories
+                    </button>
+                    <button
+                      onClick={() => setCategoryTab("franchise")}
+                      className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${categoryTab === "franchise"
+                          ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50/50"
+                          : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                        }`}
+                    >
+                      Franchise Categories
+                    </button>
                   </div>
+
+                  {/* Business Categories */}
+                  {categoryTab === "business" && (
+                    <div className="grid grid-cols-3 gap-4 p-4">
+                      {SMERGERS_BUSINESS_CATEGORIES.slice(0, 12).map((category) => (
+                        <div key={category.id} className="space-y-2">
+                          <Link
+                            to={`/businesses?category=${category.slug}`}
+                            className="font-medium text-sm text-gray-900 hover:text-blue-600 block"
+                          >
+                            {category.name}
+                          </Link>
+                          <div className="space-y-1">
+                            {category.subcategories.slice(0, 4).map((sub) => (
+                              <Link
+                                key={sub.id}
+                                to={`/businesses?category=${category.slug}&subcategory=${sub.slug}`}
+                                className="block text-xs text-gray-500 hover:text-gray-900 py-0.5"
+                              >
+                                {sub.name}
+                              </Link>
+                            ))}
+                            {category.subcategories.length > 4 && (
+                              <Link
+                                to={`/businesses?category=${category.slug}`}
+                                className="block text-xs text-blue-600 hover:text-blue-700 py-0.5 font-medium"
+                              >
+                                +{category.subcategories.length - 4} more
+                              </Link>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Franchise Categories */}
+                  {categoryTab === "franchise" && (
+                    <div className="grid grid-cols-3 gap-4 p-4">
+                      {FRANCHISE_CATEGORIES.map((category) => (
+                        <div key={category.id} className="space-y-2">
+                          <Link
+                            to={`/franchises?category=${category.slug}`}
+                            className="font-medium text-sm text-gray-900 hover:text-blue-600 block"
+                          >
+                            {category.name}
+                          </Link>
+                          <div className="space-y-1">
+                            {category.subcategories.slice(0, 4).map((sub) => (
+                              <Link
+                                key={sub.id}
+                                to={`/franchises?category=${category.slug}&subcategory=${sub.slug}`}
+                                className="block text-xs text-gray-500 hover:text-gray-900 py-0.5"
+                              >
+                                {sub.name}
+                              </Link>
+                            ))}
+                            {category.subcategories.length > 4 && (
+                              <Link
+                                to={`/franchises?category=${category.slug}`}
+                                className="block text-xs text-blue-600 hover:text-blue-700 py-0.5 font-medium"
+                              >
+                                +{category.subcategories.length - 4} more
+                              </Link>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             </nav>
@@ -308,10 +369,36 @@ export function MainLayout({ children }: MainLayoutProps) {
                       {/* Categories Section - Mobile */}
                       <div className="mt-4 px-2">
                         <p className="px-3 text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
-                          Categories
+                          Business Categories
                         </p>
-                        <div className="space-y-1 max-h-48 overflow-y-auto">
-                          {FRANCHISE_CATEGORIES.slice(0, 8).map((category) => (
+                        <div className="space-y-1 max-h-36 overflow-y-auto">
+                          {SMERGERS_BUSINESS_CATEGORIES.slice(0, 6).map((category) => (
+                            <Link
+                              key={category.id}
+                              to={`/businesses?category=${category.slug}`}
+                              onClick={() => setIsMobileMenuOpen(false)}
+                              className="block px-3 py-1.5 rounded-md text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                            >
+                              {category.name}
+                            </Link>
+                          ))}
+                          <Link
+                            to="/businesses"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className="block px-3 py-1.5 rounded-md text-sm text-blue-600 hover:bg-blue-50 font-medium"
+                          >
+                            View All Businesses →
+                          </Link>
+                        </div>
+                      </div>
+
+                      {/* Franchise Categories - Mobile */}
+                      <div className="mt-4 px-2">
+                        <p className="px-3 text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+                          Franchise Categories
+                        </p>
+                        <div className="space-y-1 max-h-36 overflow-y-auto">
+                          {FRANCHISE_CATEGORIES.slice(0, 6).map((category) => (
                             <Link
                               key={category.id}
                               to={`/franchises?category=${category.slug}`}
@@ -326,7 +413,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                             onClick={() => setIsMobileMenuOpen(false)}
                             className="block px-3 py-1.5 rounded-md text-sm text-blue-600 hover:bg-blue-50 font-medium"
                           >
-                            View All Categories →
+                            View All Franchises →
                           </Link>
                         </div>
                       </div>

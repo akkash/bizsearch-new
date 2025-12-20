@@ -178,29 +178,22 @@ export const businessListingSchema = z.object({
 
 export type BusinessListingFormValues = z.infer<typeof businessListingSchema>;
 
-// Industry options
-export const industryOptions = [
-  { value: "technology", label: "Technology & Software" },
-  { value: "retail", label: "Retail & E-commerce" },
-  { value: "food_beverage", label: "Food & Beverage" },
-  { value: "healthcare", label: "Healthcare & Medical" },
-  { value: "manufacturing", label: "Manufacturing" },
-  { value: "construction", label: "Construction & Real Estate" },
-  { value: "automotive", label: "Automotive" },
-  { value: "education", label: "Education & Training" },
-  { value: "finance", label: "Financial Services" },
-  { value: "consulting", label: "Consulting & Professional Services" },
-  { value: "hospitality", label: "Hospitality & Tourism" },
-  { value: "transportation", label: "Transportation & Logistics" },
-  { value: "agriculture", label: "Agriculture & Farming" },
-  { value: "energy", label: "Energy & Utilities" },
-  { value: "media", label: "Media & Entertainment" },
-  { value: "beauty", label: "Beauty & Wellness" },
-  { value: "fitness", label: "Fitness & Sports" },
-  { value: "cleaning", label: "Cleaning Services" },
-  { value: "security", label: "Security Services" },
-  { value: "other", label: "Other" },
-];
+// Industry options - dynamically generated from SMERGERS categories
+import { SMERGERS_BUSINESS_CATEGORIES } from "@/data/categories";
+
+export const industryOptions = SMERGERS_BUSINESS_CATEGORIES.map(cat => ({
+  value: cat.slug,
+  label: cat.name,
+}));
+
+// For backwards compatibility, keep subcategory access
+export const getSubcategoriesForIndustry = (industrySlug: string) => {
+  const category = SMERGERS_BUSINESS_CATEGORIES.find(cat => cat.slug === industrySlug);
+  return category?.subcategories.map(sub => ({
+    value: sub.slug,
+    label: sub.name,
+  })) || [];
+};
 
 // Business model options
 export const businessModelOptions = [
