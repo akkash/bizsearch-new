@@ -17,6 +17,7 @@ import {
   LogOut,
   Plus,
   Store,
+  ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -32,6 +33,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { MobileBottomNav } from "@/polymet/components/mobile-bottom-nav";
 import { AIChat } from "@/polymet/components/ai-chat";
 import { Footer } from "@/polymet/components/footer";
+import { FRANCHISE_CATEGORIES } from "@/data/categories";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -81,7 +83,7 @@ export function MainLayout({ children }: MainLayoutProps) {
             </Link>
 
             {/* Center Navigation - Desktop */}
-            <nav className="hidden md:flex items-center gap-8">
+            <nav className="hidden md:flex items-center gap-6">
               <Link
                 to="/businesses"
                 className={`text-sm font-medium transition-colors hover:text-gray-900 ${isActivePath("/businesses")
@@ -100,6 +102,49 @@ export function MainLayout({ children }: MainLayoutProps) {
               >
                 Franchise
               </Link>
+
+              {/* Categories Mega Menu */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors">
+                    Categories
+                    <ChevronDown className="h-4 w-4" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="center" className="w-[600px] p-4">
+                  <div className="grid grid-cols-3 gap-4">
+                    {FRANCHISE_CATEGORIES.map((category) => (
+                      <div key={category.id} className="space-y-2">
+                        <Link
+                          to={`/franchises?category=${category.slug}`}
+                          className="font-medium text-sm text-gray-900 hover:text-blue-600 block"
+                        >
+                          {category.name}
+                        </Link>
+                        <div className="space-y-1">
+                          {category.subcategories.slice(0, 4).map((sub) => (
+                            <Link
+                              key={sub.id}
+                              to={`/franchises?category=${category.slug}&subcategory=${sub.slug}`}
+                              className="block text-xs text-gray-500 hover:text-gray-900 py-0.5"
+                            >
+                              {sub.name}
+                            </Link>
+                          ))}
+                          {category.subcategories.length > 4 && (
+                            <Link
+                              to={`/franchises?category=${category.slug}`}
+                              className="block text-xs text-blue-600 hover:text-blue-700 py-0.5 font-medium"
+                            >
+                              +{category.subcategories.length - 4} more
+                            </Link>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </nav>
 
             {/* Right Side Actions */}
@@ -259,6 +304,32 @@ export function MainLayout({ children }: MainLayoutProps) {
                           </Link>
                         ))}
                       </nav>
+
+                      {/* Categories Section - Mobile */}
+                      <div className="mt-4 px-2">
+                        <p className="px-3 text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+                          Categories
+                        </p>
+                        <div className="space-y-1 max-h-48 overflow-y-auto">
+                          {FRANCHISE_CATEGORIES.slice(0, 8).map((category) => (
+                            <Link
+                              key={category.id}
+                              to={`/franchises?category=${category.slug}`}
+                              onClick={() => setIsMobileMenuOpen(false)}
+                              className="block px-3 py-1.5 rounded-md text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                            >
+                              {category.name}
+                            </Link>
+                          ))}
+                          <Link
+                            to="/franchises"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className="block px-3 py-1.5 rounded-md text-sm text-blue-600 hover:bg-blue-50 font-medium"
+                          >
+                            View All Categories →
+                          </Link>
+                        </div>
+                      </div>
 
                       {user && (
                         <div className="mt-6 px-2">

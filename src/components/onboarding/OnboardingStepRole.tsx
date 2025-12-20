@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import type { OnboardingData } from '@/hooks/use-onboarding';
 import type { Profile } from '@/types/auth.types';
+import { BUSINESS_INDUSTRIES, FRANCHISE_INDUSTRIES } from '@/data/categories';
 
 interface OnboardingStepRoleProps {
     data: OnboardingData;
@@ -28,11 +29,7 @@ interface OnboardingStepRoleProps {
     error: string | null;
 }
 
-const INDUSTRIES = [
-    'Technology', 'Healthcare', 'Finance', 'Retail', 'Manufacturing',
-    'Food & Beverage', 'Education', 'Real Estate', 'Automotive',
-    'Hospitality', 'E-commerce', 'Logistics', 'Agriculture', 'Energy', 'Other'
-];
+// Use BUSINESS_INDUSTRIES for business buyers/sellers, FRANCHISE_INDUSTRIES for franchise roles
 
 const BUYER_TYPES = [
     { value: 'individual', label: 'Individual Investor' },
@@ -158,7 +155,7 @@ export function OnboardingStepRole({
             <div>
                 <Label>Preferred Industries</Label>
                 <div className="flex flex-wrap gap-2 mt-2">
-                    {INDUSTRIES.map((industry) => {
+                    {[...BUSINESS_INDUSTRIES, ...FRANCHISE_INDUSTRIES.filter(f => !BUSINESS_INDUSTRIES.includes(f))].map((industry) => {
                         const selected = (data.roleData.preferred_industries || []).includes(industry);
                         return (
                             <Badge
@@ -205,7 +202,7 @@ export function OnboardingStepRole({
                         <SelectValue placeholder="Select your industry" />
                     </SelectTrigger>
                     <SelectContent>
-                        {INDUSTRIES.map((industry) => (
+                        {BUSINESS_INDUSTRIES.map((industry) => (
                             <SelectItem key={industry} value={industry}>
                                 {industry}
                             </SelectItem>
@@ -350,7 +347,7 @@ export function OnboardingStepRole({
             <div>
                 <Label>Preferred Industries</Label>
                 <div className="flex flex-wrap gap-2 mt-2">
-                    {INDUSTRIES.map((industry) => {
+                    {FRANCHISE_INDUSTRIES.map((industry) => {
                         const selected = (data.roleData.preferred_industries || []).includes(industry);
                         return (
                             <Badge
@@ -390,7 +387,7 @@ export function OnboardingStepRole({
             <div>
                 <Label>Specializations</Label>
                 <div className="flex flex-wrap gap-2 mt-2">
-                    {INDUSTRIES.map((industry) => {
+                    {[...BUSINESS_INDUSTRIES, ...FRANCHISE_INDUSTRIES.filter(f => !BUSINESS_INDUSTRIES.includes(f))].map((industry) => {
                         const selected = (data.roleData.specializations || []).includes(industry);
                         return (
                             <Badge
