@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,9 +11,11 @@ import {
   Download,
   MessageCircle,
   Loader2,
+  Lock,
 } from "lucide-react";
 import { GeminiService } from "@/lib/gemini-service";
 import { jsPDF } from "jspdf";
+import { useFeatureFlag } from "@/contexts/FeatureFlagsContext";
 
 interface AIInsightsProps {
   type: "business" | "franchise";
@@ -62,10 +64,46 @@ export function AIInsights({
   const [downloadingPDF, setDownloadingPDF] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Feature flag
+  const isAIMatchingEnabled = useFeatureFlag('ai_matching');
+
   // Generate AI insights on component mount
   useEffect(() => {
-    generateAIInsights();
-  }, [businessId, price, revenue, industry, location]);
+    if (isAIMatchingEnabled) {
+      generateAIInsights();
+    } else {
+      setLoading(false);
+    }
+  }, [businessId, price, revenue, industry, location, isAIMatchingEnabled]);
+
+  // Show disabled state if feature flag is off
+  if (!isAIMatchingEnabled) {
+    return (
+      <Card className={`${className}`}>
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2">
+            <Brain className="h-5 w-5 text-gray-400" />
+            <span className="text-gray-400">AI Analysis</span>
+            <Badge variant="secondary" className="ml-auto">
+              Disabled
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <div className="p-3 bg-muted rounded-full mb-3">
+              <Lock className="h-6 w-6 text-muted-foreground" />
+            </div>
+            <p className="text-muted-foreground text-sm">
+              AI Analysis is currently disabled.
+              <br />
+              <span className="text-xs">Contact admin to enable this feature.</span>
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const generateAIInsights = async () => {
     setLoading(true);
@@ -135,7 +173,7 @@ Provide at least 3 key insights, 3-5 risk factors, and 3-5 opportunities. Focus 
     } catch (error: any) {
       console.error("AI Analysis Error:", error);
       setError(error.message || "Failed to generate AI insights");
-      
+
       // Fallback to basic analysis
       setInsights(generateBasicInsights());
     } finally {
@@ -265,7 +303,7 @@ Provide at least 3 key insights, 3-5 risk factors, and 3-5 opportunities. Focus 
         );
         doc.text(lines, margin, yPosition);
         yPosition += lines.length * 5 + 3;
-        
+
         if (yPosition > 270) {
           doc.addPage();
           yPosition = 20;
@@ -359,7 +397,7 @@ Provide at least 3 key insights, 3-5 risk factors, and 3-5 opportunities. Focus 
       type,
       initialMessage: `I'm interested in this ${type} opportunity: ${businessName}. Based on your AI analysis showing a score of ${insights?.overallScore}/100, can you provide more insights and help me evaluate this opportunity?`,
     };
-    
+
     if (onOpenAIChat) {
       onOpenAIChat(context);
     } else {
@@ -538,9 +576,9 @@ Provide at least 3 key insights, 3-5 risk factors, and 3-5 opportunities. Focus 
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             className="flex-1"
             onClick={handleDownloadReport}
             disabled={downloadingPDF}

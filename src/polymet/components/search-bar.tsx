@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Search,
   Filter,
@@ -8,6 +8,8 @@ import {
   Briefcase,
   Mic,
   MicOff,
+  TrendingUp,
+  IndianRupee,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -81,18 +83,18 @@ const businessTypes = [
 
 const popularSearches = {
   business: [
-    { icon: "🍽️", text: "Restaurant Mumbai", query: "restaurant in Mumbai" },
-    { icon: "☕", text: "Café under ₹25L", query: "café under ₹25L" },
-    { icon: "💻", text: "Tech Business", query: "tech business Bangalore" },
-    { icon: "🏭", text: "Manufacturing", query: "manufacturing business" },
-    { icon: "🛍️", text: "Retail Store", query: "retail store" },
+    { text: "Restaurant Mumbai", query: "restaurant in Mumbai" },
+    { text: "Café under ₹25L", query: "café under ₹25L" },
+    { text: "Tech Business", query: "tech business Bangalore" },
+    { text: "Manufacturing", query: "manufacturing business" },
+    { text: "Retail Store", query: "retail store" },
   ],
   franchise: [
-    { icon: "🍕", text: "Food Franchise", query: "food franchise under ₹20L" },
-    { icon: "📚", text: "Education", query: "education franchise" },
-    { icon: "💪", text: "Fitness", query: "fitness franchise" },
-    { icon: "🛒", text: "Retail Franchise", query: "retail franchise under ₹15L" },
-    { icon: "🏪", text: "Convenience Store", query: "convenience store franchise" },
+    { text: "Food Franchise", query: "food franchise under ₹20L" },
+    { text: "Education", query: "education franchise" },
+    { text: "Fitness", query: "fitness franchise" },
+    { text: "Retail Franchise", query: "retail franchise under ₹15L" },
+    { text: "Convenience Store", query: "convenience store franchise" },
   ],
 };
 
@@ -196,11 +198,10 @@ export function SearchBar({
             className="flex items-center gap-3 relative flex-1 h-12 text-sm font-medium"
           >
             <div
-              className={`p-2 rounded-full ${
-                searchType === "business"
-                  ? "bg-white/20"
-                  : "bg-muted-foreground/10"
-              }`}
+              className={`p-2 rounded-full ${searchType === "business"
+                ? "bg-white/20"
+                : "bg-muted-foreground/10"
+                }`}
             >
               <Building2 className="h-5 w-5" />
             </div>
@@ -217,11 +218,10 @@ export function SearchBar({
             className="flex items-center gap-3 relative flex-1 h-12 text-sm font-medium"
           >
             <div
-              className={`p-2 rounded-full ${
-                searchType === "franchise"
-                  ? "bg-white/20"
-                  : "bg-muted-foreground/10"
-              }`}
+              className={`p-2 rounded-full ${searchType === "franchise"
+                ? "bg-white/20"
+                : "bg-muted-foreground/10"
+                }`}
             >
               <Briefcase className="h-5 w-5" />
             </div>
@@ -239,8 +239,8 @@ export function SearchBar({
           <Input
             placeholder={
               searchType === "business"
-                ? "🔍 Search for restaurants, retail stores, tech startups..."
-                : "🔍 Search for food, education, fitness franchises..."
+                ? "Search for restaurants, retail stores, tech startups..."
+                : "Search for food, education, fitness franchises..."
             }
             value={query}
             onChange={(e) => {
@@ -260,13 +260,14 @@ export function SearchBar({
 
           {/* Autocomplete Suggestions Dropdown */}
           {showSuggestions && (
-            <div className="absolute top-full mt-2 left-0 right-0 bg-white rounded-xl shadow-2xl border-2 border-muted z-50 max-h-96 overflow-y-auto">
+            <div className="absolute top-full mt-2 left-0 right-0 bg-white rounded-xl shadow-2xl border-2 border-muted z-[100] max-h-96 overflow-y-auto">
               {query.length === 0 ? (
                 <>
                   {/* Popular Searches */}
                   <div className="p-4">
-                    <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-                      🔥 Popular Searches
+                    <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
+                      <TrendingUp className="h-3.5 w-3.5" />
+                      Popular Searches
                     </div>
                     <div className="space-y-1">
                       {popularSearches[searchType].map((item, idx) => (
@@ -278,7 +279,7 @@ export function SearchBar({
                           }}
                           className="w-full text-left px-3 py-2.5 hover:bg-primary/10 rounded-lg transition-colors flex items-center gap-3 group"
                         >
-                          <span className="text-xl">{item.icon}</span>
+                          <Search className="h-4 w-4 text-muted-foreground" />
                           <span className="font-medium group-hover:text-primary">
                             {item.text}
                           </span>
@@ -289,8 +290,9 @@ export function SearchBar({
                   <Separator />
                   {/* Quick Filters */}
                   <div className="p-4">
-                    <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-                      💰 Quick Price Filters
+                    <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
+                      <IndianRupee className="h-3.5 w-3.5" />
+                      Quick Price Filters
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {quickFilters[searchType].map((filter, idx) => (
@@ -338,10 +340,10 @@ export function SearchBar({
                       {popularSearches[searchType].filter((item) =>
                         item.query.toLowerCase().includes(query.toLowerCase())
                       ).length === 0 && (
-                        <div className="px-3 py-4 text-center text-muted-foreground text-sm">
-                          Press Enter to search for "{query}"
-                        </div>
-                      )}
+                          <div className="px-3 py-4 text-center text-muted-foreground text-sm">
+                            Press Enter to search for "{query}"
+                          </div>
+                        )}
                     </div>
                   </div>
                 </>
@@ -354,11 +356,10 @@ export function SearchBar({
             variant="ghost"
             size="sm"
             onClick={handleVoiceInput}
-            className={`absolute right-2 top-1/2 transform -translate-y-1/2 h-10 w-10 p-0 rounded-full ${
-              isListening
-                ? "text-red-500 animate-pulse bg-red-50"
-                : "text-muted-foreground hover:text-primary hover:bg-primary/10"
-            }`}
+            className={`absolute right-2 top-1/2 transform -translate-y-1/2 h-10 w-10 p-0 rounded-full ${isListening
+              ? "text-red-500 animate-pulse bg-red-50"
+              : "text-muted-foreground hover:text-primary hover:bg-primary/10"
+              }`}
           >
             {isListening ? (
               <MicOff className="h-5 w-5" />
@@ -382,17 +383,17 @@ export function SearchBar({
                   filters.location !== "All Locations" ||
                   filters.priceRange[0] > 0 ||
                   filters.priceRange[1] < 10000000) && (
-                  <Badge variant="secondary" className="ml-1">
-                    {[
-                      filters.industry !== "All Industries" ? 1 : 0,
-                      filters.location !== "All Locations" ? 1 : 0,
-                      filters.priceRange[0] > 0 ||
-                      filters.priceRange[1] < 10000000
-                        ? 1
-                        : 0,
-                    ].reduce((a, b) => a + b, 0)}
-                  </Badge>
-                )}
+                    <Badge variant="secondary" className="ml-1">
+                      {[
+                        filters.industry !== "All Industries" ? 1 : 0,
+                        filters.location !== "All Locations" ? 1 : 0,
+                        filters.priceRange[0] > 0 ||
+                          filters.priceRange[1] < 10000000
+                          ? 1
+                          : 0,
+                      ].reduce((a, b) => a + b, 0)}
+                    </Badge>
+                  )}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-80" align="end">
@@ -545,7 +546,7 @@ export function SearchBar({
       {/* Quick Industry Filters */}
       <div className="text-center">
         <p className="text-sm text-muted-foreground mb-3 font-semibold">
-          🎯 Browse by Industry:
+          Browse by Industry:
         </p>
         <div className="flex flex-wrap justify-center gap-2 max-w-3xl mx-auto">
           {industries.slice(1, 7).map((industry) => (
@@ -568,46 +569,46 @@ export function SearchBar({
         filters.location !== "All Locations" ||
         filters.priceRange[0] > 0 ||
         filters.priceRange[1] < 10000000) && (
-        <div className="flex flex-wrap justify-center gap-2">
-          {filters.industry !== "All Industries" && (
-            <Badge variant="secondary" className="flex items-center gap-1">
-              {filters.industry}
-              <button
-                onClick={() => handleFilterChange("industry", "All Industries")}
-                className="ml-1 hover:bg-muted-foreground/20 rounded-full p-0.5"
-              >
-                ×
-              </button>
-            </Badge>
-          )}
-          {filters.location !== "All Locations" && (
-            <Badge variant="secondary" className="flex items-center gap-1">
-              <MapPin className="h-3 w-3" />
+          <div className="flex flex-wrap justify-center gap-2">
+            {filters.industry !== "All Industries" && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                {filters.industry}
+                <button
+                  onClick={() => handleFilterChange("industry", "All Industries")}
+                  className="ml-1 hover:bg-muted-foreground/20 rounded-full p-0.5"
+                >
+                  ×
+                </button>
+              </Badge>
+            )}
+            {filters.location !== "All Locations" && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                <MapPin className="h-3 w-3" />
 
-              {filters.location}
-              <button
-                onClick={() => handleFilterChange("location", "All Locations")}
-                className="ml-1 hover:bg-muted-foreground/20 rounded-full p-0.5"
-              >
-                ×
-              </button>
-            </Badge>
-          )}
-          {(filters.priceRange[0] > 0 || filters.priceRange[1] < 10000000) && (
-            <Badge variant="secondary" className="flex items-center gap-1">
-              <DollarSign className="h-3 w-3" />
-              {formatPrice(filters.priceRange[0])} -{" "}
-              {formatPrice(filters.priceRange[1])}
-              <button
-                onClick={() => handleFilterChange("priceRange", [0, 10000000])}
-                className="ml-1 hover:bg-muted-foreground/20 rounded-full p-0.5"
-              >
-                ×
-              </button>
-            </Badge>
-          )}
-        </div>
-      )}
+                {filters.location}
+                <button
+                  onClick={() => handleFilterChange("location", "All Locations")}
+                  className="ml-1 hover:bg-muted-foreground/20 rounded-full p-0.5"
+                >
+                  ×
+                </button>
+              </Badge>
+            )}
+            {(filters.priceRange[0] > 0 || filters.priceRange[1] < 10000000) && (
+              <Badge variant="secondary" className="flex items-center gap-1">
+                <DollarSign className="h-3 w-3" />
+                {formatPrice(filters.priceRange[0])} -{" "}
+                {formatPrice(filters.priceRange[1])}
+                <button
+                  onClick={() => handleFilterChange("priceRange", [0, 10000000])}
+                  className="ml-1 hover:bg-muted-foreground/20 rounded-full p-0.5"
+                >
+                  ×
+                </button>
+              </Badge>
+            )}
+          </div>
+        )}
     </div>
   );
 }

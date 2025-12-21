@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SavedListingsProvider } from "@/contexts/SavedListingsContext";
 import { NotificationsProvider } from "@/contexts/NotificationsContext";
+import { FeatureFlagsProvider } from "@/contexts/FeatureFlagsContext";
 import { Toaster } from "@/components/ui/sonner";
 import { MainLayout } from "@/polymet/layouts/main-layout";
 import { HomePage } from "@/polymet/pages/home";
@@ -39,6 +40,7 @@ import { AdminAnalytics } from "@/polymet/pages/admin/admin-analytics";
 import { AdminFraudAlerts } from "@/polymet/pages/admin/admin-fraud-alerts";
 import { AdminContentManagement } from "@/polymet/pages/admin/admin-content";
 import { AdminSettings } from "@/polymet/pages/admin/admin-settings";
+import { AdminFeatureFlags } from "@/polymet/pages/admin/admin-feature-flags";
 import { FranchiseApplicationPage } from "@/polymet/pages/franchise-application";
 import { MyApplicationsPage } from "@/polymet/pages/my-applications";
 import { FranchisorApplicationsPage } from "@/polymet/pages/franchisor-applications";
@@ -71,476 +73,479 @@ import { AdvisorCommissions } from "@/polymet/pages/advisor/advisor-commissions"
 export default function BizSearchApp() {
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <SavedListingsProvider>
-          <NotificationsProvider>
-            <Router>
-              <Routes>
-                {/* Homepage */}
-                <Route
-                  path="/"
-                  element={
-                    <MainLayout>
-                      <HomePage />
-                    </MainLayout>
-                  }
-                />
-
-                {/* Business Listings */}
-                <Route
-                  path="/businesses"
-                  element={
-                    <MainLayout>
-                      <BusinessListings />
-                    </MainLayout>
-                  }
-                />
-
-                {/* Franchise Listings */}
-                <Route
-                  path="/franchises"
-                  element={
-                    <MainLayout>
-                      <FranchiseListings />
-                    </MainLayout>
-                  }
-                />
-
-                {/* Business Detail */}
-                <Route
-                  path="/business/:id"
-                  element={
-                    <MainLayout>
-                      <BusinessDetail />
-                    </MainLayout>
-                  }
-                />
-
-                {/* Franchise Detail */}
-                <Route
-                  path="/franchise/:id"
-                  element={
-                    <MainLayout>
-                      <FranchiseDetail />
-                    </MainLayout>
-                  }
-                />
-
-                {/* Franchise Locations */}
-                <Route
-                  path="/franchise/:id/locations"
-                  element={
-                    <MainLayout>
-                      <FranchiseLocationsPage />
-                    </MainLayout>
-                  }
-                />
-
-                {/* Franchise Map Discovery */}
-                <Route
-                  path="/franchise-map"
-                  element={
-                    <MainLayout>
-                      <FranchiseMapDiscoveryPage />
-                    </MainLayout>
-                  }
-                />
-
-                {/* About Page */}
-                <Route
-                  path="/about"
-                  element={
-                    <MainLayout>
-                      <AboutPage />
-                    </MainLayout>
-                  }
-                />
-
-                {/* Contact Page */}
-                <Route
-                  path="/contact"
-                  element={
-                    <MainLayout>
-                      <ContactPage />
-                    </MainLayout>
-                  }
-                />
-
-                {/* Authentication Routes */}
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/signup" element={<SignUpPage />} />
-                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-                <Route path="/reset-password" element={<ResetPasswordPage />} />
-
-                {/* Onboarding Route - Protected */}
-                <Route
-                  path="/onboarding"
-                  element={
-                    <ProtectedRoute>
-                      <OnboardingPage />
-                    </ProtectedRoute>
-                  }
-                />
-
-                {/* Profile Setup Route - Protected but allows profile missing */}
-                <Route
-                  path="/profile/setup"
-                  element={
-                    <ProtectedRoute>
-                      <ProfileSetupPage />
-                    </ProtectedRoute>
-                  }
-                />
-
-                {/* Profile Routes - Protected */}
-                <Route
-                  path="/profile"
-                  element={
-                    <ProtectedRoute>
+      <FeatureFlagsProvider>
+        <AuthProvider>
+          <SavedListingsProvider>
+            <NotificationsProvider>
+              <Router>
+                <Routes>
+                  {/* Homepage */}
+                  <Route
+                    path="/"
+                    element={
                       <MainLayout>
-                        <ProfilePage />
+                        <HomePage />
                       </MainLayout>
-                    </ProtectedRoute>
-                  }
-                />
+                    }
+                  />
 
-                <Route
-                  path="/profile/edit"
-                  element={
-                    <ProtectedRoute>
+                  {/* Business Listings */}
+                  <Route
+                    path="/businesses"
+                    element={
                       <MainLayout>
-                        <ProfileEditPage />
+                        <BusinessListings />
                       </MainLayout>
-                    </ProtectedRoute>
-                  }
-                />
+                    }
+                  />
 
-                <Route
-                  path="/profile/documents"
-                  element={
-                    <ProtectedRoute>
+                  {/* Franchise Listings */}
+                  <Route
+                    path="/franchises"
+                    element={
                       <MainLayout>
-                        <ProfileDocumentsPage />
+                        <FranchiseListings />
                       </MainLayout>
-                    </ProtectedRoute>
-                  }
-                />
+                    }
+                  />
 
-                <Route
-                  path="/profile/settings"
-                  element={
-                    <ProtectedRoute>
+                  {/* Business Detail */}
+                  <Route
+                    path="/business/:id"
+                    element={
                       <MainLayout>
-                        <ProfileSettingsEnhancedPage />
+                        <BusinessDetail />
                       </MainLayout>
-                    </ProtectedRoute>
-                  }
-                />
+                    }
+                  />
 
-                {/* Legacy settings page - can be removed if not needed */}
-                <Route
-                  path="/profile/settings/legacy"
-                  element={
-                    <ProtectedRoute>
+                  {/* Franchise Detail */}
+                  <Route
+                    path="/franchise/:id"
+                    element={
                       <MainLayout>
-                        <ProfileSettingsPage />
+                        <FranchiseDetail />
                       </MainLayout>
-                    </ProtectedRoute>
-                  }
-                />
+                    }
+                  />
 
-                {/* My Listings - Protected */}
-                <Route
-                  path="/my-listings"
-                  element={
-                    <ProtectedRoute>
+                  {/* Franchise Locations */}
+                  <Route
+                    path="/franchise/:id/locations"
+                    element={
                       <MainLayout>
-                        <MyListingsPage />
+                        <FranchiseLocationsPage />
                       </MainLayout>
-                    </ProtectedRoute>
-                  }
-                />
+                    }
+                  />
 
-                {/* Saved Listings - Protected */}
-                <Route
-                  path="/saved"
-                  element={
-                    <ProtectedRoute>
+                  {/* Franchise Map Discovery */}
+                  <Route
+                    path="/franchise-map"
+                    element={
                       <MainLayout>
-                        <SavedListingsPage />
+                        <FranchiseMapDiscoveryPage />
                       </MainLayout>
-                    </ProtectedRoute>
-                  }
-                />
+                    }
+                  />
 
-                {/* Notifications - Protected */}
-                <Route
-                  path="/notifications"
-                  element={
-                    <ProtectedRoute>
+                  {/* About Page */}
+                  <Route
+                    path="/about"
+                    element={
                       <MainLayout>
-                        <NotificationsPage />
+                        <AboutPage />
                       </MainLayout>
-                    </ProtectedRoute>
-                  }
-                />
+                    }
+                  />
 
-                {/* Additional Routes */}
-                <Route
-                  path="/search"
-                  element={
-                    <MainLayout>
-                      <BusinessListings />
-                    </MainLayout>
-                  }
-                />
+                  {/* Contact Page */}
+                  <Route
+                    path="/contact"
+                    element={
+                      <MainLayout>
+                        <ContactPage />
+                      </MainLayout>
+                    }
+                  />
 
-                {/* Add Business Listing - Protected */}
-                <Route
-                  path="/add-business-listing"
-                  element={
-                    <ProtectedRoute>
-                      <MainLayout>
-                        <AddBusinessListingPage />
-                      </MainLayout>
-                    </ProtectedRoute>
-                  }
-                />
+                  {/* Authentication Routes */}
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/signup" element={<SignUpPage />} />
+                  <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                  <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-                {/* Add Franchise Listing - Protected */}
-                <Route
-                  path="/add-franchise-listing"
-                  element={
-                    <ProtectedRoute>
-                      <MainLayout>
-                        <AddFranchiseListingPage />
-                      </MainLayout>
-                    </ProtectedRoute>
-                  }
-                />
+                  {/* Onboarding Route - Protected */}
+                  <Route
+                    path="/onboarding"
+                    element={
+                      <ProtectedRoute>
+                        <OnboardingPage />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                {/* Admin Dashboard Routes */}
-                <Route
-                  path="/admin"
-                  element={
-                    <AdminRouteGuard>
-                      <AdminLayout />
-                    </AdminRouteGuard>
-                  }
-                >
-                  <Route index element={<AdminDashboard />} />
-                  <Route path="users" element={<AdminUsers />} />
-                  <Route path="users/:id" element={<AdminUserDetail />} />
-                  <Route path="listings" element={<AdminListings />} />
-                  <Route path="documents" element={<AdminDocuments />} />
-                  <Route path="analytics" element={<AdminAnalytics />} />
-                  <Route path="fraud" element={<AdminFraudAlerts />} />
-                  <Route path="content" element={<AdminContentManagement />} />
-                  <Route path="settings" element={<AdminSettings />} />
-                </Route>
+                  {/* Profile Setup Route - Protected but allows profile missing */}
+                  <Route
+                    path="/profile/setup"
+                    element={
+                      <ProtectedRoute>
+                        <ProfileSetupPage />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                {/* Franchise Application - Protected */}
-                <Route
-                  path="/franchise/:franchiseId/apply"
-                  element={
-                    <ProtectedRoute>
-                      <MainLayout>
-                        <FranchiseApplicationPage />
-                      </MainLayout>
-                    </ProtectedRoute>
-                  }
-                />
+                  {/* Profile Routes - Protected */}
+                  <Route
+                    path="/profile"
+                    element={
+                      <ProtectedRoute>
+                        <MainLayout>
+                          <ProfilePage />
+                        </MainLayout>
+                      </ProtectedRoute>
+                    }
+                  />
 
-                {/* My Applications - Protected */}
-                <Route
-                  path="/my-applications"
-                  element={
-                    <ProtectedRoute>
-                      <MainLayout>
-                        <MyApplicationsPage />
-                      </MainLayout>
-                    </ProtectedRoute>
-                  }
-                />
+                  <Route
+                    path="/profile/edit"
+                    element={
+                      <ProtectedRoute>
+                        <MainLayout>
+                          <ProfileEditPage />
+                        </MainLayout>
+                      </ProtectedRoute>
+                    }
+                  />
 
-                {/* Franchisor Applications Review - Protected */}
-                <Route
-                  path="/franchisor/applications"
-                  element={
-                    <ProtectedRoute>
-                      <MainLayout>
-                        <FranchisorApplicationsPage />
-                      </MainLayout>
-                    </ProtectedRoute>
-                  }
-                />
+                  <Route
+                    path="/profile/documents"
+                    element={
+                      <ProtectedRoute>
+                        <MainLayout>
+                          <ProfileDocumentsPage />
+                        </MainLayout>
+                      </ProtectedRoute>
+                    }
+                  />
 
-                {/* Financing Options */}
-                <Route
-                  path="/financing"
-                  element={
-                    <MainLayout>
-                      <FinancingOptionsPage />
-                    </MainLayout>
-                  }
-                />
+                  <Route
+                    path="/profile/settings"
+                    element={
+                      <ProtectedRoute>
+                        <MainLayout>
+                          <ProfileSettingsEnhancedPage />
+                        </MainLayout>
+                      </ProtectedRoute>
+                    }
+                  />
 
-                {/* Messages - Protected */}
-                <Route
-                  path="/messages"
-                  element={
-                    <ProtectedRoute>
-                      <MainLayout>
-                        <MessagesPage />
-                      </MainLayout>
-                    </ProtectedRoute>
-                  }
-                />
+                  {/* Legacy settings page - can be removed if not needed */}
+                  <Route
+                    path="/profile/settings/legacy"
+                    element={
+                      <ProtectedRoute>
+                        <MainLayout>
+                          <ProfileSettingsPage />
+                        </MainLayout>
+                      </ProtectedRoute>
+                    }
+                  />
 
-                {/* Business Seller Routes - Protected */}
-                <Route
-                  path="/business-valuation"
-                  element={
-                    <MainLayout>
-                      <BusinessValuationPage />
-                    </MainLayout>
-                  }
-                />
-                <Route
-                  path="/buyer-inquiries"
-                  element={
-                    <ProtectedRoute>
-                      <MainLayout>
-                        <BuyerInquiriesPage />
-                      </MainLayout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/nda-management"
-                  element={
-                    <ProtectedRoute>
-                      <MainLayout>
-                        <NDAManagementPage />
-                      </MainLayout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/deal-room/:businessId"
-                  element={
-                    <ProtectedRoute>
-                      <MainLayout>
-                        <DealRoomPage />
-                      </MainLayout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/seller-analytics"
-                  element={
-                    <ProtectedRoute>
-                      <MainLayout>
-                        <SellerAnalyticsPage />
-                      </MainLayout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/listing-optimizer/:businessId"
-                  element={
-                    <ProtectedRoute>
-                      <MainLayout>
-                        <ListingOptimizerPage />
-                      </MainLayout>
-                    </ProtectedRoute>
-                  }
-                />
+                  {/* My Listings - Protected */}
+                  <Route
+                    path="/my-listings"
+                    element={
+                      <ProtectedRoute>
+                        <MainLayout>
+                          <MyListingsPage />
+                        </MainLayout>
+                      </ProtectedRoute>
+                    }
+                  />
 
-                {/* Advisor/Broker Dashboard Routes - Protected */}
-                <Route
-                  path="/clients"
-                  element={
-                    <ProtectedRoute>
-                      <MainLayout>
-                        <ClientManagementPage />
-                      </MainLayout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/deal-pipeline"
-                  element={
-                    <ProtectedRoute>
-                      <MainLayout>
-                        <DealPipelinePage />
-                      </MainLayout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/commissions"
-                  element={
-                    <ProtectedRoute>
-                      <MainLayout>
-                        <CommissionTrackingPage />
-                      </MainLayout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/advisors"
-                  element={
-                    <MainLayout>
-                      <AdvisorDirectoryPage />
-                    </MainLayout>
-                  }
-                />
-                <Route
-                  path="/report-generator"
-                  element={
-                    <ProtectedRoute>
-                      <MainLayout>
-                        <ReportGeneratorPage />
-                      </MainLayout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/leads"
-                  element={
-                    <ProtectedRoute>
-                      <MainLayout>
-                        <LeadManagementPage />
-                      </MainLayout>
-                    </ProtectedRoute>
-                  }
-                />
+                  {/* Saved Listings - Protected */}
+                  <Route
+                    path="/saved"
+                    element={
+                      <ProtectedRoute>
+                        <MainLayout>
+                          <SavedListingsPage />
+                        </MainLayout>
+                      </ProtectedRoute>
+                    }
+                  />
 
-                {/* Advisor Dashboard - Protected */}
-                <Route
-                  path="/advisor"
-                  element={
-                    <ProtectedRoute>
-                      <AdvisorLayout />
-                    </ProtectedRoute>
-                  }
-                >
-                  <Route path="dashboard" element={<AdvisorDashboard />} />
-                  <Route path="clients" element={<AdvisorClients />} />
-                  <Route path="deals" element={<AdvisorDeals />} />
-                  <Route path="commissions" element={<AdvisorCommissions />} />
-                  <Route index element={<AdvisorDashboard />} />
-                </Route>
+                  {/* Notifications - Protected */}
+                  <Route
+                    path="/notifications"
+                    element={
+                      <ProtectedRoute>
+                        <MainLayout>
+                          <NotificationsPage />
+                        </MainLayout>
+                      </ProtectedRoute>
+                    }
+                  />
 
-                {/* Catch-all route - 404 page */}
-                <Route path="*" element={<NotFoundPage />} />
-              </Routes>
-              <Toaster />
-            </Router>
-          </NotificationsProvider>
-        </SavedListingsProvider>
-      </AuthProvider>
+                  {/* Additional Routes */}
+                  <Route
+                    path="/search"
+                    element={
+                      <MainLayout>
+                        <BusinessListings />
+                      </MainLayout>
+                    }
+                  />
+
+                  {/* Add Business Listing - Protected */}
+                  <Route
+                    path="/add-business-listing"
+                    element={
+                      <ProtectedRoute>
+                        <MainLayout>
+                          <AddBusinessListingPage />
+                        </MainLayout>
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Add Franchise Listing - Protected */}
+                  <Route
+                    path="/add-franchise-listing"
+                    element={
+                      <ProtectedRoute>
+                        <MainLayout>
+                          <AddFranchiseListingPage />
+                        </MainLayout>
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Admin Dashboard Routes */}
+                  <Route
+                    path="/admin"
+                    element={
+                      <AdminRouteGuard>
+                        <AdminLayout />
+                      </AdminRouteGuard>
+                    }
+                  >
+                    <Route index element={<AdminDashboard />} />
+                    <Route path="users" element={<AdminUsers />} />
+                    <Route path="users/:id" element={<AdminUserDetail />} />
+                    <Route path="listings" element={<AdminListings />} />
+                    <Route path="documents" element={<AdminDocuments />} />
+                    <Route path="analytics" element={<AdminAnalytics />} />
+                    <Route path="fraud" element={<AdminFraudAlerts />} />
+                    <Route path="content" element={<AdminContentManagement />} />
+                    <Route path="settings" element={<AdminSettings />} />
+                    <Route path="feature-flags" element={<AdminFeatureFlags />} />
+                  </Route>
+
+                  {/* Franchise Application - Protected */}
+                  <Route
+                    path="/franchise/:franchiseId/apply"
+                    element={
+                      <ProtectedRoute>
+                        <MainLayout>
+                          <FranchiseApplicationPage />
+                        </MainLayout>
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* My Applications - Protected */}
+                  <Route
+                    path="/my-applications"
+                    element={
+                      <ProtectedRoute>
+                        <MainLayout>
+                          <MyApplicationsPage />
+                        </MainLayout>
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Franchisor Applications Review - Protected */}
+                  <Route
+                    path="/franchisor/applications"
+                    element={
+                      <ProtectedRoute>
+                        <MainLayout>
+                          <FranchisorApplicationsPage />
+                        </MainLayout>
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Financing Options */}
+                  <Route
+                    path="/financing"
+                    element={
+                      <MainLayout>
+                        <FinancingOptionsPage />
+                      </MainLayout>
+                    }
+                  />
+
+                  {/* Messages - Protected */}
+                  <Route
+                    path="/messages"
+                    element={
+                      <ProtectedRoute>
+                        <MainLayout>
+                          <MessagesPage />
+                        </MainLayout>
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Business Seller Routes - Protected */}
+                  <Route
+                    path="/business-valuation"
+                    element={
+                      <MainLayout>
+                        <BusinessValuationPage />
+                      </MainLayout>
+                    }
+                  />
+                  <Route
+                    path="/buyer-inquiries"
+                    element={
+                      <ProtectedRoute>
+                        <MainLayout>
+                          <BuyerInquiriesPage />
+                        </MainLayout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/nda-management"
+                    element={
+                      <ProtectedRoute>
+                        <MainLayout>
+                          <NDAManagementPage />
+                        </MainLayout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/deal-room/:businessId"
+                    element={
+                      <ProtectedRoute>
+                        <MainLayout>
+                          <DealRoomPage />
+                        </MainLayout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/seller-analytics"
+                    element={
+                      <ProtectedRoute>
+                        <MainLayout>
+                          <SellerAnalyticsPage />
+                        </MainLayout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/listing-optimizer/:businessId"
+                    element={
+                      <ProtectedRoute>
+                        <MainLayout>
+                          <ListingOptimizerPage />
+                        </MainLayout>
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Advisor/Broker Dashboard Routes - Protected */}
+                  <Route
+                    path="/clients"
+                    element={
+                      <ProtectedRoute>
+                        <MainLayout>
+                          <ClientManagementPage />
+                        </MainLayout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/deal-pipeline"
+                    element={
+                      <ProtectedRoute>
+                        <MainLayout>
+                          <DealPipelinePage />
+                        </MainLayout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/commissions"
+                    element={
+                      <ProtectedRoute>
+                        <MainLayout>
+                          <CommissionTrackingPage />
+                        </MainLayout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/advisors"
+                    element={
+                      <MainLayout>
+                        <AdvisorDirectoryPage />
+                      </MainLayout>
+                    }
+                  />
+                  <Route
+                    path="/report-generator"
+                    element={
+                      <ProtectedRoute>
+                        <MainLayout>
+                          <ReportGeneratorPage />
+                        </MainLayout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/leads"
+                    element={
+                      <ProtectedRoute>
+                        <MainLayout>
+                          <LeadManagementPage />
+                        </MainLayout>
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Advisor Dashboard - Protected */}
+                  <Route
+                    path="/advisor"
+                    element={
+                      <ProtectedRoute>
+                        <AdvisorLayout />
+                      </ProtectedRoute>
+                    }
+                  >
+                    <Route path="dashboard" element={<AdvisorDashboard />} />
+                    <Route path="clients" element={<AdvisorClients />} />
+                    <Route path="deals" element={<AdvisorDeals />} />
+                    <Route path="commissions" element={<AdvisorCommissions />} />
+                    <Route index element={<AdvisorDashboard />} />
+                  </Route>
+
+                  {/* Catch-all route - 404 page */}
+                  <Route path="*" element={<NotFoundPage />} />
+                </Routes>
+                <Toaster />
+              </Router>
+            </NotificationsProvider>
+          </SavedListingsProvider>
+        </AuthProvider>
+      </FeatureFlagsProvider>
     </ErrorBoundary>
   );
 }

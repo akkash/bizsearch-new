@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSavedListings } from "@/contexts/SavedListingsContext";
 import { useNotifications } from "@/contexts/NotificationsContext";
+import { useFeatureFlag } from "@/contexts/FeatureFlagsContext";
 import {
   Menu,
   Search,
@@ -48,6 +49,9 @@ export function MainLayout({ children }: MainLayoutProps) {
   const { savedCount } = useSavedListings();
   const { unreadCount } = useNotifications();
   const [categoryTab, setCategoryTab] = useState<"business" | "franchise">("business");
+
+  // Feature flags
+  const isAIChatEnabled = useFeatureFlag('ai_chat_advisor');
 
   const handleSignOut = async () => {
     try {
@@ -118,8 +122,8 @@ export function MainLayout({ children }: MainLayoutProps) {
                     <button
                       onClick={() => setCategoryTab("business")}
                       className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${categoryTab === "business"
-                          ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50/50"
-                          : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                        ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50/50"
+                        : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
                         }`}
                     >
                       Business Categories
@@ -127,8 +131,8 @@ export function MainLayout({ children }: MainLayoutProps) {
                     <button
                       onClick={() => setCategoryTab("franchise")}
                       className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${categoryTab === "franchise"
-                          ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50/50"
-                          : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                        ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50/50"
+                        : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
                         }`}
                     >
                       Franchise Categories
@@ -452,10 +456,10 @@ export function MainLayout({ children }: MainLayoutProps) {
       <main className="flex-1 pb-20 md:pb-0">{children}</main>
 
       {/* Mobile Bottom Navigation */}
-      <MobileBottomNav onAIChatOpen={handleAIChatOpen} />
+      <MobileBottomNav onAIChatOpen={isAIChatEnabled ? handleAIChatOpen : undefined} />
 
-      {/* AI Chat Widget */}
-      {showAIChat && <AIChat />}
+      {/* AI Chat Widget - Only show if enabled via feature flag */}
+      {isAIChatEnabled && showAIChat && <AIChat />}
 
       {/* Footer */}
       <footer className="bg-muted/50 border-t">

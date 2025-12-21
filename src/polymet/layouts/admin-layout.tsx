@@ -27,6 +27,7 @@ import {
     Home,
     Building2,
     FileCheck,
+    Flag,
 } from 'lucide-react';
 
 const sidebarItems = [
@@ -65,6 +66,11 @@ const sidebarItems = [
         title: 'Fraud Alerts',
         icon: Shield,
         href: '/admin/fraud'
+    },
+    {
+        title: 'Feature Flags',
+        icon: Flag,
+        href: '/admin/feature-flags'
     },
     {
         title: 'Settings',

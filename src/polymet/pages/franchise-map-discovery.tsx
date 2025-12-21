@@ -9,8 +9,10 @@ import {
     Filter,
     Loader2,
     TrendingUp,
+    Lock,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useFeatureFlag } from '@/contexts/FeatureFlagsContext';
 import { FranchiseMapFilters } from '@/components/franchise-map-filters';
 import { FranchiseMapDiscoveryMap } from '@/components/franchise-map-discovery-map';
 import {
@@ -36,6 +38,29 @@ export function FranchiseMapDiscoveryPage({ className }: FranchiseMapDiscoveryPa
     const [stats, setStats] = useState<DiscoveryStats | null>(null);
     const [loading, setLoading] = useState(true);
     const [showMobileFilters, setShowMobileFilters] = useState(false);
+
+    // Feature flag
+    const isFranchiseMapEnabled = useFeatureFlag('franchise_map');
+
+    // Show coming soon if feature is disabled
+    if (!isFranchiseMapEnabled) {
+        return (
+            <div className={cn('min-h-screen bg-background flex items-center justify-center', className)}>
+                <Card className="max-w-md mx-auto text-center p-8">
+                    <div className="p-4 bg-muted rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                        <Lock className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                    <h2 className="text-2xl font-bold mb-2">Feature Coming Soon</h2>
+                    <p className="text-muted-foreground mb-4">
+                        The Franchise Location Explorer is currently disabled. Check back later!
+                    </p>
+                    <Button variant="outline" onClick={() => window.history.back()}>
+                        Go Back
+                    </Button>
+                </Card>
+            </div>
+        );
+    }
 
     // Load available filters on mount
     useEffect(() => {

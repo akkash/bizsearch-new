@@ -51,10 +51,10 @@ export function HeroSection({ onSearch, className }: HeroSectionProps) {
   };
 
   const stats = [
-    { label: "Buyers", value: "10,000+", icon: Users, emoji: "👥" },
-    { label: "Listings", value: "5,000+", icon: TrendingUp, emoji: "🏢" },
-    { label: "Success Rate", value: "95%", icon: Star, emoji: "⭐" },
-    { label: "Deals Closed", value: "3,200+", icon: Shield, emoji: "💰" },
+    { label: "Active Buyers", value: "8,400+", icon: Users, emoji: "👥" },
+    { label: "Live Listings", value: "3,850+", icon: TrendingUp, emoji: "🏢" },
+    { label: "Verified Sellers", value: "2,100+", icon: Star, emoji: "✓" },
+    { label: "Deals Completed", value: "1,290+", icon: Shield, emoji: "💼" },
   ];
 
   return (
@@ -78,7 +78,7 @@ export function HeroSection({ onSearch, className }: HeroSectionProps) {
           {/* Badge */}
           <Badge className="mb-6 bg-white/10 text-white border-white/20 hover:bg-white/20">
             <Shield className="h-3 w-3 mr-1" />
-            AI-Powered Business Discovery Platform
+            India's #1 Business Marketplace
           </Badge>
 
           {/* Main Heading */}
@@ -91,12 +91,12 @@ export function HeroSection({ onSearch, className }: HeroSectionProps) {
 
           {/* Subheading */}
           <p className="text-xl md:text-2xl text-blue-100 mb-8 max-w-3xl mx-auto leading-relaxed">
-            Buy verified businesses or discover top franchise opportunities with
-            AI-powered guidance.
+            Browse verified businesses for sale. Explore franchise opportunities.
+            Connect directly with serious buyers and sellers.
           </p>
 
           {/* Search Bar */}
-          <div className="mb-12">
+          <div className="mb-12 relative z-20">
             <SearchBar
               onSearch={handleSearchSubmit}
               onSearchTypeChange={setCurrentSearchType}

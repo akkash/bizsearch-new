@@ -79,10 +79,10 @@ const successStories = [
 ];
 
 const platformStats = [
-  { label: "Active Listings", value: "12,500+", icon: TrendingUpIcon },
-  { label: "Successful Deals", value: "3,200+", icon: ShieldCheckIcon },
-  { label: "Verified Users", value: "45,000+", icon: UsersIcon },
-  { label: "Average Rating", value: "4.8/5", icon: StarIcon },
+  { label: "Active Listings", value: "3,850+", icon: TrendingUpIcon },
+  { label: "Successful Deals", value: "1,290+", icon: ShieldCheckIcon },
+  { label: "Verified Sellers", value: "2,100+", icon: UsersIcon },
+  { label: "Customer Rating", value: "4.7/5", icon: StarIcon },
 ];
 
 const aiFeatures = [
@@ -217,13 +217,13 @@ export function HomePage({ className }: HomePageProps) {
           <div className="text-center mb-8">
             <Badge className="mb-4" variant="secondary">
               <Sparkles className="h-3 w-3 mr-1" />
-              NEW: AI-Powered Phase 1 Features
+              Smart Discovery Tools
             </Badge>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Find Your Perfect Business with AI
+              Find the Right Business, Faster
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-              Our AI assistants help you discover, evaluate, and acquire businesses faster and smarter
+              Our tools help you search, filter, and shortlist opportunities that match your budget and goals
             </p>
           </div>
 
@@ -281,11 +281,11 @@ export function HomePage({ className }: HomePageProps) {
                 <div className="w-12 h-12 rounded-lg bg-green-100 dark:bg-green-900 flex items-center justify-center mb-3">
                   <Sparkles className="h-6 w-6 text-green-600 dark:text-green-400" />
                 </div>
-                <CardTitle className="text-xl">AI Advisor</CardTitle>
+                <CardTitle className="text-xl">Ask an Expert</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground mb-4">
-                  Chat with Ajay or Vijay for expert advice on acquisitions, valuations, and more
+                  Get instant answers about business valuations, acquisitions, and franchise opportunities
                 </p>
                 <Button
                   variant="outline"
@@ -338,13 +338,13 @@ export function HomePage({ className }: HomePageProps) {
           <div className="text-center mb-12">
             <Badge className="mb-4" variant="secondary">
               <Shield className="h-3 w-3 mr-1" />
-              Phase 2: Decision Support Tools
+              Due Diligence Tools
             </Badge>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Make Informed Decisions with AI
+              Evaluate Opportunities with Confidence
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-              Advanced AI tools to assess risk, verify documents, and conduct due diligence
+              Tools to assess risk, verify documents, and make informed decisions
             </p>
           </div>
 
@@ -650,10 +650,9 @@ export function HomePage({ className }: HomePageProps) {
       <section className="py-16 bg-background">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">AI-Powered Intelligence</h2>
+            <h2 className="text-3xl font-bold mb-4">Smart Tools for Smart Decisions</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Our AI agents Ajay and Vijay provide personalized assistance
-              throughout your business journey
+              Get personalized recommendations and insights to help you find the right opportunity
             </p>
           </div>
 
