@@ -1,128 +1,500 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+/* 
+ * BizSearch 2025 Design System
+ * Trust Blue & Growth Green Color Palette
+ * Dark mode with system-aware switching
+ */
 
-    @tailwind base;
-    @tailwind components;
-    @tailwind utilities;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===================================
+   LIGHT MODE (Default)
+   =================================== */
 :root {
---background: 0 0% 100%;
---foreground: 240 10% 3.9%;
---card: 0 0% 100%;
---card-foreground: 240 10% 3.9%;
---popover: 0 0% 100%;
---popover-foreground: 240 10% 3.9%;
---primary: 240 5.9% 10%;
---primary-foreground: 0 0% 98%;
---secondary: 240 4.8% 95.9%;
---secondary-foreground: 240 5.9% 10%;
---muted: 240 4.8% 95.9%;
---muted-foreground: 240 3.8% 46.1%;
---accent: 240 4.8% 95.9%;
---accent-foreground: 240 5.9% 10%;
---destructive: 0 84.2% 60.2%;
---destructive-foreground: 0 0% 98%;
---border: 240 5.9% 90%;
---input: 240 5.9% 90%;
---ring: 240 5.9% 10%;
---radius: 0.5rem;
---chart-1: 12 76% 61%;
---chart-2: 173 58% 39%;
---chart-3: 197 37% 24%;
---chart-4: 43 74% 66%;
---chart-5: 27 87% 67%;
+  /* Trust Blue - Primary Brand Color (Navy/Midnight) */
+  --trust-blue: 213 50% 23%;
+  --trust-blue-light: 213 45% 35%;
+  --trust-blue-dark: 213 55% 15%;
+
+  /* Growth Green - Action Color (Teal/Emerald) */
+  --growth-green: 160 84% 39%;
+  --growth-green-light: 160 76% 50%;
+  --growth-green-dark: 160 84% 30%;
+
+  /* Base Colors */
+  --background: 210 20% 98%;
+  --foreground: 213 50% 15%;
+  --card: 0 0% 100%;
+  --card-foreground: 213 50% 15%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 213 50% 15%;
+
+  /* Primary uses Trust Blue */
+  --primary: 213 50% 23%;
+  --primary-foreground: 0 0% 100%;
+
+  /* Secondary */
+  --secondary: 210 15% 94%;
+  --secondary-foreground: 213 50% 23%;
+
+  /* Muted */
+  --muted: 210 15% 94%;
+  --muted-foreground: 213 20% 50%;
+
+  /* Accent uses Growth Green tint */
+  --accent: 160 50% 95%;
+  --accent-foreground: 160 84% 30%;
+
+  /* Destructive */
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+
+  /* Success (Growth Green) */
+  --success: 160 84% 39%;
+  --success-foreground: 0 0% 100%;
+
+  /* Borders & Inputs */
+  --border: 213 20% 88%;
+  --input: 213 20% 88%;
+  --ring: 213 50% 23%;
+
+  /* Radius */
+  --radius: 0.625rem;
+
+  /* Charts */
+  --chart-1: 213 50% 35%;
+  --chart-2: 160 84% 39%;
+  --chart-3: 35 95% 55%;
+  --chart-4: 280 60% 55%;
+  --chart-5: 340 75% 55%;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(30 58 95 / 0.05);
+  --shadow: 0 1px 3px 0 rgb(30 58 95 / 0.1), 0 1px 2px -1px rgb(30 58 95 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(30 58 95 / 0.1), 0 2px 4px -2px rgb(30 58 95 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(30 58 95 / 0.1), 0 4px 6px -4px rgb(30 58 95 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(30 58 95 / 0.1), 0 8px 10px -6px rgb(30 58 95 / 0.1);
 }
 
+/* ===================================
+   DARK MODE
+   Sophisticated, Premium Dark Theme
+   =================================== */
 .dark {
---background: 240 10% 3.9%;
---foreground: 0 0% 98%;
---card: 240 10% 3.9%;
---card-foreground: 0 0% 98%;
---popover: 240 10% 3.9%;
---popover-foreground: 0 0% 98%;
---primary: 0 0% 98%;
---primary-foreground: 240 5.9% 10%;
---secondary: 240 3.7% 15.9%;
---secondary-foreground: 0 0% 98%;
---muted: 240 3.7% 15.9%;
---muted-foreground: 240 5% 64.9%;
---accent: 240 3.7% 15.9%;
---accent-foreground: 0 0% 98%;
---destructive: 0 62.8% 30.6%;
---destructive-foreground: 0 0% 98%;
---border: 240 3.7% 15.9%;
---input: 240 3.7% 15.9%;
---ring: 240 4.9% 83.9%;
---chart-1: 220 70% 50%;
---chart-2: 160 60% 45%;
---chart-3: 30 80% 55%;
---chart-4: 280 65% 60%;
---chart-5: 340 75% 55%;
+  /* Trust Blue - Adjusted for dark mode */
+  --trust-blue: 213 60% 55%;
+  --trust-blue-light: 213 50% 65%;
+  --trust-blue-dark: 213 70% 45%;
+
+  /* Growth Green - Brighter in dark mode */
+  --growth-green: 160 70% 50%;
+  --growth-green-light: 160 60% 60%;
+  --growth-green-dark: 160 80% 40%;
+
+  /* Base Colors - GitHub-inspired dark */
+  --background: 215 28% 7%;
+  --foreground: 210 20% 93%;
+  --card: 215 25% 10%;
+  --card-foreground: 210 20% 93%;
+  --popover: 215 25% 10%;
+  --popover-foreground: 210 20% 93%;
+
+  /* Primary */
+  --primary: 213 60% 55%;
+  --primary-foreground: 215 28% 7%;
+
+  /* Secondary */
+  --secondary: 215 20% 16%;
+  --secondary-foreground: 210 20% 93%;
+
+  /* Muted */
+  --muted: 215 20% 16%;
+  --muted-foreground: 215 15% 55%;
+
+  /* Accent */
+  --accent: 160 40% 15%;
+  --accent-foreground: 160 70% 60%;
+
+  /* Destructive */
+  --destructive: 0 65% 45%;
+  --destructive-foreground: 0 0% 100%;
+
+  /* Success */
+  --success: 160 70% 50%;
+  --success-foreground: 215 28% 7%;
+
+  /* Borders & Inputs */
+  --border: 215 20% 20%;
+  --input: 215 20% 20%;
+  --ring: 213 60% 55%;
+
+  /* Charts - Vibrant for dark mode */
+  --chart-1: 213 70% 60%;
+  --chart-2: 160 70% 50%;
+  --chart-3: 35 90% 60%;
+  --chart-4: 280 70% 65%;
+  --chart-5: 340 80% 60%;
 }
 
+/* System-aware dark mode */
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    /* Trust Blue - Adjusted for dark mode */
+    --trust-blue: 213 60% 55%;
+    --trust-blue-light: 213 50% 65%;
+    --trust-blue-dark: 213 70% 45%;
+
+    /* Growth Green */
+    --growth-green: 160 70% 50%;
+    --growth-green-light: 160 60% 60%;
+    --growth-green-dark: 160 80% 40%;
+
+    /* Base Colors */
+    --background: 215 28% 7%;
+    --foreground: 210 20% 93%;
+    --card: 215 25% 10%;
+    --card-foreground: 210 20% 93%;
+    --popover: 215 25% 10%;
+    --popover-foreground: 210 20% 93%;
+
+    /* Primary */
+    --primary: 213 60% 55%;
+    --primary-foreground: 215 28% 7%;
+
+    /* Secondary */
+    --secondary: 215 20% 16%;
+    --secondary-foreground: 210 20% 93%;
+
+    /* Muted */
+    --muted: 215 20% 16%;
+    --muted-foreground: 215 15% 55%;
+
+    /* Accent */
+    --accent: 160 40% 15%;
+    --accent-foreground: 160 70% 60%;
+
+    /* Destructive */
+    --destructive: 0 65% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Success */
+    --success: 160 70% 50%;
+    --success-foreground: 215 28% 7%;
+
+    /* Borders & Inputs */
+    --border: 215 20% 20%;
+    --input: 215 20% 20%;
+    --ring: 213 60% 55%;
+  }
+}
+
+/* ===================================
+   TYPOGRAPHY
+   =================================== */
 * {
-  font-family: "Inter", system-ui, -apple-system, sans-serif;
-  font-weight: 500;
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
+/* Headlines - Bold, Geometric */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.text-headline {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+h1,
+.text-display {
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+/* Body copy - Readable */
+p,
+.text-body {
+  line-height: 1.65;
+  font-weight: 400;
+}
+
+/* Data typography - Monospaced */
+.text-data,
+.font-mono {
+  font-family: "JetBrains Mono", "SF Mono", "Consolas", monospace;
+  font-feature-settings: "tnum" on, "lnum" on;
+}
+
+/* Price/number formatting */
+.text-price {
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 600;
+  font-feature-settings: "tnum" on;
+}
+
+/* ===================================
+   BASE STYLES
+   =================================== */
 body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 *[class*="border"] {
   border-color: hsl(var(--border));
 }
 
-.rounded-sm { border-radius: calc(var(--radius) - 4px); }
-.rounded { border-radius: calc(var(--radius) - 2px); }
-.rounded-md { border-radius: var(--radius); }
-.rounded-lg { border-radius: calc(var(--radius) + 2px); }
-.rounded-xl { border-radius: calc(var(--radius) + 4px); }
+/* Radius classes */
+.rounded-sm {
+  border-radius: calc(var(--radius) - 4px);
+}
 
-/* Scrollbar hide utility */
+.rounded {
+  border-radius: calc(var(--radius) - 2px);
+}
+
+.rounded-md {
+  border-radius: var(--radius);
+}
+
+.rounded-lg {
+  border-radius: calc(var(--radius) + 2px);
+}
+
+.rounded-xl {
+  border-radius: calc(var(--radius) + 6px);
+}
+
+.rounded-2xl {
+  border-radius: calc(var(--radius) + 10px);
+}
+
+/* ===================================
+   INTERACTIVE STATES
+   =================================== */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Smooth transitions */
+button,
+a,
+input,
+textarea,
+select {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* Focus states */
+*:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Selection */
+::selection {
+  background-color: hsl(var(--trust-blue) / 0.2);
+  color: hsl(var(--foreground));
+}
+
+/* ===================================
+   GROWTH GREEN CTA STYLES
+   =================================== */
+.btn-growth {
+  background: linear-gradient(135deg, hsl(var(--growth-green)) 0%, hsl(var(--growth-green-dark)) 100%);
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 4px 14px 0 hsl(var(--growth-green) / 0.25);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-growth:hover {
+  box-shadow: 0 6px 20px 0 hsl(var(--growth-green) / 0.35);
+  transform: translateY(-2px);
+}
+
+.btn-growth:active {
+  transform: translateY(0);
+}
+
+/* ===================================
+   TRUST BLUE ACCENTS
+   =================================== */
+.bg-trust-blue {
+  background-color: hsl(var(--trust-blue));
+}
+
+.text-trust-blue {
+  color: hsl(var(--trust-blue));
+}
+
+.border-trust-blue {
+  border-color: hsl(var(--trust-blue));
+}
+
+.bg-growth-green {
+  background-color: hsl(var(--growth-green));
+}
+
+.text-growth-green {
+  color: hsl(var(--growth-green));
+}
+
+/* ===================================
+   CARD EFFECTS
+   =================================== */
+.card-hover-lift {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+}
+
+/* Glass effect for overlays */
+.glass {
+  background: hsl(var(--background) / 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.dark .glass {
+  background: hsl(var(--background) / 0.7);
+}
+
+/* ===================================
+   SCROLLBAR
+   =================================== */
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
 
-/* Smooth scroll behavior */
-html {
-  scroll-behavior: smooth;
+/* Custom scrollbar for dark mode */
+.dark ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-/* Enhanced button interactions */
-button, a {
-  transition: all 0.2s ease-in-out;
+.dark ::-webkit-scrollbar-track {
+  background: hsl(var(--background));
 }
 
-button:active {
-  transform: scale(0.98);
-}
-
-/* Card hover effects */
-.card-hover-lift {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.card-hover-lift:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-}
-
-/* Focus visible improvements */
-*:focus-visible {
-  outline: 2px solid hsl(var(--primary));
-  outline-offset: 2px;
+.dark ::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
   border-radius: 4px;
 }
 
-/* Selection styling */
-::selection {
-  background-color: hsl(var(--primary) / 0.2);
-  color: hsl(var(--foreground));
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
 }
 
-/* Design system mode: light */
+/* ===================================
+   ANIMATIONS
+   =================================== */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 hsl(var(--growth-green) / 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 0 8px hsl(var(--growth-green) / 0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.4s ease-out;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s infinite;
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0) translateX(0);
+    opacity: 0.3;
+  }
+
+  50% {
+    transform: translateY(-20px) translateX(10px);
+    opacity: 0.8;
+  }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+/* ===================================
+   UTILITY CLASSES
+   =================================== */
+.gradient-trust {
+  background: linear-gradient(135deg, hsl(var(--trust-blue)) 0%, hsl(var(--trust-blue-light)) 100%);
+}
+
+.gradient-growth {
+  background: linear-gradient(135deg, hsl(var(--growth-green)) 0%, hsl(var(--growth-green-dark)) 100%);
+}
+
+.gradient-hero {
+  background: linear-gradient(135deg, hsl(var(--trust-blue-dark)) 0%, hsl(var(--trust-blue)) 50%, hsl(var(--growth-green-dark) / 0.3) 100%);
+}
+
+/* Text gradients */
+.text-gradient-trust {
+  background: linear-gradient(135deg, hsl(var(--trust-blue)) 0%, hsl(var(--growth-green)) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}

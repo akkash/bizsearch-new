@@ -3,7 +3,9 @@ import { HeroSection } from "@/polymet/components/hero-section";
 import { FeaturedCarousel } from "@/polymet/components/featured-carousel";
 import { TrustIndicators } from "@/polymet/components/trust-indicators";
 import { AIChat } from "@/polymet/components/ai-chat";
-import { Footer } from "@/polymet/components/footer";
+import { LiveMetricsDashboard } from "@/components/live-metrics-dashboard";
+import { TrustBadgesSection } from "@/components/trust-badges-section";
+import { SuccessStoriesCarousel } from "@/components/success-stories-carousel";
 import { SmartSearchBar } from "@/components/smart-search-bar";
 import { AIBusinessMatchmaker } from "@/components/ai-business-matchmaker";
 import { DueDiligenceDashboard } from "@/components/due-diligence-dashboard";
@@ -203,6 +205,9 @@ export function HomePage({ className }: HomePageProps) {
     <div className={cn("min-h-screen", className)}>
       {/* Hero Section */}
       <HeroSection onSearch={handleSearch} />
+
+      {/* Live Metrics Dashboard Strip */}
+      <LiveMetricsDashboard />
 
       {/* Profile Completion Nudge for logged-in users */}
       {user && (
@@ -800,45 +805,11 @@ export function HomePage({ className }: HomePageProps) {
         />
       </section>
 
-      {/* Trust Indicators */}
-      <section className="py-16 bg-background">
-        <div className="container mx-auto px-4">
-          <TrustIndicators variant="full" />
+      {/* Trust Badges & Partners */}
+      <TrustBadgesSection />
 
-          {/* Partner Logos */}
-          <div className="mt-12 text-center">
-            <h3 className="text-xl font-semibold mb-6">
-              Trusted by Leading Financial Partners
-            </h3>
-            <div className="flex flex-wrap justify-center items-center gap-8 opacity-70 hover:opacity-100 transition-opacity">
-              {partnerLogos.map((partner, index) => (
-                <div
-                  key={index}
-                  className="group flex items-center gap-3 px-4 py-2 bg-white rounded-lg shadow-sm hover:shadow-md transition-all"
-                >
-                  <div className="w-8 h-8 flex items-center justify-center">
-                    <img
-                      src={partner.logo}
-                      alt={partner.name}
-                      className="w-full h-full object-contain"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                        e.currentTarget.nextElementSibling!.classList.remove('hidden');
-                      }}
-                    />
-                    <div className="hidden w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                      {partner.fallback.substring(0, 2)}
-                    </div>
-                  </div>
-                  <span className="text-sm font-medium text-slate-700 group-hover:text-blue-600 transition-colors">
-                    {partner.name}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Success Stories Carousel */}
+      <SuccessStoriesCarousel />
 
       {/* Call to Action */}
       <section className="py-16 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
@@ -981,9 +952,6 @@ export function HomePage({ className }: HomePageProps) {
           </div>
         </div>
       )}
-
-      {/* Footer */}
-      <Footer />
     </div>
   );
 }

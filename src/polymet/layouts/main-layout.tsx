@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSavedListings } from "@/contexts/SavedListingsContext";
@@ -19,6 +19,8 @@ import {
   Plus,
   Store,
   ChevronDown,
+  HelpCircle,
+  Globe,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -34,7 +36,9 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { MobileBottomNav } from "@/polymet/components/mobile-bottom-nav";
 import { AIChat } from "@/polymet/components/ai-chat";
 import { Footer } from "@/polymet/components/footer";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { FRANCHISE_CATEGORIES, SMERGERS_BUSINESS_CATEGORIES } from "@/data/categories";
+import { cn } from "@/lib/utils";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -43,6 +47,9 @@ interface MainLayoutProps {
 export function MainLayout({ children }: MainLayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showAIChat, setShowAIChat] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
@@ -52,6 +59,27 @@ export function MainLayout({ children }: MainLayoutProps) {
 
   // Feature flags
   const isAIChatEnabled = useFeatureFlag('ai_chat_advisor');
+
+  // Smart Sticky Header - hide on scroll down, show on scroll up
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      setIsScrolled(currentScrollY > 10);
+
+      if (currentScrollY < 80) {
+        setIsHeaderVisible(true);
+      } else if (currentScrollY > lastScrollY) {
+        setIsHeaderVisible(false); // Scrolling down
+      } else {
+        setIsHeaderVisible(true); // Scrolling up
+      }
+
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
 
   const handleSignOut = async () => {
     try {
@@ -78,13 +106,59 @@ export function MainLayout({ children }: MainLayoutProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header - Minimalistic Professional Design */}
-      <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-100">
+      {/* Top Utility Bar - Hidden on mobile */}
+      <div className="hidden md:block bg-trust-blue text-white text-xs">
+        <div className="container mx-auto px-4">
+          <div className="flex h-8 items-center justify-between">
+            <div className="flex items-center gap-4">
+              <a href="tel:+911234567890" className="flex items-center gap-1 hover:text-white/80 transition-colors">
+                <Phone className="h-3 w-3" />
+                <span>+91 123 456 7890</span>
+              </a>
+              <a href="mailto:support@bizsearch.in" className="flex items-center gap-1 hover:text-white/80 transition-colors">
+                <Mail className="h-3 w-3" />
+                <span>support@bizsearch.in</span>
+              </a>
+            </div>
+            <div className="flex items-center gap-4">
+              <Link to="/help" className="flex items-center gap-1 hover:text-white/80 transition-colors">
+                <HelpCircle className="h-3 w-3" />
+                <span>Help Center</span>
+              </Link>
+              <DropdownMenu>
+                <DropdownMenuTrigger className="flex items-center gap-1 hover:text-white/80 transition-colors">
+                  <Globe className="h-3 w-3" />
+                  <span>English</span>
+                  <ChevronDown className="h-3 w-3" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="min-w-[120px]">
+                  <DropdownMenuItem>English</DropdownMenuItem>
+                  <DropdownMenuItem>हिंदी</DropdownMenuItem>
+                  <DropdownMenuItem>தமிழ்</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Primary Header - Smart Sticky */}
+      <header
+        className={cn(
+          "sticky top-0 z-50 w-full transition-all duration-300",
+          "bg-background/95 backdrop-blur-md border-b",
+          isScrolled ? "border-border shadow-sm" : "border-transparent",
+          !isHeaderVisible && isScrolled ? "-translate-y-full" : "translate-y-0"
+        )}
+      >
         <div className="container mx-auto px-4">
           <div className="flex h-14 items-center justify-between">
-            {/* Logo - Clean and Simple */}
+            {/* Logo */}
             <Link to="/" className="flex items-center gap-2">
-              <span className="text-lg font-semibold tracking-tight">BizSearch</span>
+              <div className="w-8 h-8 rounded-lg bg-trust-blue flex items-center justify-center">
+                <Building2 className="h-5 w-5 text-white" />
+              </div>
+              <span className="text-lg font-bold tracking-tight text-foreground">BizSearch</span>
             </Link>
 
             {/* Center Navigation - Desktop */}
@@ -265,7 +339,7 @@ export function MainLayout({ children }: MainLayoutProps) {
 
               {/* Notifications */}
               <Link to="/notifications">
-                <Button variant="ghost" size="icon" className="relative text-gray-500 hover:text-gray-900">
+                <Button variant="ghost" size="icon" className="relative text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
                   <Bell className="h-4 w-4" />
                   {unreadCount > 0 && (
                     <span className="absolute -top-0.5 -right-0.5 h-4 w-4 flex items-center justify-center text-[10px] font-medium bg-red-500 text-white rounded-full">
@@ -274,6 +348,9 @@ export function MainLayout({ children }: MainLayoutProps) {
                   )}
                 </Button>
               </Link>
+
+              {/* Theme Toggle */}
+              <ThemeToggle />
 
               {/* User Menu or Auth Buttons */}
               {user ? (
@@ -456,179 +533,13 @@ export function MainLayout({ children }: MainLayoutProps) {
       <main className="flex-1 pb-20 md:pb-0">{children}</main>
 
       {/* Mobile Bottom Navigation */}
-      <MobileBottomNav onAIChatOpen={isAIChatEnabled ? handleAIChatOpen : undefined} />
+      <MobileBottomNav />
 
       {/* AI Chat Widget - Only show if enabled via feature flag */}
       {isAIChatEnabled && showAIChat && <AIChat />}
 
-      {/* Footer */}
-      <footer className="bg-muted/50 border-t">
-        <div className="container mx-auto px-4 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            {/* Company Info */}
-            <div className="space-y-4">
-              <div className="flex items-center space-x-2">
-                <div className="flex items-center justify-center w-8 h-8 bg-primary rounded-lg">
-                  <Building2 className="h-5 w-5 text-primary-foreground" />
-                </div>
-                <span className="text-xl font-bold">BizSearch</span>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                India's leading AI-powered platform for business acquisitions
-                and franchise opportunities.
-              </p>
-              <div className="flex space-x-4">
-                <Button variant="ghost" size="icon">
-                  <Phone className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon">
-                  <Mail className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon">
-                  <MapPin className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-
-            {/* Quick Links */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-semibold">Quick Links</h3>
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <Link
-                    to="/businesses"
-                    className="text-muted-foreground hover:text-foreground"
-                  >
-                    Browse Businesses
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/franchises"
-                    className="text-muted-foreground hover:text-foreground"
-                  >
-                    Franchise Opportunities
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/sell"
-                    className="text-muted-foreground hover:text-foreground"
-                  >
-                    Sell Your Business
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/valuation"
-                    className="text-muted-foreground hover:text-foreground"
-                  >
-                    Business Valuation
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            {/* Support */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-semibold">Support</h3>
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <Link
-                    to="/help"
-                    className="text-muted-foreground hover:text-foreground"
-                  >
-                    Help Center
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/contact"
-                    className="text-muted-foreground hover:text-foreground"
-                  >
-                    Contact Us
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/faq"
-                    className="text-muted-foreground hover:text-foreground"
-                  >
-                    FAQ
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/guides"
-                    className="text-muted-foreground hover:text-foreground"
-                  >
-                    Buying Guides
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            {/* Legal */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-semibold">Legal</h3>
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <Link
-                    to="/privacy"
-                    className="text-muted-foreground hover:text-foreground"
-                  >
-                    Privacy Policy
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/terms"
-                    className="text-muted-foreground hover:text-foreground"
-                  >
-                    Terms of Service
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/cookies"
-                    className="text-muted-foreground hover:text-foreground"
-                  >
-                    Cookie Policy
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/disclaimer"
-                    className="text-muted-foreground hover:text-foreground"
-                  >
-                    Disclaimer
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="border-t mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-            <p className="text-sm text-muted-foreground">
-              © 2024 BizSearch. All rights reserved.
-            </p>
-            <div className="flex items-center space-x-4 mt-4 md:mt-0">
-              <Badge variant="outline" className="text-xs">
-                Trusted Platform
-              </Badge>
-              <Badge variant="outline" className="text-xs">
-                Verified Listings
-              </Badge>
-              <Badge variant="outline" className="text-xs">
-                Secure Transactions
-              </Badge>
-            </div>
-          </div>
-        </div>
-      </footer>
-
-      {/* Footer - Only show on non-home pages since home has its own */}
-      {location.pathname !== "/" && <Footer />}
+      {/* Footer - Show on all pages */}
+      <Footer />
     </div>
   );
 }

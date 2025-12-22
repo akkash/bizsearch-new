@@ -1,19 +1,24 @@
-import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Home, Search, Heart, MessageCircle, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { useSavedListings } from "@/contexts/SavedListingsContext";
 
 interface MobileBottomNavProps {
-  onAIChatOpen?: () => void;
   className?: string;
 }
 
 export function MobileBottomNav({
-  onAIChatOpen,
   className,
 }: MobileBottomNavProps) {
   const location = useLocation();
+  const { savedCount } = useSavedListings();
+
+  // Hide on admin and auth pages
+  const hiddenPaths = ['/admin', '/login', '/signup', '/forgot-password', '/reset-password', '/onboarding'];
+  const shouldHide = hiddenPaths.some(path => location.pathname.startsWith(path));
+
+  if (shouldHide) return null;
 
   const navItems = [
     {
@@ -35,86 +40,85 @@ export function MobileBottomNav({
       href: "/saved",
       icon: Heart,
       isActive: location.pathname === "/saved",
-      badge: 5, // Example saved items count
+      badge: savedCount > 0 ? savedCount : undefined,
     },
     {
-      name: "AI Chat",
-      href: "#",
+      name: "Messages",
+      href: "/messages",
       icon: MessageCircle,
-      isActive: false,
-      isAIChat: true,
+      isActive: location.pathname.startsWith("/messages"),
     },
     {
       name: "Profile",
       href: "/profile",
       icon: User,
-      isActive: location.pathname === "/profile",
+      isActive: location.pathname.startsWith("/profile"),
     },
   ];
 
-  const handleNavClick = (item: any) => {
-    if (item.isAIChat && onAIChatOpen) {
-      onAIChatOpen();
-    }
-  };
-
   return (
-    <div className={`md:hidden ${className}`}>
-      {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t border-border">
-        <div className="flex items-center justify-around py-2 px-4">
+    <div className={cn("md:hidden", className)}>
+      {/* Bottom Navigation - App-like Thumb Zone Design */}
+      <nav
+        className="fixed bottom-0 left-0 right-0 z-50 safe-area-bottom"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      >
+        {/* Glass background */}
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-xl border-t border-border/50 dark:bg-background/90" />
+
+        {/* Navigation Items */}
+        <div className="relative flex items-center justify-around py-2 px-2">
           {navItems.map((item) => {
             const IconComponent = item.icon;
-
-            if (item.isAIChat) {
-              return (
-                <Button
-                  key={item.name}
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleNavClick(item)}
-                  className="flex flex-col items-center gap-1 h-auto py-2 px-3 relative"
-                >
-                  <div className="relative">
-                    <div className="p-1.5 bg-primary rounded-full">
-                      <IconComponent className="h-4 w-4 text-white" />
-                    </div>
-                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse" />
-                  </div>
-                  <span className="text-xs font-medium text-primary">
-                    {item.name}
-                  </span>
-                </Button>
-              );
-            }
+            const isActive = item.isActive;
 
             return (
               <Link
                 key={item.name}
                 to={item.href}
-                className={`flex flex-col items-center gap-1 py-2 px-3 rounded-lg transition-colors relative ${
-                  item.isActive
-                    ? "text-primary bg-primary/10"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
+                className={cn(
+                  "flex flex-col items-center justify-center gap-0.5 py-2 px-4 rounded-2xl transition-all duration-200 min-w-[64px]",
+                  isActive
+                    ? "bg-primary/10 dark:bg-primary/20"
+                    : "active:scale-95"
+                )}
               >
                 <div className="relative">
                   <IconComponent
-                    className={`h-5 w-5 ${item.isActive ? "text-primary" : ""}`}
+                    className={cn(
+                      "h-6 w-6 transition-colors",
+                      isActive
+                        ? "text-primary"
+                        : "text-muted-foreground"
+                    )}
+                    strokeWidth={isActive ? 2.5 : 2}
                   />
 
+                  {/* Badge */}
                   {item.badge && (
-                    <Badge className="absolute -top-2 -right-2 h-4 w-4 flex items-center justify-center p-0 text-xs">
-                      {item.badge}
+                    <Badge
+                      className="absolute -top-2 -right-2 h-4 min-w-4 flex items-center justify-center p-0 text-[10px] font-semibold bg-growth-green text-white border-0"
+                    >
+                      {item.badge > 9 ? '9+' : item.badge}
                     </Badge>
                   )}
                 </div>
-                <span className="text-xs font-medium">{item.name}</span>
+
+                <span
+                  className={cn(
+                    "text-[10px] font-medium transition-colors",
+                    isActive
+                      ? "text-primary"
+                      : "text-muted-foreground"
+                  )}
+                >
+                  {item.name}
+                </span>
               </Link>
             );
           })}
         </div>
-      </div>
+      </nav>
 
       {/* Bottom padding to prevent content from being hidden behind nav */}
       <div className="h-20" />

@@ -46,6 +46,17 @@ export default {
   			border: 'hsl(var(--border))',
   			input: 'hsl(var(--input))',
   			ring: 'hsl(var(--ring))',
+  			// Custom brand colors for gradients
+  			'trust-blue': {
+  				DEFAULT: 'hsl(var(--trust-blue))',
+  				light: 'hsl(var(--trust-blue-light))',
+  				dark: 'hsl(var(--trust-blue-dark))'
+  			},
+  			'growth-green': {
+  				DEFAULT: 'hsl(var(--growth-green))',
+  				light: 'hsl(var(--growth-green-light))',
+  				dark: 'hsl(var(--growth-green-dark))'
+  			},
   			chart: {
   				'1': 'hsl(var(--chart-1))',
   				'2': 'hsl(var(--chart-2))',
