@@ -57,18 +57,32 @@ interface FiltersProps {
 
 // Dynamic categories based on listing type - now imported from data/categories
 
-const locations = [
-  "Mumbai",
-  "Delhi",
-  "Bangalore",
-  "Chennai",
-  "Kolkata",
-  "Hyderabad",
-  "Pune",
-  "Ahmedabad",
-  "Jaipur",
-  "Lucknow",
-];
+// Indian states with major cities
+const statesWithCities: Record<string, string[]> = {
+  "Maharashtra": ["Mumbai", "Pune", "Nagpur", "Nashik", "Thane", "Aurangabad"],
+  "Karnataka": ["Bangalore", "Mysore", "Mangalore", "Hubli", "Belgaum"],
+  "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai", "Salem", "Trichy"],
+  "Delhi NCR": ["New Delhi", "Gurgaon", "Noida", "Faridabad", "Ghaziabad"],
+  "Gujarat": ["Ahmedabad", "Surat", "Vadodara", "Rajkot", "Gandhinagar"],
+  "Telangana": ["Hyderabad", "Secunderabad", "Warangal", "Nizamabad"],
+  "West Bengal": ["Kolkata", "Howrah", "Durgapur", "Siliguri", "Asansol"],
+  "Rajasthan": ["Jaipur", "Jodhpur", "Udaipur", "Kota", "Ajmer"],
+  "Uttar Pradesh": ["Lucknow", "Kanpur", "Varanasi", "Agra", "Noida", "Ghaziabad"],
+  "Kerala": ["Kochi", "Thiruvananthapuram", "Kozhikode", "Thrissur"],
+  "Punjab": ["Chandigarh", "Ludhiana", "Amritsar", "Jalandhar", "Patiala"],
+  "Madhya Pradesh": ["Bhopal", "Indore", "Gwalior", "Jabalpur"],
+  "Haryana": ["Gurgaon", "Faridabad", "Panipat", "Ambala", "Karnal"],
+  "Andhra Pradesh": ["Visakhapatnam", "Vijayawada", "Guntur", "Tirupati"],
+  "Bihar": ["Patna", "Gaya", "Muzaffarpur", "Bhagalpur"],
+  "Odisha": ["Bhubaneswar", "Cuttack", "Rourkela", "Puri"],
+  "Jharkhand": ["Ranchi", "Jamshedpur", "Dhanbad", "Bokaro"],
+  "Assam": ["Guwahati", "Silchar", "Dibrugarh"],
+  "Chhattisgarh": ["Raipur", "Bhilai", "Bilaspur"],
+  "Goa": ["Panaji", "Margao", "Vasco da Gama"],
+};
+
+const allStates = Object.keys(statesWithCities);
+const allCities = Object.values(statesWithCities).flat();
 
 const businessTypes = [
   "Sole Proprietorship",
@@ -249,7 +263,6 @@ export function Filters({
           </Label>
           <div className="flex flex-wrap gap-2">
             {categories
-              .slice(0, isExpanded ? categories.length : 6)
               .map((category) => (
                 <Badge
                   key={category.id}
@@ -311,30 +324,58 @@ export function Filters({
           </div>
         )}
 
-        {/* Location Filter */}
+        {/* State Filter */}
         <div className="space-y-3">
           <Label className="flex items-center gap-2">
             <MapPinIcon className="h-4 w-4" />
-            Location
+            State
           </Label>
-          <div className="flex flex-wrap gap-2">
-            {locations
-              .slice(0, isExpanded ? locations.length : 5)
-              .map((location) => (
-                <Badge
-                  key={location}
-                  variant={
-                    filters.location.includes(location) ? "default" : "outline"
-                  }
-                  className="cursor-pointer hover:bg-primary/90"
-                  onClick={() => toggleArrayFilter("location", location)}
-                >
-                  {location}
-                  {filters.location.includes(location) && (
-                    <XIcon className="h-3 w-3 ml-1" />
-                  )}
-                </Badge>
-              ))}
+          <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto">
+            {allStates.map((state) => (
+              <Badge
+                key={state}
+                variant={
+                  filters.location.includes(state) ? "default" : "outline"
+                }
+                className="cursor-pointer hover:bg-primary/90"
+                onClick={() => toggleArrayFilter("location", state)}
+              >
+                {state}
+                {filters.location.includes(state) && (
+                  <XIcon className="h-3 w-3 ml-1" />
+                )}
+              </Badge>
+            ))}
+          </div>
+        </div>
+
+        {/* City Filter - Shows cities based on selected states or all cities */}
+        <div className="space-y-3">
+          <Label className="flex items-center gap-2">
+            <BuildingIcon className="h-4 w-4" />
+            City
+          </Label>
+          <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto">
+            {(filters.location.some(loc => allStates.includes(loc))
+              ? filters.location
+                .filter(loc => allStates.includes(loc))
+                .flatMap(state => statesWithCities[state] || [])
+              : allCities.slice(0, 15)
+            ).map((city) => (
+              <Badge
+                key={city}
+                variant={
+                  filters.location.includes(city) ? "default" : "outline"
+                }
+                className="cursor-pointer hover:bg-primary/90 text-xs"
+                onClick={() => toggleArrayFilter("location", city)}
+              >
+                {city}
+                {filters.location.includes(city) && (
+                  <XIcon className="h-3 w-3 ml-1" />
+                )}
+              </Badge>
+            ))}
           </div>
         </div>
 

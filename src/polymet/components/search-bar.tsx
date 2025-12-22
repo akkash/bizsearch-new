@@ -556,7 +556,7 @@ export function SearchBar({
                 handleFilterChange("industry", industry);
                 handleSearch();
               }}
-              className="text-sm px-4 py-2 bg-white hover:bg-primary hover:text-white rounded-full transition-all duration-200 font-medium border-2 border-muted hover:border-primary shadow-sm"
+              className="text-sm px-4 py-2 bg-muted dark:bg-muted/50 text-foreground hover:bg-primary hover:text-white rounded-full transition-all duration-200 font-medium border-2 border-border dark:border-border/50 hover:border-primary shadow-sm"
             >
               {industry}
             </button>

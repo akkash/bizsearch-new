@@ -2,7 +2,6 @@ import { useState, useMemo, useEffect } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { FranchiseCard } from "@/polymet/components/franchise-card";
 import { Filters, FilterState } from "@/polymet/components/filters";
-import { SearchBar } from "@/polymet/components/search-bar";
 import { FranchiseService } from "@/lib/franchise-service";
 import { SkeletonLoader } from "@/polymet/components/skeleton-loader";
 import { EmptyState } from "@/polymet/components/empty-state";
@@ -116,6 +115,26 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
             advantage?.toLowerCase().includes(query)
           )
       );
+    }
+
+    // Apply category filter from URL
+    if (currentCategory) {
+      filtered = filtered.filter((franchise) => {
+        const franchiseIndustry = franchise.industry?.toLowerCase() || '';
+        const categoryName = currentCategory.name.toLowerCase();
+        // Match by category name or any of its subcategories
+        if (currentSubcategory) {
+          // Filter by specific subcategory
+          const subcategoryName = currentSubcategory.name.toLowerCase();
+          return franchiseIndustry.includes(subcategoryName) ||
+            franchiseIndustry.includes(categoryName);
+        }
+        // Match any franchise in this category
+        return franchiseIndustry.includes(categoryName) ||
+          currentCategory.subcategories.some(sub =>
+            franchiseIndustry.includes(sub.name.toLowerCase())
+          );
+      });
     }
 
     // Apply investment range quick filter
@@ -235,7 +254,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
     }
 
     return filtered;
-  }, [searchQuery, filters, sortBy, selectedInvestmentRange, franchises]);
+  }, [searchQuery, filters, sortBy, selectedInvestmentRange, franchises, currentCategory, currentSubcategory]);
 
   // Pagination
   const totalPages = Math.ceil(filteredFranchises.length / itemsPerPage);
@@ -244,14 +263,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
     currentPage * itemsPerPage
   );
 
-  const handleSearch = (
-    query: string,
-    _type: "business" | "franchise",
-    _searchFilters: any
-  ) => {
-    setSearchQuery(query);
-    setCurrentPage(1);
-  };
+
 
   const handleFiltersChange = (newFilters: FilterState) => {
     setFilters(newFilters);
@@ -314,26 +326,26 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
 
   return (
     <div className={cn("min-h-screen bg-background", className)}>
-      {/* Header */}
-      <div className="bg-background border-b border-border">
-        <div className="container mx-auto px-4 py-6">
+      {/* Hero Header - Matching Homepage Design */}
+      <div className="relative bg-gradient-to-br from-trust-blue via-[hsl(213,55%,18%)] to-[hsl(213,60%,12%)] dark:from-[hsl(213,40%,8%)] dark:via-[hsl(213,45%,6%)] dark:to-[hsl(213,50%,4%)]">
+        <div className="container mx-auto px-4 py-8 md:py-12">
           {/* Breadcrumb Navigation */}
           {(currentCategory || currentSubcategory) && (
-            <nav className="flex items-center gap-2 text-sm mb-4">
-              <Link to="/" className="text-muted-foreground hover:text-foreground flex items-center gap-1">
+            <nav className="flex items-center gap-2 text-sm mb-6">
+              <Link to="/" className="text-white/70 hover:text-white flex items-center gap-1 transition-colors">
                 <HomeIcon className="h-4 w-4" />
                 Home
               </Link>
-              <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
-              <Link to="/franchises" className="text-muted-foreground hover:text-foreground">
+              <ChevronRightIcon className="h-4 w-4 text-white/50" />
+              <Link to="/franchises" className="text-white/70 hover:text-white transition-colors">
                 Franchises
               </Link>
               {currentCategory && (
                 <>
-                  <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
+                  <ChevronRightIcon className="h-4 w-4 text-white/50" />
                   <Link
                     to={`/franchises?category=${currentCategory.slug}`}
-                    className={currentSubcategory ? "text-muted-foreground hover:text-foreground" : "font-medium text-foreground"}
+                    className={currentSubcategory ? "text-white/70 hover:text-white transition-colors" : "font-medium text-white"}
                   >
                     {currentCategory.name}
                   </Link>
@@ -341,36 +353,27 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
               )}
               {currentSubcategory && (
                 <>
-                  <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-medium text-foreground">{currentSubcategory.name}</span>
+                  <ChevronRightIcon className="h-4 w-4 text-white/50" />
+                  <span className="font-medium text-white">{currentSubcategory.name}</span>
                 </>
               )}
             </nav>
           )}
 
-          <div className="text-center mb-6">
-            <h1 className="text-2xl font-bold mb-2 text-foreground">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl md:text-4xl font-bold mb-3 text-white">
               {currentSubcategory?.name || currentCategory?.name || 'Franchise Opportunities'}
             </h1>
-            <p className="text-muted-foreground mb-6">
-              {currentCategory
-                ? `Explore ${currentCategory.name.toLowerCase()} franchise opportunities`
-                : 'Discover proven franchise opportunities with high ROI potential'
-              }
-            </p>
-            <div className="flex justify-center">
-              <SearchBar onSearch={handleSearch} />
-            </div>
           </div>
 
           {/* Quick Filter Category Chips */}
           {!currentCategory && (
-            <div className="flex flex-wrap justify-center gap-2 mt-4 mb-4">
+            <div className="flex flex-wrap justify-center gap-2 mt-6">
               {FRANCHISE_CATEGORIES.slice(0, 8).map((cat) => (
                 <Link
                   key={cat.id}
                   to={`/franchises?category=${cat.slug}`}
-                  className="px-3 py-1.5 text-sm rounded-full border border-gray-200 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                  className="px-4 py-2 text-sm rounded-full bg-white/10 border border-white/20 text-white hover:bg-white/20 hover:border-white/40 transition-all backdrop-blur-sm"
                 >
                   {cat.name}
                 </Link>
@@ -380,12 +383,12 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
 
           {/* Subcategory Chips when category is selected */}
           {currentCategory && currentCategory.subcategories.length > 0 && (
-            <div className="flex flex-wrap justify-center gap-2 mt-4 mb-4">
+            <div className="flex flex-wrap justify-center gap-2 mt-6">
               <Link
                 to={`/franchises?category=${currentCategory.slug}`}
-                className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${!currentSubcategory
-                    ? 'bg-blue-600 text-white border-blue-600'
-                    : 'border-gray-200 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50'
+                className={`px-4 py-2 text-sm rounded-full border transition-all backdrop-blur-sm ${!currentSubcategory
+                  ? 'bg-growth-green text-white border-growth-green'
+                  : 'bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/40'
                   }`}
               >
                 All {currentCategory.name}
@@ -394,16 +397,16 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
                 <Link
                   key={sub.id}
                   to={`/franchises?category=${currentCategory.slug}&subcategory=${sub.slug}`}
-                  className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${currentSubcategory?.id === sub.id
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'border-gray-200 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50'
+                  className={`px-4 py-2 text-sm rounded-full border transition-all backdrop-blur-sm ${currentSubcategory?.id === sub.id
+                    ? 'bg-growth-green text-white border-growth-green'
+                    : 'bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/40'
                     }`}
                 >
                   {sub.name}
                 </Link>
               ))}
               {currentCategory.subcategories.length > 10 && (
-                <span className="px-3 py-1.5 text-sm text-muted-foreground">
+                <span className="px-4 py-2 text-sm text-white/60">
                   +{currentCategory.subcategories.length - 10} more
                 </span>
               )}
@@ -411,29 +414,33 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
           )}
 
           {/* Investment Range Quick Filters */}
-          <div className="mt-4">
-            <div className="flex items-center justify-center gap-2 mb-3">
-              <TrendingUpIcon className="h-4 w-4" />
-              <span className="text-sm font-medium">Investment Range:</span>
+          <div className="mt-8">
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <TrendingUpIcon className="h-4 w-4 text-growth-green" />
+              <span className="text-sm font-medium text-white">Investment Range:</span>
             </div>
             <div className="flex flex-wrap justify-center gap-2">
               <Button
-                variant={selectedInvestmentRange === "" ? "default" : "outline"}
+                variant={selectedInvestmentRange === "" ? "default" : "ghost"}
                 size="sm"
                 onClick={() => setSelectedInvestmentRange("")}
+                className={selectedInvestmentRange === ""
+                  ? "bg-growth-green hover:bg-growth-green/90 text-white"
+                  : "text-white border-white/20 hover:bg-white/10"
+                }
               >
                 All Ranges
               </Button>
               {investmentRanges.map((range) => (
                 <Button
                   key={range.label}
-                  variant={
-                    selectedInvestmentRange === range.label
-                      ? "default"
-                      : "outline"
-                  }
+                  variant={selectedInvestmentRange === range.label ? "default" : "ghost"}
                   size="sm"
                   onClick={() => setSelectedInvestmentRange(range.label)}
+                  className={selectedInvestmentRange === range.label
+                    ? "bg-growth-green hover:bg-growth-green/90 text-white"
+                    : "text-white border-white/20 hover:bg-white/10"
+                  }
                 >
                   {range.label}
                 </Button>
@@ -736,6 +743,6 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 }
