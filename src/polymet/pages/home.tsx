@@ -217,7 +217,7 @@ export function HomePage({ className }: HomePageProps) {
       )}
 
       {/* NEW: AI-Powered Features Highlight */}
-      <section className="py-12 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-purple-950/20 dark:via-blue-950/20 dark:to-indigo-950/20">
+      <section className="py-12 bg-gradient-to-br from-trust-blue/5 via-growth-green/5 to-trust-blue/10 dark:from-trust-blue/10 dark:via-growth-green/5 dark:to-trust-blue/5">
         <div className="container mx-auto px-4">
           <div className="text-center mb-8">
             <Badge className="mb-4" variant="secondary">
@@ -259,10 +259,10 @@ export function HomePage({ className }: HomePageProps) {
             </Card>
 
             {/* AI Matchmaker */}
-            <Card className="hover:shadow-xl transition-all hover:-translate-y-1 border-purple-200 dark:border-purple-800">
+            <Card className="hover:shadow-xl transition-all hover:-translate-y-1 border-growth-green/30 dark:border-growth-green/50">
               <CardHeader>
-                <div className="w-12 h-12 rounded-lg bg-purple-100 dark:bg-purple-900 flex items-center justify-center mb-3">
-                  <Target className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                <div className="w-12 h-12 rounded-lg bg-growth-green/10 dark:bg-growth-green/20 flex items-center justify-center mb-3">
+                  <Target className="h-6 w-6 text-growth-green dark:text-growth-green" />
                 </div>
                 <CardTitle className="text-xl">AI Matchmaker</CardTitle>
               </CardHeader>
@@ -271,7 +271,7 @@ export function HomePage({ className }: HomePageProps) {
                   Get personalized business recommendations based on your budget, skills, and goals
                 </p>
                 <Button
-                  className="w-full bg-purple-600 hover:bg-purple-700"
+                  className="w-full bg-growth-green hover:bg-growth-green/90"
                   onClick={() => setShowMatchmaker(true)}
                 >
                   <Sparkles className="h-4 w-4 mr-2" />
@@ -338,7 +338,7 @@ export function HomePage({ className }: HomePageProps) {
       </section>
 
       {/* NEW: Phase 2 AI Features - Decision Support */}
-      <section className="py-16 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/20 dark:via-purple-950/20 dark:to-pink-950/20">
+      <section className="py-16 bg-gradient-to-br from-trust-blue/5 via-background to-growth-green/5 dark:from-trust-blue/10 dark:via-background dark:to-growth-green/10">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <Badge className="mb-4" variant="secondary">
@@ -391,10 +391,10 @@ export function HomePage({ className }: HomePageProps) {
             </Card>
 
             {/* Due Diligence Assistant */}
-            <Card className="hover:shadow-2xl transition-all hover:-translate-y-1 border-purple-200 dark:border-purple-800">
+            <Card className="hover:shadow-2xl transition-all hover:-translate-y-1 border-growth-green/30 dark:border-growth-green/50">
               <CardHeader>
-                <div className="w-12 h-12 rounded-lg bg-purple-100 dark:bg-purple-900 flex items-center justify-center mb-3">
-                  <Shield className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                <div className="w-12 h-12 rounded-lg bg-growth-green/10 dark:bg-growth-green/20 flex items-center justify-center mb-3">
+                  <Shield className="h-6 w-6 text-growth-green dark:text-growth-green" />
                 </div>
                 <CardTitle className="text-xl">Due Diligence Assistant</CardTitle>
                 <CardDescription>
@@ -417,7 +417,7 @@ export function HomePage({ className }: HomePageProps) {
                   </li>
                 </ul>
                 <Button
-                  className="w-full bg-purple-600 hover:bg-purple-700"
+                  className="w-full bg-growth-green hover:bg-growth-green/90"
                   onClick={() => setShowDueDiligence(true)}
                 >
                   Start Due Diligence
@@ -426,10 +426,10 @@ export function HomePage({ className }: HomePageProps) {
             </Card>
 
             {/* Document Analyzer */}
-            <Card className="hover:shadow-2xl transition-all hover:-translate-y-1 border-pink-200 dark:border-pink-800">
+            <Card className="hover:shadow-2xl transition-all hover:-translate-y-1 border-trust-blue/30 dark:border-trust-blue/50">
               <CardHeader>
-                <div className="w-12 h-12 rounded-lg bg-pink-100 dark:bg-pink-900 flex items-center justify-center mb-3">
-                  <FileText className="h-6 w-6 text-pink-600 dark:text-pink-400" />
+                <div className="w-12 h-12 rounded-lg bg-trust-blue/10 dark:bg-trust-blue/20 flex items-center justify-center mb-3">
+                  <FileText className="h-6 w-6 text-trust-blue dark:text-trust-blue-light" />
                 </div>
                 <CardTitle className="text-xl">Document Analyzer</CardTitle>
                 <CardDescription>
