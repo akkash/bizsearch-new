@@ -122,7 +122,7 @@ export function HeroSection({ onSearch, className }: HeroSectionProps) {
 
           {/* Value Proposition Subheading */}
           <p className="text-lg md:text-xl lg:text-2xl text-blue-100/90 mb-10 max-w-3xl mx-auto leading-relaxed font-light">
-            Browse verified businesses for sale. Explore franchise opportunities.
+            Explore franchise opportunities. Browse verified businesses for sale.
             <span className="block mt-2 text-growth-green font-medium">Connect directly with serious buyers and sellers.</span>
           </p>
 
@@ -152,22 +152,22 @@ export function HeroSection({ onSearch, className }: HeroSectionProps) {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-            <Link to="/businesses">
+            <Link to="/franchises">
               <Button
                 size="lg"
                 className="bg-growth-green hover:bg-growth-green/90 text-white px-8 py-6 text-lg font-semibold rounded-xl shadow-lg shadow-growth-green/25 w-full sm:w-auto transition-all hover:scale-105"
               >
-                Browse Businesses
+                Explore Franchises
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
-            <Link to="/franchises">
+            <Link to="/businesses">
               <Button
                 size="lg"
                 variant="outline"
-                className="border-2 border-white/30 text-white hover:bg-white/10 px-8 py-6 text-lg font-semibold rounded-xl w-full sm:w-auto backdrop-blur-sm transition-all hover:scale-105"
+                className="border-2 border-white/50 text-white bg-transparent hover:bg-white/10 px-8 py-6 text-lg font-semibold rounded-xl w-full sm:w-auto backdrop-blur-sm transition-all hover:scale-105"
               >
-                Explore Franchises
+                Browse Businesses
               </Button>
             </Link>
           </div>

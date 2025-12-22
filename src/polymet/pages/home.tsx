@@ -783,24 +783,24 @@ export function HomePage({ className }: HomePageProps) {
         </div>
       </section>
 
-      {/* Business Categories */}
-      <section className="py-8 md:py-16 bg-background">
-        <FeaturedCarousel
-          type="business"
-          title="Top Business Categories"
-          subtitle="Explore businesses across different industries"
-          onViewAll={handleViewAllBusinesses}
-          onMoreLikeThis={handleMoreLikeThis}
-        />
-      </section>
-
       {/* Franchise Opportunities */}
-      <section className="py-8 md:py-16 bg-muted/30">
+      <section className="py-8 md:py-16 bg-background">
         <FeaturedCarousel
           type="franchise"
           title="Premium Franchise Opportunities"
           subtitle="High-ROI franchise opportunities with proven track records"
           onViewAll={handleViewAllFranchises}
+          onMoreLikeThis={handleMoreLikeThis}
+        />
+      </section>
+
+      {/* Business Categories */}
+      <section className="py-8 md:py-16 bg-muted/30">
+        <FeaturedCarousel
+          type="business"
+          title="Top Business Categories"
+          subtitle="Explore businesses across different industries"
+          onViewAll={handleViewAllBusinesses}
           onMoreLikeThis={handleMoreLikeThis}
         />
       </section>
@@ -812,7 +812,7 @@ export function HomePage({ className }: HomePageProps) {
       <SuccessStoriesCarousel />
 
       {/* Call to Action */}
-      <section className="py-16 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
+      <section className="py-16 bg-gradient-to-r from-trust-blue via-[hsl(213,50%,30%)] to-[hsl(180,50%,25%)] text-white">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-4">
             Ready to Find Your Perfect Business?
@@ -822,6 +822,28 @@ export function HomePage({ className }: HomePageProps) {
             business or franchise through BizSearch
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+            <Card className="p-6 bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/20 transition-colors">
+              <CardContent className="p-0 text-center">
+                <div className="text-4xl mb-3">🏪</div>
+                <h3 className="text-xl font-semibold mb-2">
+                  I want a Franchise
+                </h3>
+                <p className="text-sm opacity-80 mb-4">
+                  Explore proven franchise opportunities with high ROI
+                </p>
+                <Link to="/franchises" className="w-full">
+                  <Button
+                    size="lg"
+                    variant="secondary"
+                    className="w-full gap-2"
+                  >
+                    Explore Franchises
+                    <ArrowRightIcon className="h-5 w-5" />
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+
             <Card className="p-6 bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/20 transition-colors">
               <CardContent className="p-0 text-center">
                 <div className="text-4xl mb-3">🏢</div>
@@ -834,32 +856,10 @@ export function HomePage({ className }: HomePageProps) {
                 <Link to="/businesses" className="w-full">
                   <Button
                     size="lg"
-                    variant="secondary"
-                    className="w-full gap-2"
-                  >
-                    Browse Businesses
-                    <ArrowRightIcon className="h-5 w-5" />
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-
-            <Card className="p-6 bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/20 transition-colors">
-              <CardContent className="p-0 text-center">
-                <div className="text-4xl mb-3">🤝</div>
-                <h3 className="text-xl font-semibold mb-2">
-                  I want to Sell a Business
-                </h3>
-                <p className="text-sm opacity-80 mb-4">
-                  List your business and reach qualified buyers
-                </p>
-                <Link to="/add-business-listing" className="w-full">
-                  <Button
-                    size="lg"
                     variant="outline"
                     className="w-full gap-2 bg-transparent border-white text-white hover:bg-white hover:text-blue-600"
                   >
-                    List My Business
+                    Browse Businesses
                     <ArrowRightIcon className="h-5 w-5" />
                   </Button>
                 </Link>
@@ -868,12 +868,12 @@ export function HomePage({ className }: HomePageProps) {
           </div>
 
           <div className="mt-8">
-            <Link to="/franchises">
+            <Link to="/add-business-listing">
               <Button
                 variant="ghost"
                 className="gap-2 text-white hover:bg-white/10"
               >
-                Or explore franchise opportunities
+                Or list your business for sale
                 <ArrowRightIcon className="h-4 w-4" />
               </Button>
             </Link>

@@ -117,7 +117,7 @@ export function SearchBar({
   className,
 }: SearchBarProps) {
   const [searchType, setSearchType] = useState<"business" | "franchise">(
-    "business"
+    "franchise"
   );
   const [query, setQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
@@ -189,26 +189,6 @@ export function SearchBar({
       <div className="flex items-center justify-center">
         <div className="flex bg-muted rounded-xl p-1.5 w-full max-w-lg shadow-sm">
           <Button
-            variant={searchType === "business" ? "default" : "ghost"}
-            size="lg"
-            onClick={() => {
-              setSearchType("business");
-              onSearchTypeChange?.("business");
-            }}
-            className="flex items-center gap-3 relative flex-1 h-12 text-sm font-medium"
-          >
-            <div
-              className={`p-2 rounded-full ${searchType === "business"
-                ? "bg-white/20"
-                : "bg-muted-foreground/10"
-                }`}
-            >
-              <Building2 className="h-5 w-5" />
-            </div>
-            <span className="hidden sm:inline">Businesses for Sale</span>
-            <span className="sm:hidden">Business</span>
-          </Button>
-          <Button
             variant={searchType === "franchise" ? "default" : "ghost"}
             size="lg"
             onClick={() => {
@@ -227,6 +207,26 @@ export function SearchBar({
             </div>
             <span className="hidden sm:inline">Franchise Opportunities</span>
             <span className="sm:hidden">Franchise</span>
+          </Button>
+          <Button
+            variant={searchType === "business" ? "default" : "ghost"}
+            size="lg"
+            onClick={() => {
+              setSearchType("business");
+              onSearchTypeChange?.("business");
+            }}
+            className="flex items-center gap-3 relative flex-1 h-12 text-sm font-medium"
+          >
+            <div
+              className={`p-2 rounded-full ${searchType === "business"
+                ? "bg-white/20"
+                : "bg-muted-foreground/10"
+                }`}
+            >
+              <Building2 className="h-5 w-5" />
+            </div>
+            <span className="hidden sm:inline">Businesses for Sale</span>
+            <span className="sm:hidden">Business</span>
           </Button>
         </div>
       </div>
