@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { Business } from "@/polymet/data/businesses-data";
+import { Business } from "@/types/listings";
 import { VerificationIcon } from "@/components/verification/VerificationBadge";
 import type { VerificationTier } from "@/hooks/use-verification-tier";
 

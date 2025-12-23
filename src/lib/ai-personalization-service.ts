@@ -181,9 +181,9 @@ export class AIPersonalizationService {
         locations: locations as string[],
         budget: avgPrice > 0
           ? {
-              min: Math.round(avgPrice * 0.7),
-              max: Math.round(avgPrice * 1.3),
-            }
+            min: Math.round(avgPrice * 0.7),
+            max: Math.round(avgPrice * 1.3),
+          }
           : undefined,
       };
     } catch (error) {
@@ -368,7 +368,7 @@ export class AIPersonalizationService {
           priority: 'high',
           sendTime: this.calculateOptimalSendTime(userId),
           listingId: listing.id,
-          actionUrl: `/business/${listing.id}`,
+          actionUrl: `/business/${listing.slug || listing.id}`,
         });
       });
     }

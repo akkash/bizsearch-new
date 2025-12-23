@@ -92,7 +92,7 @@ export function MyListingsPage({ className }: MyListingsPageProps) {
         BusinessService.getUserBusinesses(user.id),
         FranchiseService.getUserFranchises(user.id),
       ]);
-      
+
       setBusinesses(businessData || []);
       setFranchises(franchiseData || []);
     } catch (error) {
@@ -146,7 +146,7 @@ export function MyListingsPage({ className }: MyListingsPageProps) {
         </div>
 
         <div className="flex gap-2">
-          <Link to={`/business/${business.id}`} className="flex-1">
+          <Link to={`/business/${business.slug || business.id}`} className="flex-1">
             <Button variant="outline" size="sm" className="w-full">
               <Eye className="h-4 w-4 mr-2" />
               View
@@ -193,7 +193,7 @@ export function MyListingsPage({ className }: MyListingsPageProps) {
         </div>
 
         <div className="flex gap-2">
-          <Link to={`/franchise/${franchise.id}`} className="flex-1">
+          <Link to={`/franchise/${franchise.slug || franchise.id}`} className="flex-1">
             <Button variant="outline" size="sm" className="w-full">
               <Eye className="h-4 w-4 mr-2" />
               View
@@ -274,8 +274,8 @@ export function MyListingsPage({ className }: MyListingsPageProps) {
               <div>
                 <p className="text-sm text-muted-foreground">Active</p>
                 <p className="text-2xl font-bold">
-                  {businesses.filter(b => b.status === 'active').length + 
-                   franchises.filter(f => f.status === 'active').length}
+                  {businesses.filter(b => b.status === 'active').length +
+                    franchises.filter(f => f.status === 'active').length}
                 </p>
               </div>
               <CheckCircle className="h-8 w-8 text-green-600" />

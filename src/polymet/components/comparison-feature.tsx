@@ -16,8 +16,7 @@ import {
   Star,
   Shield,
 } from "lucide-react";
-import { Business } from "@/polymet/data/businesses-data";
-import { Franchise } from "@/polymet/data/franchises-data";
+import { Business, Franchise } from "@/types/listings";
 
 interface ComparisonItem {
   id: string;
@@ -141,11 +140,10 @@ export function ComparisonFeature({
             <button
               key={tab}
               onClick={() => setActiveTab(tab as any)}
-              className={`px-4 py-2 text-sm font-medium capitalize border-b-2 transition-colors ${
-                activeTab === tab
+              className={`px-4 py-2 text-sm font-medium capitalize border-b-2 transition-colors ${activeTab === tab
                   ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground hover:text-foreground"
-              }`}
+                }`}
             >
               {tab}
             </button>

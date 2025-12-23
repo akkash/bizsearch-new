@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { isUUID, sanitizeSlug } from './slug-utils';
 
 export interface BusinessFilters {
   industry?: string[];
@@ -55,14 +56,14 @@ export class BusinessService {
    */
   static async getBusinesses(filters?: BusinessFilters) {
     console.log('🏪 Fetching businesses with filters:', filters);
-    
+
     try {
       // Try direct fetch as fallback
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-      
+
       console.log('🌐 Using direct fetch to:', `${supabaseUrl}/rest/v1/businesses?select=*&order=created_at.desc`);
-      
+
       const response = await fetch(
         `${supabaseUrl}/rest/v1/businesses?select=*&order=created_at.desc`,
         {
@@ -74,11 +75,11 @@ export class BusinessService {
           }
         }
       );
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const data = await response.json();
       console.log('✅ Businesses fetched via direct fetch:', data?.length || 0, 'businesses');
       return data;
@@ -89,7 +90,7 @@ export class BusinessService {
   }
 
   /**
-   * Get a single business by ID
+   * Get a single business by ID (UUID)
    */
   static async getBusinessById(id: string) {
     const { data, error } = await supabase
@@ -107,14 +108,27 @@ export class BusinessService {
    * Get business by slug
    */
   static async getBusinessBySlug(slug: string) {
+    const sanitized = sanitizeSlug(slug);
     const { data, error } = await supabase
       .from('businesses')
       .select('*, profiles(*)')
-      .eq('slug', slug)
+      .eq('slug', sanitized)
       .single();
 
     if (error) throw error;
     return data;
+  }
+
+  /**
+   * Get business by ID or Slug (auto-detects which one)
+   * Use this method for route handlers that accept both UUID and slug
+   */
+  static async getBusinessByIdOrSlug(identifier: string) {
+    if (isUUID(identifier)) {
+      return this.getBusinessById(identifier);
+    } else {
+      return this.getBusinessBySlug(identifier);
+    }
   }
 
   /**

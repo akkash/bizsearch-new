@@ -19,7 +19,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
-import { Franchise } from "@/polymet/data/franchises-data";
+import { Franchise } from "@/types/listings";
 
 interface FranchiseCardProps {
   franchise: Franchise;
@@ -198,9 +198,8 @@ export function FranchiseCard({
               <Badge
                 key={badge}
                 variant={badge === "Verified" ? "default" : "secondary"}
-                className={`text-xs ${
-                  badge === "Verified" ? "bg-green-500 hover:bg-green-600" : ""
-                }`}
+                className={`text-xs ${badge === "Verified" ? "bg-green-500 hover:bg-green-600" : ""
+                  }`}
               >
                 {badge === "Verified" && <Shield className="h-3 w-3 mr-1" />}
                 {badge}

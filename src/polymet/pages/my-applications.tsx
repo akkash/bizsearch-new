@@ -30,6 +30,7 @@ interface Application {
     franchise: {
         brand_name: string;
         logo_url: string | null;
+        slug: string | null;
     };
 }
 
@@ -63,7 +64,8 @@ export function MyApplicationsPage() {
           personal_info,
           franchise:franchises (
             brand_name,
-            logo_url
+            logo_url,
+            slug
           )
         `)
                 .eq('user_id', user.id)
@@ -209,7 +211,7 @@ export function MyApplicationsPage() {
                                                     </Link>
                                                 </Button>
                                                 <Button size="sm" variant="ghost" asChild>
-                                                    <Link to={`/franchise/${app.franchise_id}`}>
+                                                    <Link to={`/franchise/${app.franchise?.slug || app.franchise_id}`}>
                                                         <ExternalLink className="h-4 w-4 mr-1" />
                                                         View Franchise
                                                     </Link>

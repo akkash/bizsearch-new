@@ -38,10 +38,7 @@ import { ProfileCompletenessCard } from "@/components/profile/ProfileCompletenes
 import type { Database } from "@/types/supabase";
 import type { UserProfile } from "@/polymet/data/profile-data";
 import { adaptSupabaseProfileToUserProfile } from "@/lib/profile-adapter";
-import { businessesData } from "@/polymet/data/businesses-data";
-import { franchisesData } from "@/polymet/data/franchises-data";
-import type { Business } from "@/polymet/data/businesses-data";
-import type { Franchise } from "@/polymet/data/franchises-data";
+import type { Business, Franchise } from "@/types/listings";
 
 type SupabaseProfile = Database['public']['Tables']['profiles']['Row'];
 
@@ -131,13 +128,9 @@ export function ProfilePage({ className = "" }: ProfilePageProps) {
   };
 
   // Get user's listings based on role
+  // TODO: Implement fetching actual user listings from database
   const getUserListings = (): Business[] | Franchise[] => {
-    // TODO: Fetch actual user listings from Supabase
-    if (profile.role === "seller") {
-      return businessesData.filter((b) => b.id === "biz-001" || b.id === "biz-002");
-    } else if (profile.role === "franchisor") {
-      return franchisesData.filter((f) => f.id === "fran-001" || f.id === "fran-002");
-    }
+    // User listings will be fetched from Supabase in the future
     return [];
   };
 

@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { isUUID, sanitizeSlug } from './slug-utils';
 
 export interface FranchiseFilters {
   industry?: string[];
@@ -67,11 +68,11 @@ export class FranchiseService {
    */
   static async getFranchises(filters?: FranchiseFilters) {
     console.log('🏪 Fetching franchises with filters:', filters);
-    
+
     try {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-      
+
       const response = await fetch(
         `${supabaseUrl}/rest/v1/franchises?select=*&order=created_at.desc`,
         {
@@ -83,11 +84,11 @@ export class FranchiseService {
           }
         }
       );
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const data = await response.json();
       console.log('✅ Franchises fetched:', data?.length || 0, 'franchises');
       return data;
@@ -98,7 +99,7 @@ export class FranchiseService {
   }
 
   /**
-   * Get a single franchise by ID
+   * Get a single franchise by ID (UUID)
    */
   static async getFranchiseById(id: string) {
     const { data, error } = await supabase
@@ -115,14 +116,27 @@ export class FranchiseService {
    * Get franchise by slug
    */
   static async getFranchiseBySlug(slug: string) {
+    const sanitized = sanitizeSlug(slug);
     const { data, error } = await supabase
       .from('franchises')
       .select('*, profiles(*)')
-      .eq('slug', slug)
+      .eq('slug', sanitized)
       .single();
 
     if (error) throw error;
     return data;
+  }
+
+  /**
+   * Get franchise by ID or Slug (auto-detects which one)
+   * Use this method for route handlers that accept both UUID and slug
+   */
+  static async getFranchiseByIdOrSlug(identifier: string) {
+    if (isUUID(identifier)) {
+      return this.getFranchiseById(identifier);
+    } else {
+      return this.getFranchiseBySlug(identifier);
+    }
   }
 
   /**

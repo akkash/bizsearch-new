@@ -3,27 +3,17 @@ import { useNavigate } from "react-router-dom";
 import {
   ChevronLeft,
   ChevronRight,
-  Star,
-  TrendingUp,
-  Shield,
   Eye,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { BusinessCard } from "@/polymet/components/business-card";
 import { FranchiseCard } from "@/polymet/components/franchise-card";
-import {
-  getFeaturedBusinesses,
-  getTrendingBusinesses,
-} from "@/polymet/data/businesses-data";
-import {
-  getFeaturedFranchises,
-  getTrendingFranchises,
-} from "@/polymet/data/franchises-data";
+import { BusinessService } from "@/lib/business-service";
+import { FranchiseService } from "@/lib/franchise-service";
 
 interface FeaturedCarouselProps {
-  type?: "business" | "franchise" | "mixed";
+  type: "business" | "franchise";
   title?: string;
   subtitle?: string;
   onViewAll?: () => void;
@@ -32,7 +22,7 @@ interface FeaturedCarouselProps {
 }
 
 export function FeaturedCarousel({
-  type = "mixed",
+  type,
   title,
   subtitle,
   onViewAll,
@@ -44,44 +34,43 @@ export function FeaturedCarousel({
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
+  const [items, setItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Get data based on type
-  const getCarouselData = () => {
-    switch (type) {
-      case "business":
-        return [...getFeaturedBusinesses(), ...getTrendingBusinesses()].slice(
-          0,
-          8
-        );
-      case "franchise":
-        return [...getFeaturedFranchises(), ...getTrendingFranchises()].slice(
-          0,
-          8
-        );
-      case "mixed":
-      default:
-        return [
-          ...getFeaturedBusinesses().slice(0, 3),
-          ...getFeaturedFranchises().slice(0, 3),
-          ...getTrendingBusinesses().slice(0, 2),
-        ];
-    }
-  };
+  // Fetch data from database
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        if (type === "franchise") {
+          const data = await FranchiseService.getFeaturedFranchises(8);
+          setItems(data || []);
+        } else {
+          const data = await BusinessService.getFeaturedBusinesses(8);
+          setItems(data || []);
+        }
+      } catch (error) {
+        console.error("Error fetching featured items:", error);
+        setItems([]);
+      }
+      setLoading(false);
+    };
+    fetchData();
+  }, [type]);
 
-  const items = getCarouselData();
-  const itemsPerView = window.innerWidth < 768 ? 1 : 3; // 1 on mobile, 3 on desktop
+  const itemsPerView = typeof window !== 'undefined' && window.innerWidth < 768 ? 1 : 3;
   const maxIndex = Math.max(0, items.length - itemsPerView);
 
   // Auto-play functionality
   useEffect(() => {
-    if (!isAutoPlaying) return;
+    if (!isAutoPlaying || items.length === 0) return;
 
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev >= maxIndex ? 0 : prev + 1));
     }, 4000);
 
     return () => clearInterval(interval);
-  }, [isAutoPlaying, maxIndex]);
+  }, [isAutoPlaying, maxIndex, items.length]);
 
   const goToPrevious = () => {
     setIsAutoPlaying(false);
@@ -109,27 +98,54 @@ export function FeaturedCarousel({
 
   const handleTouchEnd = () => {
     if (touchStart - touchEnd > 75) {
-      // Swipe left - go to next
       goToNext();
     }
-
     if (touchStart - touchEnd < -75) {
-      // Swipe right - go to previous
       goToPrevious();
     }
   };
 
   const defaultTitles = {
-    business: "Featured Businesses",
-    franchise: "Top Franchise Opportunities",
-    mixed: "Featured Opportunities",
+    business: "Featured Businesses For Sale",
+    franchise: "Featured Franchises",
   };
 
   const defaultSubtitles = {
     business: "Discover verified businesses ready for acquisition",
     franchise: "Explore profitable franchise opportunities",
-    mixed: "Handpicked businesses and franchises for you",
   };
+
+  if (loading) {
+    return (
+      <section className={`py-12 ${className}`}>
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col items-center justify-center py-16">
+            <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+            <p className="text-muted-foreground">Loading {type === "franchise" ? "franchises" : "businesses"}...</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (items.length === 0) {
+    return (
+      <section className={`py-12 ${className}`}>
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold mb-2">{title || defaultTitles[type]}</h2>
+          <p className="text-muted-foreground mb-8">{subtitle || defaultSubtitles[type]}</p>
+          <div className="text-center py-12 bg-muted/30 rounded-lg">
+            <p className="text-muted-foreground">No featured {type === "franchise" ? "franchises" : "businesses"} available at the moment.</p>
+            {onViewAll && (
+              <Button onClick={onViewAll} className="mt-4">
+                Browse All {type === "franchise" ? "Franchises" : "Businesses"}
+              </Button>
+            )}
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className={`py-12 ${className}`}>
@@ -152,9 +168,8 @@ export function FeaturedCarousel({
                 <button
                   key={index}
                   onClick={() => goToSlide(index)}
-                  className={`w-2 h-2 rounded-full transition-colors ${
-                    index === currentIndex ? "bg-primary" : "bg-muted"
-                  }`}
+                  className={`w-2 h-2 rounded-full transition-colors ${index === currentIndex ? "bg-primary" : "bg-muted"
+                    }`}
                 />
               ))}
             </div>
@@ -188,7 +203,7 @@ export function FeaturedCarousel({
           </div>
         </div>
 
-        {/* Carousel - Mobile-First Design */}
+        {/* Carousel */}
         <div className="relative">
           {/* Mobile: Touch-enabled Horizontal Scroll */}
           <div className="md:hidden">
@@ -207,13 +222,13 @@ export function FeaturedCarousel({
                   key={`${item.id}-${index}`}
                   className="flex-shrink-0 w-80 snap-start"
                 >
-                  {"brandName" in item ? (
+                  {type === "franchise" ? (
                     <FranchiseCard
                       franchise={item}
                       onSave={(id) => console.log("Save franchise:", id)}
                       onShare={(id) => console.log("Share franchise:", id)}
                       onContact={(id) => console.log("Contact franchise:", id)}
-                      onViewDetails={(id) => navigate(`/franchise/${id}`)}
+                      onViewDetails={() => navigate(`/franchise/${item.slug || item.id}`)}
                       onMoreLikeThis={(id) => onMoreLikeThis?.(id, "franchise")}
                     />
                   ) : (
@@ -222,7 +237,7 @@ export function FeaturedCarousel({
                       onSave={(id) => console.log("Save business:", id)}
                       onShare={(id) => console.log("Share business:", id)}
                       onContact={(id) => console.log("Contact business:", id)}
-                      onViewDetails={(id) => navigate(`/business/${id}`)}
+                      onViewDetails={() => navigate(`/business/${item.slug || item.id}`)}
                       onMoreLikeThis={(id) => onMoreLikeThis?.(id, "business")}
                     />
                   )}
@@ -246,13 +261,13 @@ export function FeaturedCarousel({
                   className="flex-shrink-0 px-2"
                   style={{ width: `${100 / items.length}%` }}
                 >
-                  {"brandName" in item ? (
+                  {type === "franchise" ? (
                     <FranchiseCard
                       franchise={item}
                       onSave={(id) => console.log("Save franchise:", id)}
                       onShare={(id) => console.log("Share franchise:", id)}
                       onContact={(id) => console.log("Contact franchise:", id)}
-                      onViewDetails={(id) => navigate(`/franchise/${id}`)}
+                      onViewDetails={() => navigate(`/franchise/${item.slug || item.id}`)}
                       onMoreLikeThis={(id) => onMoreLikeThis?.(id, "franchise")}
                     />
                   ) : (
@@ -261,7 +276,7 @@ export function FeaturedCarousel({
                       onSave={(id) => console.log("Save business:", id)}
                       onShare={(id) => console.log("Share business:", id)}
                       onContact={(id) => console.log("Contact business:", id)}
-                      onViewDetails={(id) => navigate(`/business/${id}`)}
+                      onViewDetails={() => navigate(`/business/${item.slug || item.id}`)}
                       onMoreLikeThis={(id) => onMoreLikeThis?.(id, "business")}
                     />
                   )}
@@ -275,7 +290,7 @@ export function FeaturedCarousel({
         {onViewAll && (
           <div className="flex justify-center mt-8 md:hidden">
             <Button onClick={onViewAll}>
-              View All Opportunities
+              View All {type === "franchise" ? "Franchises" : "Businesses"}
               <Eye className="ml-2 h-4 w-4" />
             </Button>
           </div>
@@ -298,11 +313,10 @@ export function FeaturedCarousel({
           {Array.from({ length: Math.min(items.length, 5) }).map((_, index) => (
             <div
               key={index}
-              className={`h-2 rounded-full transition-all ${
-                index === currentIndex % Math.min(items.length, 5)
+              className={`h-2 rounded-full transition-all ${index === currentIndex % Math.min(items.length, 5)
                   ? "bg-primary w-8"
                   : "bg-muted w-2"
-              }`}
+                }`}
             />
           ))}
         </div>

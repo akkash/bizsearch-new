@@ -5,7 +5,7 @@ import { Filters, FilterState } from "@/polymet/components/filters";
 import { BusinessService } from "@/lib/business-service";
 import { SkeletonLoader } from "@/polymet/components/skeleton-loader";
 import { EmptyState } from "@/polymet/components/empty-state";
-import type { Business } from "@/polymet/data/businesses-data";
+import type { Business } from "@/types/listings";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -59,11 +59,19 @@ export function BusinessListings({ className }: BusinessListingsProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 
-  // Parse URL params for category filtering
+  // Parse URL params for category filtering and search
   const categorySlug = searchParams.get('category');
   const subcategorySlug = searchParams.get('subcategory');
+  const urlSearchQuery = searchParams.get('q');
   const currentCategory = categorySlug ? getBusinessCategoryBySlug(categorySlug) : null;
   const currentSubcategory = currentCategory?.subcategories.find(s => s.slug === subcategorySlug);
+
+  // Initialize search query from URL if present
+  useEffect(() => {
+    if (urlSearchQuery && urlSearchQuery !== searchQuery) {
+      setSearchQuery(urlSearchQuery);
+    }
+  }, [urlSearchQuery]);
 
   // Fetch businesses from Supabase
   useEffect(() => {
@@ -286,7 +294,10 @@ export function BusinessListings({ className }: BusinessListingsProps) {
   };
 
   const handleViewDetails = (businessId: string) => {
-    navigate(`/business/${businessId}`);
+    // Find the business to get its slug
+    const business = businesses.find(b => b.id === businessId);
+    const identifier = business?.slug || businessId;
+    navigate(`/business/${identifier}`);
   };
 
   // Loading state

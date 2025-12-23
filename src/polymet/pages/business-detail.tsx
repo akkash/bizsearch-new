@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { BusinessService } from "@/lib/business-service";
 import { MessagingService } from "@/lib/messaging-service";
 import { useAuth } from "@/contexts/AuthContext";
-import type { Business } from "@/polymet/data/businesses-data";
+import type { Business } from "@/types/listings";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -53,14 +53,18 @@ export function BusinessDetail({ className }: BusinessDetailProps) {
   const [selectedImage, setSelectedImage] = useState(0);
   const [startingConversation, setStartingConversation] = useState(false);
 
-  // Fetch business from Supabase
+  // Fetch business from Supabase (supports both UUID and slug)
   useEffect(() => {
     const fetchBusiness = async () => {
       if (!id) return;
       setLoading(true);
-      const result = await BusinessService.getBusinessById(id);
-      if (result && !Array.isArray(result)) {
-        setBusiness(result as Business);
+      try {
+        const result = await BusinessService.getBusinessByIdOrSlug(id);
+        if (result && !Array.isArray(result)) {
+          setBusiness(result as Business);
+        }
+      } catch (error) {
+        console.error('Error fetching business:', error);
       }
       setLoading(false);
     };

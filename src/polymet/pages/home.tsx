@@ -167,8 +167,19 @@ export function HomePage({ className }: HomePageProps) {
     filters: any
   ) => {
     console.log("Homepage search:", { query, type, filters });
-    // Search functionality will be handled by the search component
-    // Navigation will be handled by Link components
+    // Navigate to the appropriate listings page with search query
+    const searchParams = new URLSearchParams();
+    if (query) searchParams.set('q', query);
+    if (filters?.industry && filters.industry !== 'All Industries') {
+      searchParams.set('industry', filters.industry);
+    }
+    if (filters?.location && filters.location !== 'All Locations') {
+      searchParams.set('location', filters.location);
+    }
+
+    const path = type === 'franchise' ? '/franchises' : '/businesses';
+    const queryString = searchParams.toString();
+    navigate(queryString ? `${path}?${queryString}` : path);
   };
 
   const handleViewAllBusinesses = () => {
@@ -325,15 +336,25 @@ export function HomePage({ className }: HomePageProps) {
         </div>
       </section>
 
-      {/* Featured Listings - Mobile Optimized */}
+      {/* Featured Franchises - Moved here */}
       <section className="py-8 md:py-16 bg-background">
         <FeaturedCarousel
-          type="mixed"
-          title="Featured Opportunities"
-          subtitle="Handpicked businesses and franchises for you"
+          type="franchise"
+          title="Featured Franchises"
+          subtitle="High-ROI franchise opportunities with proven track records"
+          onViewAll={handleViewAllFranchises}
+          onMoreLikeThis={handleMoreLikeThis}
+        />
+      </section>
+
+      {/* Featured Business For Sale - Moved here */}
+      <section className="py-8 md:py-16 bg-muted/30">
+        <FeaturedCarousel
+          type="business"
+          title="Featured Business For Sale"
+          subtitle="Discover verified businesses ready for acquisition"
           onViewAll={handleViewAllBusinesses}
           onMoreLikeThis={handleMoreLikeThis}
-          className="space-y-6 md:space-y-4"
         />
       </section>
 
@@ -781,28 +802,6 @@ export function HomePage({ className }: HomePageProps) {
             ))}
           </div>
         </div>
-      </section>
-
-      {/* Franchise Opportunities */}
-      <section className="py-8 md:py-16 bg-background">
-        <FeaturedCarousel
-          type="franchise"
-          title="Premium Franchise Opportunities"
-          subtitle="High-ROI franchise opportunities with proven track records"
-          onViewAll={handleViewAllFranchises}
-          onMoreLikeThis={handleMoreLikeThis}
-        />
-      </section>
-
-      {/* Business Categories */}
-      <section className="py-8 md:py-16 bg-muted/30">
-        <FeaturedCarousel
-          type="business"
-          title="Top Business Categories"
-          subtitle="Explore businesses across different industries"
-          onViewAll={handleViewAllBusinesses}
-          onMoreLikeThis={handleMoreLikeThis}
-        />
       </section>
 
       {/* Trust Badges & Partners */}
