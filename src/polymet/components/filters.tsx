@@ -109,7 +109,7 @@ const verificationTypes = [
 export function Filters({
   type,
   onFiltersChange,
-  onApplyFilters,
+  onApplyFilters: _onApplyFilters, // Kept in interface for future use
   className,
 }: FiltersProps) {
   const [filters, setFilters] = useState<FilterState>({

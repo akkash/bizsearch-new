@@ -202,7 +202,7 @@ export function ListingWizard({
       setCurrentStep(currentStep + 1);
       form.reset(
         formData[
-          steps[currentStep + 1].id as keyof BusinessListingFormValues
+        steps[currentStep + 1].id as keyof BusinessListingFormValues
         ] || {}
       );
     }
@@ -213,7 +213,7 @@ export function ListingWizard({
       setCurrentStep(currentStep - 1);
       form.reset(
         formData[
-          steps[currentStep - 1].id as keyof BusinessListingFormValues
+        steps[currentStep - 1].id as keyof BusinessListingFormValues
         ] || {}
       );
     }
@@ -349,12 +349,73 @@ export function ListingWizard({
         </div>
       </div>
 
+      {/* Location Fields - Required by schema */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="country">Country *</Label>
+          <Input
+            id="country"
+            {...form.register("country")}
+            placeholder="India"
+            defaultValue="India"
+          />
+          {form.formState.errors.country && (
+            <p className="text-sm text-red-600">
+              {form.formState.errors.country.message}
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="state">State *</Label>
+          <Input
+            id="state"
+            {...form.register("state")}
+            placeholder="Maharashtra"
+          />
+          {form.formState.errors.state && (
+            <p className="text-sm text-red-600">
+              {form.formState.errors.state.message}
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="city">City *</Label>
+          <Input
+            id="city"
+            {...form.register("city")}
+            placeholder="Mumbai"
+          />
+          {form.formState.errors.city && (
+            <p className="text-sm text-red-600">
+              {form.formState.errors.city.message}
+            </p>
+          )}
+        </div>
+      </div>
+
       <div className="space-y-2">
-        <Label htmlFor="fullAddress">Business Address *</Label>
+        <Label htmlFor="yearsInOperation">Years in Operation *</Label>
+        <Input
+          id="yearsInOperation"
+          type="number"
+          {...form.register("yearsInOperation", { valueAsNumber: true })}
+          placeholder="5"
+        />
+        {form.formState.errors.yearsInOperation && (
+          <p className="text-sm text-red-600">
+            {form.formState.errors.yearsInOperation.message}
+          </p>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="fullAddress">Full Business Address *</Label>
         <Textarea
           id="fullAddress"
           {...form.register("fullAddress")}
-          placeholder="Enter complete business address"
+          placeholder="Enter complete business address (e.g., Shop 15, Linking Road, Bandra West, Mumbai 400050)"
           rows={3}
         />
 
@@ -830,7 +891,7 @@ export function ListingWizard({
           <p className="text-muted-foreground">{currentStepData.description}</p>
         </CardHeader>
         <CardContent>
-          <form onSubmit={form.handleSubmit(() => {})}>
+          <form onSubmit={form.handleSubmit(() => { })}>
             {renderStepContent()}
           </form>
         </CardContent>

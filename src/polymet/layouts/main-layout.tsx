@@ -11,8 +11,6 @@ import {
   Bell,
   Phone,
   Mail,
-  MapPin,
-  Building2,
   Briefcase,
   Bookmark,
   LogOut,
@@ -21,9 +19,10 @@ import {
   ChevronDown,
   HelpCircle,
   Globe,
+  Shield,
+  TrendingUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -46,7 +45,6 @@ interface MainLayoutProps {
 
 export function MainLayout({ children }: MainLayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [showAIChat, setShowAIChat] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
@@ -94,9 +92,7 @@ export function MainLayout({ children }: MainLayoutProps) {
     }
   };
 
-  const handleAIChatOpen = () => {
-    setShowAIChat(true);
-  };
+
 
   const isActivePath = (path: string) => {
     if (path === "/") return location.pathname === "/";
@@ -370,22 +366,69 @@ export function MainLayout({ children }: MainLayoutProps) {
                         <div className="px-2 py-1.5">
                           <p className="text-sm font-medium">{profile.display_name}</p>
                           <p className="text-xs text-gray-500 truncate">{profile.email}</p>
+                          <p className="text-[10px] text-gray-400 capitalize mt-0.5">{profile.role}</p>
                         </div>
                         <DropdownMenuSeparator />
                       </>
                     )}
+
+                    {/* Role-Specific Dashboards */}
+                    {profile?.role === 'admin' && (
+                      <Link to="/admin">
+                        <DropdownMenuItem className="text-purple-600 font-medium">
+                          <Shield className="mr-2 h-4 w-4" />
+                          Admin Dashboard
+                        </DropdownMenuItem>
+                      </Link>
+                    )}
+
+                    {(profile?.role === 'advisor' || profile?.role === 'broker') && (
+                      <Link to="/advisor/dashboard">
+                        <DropdownMenuItem className="text-blue-600 font-medium">
+                          <Briefcase className="mr-2 h-4 w-4" />
+                          Advisor Dashboard
+                        </DropdownMenuItem>
+                      </Link>
+                    )}
+
+                    <DropdownMenuSeparator />
+
+                    {/* General Management - Visible to Everyone (Activity Based) */}
                     <Link to="/profile">
                       <DropdownMenuItem>
                         <User className="mr-2 h-4 w-4" />
-                        Profile
+                        Profile Settings
                       </DropdownMenuItem>
                     </Link>
+
                     <Link to="/my-listings">
                       <DropdownMenuItem>
                         <Store className="mr-2 h-4 w-4" />
                         My Listings
                       </DropdownMenuItem>
                     </Link>
+
+                    <Link to="/my-applications">
+                      <DropdownMenuItem>
+                        <Briefcase className="mr-2 h-4 w-4" />
+                        My Applications
+                      </DropdownMenuItem>
+                    </Link>
+
+                    <Link to="/seller-analytics">
+                      <DropdownMenuItem>
+                        <TrendingUp className="mr-2 h-4 w-4" />
+                        Analytics
+                      </DropdownMenuItem>
+                    </Link>
+
+                    <Link to="/messages">
+                      <DropdownMenuItem>
+                        <Mail className="mr-2 h-4 w-4" />
+                        Messages
+                      </DropdownMenuItem>
+                    </Link>
+
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       onClick={handleSignOut}
@@ -535,7 +578,7 @@ export function MainLayout({ children }: MainLayoutProps) {
       <MobileBottomNav />
 
       {/* AI Chat Widget - Only show if enabled via feature flag */}
-      {isAIChatEnabled && showAIChat && <AIChat />}
+      {isAIChatEnabled && <AIChat />}
 
       {/* Footer - Show on all pages */}
       <Footer />
