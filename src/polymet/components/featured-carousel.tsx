@@ -227,7 +227,7 @@ export function FeaturedCarousel({
                       franchise={item}
                       onSave={(id) => console.log("Save franchise:", id)}
                       onShare={(id) => console.log("Share franchise:", id)}
-                      onContact={(id) => console.log("Contact franchise:", id)}
+                      onContact={() => navigate(`/franchise/${item.slug || item.id}?contact=true`)}
                       onViewDetails={() => navigate(`/franchise/${item.slug || item.id}`)}
                       onMoreLikeThis={(id) => onMoreLikeThis?.(id, "franchise")}
                     />
@@ -236,7 +236,7 @@ export function FeaturedCarousel({
                       business={item}
                       onSave={(id) => console.log("Save business:", id)}
                       onShare={(id) => console.log("Share business:", id)}
-                      onContact={(id) => console.log("Contact business:", id)}
+                      onContact={() => navigate(`/business/${item.slug || item.id}?contact=true`)}
                       onViewDetails={() => navigate(`/business/${item.slug || item.id}`)}
                       onMoreLikeThis={(id) => onMoreLikeThis?.(id, "business")}
                     />
@@ -266,7 +266,7 @@ export function FeaturedCarousel({
                       franchise={item}
                       onSave={(id) => console.log("Save franchise:", id)}
                       onShare={(id) => console.log("Share franchise:", id)}
-                      onContact={(id) => console.log("Contact franchise:", id)}
+                      onContact={() => navigate(`/franchise/${item.slug || item.id}?contact=true`)}
                       onViewDetails={() => navigate(`/franchise/${item.slug || item.id}`)}
                       onMoreLikeThis={(id) => onMoreLikeThis?.(id, "franchise")}
                     />
@@ -275,7 +275,7 @@ export function FeaturedCarousel({
                       business={item}
                       onSave={(id) => console.log("Save business:", id)}
                       onShare={(id) => console.log("Share business:", id)}
-                      onContact={(id) => console.log("Contact business:", id)}
+                      onContact={() => navigate(`/business/${item.slug || item.id}?contact=true`)}
                       onViewDetails={() => navigate(`/business/${item.slug || item.id}`)}
                       onMoreLikeThis={(id) => onMoreLikeThis?.(id, "business")}
                     />
@@ -314,8 +314,8 @@ export function FeaturedCarousel({
             <div
               key={index}
               className={`h-2 rounded-full transition-all ${index === currentIndex % Math.min(items.length, 5)
-                  ? "bg-primary w-8"
-                  : "bg-muted w-2"
+                ? "bg-primary w-8"
+                : "bg-muted w-2"
                 }`}
             />
           ))}

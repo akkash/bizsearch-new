@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { BusinessService } from "@/lib/business-service";
 import { MessagingService } from "@/lib/messaging-service";
 import { useAuth } from "@/contexts/AuthContext";
@@ -45,6 +45,7 @@ interface BusinessDetailProps {
 export function BusinessDetail({ className }: BusinessDetailProps) {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const [business, setBusiness] = useState<Business | null>(null);
   const [loading, setLoading] = useState(true);
@@ -70,6 +71,13 @@ export function BusinessDetail({ className }: BusinessDetailProps) {
     };
     fetchBusiness();
   }, [id]);
+
+  // Auto-open contact dialog when ?contact=true is in URL
+  useEffect(() => {
+    if (searchParams.get('contact') === 'true' && !loading && business) {
+      setShowContactForm(true);
+    }
+  }, [searchParams, loading, business]);
 
   if (loading) {
     return (
@@ -224,12 +232,7 @@ export function BusinessDetail({ className }: BusinessDetailProps) {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={
-                  () =>
-                    console.warn(
-                      "Prevented function call: `window.history.back()`"
-                    ) /*TODO: Do not use window.history for navigation. Use react-router instead.*/
-                }
+                onClick={() => navigate('/businesses')}
               >
                 <ArrowLeftIcon className="h-4 w-4 mr-2" />
                 Back to Listings
@@ -257,10 +260,6 @@ export function BusinessDetail({ className }: BusinessDetailProps) {
               <Button variant="outline" size="sm" onClick={handleShare}>
                 <ShareIcon className="h-4 w-4 mr-2" />
                 Share
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleMessage} disabled={startingConversation}>
-                <MessageSquareIcon className="h-4 w-4 mr-2" />
-                {startingConversation ? 'Starting...' : 'Message'}
               </Button>
               <Button onClick={handleContact}>
                 <PhoneIcon className="h-4 w-4 mr-2" />
@@ -316,9 +315,9 @@ export function BusinessDetail({ className }: BusinessDetailProps) {
               </CardContent>
             </Card>
 
-            {/* Business Details */}
+            {/* Business Details - Tabs with sticky navigation */}
             <Tabs defaultValue="overview" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-5">
+              <TabsList className="grid w-full grid-cols-5 sticky top-20 z-10 bg-background">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="financials">Financials</TabsTrigger>
                 <TabsTrigger value="assets">Assets</TabsTrigger>
@@ -332,7 +331,7 @@ export function BusinessDetail({ className }: BusinessDetailProps) {
                     <CardTitle>Business Description</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <p className="text-muted-foreground leading-relaxed">
+                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                       {business.description}
                     </p>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4">
@@ -640,8 +639,8 @@ export function BusinessDetail({ className }: BusinessDetailProps) {
             </Tabs>
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
+          {/* Sidebar - Sticky for conversion */}
+          <div className="space-y-6 lg:sticky lg:top-24 lg:self-start">
             {/* Price & Contact */}
             <Card>
               <CardHeader>
@@ -667,7 +666,11 @@ export function BusinessDetail({ className }: BusinessDetailProps) {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">Revenue Multiple</span>
-                    <span className="text-sm font-medium">2.5x</span>
+                    <span className="text-sm font-medium">
+                      {business.revenue && business.revenue > 0
+                        ? `${(business.price / business.revenue).toFixed(1)}x`
+                        : 'N/A'}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">Expected ROI</span>
@@ -690,17 +693,37 @@ export function BusinessDetail({ className }: BusinessDetailProps) {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  {business.badges && business.badges.map((badge: any, index: number) => (
-                    <Badge
-                      key={index}
-                      variant="secondary"
-                      className="w-full justify-start"
-                    >
-                      <ShieldCheckIcon className="h-3 w-3 mr-2" />
+                  {business.badges && business.badges.map((badge: any, index: number) => {
+                    // Color-code badges based on type
+                    const getBadgeStyles = (badgeName: string) => {
+                      const name = badgeName.toLowerCase();
+                      if (name.includes('verified')) return 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400';
+                      if (name.includes('hot') || name.includes('deal')) return 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400';
+                      if (name.includes('trending')) return 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400';
+                      if (name.includes('new')) return 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400';
+                      return 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300';
+                    };
 
-                      {badge}
-                    </Badge>
-                  ))}
+                    const getIcon = (badgeName: string) => {
+                      const name = badgeName.toLowerCase();
+                      if (name.includes('verified')) return <ShieldCheckIcon className="h-3 w-3 mr-2 text-green-600" />;
+                      if (name.includes('hot') || name.includes('deal')) return <span className="mr-2">🔥</span>;
+                      if (name.includes('trending')) return <TrendingUpIcon className="h-3 w-3 mr-2 text-blue-600" />;
+                      return <ShieldCheckIcon className="h-3 w-3 mr-2" />;
+                    };
+
+                    return (
+                      <Badge
+                        key={index}
+                        variant="outline"
+                        className={`w-full justify-start py-2 ${getBadgeStyles(badge)}`}
+                        title={badge === 'Verified' ? 'Identity, financials, and documents verified by BizSearch' : ''}
+                      >
+                        {getIcon(badge)}
+                        {badge}
+                      </Badge>
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>
@@ -765,12 +788,16 @@ export function BusinessDetail({ className }: BusinessDetailProps) {
               />
             </div>
             <div className="flex gap-2">
-              <Button className="flex-1">Send Message</Button>
+              <Button className="flex-1" type="submit">Send Message</Button>
               <Button
                 variant="outline"
-                onClick={() => setShowContactForm(false)}
+                onClick={() => {
+                  setShowContactForm(false);
+                  handleMessage();
+                }}
               >
-                Cancel
+                <MessageSquareIcon className="h-4 w-4 mr-2" />
+                Chat Now
               </Button>
             </div>
           </div>

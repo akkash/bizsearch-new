@@ -104,13 +104,13 @@ export function BusinessCard({
           {/* Status badges */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
             {business.trending && (
-              <Badge className="bg-orange-500 hover:bg-orange-600 text-white">
+              <Badge className="bg-orange-500 hover:bg-orange-600 text-white shadow-md">
                 <TrendingUp className="h-3 w-3 mr-1" />
                 Trending
               </Badge>
             )}
             {business.featured && (
-              <Badge className="bg-yellow-500 hover:bg-yellow-600 text-white">
+              <Badge className="bg-yellow-500 hover:bg-yellow-600 text-white shadow-md">
                 <Star className="h-3 w-3 mr-1" />
                 Featured
               </Badge>
@@ -152,18 +152,18 @@ export function BusinessCard({
             )}
           </div>
 
-          {/* Key Metrics */}
+          {/* Key Metrics - Price is the visual hero */}
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
-              <div className="text-sm text-muted-foreground">Price</div>
-              <div className="font-semibold text-lg">
+              <div className="text-sm text-muted-foreground">Asking Price</div>
+              <div className="font-bold text-xl text-trust-blue">
                 {formatPrice(business.price)}
               </div>
             </div>
             <div>
-              <div className="text-sm text-muted-foreground">Revenue</div>
-              <div className="font-semibold text-lg">
-                {business.revenue ? formatRevenue(business.revenue) : 'N/A'}
+              <div className="text-sm text-muted-foreground">Annual Revenue</div>
+              <div className="font-semibold text-lg text-green-600">
+                {business.revenue ? formatRevenue(business.revenue) : <span className="text-muted-foreground text-sm italic">Not disclosed</span>}
               </div>
             </div>
           </div>

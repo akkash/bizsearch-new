@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { FranchiseService } from "@/lib/franchise-service";
 import { MessagingService } from "@/lib/messaging-service";
 import { useAuth } from "@/contexts/AuthContext";
@@ -48,6 +48,7 @@ interface FranchiseDetailProps {
 export function FranchiseDetail({ className }: FranchiseDetailProps) {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const [franchise, setFranchise] = useState<Franchise | null>(null);
   const [loading, setLoading] = useState(true);
@@ -55,6 +56,7 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
   const [showContactForm, setShowContactForm] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
   const [startingConversation, setStartingConversation] = useState(false);
+  const [showPhoneNumber, setShowPhoneNumber] = useState(false);
 
   // Fetch franchise from Supabase (supports both UUID and slug)
   useEffect(() => {
@@ -73,6 +75,13 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
     };
     fetchFranchise();
   }, [id]);
+
+  // Auto-open contact dialog when ?contact=true is in URL
+  useEffect(() => {
+    if (searchParams.get('contact') === 'true' && !loading && franchise) {
+      setShowContactForm(true);
+    }
+  }, [searchParams, loading, franchise]);
 
   if (loading) {
     return (
@@ -266,12 +275,7 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={
-                  () =>
-                    console.warn(
-                      "Prevented function call: `window.history.back()`"
-                    ) /*TODO: Do not use window.history for navigation. Use react-router instead.*/
-                }
+                onClick={() => navigate('/franchises')}
               >
                 <ArrowLeftIcon className="h-4 w-4 mr-2" />
                 Back to Franchises
@@ -282,13 +286,13 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
                 <img
                   src={franchise.logo}
                   alt={franchise.brandName}
-                  className="w-10 h-10 rounded-lg object-cover"
+                  className="w-12 h-12 rounded-lg object-cover"
                 />
 
                 <div>
-                  <h1 className="text-xl font-bold">{franchise.brandName}</h1>
+                  <h1 className="text-2xl font-bold">{franchise.brandName}</h1>
                   <p className="text-sm text-muted-foreground">
-                    {franchise.industry} • Est. 2015
+                    {franchise.industry} • Est. {(franchise as any).established || (franchise as any).establishedYear || '2015'}
                   </p>
                 </div>
               </div>
@@ -315,10 +319,6 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
               <Button variant="outline" size="sm" onClick={handleShare}>
                 <ShareIcon className="h-4 w-4 mr-2" />
                 Share
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleMessage} disabled={startingConversation}>
-                <MessageSquareIcon className="h-4 w-4 mr-2" />
-                {startingConversation ? 'Starting...' : 'Message'}
               </Button>
               <Button onClick={handleContact}>
                 <PhoneIcon className="h-4 w-4 mr-2" />
@@ -380,9 +380,9 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
               </CardContent>
             </Card>
 
-            {/* Franchise Details */}
+            {/* Franchise Details - Sticky tabs */}
             <Tabs defaultValue="overview" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-5">
+              <TabsList className="grid w-full grid-cols-5 sticky top-20 z-10 bg-background">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="investment">Investment</TabsTrigger>
                 <TabsTrigger value="support">Support</TabsTrigger>
@@ -427,7 +427,7 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
 
                         <div className="text-sm font-medium">Royalty</div>
                         <div className="text-lg font-bold">
-                          {franchise.royaltyPercentage}%
+                          {franchise.royaltyPercentage ? `${franchise.royaltyPercentage}%` : 'N/A'}
                         </div>
                       </div>
                     </div>
@@ -853,7 +853,7 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
                   <div className="flex justify-between">
                     <span className="text-sm">Royalty</span>
                     <span className="text-sm font-medium">
-                      {franchise.royaltyPercentage}%
+                      {franchise.royaltyPercentage ? `${franchise.royaltyPercentage}%` : 'N/A'}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -874,27 +874,39 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
               </CardContent>
             </Card>
 
-            {/* Verification Badges */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Verification & Awards</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {franchise.badges && franchise.badges.map((badge: any, index: number) => (
-                    <Badge
-                      key={index}
-                      variant="secondary"
-                      className="w-full justify-start"
-                    >
-                      <ShieldCheckIcon className="h-3 w-3 mr-2" />
-
-                      {badge}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            {/* Verification Badges - Only show if badges exist */}
+            {franchise.badges && franchise.badges.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Verification & Awards</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {franchise.badges.map((badge: any, index: number) => {
+                      const getBadgeStyles = (badgeName: string) => {
+                        const name = badgeName.toLowerCase();
+                        if (name.includes('verified')) return 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400';
+                        if (name.includes('hot') || name.includes('deal')) return 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400';
+                        if (name.includes('trending')) return 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400';
+                        if (name.includes('new')) return 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400';
+                        if (name.includes('award') || name.includes('best')) return 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400';
+                        return 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300';
+                      };
+                      return (
+                        <Badge
+                          key={index}
+                          variant="outline"
+                          className={`w-full justify-start py-2 ${getBadgeStyles(badge)}`}
+                        >
+                          <ShieldCheckIcon className="h-3 w-3 mr-2" />
+                          {badge}
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Quick Stats */}
             <Card>
@@ -925,7 +937,7 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
               </CardContent>
             </Card>
 
-            {/* Contact Info */}
+            {/* Contact Info - Phone hidden for lead tracking */}
             <Card>
               <CardHeader>
                 <CardTitle>Franchise Development</CardTitle>
@@ -933,17 +945,29 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
               <CardContent className="space-y-3">
                 <div className="flex items-center gap-2">
                   <PhoneIcon className="h-4 w-4 text-muted-foreground" />
-
-                  <span className="text-sm">+91 98765 43210</span>
+                  {showPhoneNumber ? (
+                    <span className="text-sm font-medium">+91 98765 43210</span>
+                  ) : (
+                    <Button
+                      variant="link"
+                      className="text-sm p-0 h-auto text-primary"
+                      onClick={() => {
+                        setShowPhoneNumber(true);
+                        // Track lead_contact_reveal event
+                        console.log('Analytics: lead_contact_reveal', { franchiseId: franchise.id });
+                      }}
+                    >
+                      Show Contact Number
+                    </Button>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <MapPinIcon className="h-4 w-4 text-muted-foreground" />
-
-                  <span className="text-sm">Mumbai, Maharashtra</span>
+                  <span className="text-sm">{(franchise as any).headquarters || (franchise as any).location || 'Mumbai, Maharashtra'}</span>
                 </div>
-                <Button variant="outline" className="w-full">
+                <Button className="w-full bg-red-600 hover:bg-red-700 text-white">
                   <DownloadIcon className="h-4 w-4 mr-2" />
-                  Download Brochure
+                  Download Brochure (PDF)
                 </Button>
               </CardContent>
             </Card>

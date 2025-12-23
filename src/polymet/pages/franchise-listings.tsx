@@ -6,6 +6,7 @@ import { FranchiseService } from "@/lib/franchise-service";
 import { SkeletonLoader } from "@/polymet/components/skeleton-loader";
 import { EmptyState } from "@/polymet/components/empty-state";
 import type { Franchise } from "@/types/listings";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -17,6 +18,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
   GridIcon,
   ListIcon,
@@ -295,7 +297,18 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
   };
 
   const handleContact = (franchiseId: string) => {
-    console.log("Contact franchise:", franchiseId);
+    // Find the franchise to get details
+    const franchise = franchises.find(f => f.id === franchiseId);
+    const brandName = franchise?.brand_name || franchise?.brandName || 'Franchise';
+    const identifier = franchise?.slug || franchiseId;
+
+    // Show toast with contact info
+    toast.success(`Contacting ${brandName}`, {
+      description: "Opening contact options...",
+    });
+
+    // Navigate to detail page with contact param to trigger contact dialog
+    navigate(`/franchise/${identifier}?contact=true`);
   };
 
   const handleViewDetails = (franchiseId: string) => {
@@ -373,7 +386,23 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
 
           <div className="text-center mb-8">
             <h1 className="text-3xl md:text-4xl font-bold mb-3 text-white">
-              {currentSubcategory?.name || currentCategory?.name || 'Franchise Opportunities'}
+              {(() => {
+                const categoryName = currentSubcategory?.name || currentCategory?.name || '';
+                const locationName = filters?.city?.length
+                  ? filters.city.join(', ')
+                  : filters?.state?.length
+                    ? filters.state.join(', ')
+                    : '';
+
+                if (categoryName && locationName) {
+                  return `${categoryName} Franchise Opportunities in ${locationName}`;
+                } else if (categoryName) {
+                  return `${categoryName} Franchise Opportunities`;
+                } else if (locationName) {
+                  return `Franchise Opportunities in ${locationName}`;
+                }
+                return 'Franchise Opportunities';
+              })()}
             </h1>
           </div>
 
@@ -430,33 +459,28 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
               <TrendingUpIcon className="h-4 w-4 text-growth-green" />
               <span className="text-sm font-medium text-white">Investment Range:</span>
             </div>
-            <div className="flex flex-wrap justify-center gap-2">
-              <Button
-                variant={selectedInvestmentRange === "" ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setSelectedInvestmentRange("")}
-                className={selectedInvestmentRange === ""
-                  ? "bg-growth-green hover:bg-growth-green/90 text-white"
-                  : "text-white border-white/20 hover:bg-white/10"
-                }
+            <ToggleGroup
+              type="single"
+              value={selectedInvestmentRange}
+              onValueChange={(value) => setSelectedInvestmentRange(value || "")}
+              className="flex flex-wrap justify-center gap-1"
+            >
+              <ToggleGroupItem
+                value=""
+                className="px-4 py-2 text-sm rounded-full border border-white/20 data-[state=on]:bg-growth-green data-[state=on]:text-white data-[state=on]:border-growth-green text-white/80 hover:bg-white/10 transition-all"
               >
                 All Ranges
-              </Button>
+              </ToggleGroupItem>
               {investmentRanges.map((range) => (
-                <Button
+                <ToggleGroupItem
                   key={range.label}
-                  variant={selectedInvestmentRange === range.label ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setSelectedInvestmentRange(range.label)}
-                  className={selectedInvestmentRange === range.label
-                    ? "bg-growth-green hover:bg-growth-green/90 text-white"
-                    : "text-white border-white/20 hover:bg-white/10"
-                  }
+                  value={range.label}
+                  className="px-4 py-2 text-sm rounded-full border border-white/20 data-[state=on]:bg-growth-green data-[state=on]:text-white data-[state=on]:border-growth-green text-white/80 hover:bg-white/10 transition-all"
                 >
                   {range.label}
-                </Button>
+                </ToggleGroupItem>
               ))}
-            </div>
+            </ToggleGroup>
           </div>
         </div>
       </div>

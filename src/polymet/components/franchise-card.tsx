@@ -50,10 +50,12 @@ export function FranchiseCard({
     return `₹${amount.toLocaleString()}`;
   };
 
+  // Updated: Use neutral colors instead of red for low ROI to avoid "stop sign" psychology
   const getROIColor = (roi: number) => {
-    if (roi >= 50) return "text-green-600";
-    if (roi >= 30) return "text-yellow-600";
-    return "text-red-600";
+    if (roi >= 50) return "text-emerald-600";
+    if (roi >= 30) return "text-green-600";
+    if (roi >= 15) return "text-amber-600";
+    return "text-muted-foreground"; // Neutral instead of red
   };
 
   const firstYearROI = franchise.expected_roi_percentage || 0;
@@ -112,13 +114,13 @@ export function FranchiseCard({
           {/* Status badges */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
             {franchise.featured && (
-              <Badge className="bg-yellow-500 hover:bg-yellow-600 text-white">
+              <Badge className="bg-yellow-500 hover:bg-yellow-600 text-white shadow-md">
                 <Award className="h-3 w-3 mr-1" />
                 Featured
               </Badge>
             )}
             {franchise.trending && (
-              <Badge className="bg-orange-500 hover:bg-orange-600 text-white">
+              <Badge className="bg-orange-500 hover:bg-orange-600 text-white shadow-md">
                 <TrendingUp className="h-3 w-3 mr-1" />
                 Trending
               </Badge>
@@ -157,21 +159,29 @@ export function FranchiseCard({
             </div>
           </div>
 
-          {/* Investment and ROI */}
+          {/* Investment and ROI - Investment is now the visual hero */}
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
               <div className="text-sm text-muted-foreground">Investment</div>
-              <div className="font-semibold text-lg">
-                ₹{formatInvestment(franchise.total_investment_min || 0)} - ₹{formatInvestment(franchise.total_investment_max || 0)}
+              <div className="font-bold text-xl text-trust-blue">
+                {formatInvestment(franchise.total_investment_min || 0)}
+                {franchise.total_investment_max && franchise.total_investment_max !== franchise.total_investment_min && (
+                  <span className="text-base font-semibold"> - {formatInvestment(franchise.total_investment_max)}</span>
+                )}
               </div>
             </div>
             <div>
               <div className="text-sm text-muted-foreground">Expected ROI</div>
-              <div
-                className={`font-semibold text-lg ${getROIColor(firstYearROI)}`}
-              >
-                {firstYearROI}% (Y1)
-              </div>
+              {/* Hide 0% ROI to avoid negative impression */}
+              {firstYearROI > 0 ? (
+                <div className={`font-semibold text-lg ${getROIColor(firstYearROI)}`}>
+                  {firstYearROI}% (Y1)
+                </div>
+              ) : (
+                <div className="text-sm text-muted-foreground italic">
+                  Contact for details
+                </div>
+              )}
             </div>
           </div>
 

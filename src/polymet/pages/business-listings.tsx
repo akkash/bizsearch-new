@@ -6,6 +6,7 @@ import { BusinessService } from "@/lib/business-service";
 import { SkeletonLoader } from "@/polymet/components/skeleton-loader";
 import { EmptyState } from "@/polymet/components/empty-state";
 import type { Business } from "@/types/listings";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -151,10 +152,17 @@ export function BusinessListings({ className }: BusinessListingsProps) {
         );
       }
 
-      // Location filter
-      if (filters.location.length > 0) {
+      // State filter
+      if (filters.state && filters.state.length > 0) {
         filtered = filtered.filter((business) =>
-          filters.location.some((loc) => business.location.includes(loc))
+          filters.state.some((state) => business.state?.includes(state) || business.location?.includes(state))
+        );
+      }
+
+      // City filter
+      if (filters.city && filters.city.length > 0) {
+        filtered = filtered.filter((business) =>
+          filters.city.some((city) => business.city?.includes(city) || business.location?.includes(city))
         );
       }
 
@@ -290,7 +298,18 @@ export function BusinessListings({ className }: BusinessListingsProps) {
   };
 
   const handleContact = (businessId: string) => {
-    console.log("Contact business:", businessId);
+    // Find the business to get details
+    const business = businesses.find(b => b.id === businessId);
+    const businessName = business?.name || 'Business';
+    const identifier = business?.slug || businessId;
+
+    // Show toast with contact info
+    toast.success(`Contacting ${businessName}`, {
+      description: "Opening contact options...",
+    });
+
+    // Navigate to detail page with contact param to trigger contact dialog
+    navigate(`/business/${identifier}?contact=true`);
   };
 
   const handleViewDetails = (businessId: string) => {
@@ -570,9 +589,14 @@ export function BusinessListings({ className }: BusinessListingsProps) {
                     Industry: {industry}
                   </Badge>
                 ))}
-                {filters.location.map((location) => (
-                  <Badge key={location} variant="secondary">
-                    Location: {location}
+                {filters.state?.map((state) => (
+                  <Badge key={state} variant="secondary">
+                    State: {state}
+                  </Badge>
+                ))}
+                {filters.city?.map((city) => (
+                  <Badge key={city} variant="secondary">
+                    City: {city}
                   </Badge>
                 ))}
                 {(filters.priceRange[0] > 0 ||
