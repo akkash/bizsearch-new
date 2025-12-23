@@ -156,7 +156,8 @@ export function MainLayout({ children }: MainLayoutProps) {
             {/* Logo */}
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2">
-              <img src="/logo.png" alt="BizSearch" className="h-10 w-auto object-contain" />
+              <img src="/logo.png" alt="BizSearch" className="h-10 w-auto object-contain block dark:hidden" />
+              <img src="/logo-dark.png" alt="BizSearch" className="h-10 w-auto object-contain hidden dark:block" />
             </Link>
 
             {/* Center Navigation - Desktop */}
