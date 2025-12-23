@@ -124,7 +124,7 @@ export function FranchiseMap({ locations, onLocationClick }: FranchiseMapProps) 
           ? 'background: #EF4444; color: white;'
           : 'background: white; color: #374151; border: 1px solid #9CA3AF;'}
           ">
-            ${location.status === 'operating' ? 'Operating' : 'Available'}
+            ${location.status === 'operating' ? 'Operating' : 'Available Territory'}
           </span>
         </div>
       `;
@@ -193,7 +193,7 @@ export function FranchiseMap({ locations, onLocationClick }: FranchiseMapProps) 
                   : 'bg-white text-gray-800 border border-gray-300'
               }
             >
-              {selectedLocation.status === 'operating' ? 'Operating' : 'Looking for Franchise'}
+              {selectedLocation.status === 'operating' ? 'Operating' : 'Available Territory'}
             </Badge>
 
             <div className="mt-4 space-y-2 text-sm">

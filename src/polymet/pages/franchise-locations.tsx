@@ -199,26 +199,26 @@ export function FranchiseLocationsPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-green-50 to-white dark:from-green-900/20 dark:to-gray-900">
+          <Card className="bg-gradient-to-br from-red-50 to-white dark:from-red-900/20 dark:to-gray-900">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Operating</CardTitle>
-              <CheckCircleIcon className="h-5 w-5 text-green-600" />
+              <CheckCircleIcon className="h-5 w-5 text-red-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-green-600">
+              <div className="text-3xl font-bold text-red-600">
                 {locationStats?.operating_count || 0}
               </div>
               <p className="text-xs text-muted-foreground mt-1">Currently running franchises</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-purple-50 to-white dark:from-purple-900/20 dark:to-gray-900">
+          <Card className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-800/40 dark:to-gray-900 border-gray-200">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Available</CardTitle>
-              <TrendingUpIcon className="h-5 w-5 text-purple-600" />
+              <CardTitle className="text-sm font-medium">Available Territories</CardTitle>
+              <TrendingUpIcon className="h-5 w-5 text-gray-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-purple-600">
+              <div className="text-3xl font-bold text-gray-700 dark:text-gray-300">
                 {locationStats?.looking_for_franchise_count || 0}
               </div>
               <p className="text-xs text-muted-foreground mt-1">Open for new franchisees</p>
@@ -264,18 +264,22 @@ export function FranchiseLocationsPage() {
               <CardTitle className="text-lg">Location Map</CardTitle>
               <div className="flex items-center gap-4 text-sm">
                 <div className="flex items-center gap-2">
-                  <div className="h-3 w-3 rounded-full bg-green-500" />
+                  <svg width="14" height="18" viewBox="0 0 36 44" className="shrink-0">
+                    <path d="M18 0C8.06 0 0 8.06 0 18c0 12 18 26 18 26s18-14 18-26C36 8.06 27.94 0 18 0z" fill="#DC2626" stroke="#B91C1C" strokeWidth="2" />
+                  </svg>
                   <span className="text-muted-foreground">Operating</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="h-3 w-3 rounded-full bg-blue-500" />
-                  <span className="text-muted-foreground">Available</span>
+                  <svg width="14" height="18" viewBox="0 0 36 44" className="shrink-0">
+                    <path d="M18 0C8.06 0 0 8.06 0 18c0 12 18 26 18 26s18-14 18-26C36 8.06 27.94 0 18 0z" fill="#FFFFFF" stroke="#9CA3AF" strokeWidth="2" />
+                  </svg>
+                  <span className="text-muted-foreground">Available Territory</span>
                 </div>
               </div>
             </div>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="h-[500px]">
+            <div className="h-[70vh] min-h-[500px]">
               <FranchiseMap locations={filteredLocations} />
             </div>
           </CardContent>
@@ -341,10 +345,21 @@ export function FranchiseLocationsPage() {
                 <Card className="border-dashed">
                   <CardContent className="text-center py-12">
                     <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                    <p className="text-lg font-medium text-muted-foreground">No locations found</p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Try adjusting your search or filter criteria
-                    </p>
+                    {locationStats?.total_locations === 0 ? (
+                      <>
+                        <p className="text-lg font-medium text-muted-foreground">Location data coming soon</p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Location information is currently being updated for this brand.
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-lg font-medium text-muted-foreground">No locations found in this area</p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Try adjusting your search or filter criteria for wider results.
+                        </p>
+                      </>
+                    )}
                   </CardContent>
                 </Card>
               </div>

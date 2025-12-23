@@ -152,13 +152,11 @@ export function MainLayout({ children }: MainLayoutProps) {
         )}
       >
         <div className="container mx-auto px-4">
-          <div className="flex h-14 items-center justify-between">
+          <div className="flex h-16 items-center justify-between">
+            {/* Logo */}
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-trust-blue flex items-center justify-center">
-                <Building2 className="h-5 w-5 text-white" />
-              </div>
-              <span className="text-lg font-bold tracking-tight text-foreground">BizSearch</span>
+              <img src="/logo.png" alt="BizSearch" className="h-10 w-auto object-contain" />
             </Link>
 
             {/* Center Navigation - Desktop */}

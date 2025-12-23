@@ -535,7 +535,7 @@ export function SearchBar({
               setShowSuggestions(false);
             }}
             size="lg"
-            className="px-10 h-14 shadow-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-bold text-base rounded-xl"
+            className="px-10 h-14 shadow-lg bg-gradient-to-r from-growth-green to-emerald-600 hover:from-emerald-600 hover:to-growth-green transition-all duration-200 font-bold text-base rounded-xl"
           >
             <Search className="h-5 w-5 mr-2" />
             Search
