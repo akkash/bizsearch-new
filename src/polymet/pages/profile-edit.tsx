@@ -1,71 +1,70 @@
-import React, { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   ArrowLeft,
   Save,
-  X,
   User,
   Shield,
   Settings,
   Eye,
   AlertTriangle,
+  Loader2,
+  Building2,
+  Store,
+  Briefcase,
+  Users,
+  CheckCircle2,
+  Camera,
 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { ProfileForm } from "@/polymet/components/profile-form";
 import { PrivacyControls } from "@/polymet/components/privacy-controls";
-import {
-  getCurrentUserProfile,
-  getProfileById,
-  type UserProfile,
-} from "@/polymet/data/profile-data";
+import { ProfileCompletenessCard } from "@/components/profile/ProfileCompletenessCard";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
+import type { UserRole } from "@/types/auth.types";
 
 interface ProfileEditPageProps {
   className?: string;
 }
 
 export function ProfileEditPage({ className = "" }: ProfileEditPageProps) {
-  const { userId } = useParams();
   const navigate = useNavigate();
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
 
-  // Get profile data (current user or specific user)
-  const profile = userId ? getProfileById(userId) : getCurrentUserProfile();
-  const isOwnProfile = !userId || userId === getCurrentUserProfile().id;
+  // Get profile from AuthContext (real database data)
+  const { user, profile, loading, updateProfile, refreshProfile } = useAuth();
 
+  // Loading state
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      </div>
+    );
+  }
+
+  // No profile found
   if (!profile) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Profile Not Found</h1>
           <p className="text-muted-foreground">
-            The requested profile could not be found.
+            Please complete your profile setup first.
           </p>
-          <Button onClick={() => navigate("/profile")} className="mt-4">
+          <Button onClick={() => navigate("/profile/setup")} className="mt-4">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Profile
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isOwnProfile) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <AlertTriangle className="w-12 h-12 mx-auto mb-4 text-yellow-500" />
-
-          <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
-          <p className="text-muted-foreground mb-6">
-            You can only edit your own profile.
-          </p>
-          <Button onClick={() => navigate("/profile")} variant="outline">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Profile
+            Setup Profile
           </Button>
         </div>
       </div>
@@ -82,11 +81,17 @@ export function ProfileEditPage({ className = "" }: ProfileEditPageProps) {
     navigate("/profile");
   };
 
-  const handleProfileSubmit = (data: any) => {
+  const handleProfileSubmit = async (data: any) => {
     console.log("Profile data submitted:", data);
-    setHasUnsavedChanges(false);
-    // Here you would typically save to backend
-    alert("Profile updated successfully!");
+    try {
+      const { error } = await updateProfile(data);
+      if (error) throw error;
+      setHasUnsavedChanges(false);
+      toast.success("Profile updated successfully!");
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast.error("Failed to update profile. Please try again.");
+    }
   };
 
   const handlePrivacyChange = (settings: any) => {
@@ -94,8 +99,94 @@ export function ProfileEditPage({ className = "" }: ProfileEditPageProps) {
     setHasUnsavedChanges(true);
   };
 
-  const handleFormChange = () => {
-    setHasUnsavedChanges(true);
+  // Map database profile to display values
+  const displayName = profile.display_name || (profile as any).full_name || user?.email?.split('@')[0] || 'User';
+  const avatarUrl = profile.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=0D8ABC&color=fff`;
+  const verificationStatus = (profile as any).verification_tier || 'unverified';
+
+  // Get user roles from profile.roles array or fallback to single role
+  const getUserRoles = (): UserRole[] => {
+    const roles = (profile as any)?.roles?.map((r: any) => r.role);
+    return roles?.length ? roles : [profile.role];
+  };
+
+  const [selectedRoles, setSelectedRoles] = useState<UserRole[]>(getUserRoles());
+  const [savingRoles, setSavingRoles] = useState(false);
+
+  // Sync selectedRoles when profile.roles changes (e.g., after refreshProfile)
+  useEffect(() => {
+    const roles = getUserRoles();
+    setSelectedRoles(roles);
+  }, [(profile as any)?.roles]);
+
+  const roleOptions: { value: UserRole; label: string; description: string; icon: any; color: string }[] = [
+    { value: 'buyer', label: 'Business Buyer', description: 'Looking to acquire a business', icon: User, color: 'text-indigo-600' },
+    { value: 'seller', label: 'Business Seller', description: 'Looking to sell your business', icon: Building2, color: 'text-green-600' },
+    { value: 'franchisor', label: 'Franchisor', description: 'Offering franchise opportunities', icon: Store, color: 'text-orange-600' },
+    { value: 'franchisee', label: 'Franchisee', description: 'Looking for franchise opportunities', icon: Store, color: 'text-amber-600' },
+    { value: 'advisor', label: 'Advisor / Broker', description: 'Business broker or consultant', icon: Briefcase, color: 'text-blue-600' },
+  ];
+
+  const toggleRole = (role: UserRole) => {
+    setSelectedRoles(prev => {
+      const isSelected = prev.includes(role);
+      if (isSelected && prev.length === 1) {
+        toast.warning('You must have at least one role selected');
+        return prev;
+      }
+      setHasUnsavedChanges(true);
+      return isSelected ? prev.filter(r => r !== role) : [...prev, role];
+    });
+  };
+
+  const handleSaveRoles = async () => {
+    if (!user?.id) {
+      toast.error('User not found');
+      return;
+    }
+    setSavingRoles(true);
+    try {
+      // Delete existing roles
+      const { error: deleteError } = await supabase
+        .from('profile_roles')
+        .delete()
+        .eq('profile_id', user.id);
+
+      if (deleteError) {
+        console.error('Delete error:', deleteError);
+        throw deleteError;
+      }
+
+      // Insert new roles
+      const roleInserts = selectedRoles.map((role, index) => ({
+        profile_id: user.id,
+        role: role,
+        is_primary: index === 0,
+      }));
+
+      const { error: insertError } = await supabase
+        .from('profile_roles')
+        .insert(roleInserts);
+
+      if (insertError) {
+        console.error('Insert error:', insertError);
+        throw insertError;
+      }
+
+      // Update primary role in profiles table
+      await updateProfile({ role: selectedRoles[0] as any });
+
+      // Refresh profile to reload roles data
+      await refreshProfile();
+
+      toast.success('Roles updated successfully!');
+      setHasUnsavedChanges(false);
+    } catch (error: any) {
+      console.error('Error saving roles:', error);
+      toast.error(`Failed to save roles: ${error?.message || 'Unknown error'}`);
+    } finally {
+      setSavingRoles(false);
+    }
   };
 
   return (
@@ -131,43 +222,66 @@ export function ProfileEditPage({ className = "" }: ProfileEditPageProps) {
         </div>
       </div>
 
-      {/* Role Badge */}
+      {/* User Info Card with Avatar Upload */}
       <Card className="border-blue-200 bg-blue-50/50">
         <CardContent className="pt-6">
-          <div className="flex items-center gap-3">
-            <img
-              src={profile.avatar}
-              alt={profile.displayName}
-              className="w-12 h-12 rounded-full"
-            />
+          <div className="flex items-center gap-4">
+            {/* Avatar with upload overlay */}
+            <div className="relative group">
+              <img
+                src={avatarUrl}
+                alt={displayName}
+                className="w-16 h-16 rounded-full object-cover ring-2 ring-white shadow"
+              />
+              <label className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
+                <Camera className="w-5 h-5 text-white" />
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      toast.info('Avatar upload coming soon!');
+                    }
+                  }}
+                />
+              </label>
+            </div>
 
-            <div>
-              <h3 className="font-semibold">{profile.displayName}</h3>
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary" className="capitalize">
-                  {profile.role}
-                </Badge>
-                <Badge
-                  variant={
-                    profile.verificationStatus === "verified"
-                      ? "default"
-                      : "secondary"
-                  }
-                  className={
-                    profile.verificationStatus === "verified"
-                      ? "bg-green-100 text-green-800"
-                      : profile.verificationStatus === "pending"
-                        ? "bg-yellow-100 text-yellow-800"
-                        : "bg-gray-100 text-gray-800"
-                  }
-                >
-                  {profile.verificationStatus}
-                </Badge>
+            <div className="flex-1">
+              <h3 className="font-semibold text-lg">{displayName}</h3>
+              <p className="text-sm text-muted-foreground">{profile.email}</p>
+              <div className="flex flex-wrap items-center gap-2 mt-1">
+                {getUserRoles().map((role: string) => (
+                  <Badge key={role} variant="secondary" className="capitalize">
+                    {role}
+                  </Badge>
+                ))}
+                {verificationStatus !== "unverified" && (
+                  <Badge
+                    variant={
+                      verificationStatus === "verified"
+                        ? "default"
+                        : "secondary"
+                    }
+                    className={
+                      verificationStatus === "verified"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-yellow-100 text-yellow-800"
+                    }
+                  >
+                    {verificationStatus}
+                  </Badge>
+                )}
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* Profile Completeness - shown if not 100% */}
+      <ProfileCompletenessCard showIfComplete={false} />
 
       {/* Edit Tabs */}
       <Tabs
@@ -175,18 +289,22 @@ export function ProfileEditPage({ className = "" }: ProfileEditPageProps) {
         onValueChange={setActiveTab}
         className="space-y-6"
       >
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <User className="w-4 h-4" />
-            Profile Information
+            <span className="hidden sm:inline">Profile</span>
+          </TabsTrigger>
+          <TabsTrigger value="roles" className="flex items-center gap-2">
+            <Users className="w-4 h-4" />
+            <span className="hidden sm:inline">Roles</span>
           </TabsTrigger>
           <TabsTrigger value="privacy" className="flex items-center gap-2">
             <Shield className="w-4 h-4" />
-            Privacy Settings
+            <span className="hidden sm:inline">Privacy</span>
           </TabsTrigger>
           <TabsTrigger value="account" className="flex items-center gap-2">
             <Settings className="w-4 h-4" />
-            Account Settings
+            <span className="hidden sm:inline">Account</span>
           </TabsTrigger>
         </TabsList>
 
@@ -195,13 +313,74 @@ export function ProfileEditPage({ className = "" }: ProfileEditPageProps) {
             <CardHeader>
               <CardTitle>Profile Information</CardTitle>
               <p className="text-sm text-muted-foreground">
-                Update your personal and professional information. Fields marked
-                with NDA protection are only visible to users who have signed an
-                NDA.
+                Update your personal and professional information.
               </p>
             </CardHeader>
             <CardContent>
-              <ProfileForm profile={profile} onSubmit={handleProfileSubmit} />
+              <ProfileForm
+                profile={profile}
+                onSubmit={handleProfileSubmit}
+                onCancel={() => navigate("/profile")}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="roles" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Your Roles</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Select all the roles that apply to you. You can have multiple roles.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-3">
+                {roleOptions.map((role) => {
+                  const isSelected = selectedRoles.includes(role.value);
+                  return (
+                    <label
+                      key={role.value}
+                      className={`flex items-center gap-4 p-4 border rounded-lg cursor-pointer transition-all ${isSelected
+                        ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                        : 'border-muted hover:border-primary/50'
+                        }`}
+                      onClick={() => toggleRole(role.value)}
+                    >
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={() => toggleRole(role.value)}
+                        className="pointer-events-none"
+                      />
+                      <role.icon className={`h-5 w-5 ${isSelected ? role.color : 'text-muted-foreground'}`} />
+                      <div className="flex-1">
+                        <div className="font-medium">{role.label}</div>
+                        <div className="text-sm text-muted-foreground">{role.description}</div>
+                      </div>
+                      {isSelected && (
+                        <CheckCircle2 className={`h-5 w-5 ${role.color}`} />
+                      )}
+                    </label>
+                  );
+                })}
+              </div>
+              {selectedRoles.length > 1 && (
+                <p className="text-sm text-muted-foreground flex items-center gap-1">
+                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                  {selectedRoles.length} roles selected
+                </p>
+              )}
+              <Button
+                onClick={handleSaveRoles}
+                disabled={savingRoles}
+                className="mt-4"
+              >
+                {savingRoles ? (
+                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</>
+                ) : (
+                  <><Save className="h-4 w-4 mr-2" /> Save Roles</>
+                )}
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>
@@ -233,7 +412,7 @@ export function ProfileEditPage({ className = "" }: ProfileEditPageProps) {
               {/* Email Preferences */}
               <div className="space-y-4">
                 <h4 className="font-medium">Email Notifications</h4>
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="font-medium text-sm">New Messages</div>
@@ -241,7 +420,7 @@ export function ProfileEditPage({ className = "" }: ProfileEditPageProps) {
                         Get notified when someone sends you a message
                       </div>
                     </div>
-                    <input type="checkbox" defaultChecked />
+                    <Switch defaultChecked />
                   </div>
                   <div className="flex items-center justify-between">
                     <div>
@@ -250,18 +429,25 @@ export function ProfileEditPage({ className = "" }: ProfileEditPageProps) {
                         Get notified when someone views your profile
                       </div>
                     </div>
-                    <input type="checkbox" defaultChecked />
+                    <Switch defaultChecked />
                   </div>
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="font-medium text-sm">
-                        New Opportunities
-                      </div>
+                      <div className="font-medium text-sm">New Opportunities</div>
                       <div className="text-xs text-muted-foreground">
                         Get notified about relevant business opportunities
                       </div>
                     </div>
-                    <input type="checkbox" defaultChecked />
+                    <Switch defaultChecked />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium text-sm">Marketing Emails</div>
+                      <div className="text-xs text-muted-foreground">
+                        Receive newsletters and promotional content
+                      </div>
+                    </div>
+                    <Switch />
                   </div>
                 </div>
               </div>

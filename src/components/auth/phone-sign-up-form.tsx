@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
-import { Loader2, Eye, EyeOff, Phone, KeyRound } from 'lucide-react';
+import { Loader2, Eye, EyeOff, Phone } from 'lucide-react';
 import {
   validatePasswordStrength,
   getPasswordStrengthColor,
@@ -97,12 +97,12 @@ export function PhoneSignUpForm() {
         displayName: formData.displayName,
         role: formData.role,
       };
-      
+
       // Add phone if provided
       if (formData.phone) {
         signUpData.phone = formData.phone;
       }
-      
+
       const { error: signUpError } = await signUp(signUpData);
 
       if (signUpError) throw signUpError;
@@ -250,15 +250,14 @@ export function PhoneSignUpForm() {
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Password strength:</span>
                   <span
-                    className={`font-medium ${
-                      passwordStrength.score <= 1
+                    className={`font-medium ${passwordStrength.score <= 1
                         ? 'text-red-500'
                         : passwordStrength.score === 2
-                        ? 'text-orange-500'
-                        : passwordStrength.score === 3
-                        ? 'text-yellow-500'
-                        : 'text-green-500'
-                    }`}
+                          ? 'text-orange-500'
+                          : passwordStrength.score === 3
+                            ? 'text-yellow-500'
+                            : 'text-green-500'
+                      }`}
                   >
                     {getPasswordStrengthLabel(passwordStrength.score)}
                   </span>

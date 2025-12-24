@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -30,7 +30,6 @@ interface DueDiligenceDashboardProps {
 
 export function DueDiligenceDashboard({
   businessData,
-  onClose,
   className,
 }: DueDiligenceDashboardProps) {
   const [report, setReport] = useState<DueDiligenceReport | null>(null);
@@ -397,8 +396,8 @@ function ChecklistSection({ checklist }: { checklist: any[] }) {
                           item.priority === 'Critical'
                             ? 'destructive'
                             : item.priority === 'Important'
-                            ? 'default'
-                            : 'secondary'
+                              ? 'default'
+                              : 'secondary'
                         }
                         className="text-xs mt-1"
                       >

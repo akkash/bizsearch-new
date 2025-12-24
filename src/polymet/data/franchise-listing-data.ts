@@ -7,6 +7,7 @@ export const franchiseListingSchema = z.object({
     brandName: z.string().min(2, "Brand name must be at least 2 characters"),
     tagline: z.string().min(10, "Tagline must be at least 10 characters"),
     industry: z.array(z.string()).min(1, "Select at least one industry"),
+    subcategory: z.array(z.string()).min(1, "Select at least one subcategory"),
     businessModel: z.string().min(1, "Business model is required"),
     yearEstablished: z
       .number()
@@ -301,24 +302,13 @@ export const franchiseListingSchema = z.object({
 
 export type FranchiseListingFormValues = z.infer<typeof franchiseListingSchema>;
 
-// Industry options for franchises
-export const franchiseIndustryOptions = [
-  { value: "food-beverage", label: "Food & Beverage" },
-  { value: "retail", label: "Retail" },
-  { value: "health-fitness", label: "Health & Fitness" },
-  { value: "education", label: "Education & Training" },
-  { value: "automotive", label: "Automotive" },
-  { value: "beauty-wellness", label: "Beauty & Wellness" },
-  { value: "home-services", label: "Home Services" },
-  { value: "technology", label: "Technology" },
-  { value: "real-estate", label: "Real Estate" },
-  { value: "travel-hospitality", label: "Travel & Hospitality" },
-  { value: "cleaning", label: "Cleaning Services" },
-  { value: "childcare", label: "Childcare" },
-  { value: "pet-services", label: "Pet Services" },
-  { value: "senior-care", label: "Senior Care" },
-  { value: "entertainment", label: "Entertainment" },
-];
+// Industry options for franchises - dynamically generated from FRANCHISE_CATEGORIES
+import { FRANCHISE_CATEGORIES } from "@/data/categories";
+
+export const franchiseIndustryOptions = FRANCHISE_CATEGORIES.map(cat => ({
+  value: cat.slug,
+  label: cat.name,
+}));
 
 // Business model options for franchises
 export const franchiseBusinessModelOptions = [
@@ -368,6 +358,7 @@ export const mockFranchiseListing: Partial<FranchiseListingFormValues> = {
     brandName: "FreshBite Café",
     tagline: "Healthy, Fresh, Fast - The Future of Quick Service",
     industry: ["food-beverage"],
+    subcategory: ["bakery", "cafe"],
     businessModel: "traditional",
     yearEstablished: 2018,
     totalOutlets: 125,
@@ -404,8 +395,14 @@ export const mockFranchiseListing: Partial<FranchiseListingFormValues> = {
       max: 4000000,
     },
     liquidCapitalRequired: 1500000,
-    royaltyPercentage: 6,
-    marketingFeePercentage: 2,
+    royaltyStructure: {
+      type: "fixed",
+      baseTiers: [{ id: "t1", minRevenue: 0, percentage: 6 }],
+    },
+    marketingFee: {
+      type: "percentage",
+      value: 2,
+    },
     breakEvenPeriod: 18,
     averageROI: 25,
     financingOptions: [
@@ -413,6 +410,7 @@ export const mockFranchiseListing: Partial<FranchiseListingFormValues> = {
       "Equipment financing",
       "Working capital loans",
     ],
+    investmentBreakdown: [], // Added required empty array to match schema
   },
   support: {
     initialTrainingDuration: 21,

@@ -7,7 +7,7 @@ const PASSWORD_REGEX = {
   uppercase: /[A-Z]/,
   lowercase: /[a-z]/,
   number: /[0-9]/,
-  specialChar: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/,
+  specialChar: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/,
 };
 
 /**
@@ -177,38 +177,38 @@ export function formatZodError(error: z.ZodError): Record<string, string> {
 // Helper to format Supabase errors
 export function formatSupabaseError(error: any): string {
   if (!error) return 'An unknown error occurred';
-  
+
   // Handle common Supabase errors
   if (error.message) {
     const message = error.message.toLowerCase();
-    
+
     if (message.includes('invalid login credentials')) {
       return 'Invalid email or password. Please try again.';
     }
-    
+
     if (message.includes('email not confirmed')) {
       return 'Please verify your email address before logging in.';
     }
-    
+
     if (message.includes('user already registered')) {
       return 'An account with this email already exists.';
     }
-    
+
     if (message.includes('password')) {
       return 'Password is too weak. Please choose a stronger password.';
     }
-    
+
     if (message.includes('rate limit')) {
       return 'Too many attempts. Please wait a few minutes and try again.';
     }
-    
+
     if (message.includes('network')) {
       return 'Network error. Please check your connection and try again.';
     }
-    
+
     return error.message;
   }
-  
+
   return 'An unexpected error occurred. Please try again.';
 }
 

@@ -164,19 +164,22 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
     if (filters) {
       // Industry filter
       if (filters.industry.length > 0) {
-        filtered = filtered.filter((franchise) =>
-          filters.industry.includes(franchise.industry)
-        );
+        filtered = filtered.filter((franchise) => {
+          const fIndustry = franchise.industry?.toLowerCase() || '';
+          return filters.industry.some(ind => fIndustry.includes(ind.toLowerCase()));
+        });
       }
 
-      // Investment range filter
+      // Investment range filter (franchiseFee from filter state maps to total_investment)
       if (filters.franchiseFee[0] > 0 || filters.franchiseFee[1] < 5000000) {
         filtered = filtered.filter((franchise) => {
-          const investment = franchise.total_investment_min || franchise.total_investment_max || 0;
-          return (
-            investment >= filters.franchiseFee[0] &&
-            investment <= filters.franchiseFee[1]
-          );
+          const minInv = franchise.total_investment_min || franchise.investmentMin || 0;
+          const maxInv = franchise.total_investment_max || franchise.investmentMax || minInv;
+
+          // Check overlap: Filter range overlaps with Franchise range
+          // Filter [A, B], Franchise [C, D]
+          // Overlap if A <= D && C <= B
+          return filters.franchiseFee[0] <= maxInv && minInv <= filters.franchiseFee[1];
         });
       }
 
@@ -186,7 +189,11 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
         filters.royaltyPercentage[1] < 20
       ) {
         filtered = filtered.filter((franchise) => {
-          const royalty = franchise.royalty_percentage || franchise.royaltyPercentage || 0;
+          const royalty = franchise.royalty_percentage || franchise.royaltyPercentage;
+          // If royalty is undefined (e.g. not disclosed), should we include? 
+          // Assuming undefined means 0 or hidden. Let's filter strictly if defined.
+          if (royalty === undefined || royalty === null) return true;
+
           return (
             royalty >= filters.royaltyPercentage[0] &&
             royalty <= filters.royaltyPercentage[1]
@@ -195,20 +202,15 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
       }
 
       // Outlets filter
-      if (filters.outlets) {
+      if (filters.outlets && filters.outlets !== 'any') {
         filtered = filtered.filter((franchise) => {
           const outlets = franchise.total_outlets || franchise.outlets || 0;
           switch (filters.outlets) {
-            case "1-10":
-              return outlets <= 10;
-            case "11-50":
-              return outlets >= 11 && outlets <= 50;
-            case "51-100":
-              return outlets >= 51 && outlets <= 100;
-            case "100+":
-              return outlets > 100;
-            default:
-              return true;
+            case "1-10": return outlets <= 10;
+            case "11-50": return outlets >= 11 && outlets <= 50;
+            case "51-100": return outlets >= 51 && outlets <= 100;
+            case "100+": return outlets > 100;
+            default: return true;
           }
         });
       }
@@ -216,24 +218,27 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
       // Multi-unit filter
       if (filters.multiUnit) {
         filtered = filtered.filter((franchise) =>
-          franchise.badges.includes("Multi-Unit Available")
+          franchise.multiUnit === true ||
+          (franchise.badges || []).includes("Multi-Unit Available")
         );
       }
 
       // Financing filter
       if (filters.financing) {
         filtered = filtered.filter((franchise) =>
-          franchise.badges.includes("Financing Available")
+          franchise.financing === true ||
+          (franchise.badges || []).includes("Financing Available")
         );
       }
 
       // Verification filter
       if (filters.verification.length > 0) {
-        filtered = filtered.filter((franchise) =>
-          filters.verification.some((verification) =>
-            franchise.badges.includes(verification)
-          )
-        );
+        filtered = filtered.filter((franchise) => {
+          const badges = franchise.badges || [];
+          return filters.verification.some((verification) =>
+            badges.includes(verification)
+          );
+        });
       }
     }
 
@@ -490,7 +495,12 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
           {/* Filters Sidebar */}
           {showFilters && (
             <div className="lg:w-80 space-y-6">
-              <Filters type="franchise" onFiltersChange={handleFiltersChange} />
+              <Filters
+                type="franchise"
+                initialCategory={currentCategory?.name}
+                initialSubcategory={currentSubcategory?.name}
+                onFiltersChange={handleFiltersChange}
+              />
             </div>
           )}
 

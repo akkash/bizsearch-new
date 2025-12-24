@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +9,6 @@ import {
   DollarSign,
   FileText,
   Lightbulb,
-  RefreshCw,
   Copy,
   Check,
   Loader2,
@@ -112,7 +111,7 @@ export function AIAssistant({
       setSuggestions(suggestions);
     } catch (error: any) {
       console.error('AI Suggestion Error:', error);
-      
+
       // Fallback to basic suggestion if AI fails
       setSuggestions([{
         type: "improvement",

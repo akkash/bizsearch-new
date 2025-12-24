@@ -2,18 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
-import { 
-  TrendingUp, 
-  Users, 
-  AlertCircle, 
-  CheckCircle2, 
+import {
+  Users,
+  AlertCircle,
+  CheckCircle2,
   X,
   Flame,
   ThermometerSun,
   Snowflake,
-  Phone,
   Mail,
   Calendar
 } from 'lucide-react';
@@ -159,7 +156,7 @@ export function BuyerQualifierDashboard({ sellerId, onClose, className }: BuyerQ
             <h3 className="text-lg font-semibold mb-4">Top Qualified Leads</h3>
             <div className="space-y-3">
               {insights?.topLeads?.map((lead: BuyerQualification, index: number) => (
-                <Card 
+                <Card
                   key={lead.leadId}
                   className={cn(
                     'cursor-pointer transition-all hover:shadow-lg',
@@ -180,7 +177,7 @@ export function BuyerQualifierDashboard({ sellerId, onClose, className }: BuyerQ
                             </Badge>
                             <Badge variant="outline">{lead.qualificationLevel}</Badge>
                           </div>
-                          
+
                           {/* Score Breakdown */}
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
                             <div className="text-xs">

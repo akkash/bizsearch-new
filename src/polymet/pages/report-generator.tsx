@@ -1,18 +1,11 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
+
 import {
     FileText,
     Wand2,
@@ -23,7 +16,6 @@ import {
     TrendingUp,
     BarChart3,
     DollarSign,
-    Building2,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -44,7 +36,7 @@ const reportTypes = [
 ];
 
 export function ReportGeneratorPage() {
-    const { user } = useAuth();
+    useAuth();
     const [reportType, setReportType] = useState<ReportType>('valuation');
     const [businessName, setBusinessName] = useState('');
     const [businessDetails, setBusinessDetails] = useState('');

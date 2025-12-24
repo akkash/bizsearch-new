@@ -7,6 +7,7 @@ export const businessOverviewSchema = z.object({
     .min(2, "Business name must be at least 2 characters"),
   tagline: z.string().optional(),
   industry: z.array(z.string()).min(1, "Please select at least one industry"),
+  subcategory: z.array(z.string()).min(1, "Please select at least one subcategory"),
   businessType: z.enum(["asset_sale", "stock_sale", "franchise"], {
     required_error: "Please select a business type",
   }),
@@ -215,6 +216,7 @@ export const mockListingDraft: Partial<BusinessListingFormValues> = {
     businessName: "Mumbai Cafe Express",
     tagline: "Premium coffee and quick bites in the heart of Mumbai",
     industry: ["food_beverage", "retail"],
+    subcategory: ["cafe", "coffee-shop"],
     businessType: "asset_sale",
     country: "India",
     state: "Maharashtra",

@@ -32,6 +32,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getBusinessCategoryBySlug } from "@/data/categories";
 import {
   businessListingSchema,
   businessOverviewSchema,
@@ -312,6 +313,41 @@ export function ListingWizard({
           ))}
         </div>
       </div>
+
+      {/* Subcategories Section */}
+      {form.watch("industry")?.length > 0 && (
+        <div className="space-y-2">
+          <Label>Subcategories *</Label>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 p-4 border rounded-md bg-muted/20 max-h-48 overflow-y-auto">
+            {form
+              .watch("industry")
+              .flatMap(
+                (slug: string) =>
+                  getBusinessCategoryBySlug(slug)?.subcategories || []
+              )
+              .map((sub) => (
+                <div key={sub.slug} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={sub.slug}
+                    {...form.register("subcategory")}
+                    value={sub.slug}
+                  />
+                  <Label
+                    htmlFor={sub.slug}
+                    className="text-sm font-normal cursor-pointer"
+                  >
+                    {sub.name}
+                  </Label>
+                </div>
+              ))}
+          </div>
+          {form.formState.errors.subcategory && (
+            <p className="text-sm text-red-600">
+              {form.formState.errors.subcategory.message as string}
+            </p>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="space-y-2">

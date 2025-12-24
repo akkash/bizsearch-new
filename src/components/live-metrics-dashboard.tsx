@@ -4,10 +4,6 @@ import {
     Users,
     Building2,
     DollarSign,
-    Shield,
-    Clock,
-    CheckCircle2,
-    Award,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 

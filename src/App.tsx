@@ -83,6 +83,7 @@ export default function BizSearchApp() {
             <SavedListingsProvider>
               <NotificationsProvider>
                 <Router>
+                  <WebsiteSchema />
                   <Routes>
                     {/* Homepage */}
                     <Route

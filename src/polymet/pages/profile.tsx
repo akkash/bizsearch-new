@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { ProfileService } from "@/lib/profile-service";
@@ -7,24 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Settings,
-  Edit,
   Share2,
   MessageSquare,
   FileText,
-  Users,
-  Activity,
-  Shield,
-  Eye,
   Building,
   TrendingUp,
   Award,
-  Calendar,
-  MapPin,
-  Phone,
-  Mail,
-  Globe,
-  Linkedin,
 } from "lucide-react";
 import { ProfileHeader } from "@/polymet/components/profile-header";
 import { RoleTabs } from "@/polymet/components/role-tabs";
@@ -35,12 +23,9 @@ import { TeamManagement } from "@/polymet/components/team-management";
 import { BusinessCard } from "@/polymet/components/business-card";
 import { FranchiseCard } from "@/polymet/components/franchise-card";
 import { ProfileCompletenessCard } from "@/components/profile/ProfileCompletenessCard";
-import type { Database } from "@/types/supabase";
 import type { UserProfile } from "@/polymet/data/profile-data";
 import { adaptSupabaseProfileToUserProfile } from "@/lib/profile-adapter";
 import type { Business, Franchise } from "@/types/listings";
-
-type SupabaseProfile = Database['public']['Tables']['profiles']['Row'];
 
 interface ProfilePageProps {
   className?: string;
@@ -138,7 +123,7 @@ export function ProfilePage({ className = "" }: ProfilePageProps) {
 
   const renderRoleSpecificContent = () => {
     switch (profile.role) {
-      case "seller":
+      case "seller": {
         const sellerProfile = profile as any;
         return (
           <div className="space-y-6">
@@ -233,8 +218,9 @@ export function ProfilePage({ className = "" }: ProfilePageProps) {
             )}
           </div>
         );
+      }
 
-      case "buyer":
+      case "buyer": {
         const buyerProfile = profile as any;
         return (
           <div className="space-y-6">
@@ -303,8 +289,9 @@ export function ProfilePage({ className = "" }: ProfilePageProps) {
             </Card>
           </div>
         );
+      }
 
-      case "franchisor":
+      case "franchisor": {
         const franchisorProfile = profile as any;
         return (
           <div className="space-y-6">
@@ -413,6 +400,7 @@ export function ProfilePage({ className = "" }: ProfilePageProps) {
           </div>
         );
 
+      }
       default:
         return (
           <Card>

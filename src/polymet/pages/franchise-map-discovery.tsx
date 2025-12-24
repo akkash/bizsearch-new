@@ -42,6 +42,48 @@ export function FranchiseMapDiscoveryPage({ className }: FranchiseMapDiscoveryPa
     // Feature flag
     const isFranchiseMapEnabled = useFeatureFlag('franchise_map');
 
+    // Load available filters on mount
+    useEffect(() => {
+        if (!isFranchiseMapEnabled) return;
+
+        const loadFilters = async () => {
+            try {
+                const available = await FranchiseMapDiscoveryService.getAvailableFilters();
+                setAvailableFilters(available);
+            } catch (error) {
+                console.error('Error loading filters:', error);
+            }
+        };
+        loadFilters();
+    }, [isFranchiseMapEnabled]);
+
+    // Load locations when filters change
+    useEffect(() => {
+        if (!isFranchiseMapEnabled) return;
+
+        const loadLocations = async () => {
+            setLoading(true);
+            try {
+                const [locs, statsData] = await Promise.all([
+                    FranchiseMapDiscoveryService.getAllLocationsWithFranchises(filters),
+                    FranchiseMapDiscoveryService.getDiscoveryStats(filters),
+                ]);
+                setLocations(locs);
+                setStats(statsData);
+            } catch (error) {
+                console.error('Error loading locations:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadLocations();
+    }, [filters, isFranchiseMapEnabled]);
+
+    const handleFiltersChange = (newFilters: DiscoveryFilters) => {
+        setFilters(newFilters);
+        setShowMobileFilters(false);
+    };
+
     // Show coming soon if feature is disabled
     if (!isFranchiseMapEnabled) {
         return (
@@ -61,44 +103,6 @@ export function FranchiseMapDiscoveryPage({ className }: FranchiseMapDiscoveryPa
             </div>
         );
     }
-
-    // Load available filters on mount
-    useEffect(() => {
-        const loadFilters = async () => {
-            try {
-                const available = await FranchiseMapDiscoveryService.getAvailableFilters();
-                setAvailableFilters(available);
-            } catch (error) {
-                console.error('Error loading filters:', error);
-            }
-        };
-        loadFilters();
-    }, []);
-
-    // Load locations when filters change
-    useEffect(() => {
-        const loadLocations = async () => {
-            setLoading(true);
-            try {
-                const [locs, statsData] = await Promise.all([
-                    FranchiseMapDiscoveryService.getAllLocationsWithFranchises(filters),
-                    FranchiseMapDiscoveryService.getDiscoveryStats(filters),
-                ]);
-                setLocations(locs);
-                setStats(statsData);
-            } catch (error) {
-                console.error('Error loading locations:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        loadLocations();
-    }, [filters]);
-
-    const handleFiltersChange = (newFilters: DiscoveryFilters) => {
-        setFilters(newFilters);
-        setShowMobileFilters(false);
-    };
 
     return (
         <div className={cn('min-h-screen bg-background', className)}>

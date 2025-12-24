@@ -1,4 +1,3 @@
-import React from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -103,41 +102,46 @@ export function ProfileHeader({
 
   const getCompanyInfo = () => {
     switch (profile.role) {
-      case "seller":
+      case "seller": {
         const sellerProfile = profile as any;
         return {
           name: sellerProfile.companyName,
           logo: sellerProfile.companyLogo,
           subtitle: `${sellerProfile.industry} • ${sellerProfile.employees} employees`,
         };
-      case "buyer":
+      }
+      case "buyer": {
         const buyerProfile = profile as any;
         return {
           name: buyerProfile.firmName || "Individual Investor",
           logo: buyerProfile.firmLogo,
           subtitle: `${buyerProfile.buyerType.replace("-", " ").toUpperCase()} • ₹${(buyerProfile.investmentRange.min / 10000000).toFixed(1)}-${(buyerProfile.investmentRange.max / 10000000).toFixed(1)}Cr range`,
         };
-      case "franchisor":
+      }
+      case "franchisor": {
         const franchisorProfile = profile as any;
         return {
           name: franchisorProfile.brandName,
           logo: franchisorProfile.brandLogo,
           subtitle: `${franchisorProfile.industry} • ${franchisorProfile.totalOutlets} outlets`,
         };
-      case "franchisee":
+      }
+      case "franchisee": {
         const franchiseeProfile = profile as any;
         return {
           name: "Franchise Investor",
           logo: undefined,
           subtitle: `Budget: ₹${(franchiseeProfile.investmentBudget.min / 10000000).toFixed(1)}-${(franchiseeProfile.investmentBudget.max / 10000000).toFixed(1)}Cr`,
         };
-      case "advisor":
+      }
+      case "advisor": {
         const advisorProfile = profile as any;
         return {
           name: advisorProfile.firmName,
           logo: advisorProfile.firmLogo,
           subtitle: `${advisorProfile.experience} years experience • ${advisorProfile.services.length} services`,
         };
+      }
       default:
         return { name: "", logo: undefined, subtitle: "" };
     }

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Upload, Download, FileText, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { Upload, Download, FileText, CheckCircle, XCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -29,7 +29,7 @@ export function FranchisorBulkUpload({ franchiseId, onComplete }: BulkUploadProp
 
     try {
       const csvContent = await file.text();
-      
+
       // Simulate progress
       const progressInterval = setInterval(() => {
         setProgress((prev) => Math.min(prev + 10, 90));

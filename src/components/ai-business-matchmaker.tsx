@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -23,16 +23,15 @@ interface AIBusinessMatchmakerProps {
   className?: string;
 }
 
-export function AIBusinessMatchmaker({ userId, onClose, className }: AIBusinessMatchmakerProps) {
+export function AIBusinessMatchmaker({ onClose, className }: AIBusinessMatchmakerProps) {
   const [step, setStep] = useState<'preferences' | 'results'>('preferences');
   const [isLoading, setIsLoading] = useState(false);
   const [matches, setMatches] = useState<BusinessMatch[]>([]);
-  
+
   // Preference form state
   const [budget, setBudget] = useState<[number, number]>([1000000, 10000000]); // 10L to 1Cr
   const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
-  const [experience, setExperience] = useState<string[]>([]);
   const [investmentGoal, setInvestmentGoal] = useState('');
   const [riskTolerance, setRiskTolerance] = useState<'low' | 'medium' | 'high'>('medium');
   const [timeCommitment, setTimeCommitment] = useState<'part-time' | 'full-time'>('full-time');
@@ -61,13 +60,12 @@ export function AIBusinessMatchmaker({ userId, onClose, className }: AIBusinessM
 
   const handleFindMatches = async () => {
     setIsLoading(true);
-    
+
     try {
       const preferences: UserPreferences = {
         budget: { min: budget[0], max: budget[1] },
         industries: selectedIndustries.length > 0 ? selectedIndustries : undefined,
         locations: selectedLocations.length > 0 ? selectedLocations : undefined,
-        experience: experience.length > 0 ? experience : undefined,
         investmentGoals: investmentGoal || undefined,
         riskTolerance,
         timeCommitment,

@@ -3,7 +3,6 @@ import { Check, User, Briefcase, Shield, PartyPopper } from 'lucide-react';
 
 interface OnboardingProgressProps {
     currentStep: number;
-    totalSteps: number;
     className?: string;
 }
 
@@ -14,7 +13,7 @@ const steps = [
     { id: 4, label: 'Complete', icon: PartyPopper },
 ];
 
-export function OnboardingProgress({ currentStep, totalSteps, className }: OnboardingProgressProps) {
+export function OnboardingProgress({ currentStep, className }: OnboardingProgressProps) {
     return (
         <div className={cn('w-full', className)}>
             {/* Progress Bar */}

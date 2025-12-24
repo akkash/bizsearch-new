@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -6,8 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Phone, MapPin, User, Upload, Loader2, CheckCircle } from 'lucide-react';
-import { AvatarUpload } from '@/components/profile/avatar-upload';
+import { Phone, MapPin, User, Loader2 } from 'lucide-react';
 import type { OnboardingData } from '@/hooks/use-onboarding';
 
 interface OnboardingStepEssentialsProps {

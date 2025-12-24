@@ -20,7 +20,7 @@ import {
   HelpCircle,
   Globe,
   Shield,
-  TrendingUp,
+  Building,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -31,6 +31,13 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { MobileBottomNav } from "@/polymet/components/mobile-bottom-nav";
 import { AIChat } from "@/polymet/components/ai-chat";
@@ -53,7 +60,6 @@ export function MainLayout({ children }: MainLayoutProps) {
   const { user, profile, signOut } = useAuth();
   const { savedCount } = useSavedListings();
   const { unreadCount } = useNotifications();
-  const [categoryTab, setCategoryTab] = useState<"business" | "franchise">("business");
 
   // Feature flags
   const isAIChatEnabled = useFeatureFlag('ai_chat_advisor');
@@ -157,171 +163,126 @@ export function MainLayout({ children }: MainLayoutProps) {
             </Link>
 
             {/* Center Navigation - Desktop */}
-            <nav className="hidden md:flex items-center gap-6">
-              <Link
-                to="/businesses"
-                className={`text-sm font-medium transition-colors hover:text-gray-900 ${isActivePath("/businesses")
-                  ? "text-gray-900"
-                  : "text-gray-500"
-                  }`}
-              >
-                Business for Sale
-              </Link>
-              <Link
-                to="/franchises"
-                className={`text-sm font-medium transition-colors hover:text-gray-900 ${isActivePath("/franchises")
-                  ? "text-gray-900"
-                  : "text-gray-500"
-                  }`}
-              >
-                Franchise
-              </Link>
-
-              {/* Categories Mega Menu */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors">
-                    Categories
-                    <ChevronDown className="h-4 w-4" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="center" className="w-[700px] p-0">
-                  {/* Category Type Tabs */}
-                  <div className="flex border-b">
-                    <button
-                      onClick={() => setCategoryTab("business")}
-                      className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${categoryTab === "business"
-                        ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50/50"
-                        : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-                        }`}
-                    >
-                      Business Categories
-                    </button>
-                    <button
-                      onClick={() => setCategoryTab("franchise")}
-                      className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${categoryTab === "franchise"
-                        ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50/50"
-                        : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-                        }`}
-                    >
-                      Franchise Categories
-                    </button>
-                  </div>
-
-                  {/* Business Categories */}
-                  {categoryTab === "business" && (
-                    <div className="grid grid-cols-3 gap-4 p-4">
-                      {SMERGERS_BUSINESS_CATEGORIES.slice(0, 12).map((category) => (
-                        <div key={category.id} className="space-y-2">
-                          <Link
-                            to={`/businesses?category=${category.slug}`}
-                            className="font-medium text-sm text-gray-900 hover:text-blue-600 block"
-                          >
-                            {category.name}
+            <div className="hidden md:flex items-center gap-6">
+              <NavigationMenu>
+                <NavigationMenuList>
+                  {/* Business for Sale Mega Menu */}
+                  <NavigationMenuItem>
+                    <NavigationMenuTrigger className="bg-transparent hover:bg-transparent data-[state=open]:bg-transparent text-sm font-medium text-gray-500 hover:text-gray-900 data-[state=open]:text-gray-900 h-auto p-0">
+                      <Link to="/businesses" className={isActivePath("/businesses") ? "text-gray-900" : ""}>
+                        Business for Sale
+                      </Link>
+                    </NavigationMenuTrigger>
+                    <NavigationMenuContent>
+                      <div className="w-[600px] p-4 bg-white rounded-md shadow-lg border">
+                        <div className="flex items-center justify-between mb-4 pb-2 border-b">
+                          <h4 className="font-semibold text-sm">Top Business Categories</h4>
+                          <Link to="/businesses" className="text-xs text-blue-600 hover:underline">
+                            View All Categories &rarr;
                           </Link>
-                          <div className="space-y-1">
-                            {category.subcategories.slice(0, 4).map((sub) => (
-                              <Link
-                                key={sub.id}
-                                to={`/businesses?category=${category.slug}&subcategory=${sub.slug}`}
-                                className="block text-xs text-gray-500 hover:text-gray-900 py-0.5"
-                              >
-                                {sub.name}
-                              </Link>
-                            ))}
-                            {category.subcategories.length > 4 && (
-                              <Link
-                                to={`/businesses?category=${category.slug}`}
-                                className="block text-xs text-blue-600 hover:text-blue-700 py-0.5 font-medium"
-                              >
-                                +{category.subcategories.length - 4} more
-                              </Link>
-                            )}
-                          </div>
                         </div>
-                      ))}
-                    </div>
-                  )}
+                        <div className="grid grid-cols-2 gap-4">
+                          {SMERGERS_BUSINESS_CATEGORIES.slice(0, 8).map((category) => (
+                            <Link
+                              key={category.id}
+                              to={`/businesses?category=${category.slug}`}
+                              className="group block space-y-1 p-2 hover:bg-gray-50 rounded-md transition-colors"
+                            >
+                              <div className="font-medium text-sm text-gray-900 group-hover:text-blue-600">
+                                {category.name}
+                              </div>
+                              <p className="text-xs text-gray-500 line-clamp-1">
+                                {category.subcategories.slice(0, 3).map(s => s.name).join(", ")}...
+                              </p>
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    </NavigationMenuContent>
+                  </NavigationMenuItem>
 
-                  {/* Franchise Categories */}
-                  {categoryTab === "franchise" && (
-                    <div className="grid grid-cols-3 gap-4 p-4">
-                      {FRANCHISE_CATEGORIES.map((category) => (
-                        <div key={category.id} className="space-y-2">
-                          <Link
-                            to={`/franchises?category=${category.slug}`}
-                            className="font-medium text-sm text-gray-900 hover:text-blue-600 block"
-                          >
-                            {category.name}
+                  {/* Franchise Mega Menu */}
+                  <NavigationMenuItem>
+                    <NavigationMenuTrigger className="bg-transparent hover:bg-transparent data-[state=open]:bg-transparent text-sm font-medium text-gray-500 hover:text-gray-900 data-[state=open]:text-gray-900 h-auto p-0 ml-4">
+                      <Link to="/franchises" className={isActivePath("/franchises") ? "text-gray-900" : ""}>
+                        Franchise
+                      </Link>
+                    </NavigationMenuTrigger>
+                    <NavigationMenuContent>
+                      <div className="w-[600px] p-4 bg-white rounded-md shadow-lg border">
+                        <div className="flex items-center justify-between mb-4 pb-2 border-b">
+                          <h4 className="font-semibold text-sm">Top Franchise Sectors</h4>
+                          <Link to="/franchises" className="text-xs text-blue-600 hover:underline">
+                            View All Sectors &rarr;
                           </Link>
-                          <div className="space-y-1">
-                            {category.subcategories.slice(0, 4).map((sub) => (
-                              <Link
-                                key={sub.id}
-                                to={`/franchises?category=${category.slug}&subcategory=${sub.slug}`}
-                                className="block text-xs text-gray-500 hover:text-gray-900 py-0.5"
-                              >
-                                {sub.name}
-                              </Link>
-                            ))}
-                            {category.subcategories.length > 4 && (
-                              <Link
-                                to={`/franchises?category=${category.slug}`}
-                                className="block text-xs text-blue-600 hover:text-blue-700 py-0.5 font-medium"
-                              >
-                                +{category.subcategories.length - 4} more
-                              </Link>
-                            )}
-                          </div>
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </nav>
+                        <div className="grid grid-cols-2 gap-4">
+                          {FRANCHISE_CATEGORIES.slice(0, 8).map((category) => (
+                            <Link
+                              key={category.id}
+                              to={`/franchises?industry=${category.slug}`}
+                              className="group block space-y-1 p-2 hover:bg-gray-50 rounded-md transition-colors"
+                            >
+                              <div className="font-medium text-sm text-gray-900 group-hover:text-blue-600">
+                                {category.name}
+                              </div>
+                              <p className="text-xs text-gray-500 line-clamp-1">
+                                {category.subcategories.slice(0, 3).map(s => s.name).join(", ")}...
+                              </p>
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    </NavigationMenuContent>
+                  </NavigationMenuItem>
+                </NavigationMenuList>
+              </NavigationMenu>
+            </div>
+
 
             {/* Right Side Actions */}
-            <div className="flex items-center gap-1">
+            < div className="flex items-center gap-1" >
               {/* List Business - Only for logged in users */}
-              {user && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="hidden sm:flex items-center gap-1 text-gray-600 hover:text-gray-900"
-                    >
-                      <Plus className="h-4 w-4" />
-                      <span className="text-sm">List</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    <Link to="/add-business-listing">
-                      <DropdownMenuItem>
-                        <Store className="mr-2 h-4 w-4" />
-                        Sell Business
-                      </DropdownMenuItem>
-                    </Link>
-                    <Link to="/add-franchise-listing">
-                      <DropdownMenuItem>
-                        <Briefcase className="mr-2 h-4 w-4" />
-                        List Franchise
-                      </DropdownMenuItem>
-                    </Link>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
+              {
+                user && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="hidden sm:flex items-center gap-1 text-gray-600 hover:text-gray-900"
+                      >
+                        <Plus className="h-4 w-4" />
+                        <span className="text-sm">List</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <Link to="/add-business-listing">
+                        <DropdownMenuItem>
+                          <Store className="mr-2 h-4 w-4" />
+                          Sell Business
+                        </DropdownMenuItem>
+                      </Link>
+                      <Link to="/add-franchise-listing">
+                        <DropdownMenuItem>
+                          <Briefcase className="mr-2 h-4 w-4" />
+                          List Franchise
+                        </DropdownMenuItem>
+                      </Link>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )
+              }
 
               {/* Search */}
-              <Link to="/businesses">
+              <Link to="/businesses" className="hidden md:block">
                 <Button variant="ghost" size="icon" className="text-gray-500 hover:text-gray-900">
                   <Search className="h-4 w-4" />
                 </Button>
               </Link>
 
               {/* Saved - with count badge */}
-              <Link to="/saved">
+              <Link to="/saved" className="hidden md:block">
                 <Button variant="ghost" size="icon" className="relative text-gray-500 hover:text-gray-900">
                   <Bookmark className="h-4 w-4" />
                   {savedCount > 0 && (
@@ -345,114 +306,148 @@ export function MainLayout({ children }: MainLayoutProps) {
               </Link>
 
               {/* Theme Toggle */}
-              <ThemeToggle />
+              <div className="hidden md:block">
+                <ThemeToggle />
+              </div>
 
               {/* User Menu or Auth Buttons */}
-              {user ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="ml-1">
-                      <Avatar className="h-7 w-7">
-                        <AvatarImage src={profile?.avatar_url || undefined} />
-                        <AvatarFallback className="text-xs bg-gray-100 text-gray-600">
-                          {profile?.display_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || "U"}
-                        </AvatarFallback>
-                      </Avatar>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    {profile && (
-                      <>
-                        <div className="px-2 py-1.5">
-                          <p className="text-sm font-medium">{profile.display_name}</p>
-                          <p className="text-xs text-gray-500 truncate">{profile.email}</p>
-                          <p className="text-[10px] text-gray-400 capitalize mt-0.5">{profile.role}</p>
-                        </div>
-                        <DropdownMenuSeparator />
-                      </>
-                    )}
+              {
+                user ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="ml-1 hidden md:flex">
+                        <Avatar className="h-7 w-7">
+                          <AvatarImage src={profile?.avatar_url || undefined} />
+                          <AvatarFallback className="text-xs bg-gray-100 text-gray-600">
+                            {profile?.display_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || "U"}
+                          </AvatarFallback>
+                        </Avatar>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      {profile && (
+                        <>
+                          <div className="px-2 py-1.5">
+                            <p className="text-sm font-medium">{profile.display_name}</p>
+                            <p className="text-xs text-gray-500 truncate">{profile.email}</p>
+                            <p className="text-[10px] text-gray-400 capitalize mt-0.5">{profile.role}</p>
+                          </div>
+                          <DropdownMenuSeparator />
+                        </>
+                      )}
 
-                    {/* Role-Specific Dashboards */}
-                    {profile?.role === 'admin' && (
-                      <Link to="/admin">
-                        <DropdownMenuItem className="text-purple-600 font-medium">
-                          <Shield className="mr-2 h-4 w-4" />
-                          Admin Dashboard
+                      {/* Role-Specific Dashboards - Check roles array */}
+                      {(() => {
+                        // Get roles from profile.roles array or fallback to profile.role
+                        const userRoles: string[] = (profile as any)?.roles?.map((r: any) => r.role) || [profile?.role];
+                        const hasRole = (role: string) => userRoles.includes(role);
+
+                        return (
+                          <>
+                            {hasRole('admin') && (
+                              <Link to="/admin">
+                                <DropdownMenuItem className="text-purple-600 font-medium">
+                                  <Shield className="mr-2 h-4 w-4" />
+                                  Admin Dashboard
+                                </DropdownMenuItem>
+                              </Link>
+                            )}
+
+                            {(hasRole('advisor') || hasRole('broker')) && (
+                              <Link to="/advisor/dashboard">
+                                <DropdownMenuItem className="text-blue-600 font-medium">
+                                  <Briefcase className="mr-2 h-4 w-4" />
+                                  Advisor Dashboard
+                                </DropdownMenuItem>
+                              </Link>
+                            )}
+
+                            {hasRole('seller') && (
+                              <Link to="/seller/dashboard">
+                                <DropdownMenuItem className="text-green-600 font-medium">
+                                  <Building className="mr-2 h-4 w-4" />
+                                  Seller Dashboard
+                                </DropdownMenuItem>
+                              </Link>
+                            )}
+
+                            {hasRole('franchisor') && (
+                              <Link to="/franchisor/dashboard">
+                                <DropdownMenuItem className="text-orange-600 font-medium">
+                                  <Store className="mr-2 h-4 w-4" />
+                                  Franchisor Dashboard
+                                </DropdownMenuItem>
+                              </Link>
+                            )}
+
+                            {(hasRole('buyer') || hasRole('franchisee')) && (
+                              <Link to="/buyer/dashboard">
+                                <DropdownMenuItem className="text-indigo-600 font-medium">
+                                  <User className="mr-2 h-4 w-4" />
+                                  Buyer Dashboard
+                                </DropdownMenuItem>
+                              </Link>
+                            )}
+                          </>
+                        );
+                      })()}
+
+                      <DropdownMenuSeparator />
+
+                      {/* General Management - Visible to Everyone */}
+                      <Link to="/profile">
+                        <DropdownMenuItem>
+                          <User className="mr-2 h-4 w-4" />
+                          Profile Settings
                         </DropdownMenuItem>
                       </Link>
-                    )}
 
-                    {(profile?.role === 'advisor' || profile?.role === 'broker') && (
-                      <Link to="/advisor/dashboard">
-                        <DropdownMenuItem className="text-blue-600 font-medium">
+                      <Link to="/my-listings">
+                        <DropdownMenuItem>
+                          <Store className="mr-2 h-4 w-4" />
+                          My Listings
+                        </DropdownMenuItem>
+                      </Link>
+
+                      <Link to="/my-applications">
+                        <DropdownMenuItem>
                           <Briefcase className="mr-2 h-4 w-4" />
-                          Advisor Dashboard
+                          My Applications
                         </DropdownMenuItem>
                       </Link>
-                    )}
 
-                    <DropdownMenuSeparator />
+                      <Link to="/messages">
+                        <DropdownMenuItem>
+                          <Mail className="mr-2 h-4 w-4" />
+                          Messages
+                        </DropdownMenuItem>
+                      </Link>
 
-                    {/* General Management - Visible to Everyone (Activity Based) */}
-                    <Link to="/profile">
-                      <DropdownMenuItem>
-                        <User className="mr-2 h-4 w-4" />
-                        Profile Settings
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={handleSignOut}
+                        className="text-red-600"
+                      >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Sign Out
                       </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : (
+                  <div className="flex items-center gap-2 ml-2 hidden md:flex">
+                    <Link to="/login">
+                      <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
+                        Sign In
+                      </Button>
                     </Link>
-
-                    <Link to="/my-listings">
-                      <DropdownMenuItem>
-                        <Store className="mr-2 h-4 w-4" />
-                        My Listings
-                      </DropdownMenuItem>
+                    <Link to="/signup">
+                      <Button size="sm" className="bg-gray-900 hover:bg-gray-800 text-white">
+                        Get Started
+                      </Button>
                     </Link>
-
-                    <Link to="/my-applications">
-                      <DropdownMenuItem>
-                        <Briefcase className="mr-2 h-4 w-4" />
-                        My Applications
-                      </DropdownMenuItem>
-                    </Link>
-
-                    <Link to="/seller-analytics">
-                      <DropdownMenuItem>
-                        <TrendingUp className="mr-2 h-4 w-4" />
-                        Analytics
-                      </DropdownMenuItem>
-                    </Link>
-
-                    <Link to="/messages">
-                      <DropdownMenuItem>
-                        <Mail className="mr-2 h-4 w-4" />
-                        Messages
-                      </DropdownMenuItem>
-                    </Link>
-
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={handleSignOut}
-                      className="text-red-600"
-                    >
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Sign Out
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : (
-                <div className="flex items-center gap-2 ml-2">
-                  <Link to="/login">
-                    <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
-                      Sign In
-                    </Button>
-                  </Link>
-                  <Link to="/signup">
-                    <Button size="sm" className="bg-gray-900 hover:bg-gray-800 text-white">
-                      Get Started
-                    </Button>
-                  </Link>
-                </div>
-              )}
+                  </div>
+                )
+              }
 
               {/* Mobile Menu */}
               <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
@@ -541,7 +536,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                         </div>
                       </div>
 
-                      {user && (
+                      {user ? (
                         <div className="mt-6 px-2">
                           <p className="px-3 text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
                             List Your Business
@@ -560,28 +555,54 @@ export function MainLayout({ children }: MainLayoutProps) {
                           >
                             List Franchise
                           </Link>
+                          <div className="mt-4 px-3 flex items-center justify-between">
+                            <span className="text-sm font-medium text-gray-600">Theme</span>
+                            <ThemeToggle />
+                          </div>
+                          <button
+                            onClick={() => {
+                              handleSignOut();
+                              setIsMobileMenuOpen(false);
+                            }}
+                            className="w-full text-left mt-2 px-3 py-2 rounded-md text-sm font-medium text-red-600 hover:bg-red-50"
+                          >
+                            Sign Out
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="mt-6 px-4 space-y-3">
+                          <Link to="/login" onClick={() => setIsMobileMenuOpen(false)}>
+                            <Button variant="outline" className="w-full justify-center">Sign In</Button>
+                          </Link>
+                          <Link to="/signup" onClick={() => setIsMobileMenuOpen(false)}>
+                            <Button className="w-full justify-center">Get Started</Button>
+                          </Link>
+                          <div className="pt-4 flex items-center justify-between">
+                            <span className="text-sm font-medium text-gray-600">Theme</span>
+                            <ThemeToggle />
+                          </div>
                         </div>
                       )}
                     </div>
                   </div>
                 </SheetContent>
               </Sheet>
-            </div>
-          </div>
-        </div>
-      </header>
+            </div >
+          </div >
+        </div >
+      </header >
 
       {/* Main Content */}
-      <main className="flex-1 pb-20 md:pb-0">{children}</main>
+      < main className="flex-1 pb-20 md:pb-0" > {children}</main >
 
       {/* Mobile Bottom Navigation */}
-      <MobileBottomNav />
+      < MobileBottomNav />
 
       {/* AI Chat Widget - Only show if enabled via feature flag */}
       {isAIChatEnabled && <AIChat />}
 
       {/* Footer - Show on all pages */}
       <Footer />
-    </div>
+    </div >
   );
 }

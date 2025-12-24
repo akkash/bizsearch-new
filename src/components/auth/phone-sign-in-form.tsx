@@ -9,8 +9,8 @@ import { Link, useNavigate } from "react-router-dom";
 
 export function PhoneSignInForm() {
   const navigate = useNavigate();
-  const { signInWithPhone, verifyOTP, resendOTP } = useAuth();
-  
+  const { verifyOTP, resendOTP } = useAuth();
+
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [step, setStep] = useState<"phone" | "otp">("phone");

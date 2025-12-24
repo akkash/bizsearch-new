@@ -85,16 +85,16 @@ export function useAuth() {
       if (data.user) {
         // Wait a bit for trigger to complete
         await new Promise(resolve => setTimeout(resolve, 500));
-        
+
         // Check if profile exists
         const { data: existingProfile, error: checkError } = await supabase
           .from('profiles')
           .select('id')
           .eq('id', data.user.id)
           .maybeSingle();
-        
+
         console.log('Profile check:', { existingProfile, checkError });
-        
+
         // If no profile exists, create it manually
         if (!existingProfile) {
           console.log('Creating profile manually for user:', data.user.id);
@@ -108,7 +108,7 @@ export function useAuth() {
                 role: role,
               }
             ] as any);
-          
+
           if (insertError) {
             console.error('Error creating profile:', insertError);
             throw insertError;
@@ -149,7 +149,7 @@ export function useAuth() {
     }
   };
 
-  const updateProfile = async (updates: any) => {
+  const updateProfile = async (updates: ProfileUpdate) => {
     if (!user) return { error: new Error('No user logged in') };
 
     try {
@@ -159,7 +159,7 @@ export function useAuth() {
         .eq('id', user.id);
 
       if (error) throw error;
-      
+
       // Refresh profile
       await fetchProfile(user.id);
       return { error: null };

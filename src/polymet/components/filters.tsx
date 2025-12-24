@@ -58,6 +58,8 @@ export interface FilterState {
 
 interface FiltersProps {
   type: "business" | "franchise";
+  initialCategory?: string; // Category name from URL
+  initialSubcategory?: string; // Subcategory name from URL
   onFiltersChange?: (filters: FilterState) => void;
   onApplyFilters?: (filters: FilterState) => void;
   className?: string;
@@ -108,28 +110,36 @@ const verificationTypes = [
 
 export function Filters({
   type,
+  initialCategory,
+  initialSubcategory,
   onFiltersChange,
   onApplyFilters: _onApplyFilters, // Kept in interface for future use
   className,
 }: FiltersProps) {
-  const [filters, setFilters] = useState<FilterState>({
-    searchType: type,
-    industry: [],
-    subcategory: [],
-    state: [],
-    city: [],
-    priceRange: [0, 10000000],
-    revenueRange: [0, 50000000],
-    businessAge: "",
-    employees: "",
-    businessType: [],
-    financing: false,
-    verification: [],
-    franchiseFee: [0, 5000000],
-    royaltyPercentage: [0, 20],
-    trainingDuration: "",
-    outlets: "",
-    multiUnit: false,
+  const [filters, setFilters] = useState<FilterState>(() => {
+    // Initialize with URL category if provided
+    const initialIndustry = initialCategory ? [initialCategory] : [];
+    const initialSub = initialSubcategory ? [initialSubcategory] : [];
+
+    return {
+      searchType: type,
+      industry: initialIndustry,
+      subcategory: initialSub,
+      state: [],
+      city: [],
+      priceRange: [0, 10000000],
+      revenueRange: [0, 50000000],
+      businessAge: "",
+      employees: "",
+      businessType: [],
+      financing: false,
+      verification: [],
+      franchiseFee: [0, 5000000],
+      royaltyPercentage: [0, 20],
+      trainingDuration: "",
+      outlets: "",
+      multiUnit: false,
+    };
   });
 
   // Search states for filters
@@ -321,14 +331,20 @@ export function Filters({
                     variant={filters.industry.includes(category.name) ? "default" : "outline"}
                     className="cursor-pointer hover:bg-primary/90 px-3 py-1.5 text-sm"
                     onClick={() => {
-                      toggleArrayFilter("industry", category.name);
-                      // Clear subcategories when unchecking
-                      if (filters.industry.includes(category.name)) {
-                        const remainingSubcats = filters.subcategory.filter(
+                      const isSelected = filters.industry.includes(category.name);
+                      const newIndustry = isSelected
+                        ? filters.industry.filter(i => i !== category.name)
+                        : [...filters.industry, category.name];
+
+                      let newSubcategory = filters.subcategory;
+                      if (isSelected) {
+                        // We are removing a category, so remove its subcategories
+                        newSubcategory = filters.subcategory.filter(
                           sub => !category.subcategories.some(s => s.name === sub)
                         );
-                        updateFilters({ subcategory: remainingSubcats });
                       }
+
+                      updateFilters({ industry: newIndustry, subcategory: newSubcategory });
                     }}
                   >
                     {category.name}
@@ -406,16 +422,24 @@ export function Filters({
                     variant={filters.state.includes(state) ? "default" : "outline"}
                     className="cursor-pointer hover:bg-primary/90 px-3 py-1.5 text-sm"
                     onClick={() => {
-                      toggleArrayFilter("state", state);
+                      const isSelected = filters.state.includes(state);
+                      const newState = isSelected
+                        ? filters.state.filter(s => s !== state)
+                        : [...filters.state, state];
+
+                      let newCity = filters.city;
+
                       // Clear cities from this state when unselecting
-                      if (filters.state.includes(state)) {
+                      if (isSelected) {
                         const stateCities = statesWithCities[state] || [];
-                        const remainingCities = filters.city.filter(
+                        newCity = filters.city.filter(
                           city => !stateCities.includes(city)
                         );
-                        updateFilters({ city: remainingCities });
                       }
+
+                      updateFilters({ state: newState, city: newCity });
                     }}
+
                   >
                     {state}
                     {filters.state.includes(state) && (

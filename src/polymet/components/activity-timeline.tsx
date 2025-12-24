@@ -18,7 +18,6 @@ import {
 } from "lucide-react";
 import {
   getActivityEvents,
-  type ActivityEvent,
 } from "@/polymet/data/profile-data";
 
 interface ActivityTimelineProps {

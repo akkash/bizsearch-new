@@ -34,49 +34,98 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profileMissing, setProfileMissing] = useState(false);
 
   /**
-   * Fetches user profile from database
+   * Fetches user profile from database including roles and role-specific details
    * Uses direct fetch to avoid Supabase client timeout issues
    */
   const fetchProfile = useCallback(async (userId: string): Promise<void> => {
     try {
       console.log('👤 Fetching profile for user:', userId);
 
-      // Use direct fetch instead of Supabase client to avoid timeout issues
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      // First fetch the core profile - this must succeed
+      console.log('📍 Step 1: Fetching profiles table...');
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      console.log('📍 Step 1 done:', profileError ? 'ERROR' : 'OK');
 
-      const response = await fetch(
-        `${supabaseUrl}/rest/v1/profiles?id=eq.${userId}&select=*`,
-        {
-          headers: {
-            'apikey': supabaseKey,
-            'Authorization': `Bearer ${supabaseKey}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (!data || data.length === 0) {
-        // Profile not found - create minimal profile immediately
-        console.warn('⚠️ Profile not found, creating minimal profile...');
+      if (profileError || !profileData) {
+        console.warn('⚠️ Profile not found, creating minimal profile...', profileError);
         await createMinimalProfile(userId);
         return;
       }
 
-      // Set the first profile from array
-      const profile = data[0];
-      console.log('✅ Profile fetched successfully:', profile.display_name);
-      setProfile(profile);
+      // Fetch additional data - these are optional and may not exist
+      let rolesData: any[] = [];
+      let sellerData = null;
+      let buyerData = null;
+      let franchisorData = null;
+      let franchiseeData = null;
+      let advisorData = null;
+
+      console.log('📍 Step 2: Fetching profile_roles...');
+      try {
+        const { data, error } = await supabase.from('profile_roles').select('*').eq('profile_id', userId);
+        rolesData = data || [];
+        console.log('📍 Step 2 done:', error ? 'ERROR' : `OK (${rolesData.length} roles)`);
+      } catch (e) {
+        console.warn('profile_roles fetch failed:', e);
+      }
+
+      console.log('📍 Step 3: Fetching seller_details...');
+      try {
+        const { data } = await supabase.from('seller_details').select('*').eq('profile_id', userId).maybeSingle();
+        sellerData = data;
+        console.log('📍 Step 3 done');
+      } catch (e) { console.log('📍 Step 3 skipped'); }
+
+      console.log('📍 Step 4: Fetching buyer_details...');
+      try {
+        const { data } = await supabase.from('buyer_details').select('*').eq('profile_id', userId).maybeSingle();
+        buyerData = data;
+        console.log('📍 Step 4 done');
+      } catch (e) { console.log('📍 Step 4 skipped'); }
+
+      console.log('📍 Step 5: Fetching franchisor_details...');
+      try {
+        const { data } = await supabase.from('franchisor_details').select('*').eq('profile_id', userId).maybeSingle();
+        franchisorData = data;
+        console.log('📍 Step 5 done');
+      } catch (e) { console.log('📍 Step 5 skipped'); }
+
+      console.log('📍 Step 6: Fetching franchisee_details...');
+      try {
+        const { data } = await supabase.from('franchisee_details').select('*').eq('profile_id', userId).maybeSingle();
+        franchiseeData = data;
+        console.log('📍 Step 6 done');
+      } catch (e) { console.log('📍 Step 6 skipped'); }
+
+      console.log('📍 Step 7: Fetching advisor_details...');
+      try {
+        const { data } = await supabase.from('advisor_details').select('*').eq('profile_id', userId).maybeSingle();
+        advisorData = data;
+        console.log('📍 Step 7 done');
+      } catch (e) { console.log('📍 Step 7 skipped'); }
+
+      console.log('📍 Step 8: Building extended profile...');
+      // Build extended profile with roles and details
+      const extendedProfile = {
+        ...profileData,
+        roles: rolesData,
+        seller_details: sellerData,
+        buyer_details: buyerData,
+        franchisor_details: franchisorData,
+        franchisee_details: franchiseeData,
+        advisor_details: advisorData,
+      };
+
+      console.log('✅ Profile fetched with roles:', extendedProfile.display_name, 'Roles:', rolesData?.map((r: any) => r.role));
+      setProfile(extendedProfile);
       setProfileMissing(false);
+      setLoading(false); // Important: stop loading spinner
     } catch (error: any) {
       console.error('❌ Error fetching profile:', error);
-      // On error, create minimal profile instead of failing
       console.warn('⚠️ Creating minimal profile after fetch error...');
       await createMinimalProfile(userId);
     }
@@ -319,7 +368,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signUpWithPhone = async (data: PhoneSignUpData): Promise<{ error: AuthError | null }> => {
     try {
       setError(null);
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      const { error: authError } = await supabase.auth.signUp({
         phone: data.phone,
         password: data.password,
         options: {

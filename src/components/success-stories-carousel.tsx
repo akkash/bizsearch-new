@@ -1,6 +1,5 @@
 import { useState } from "react";
 import {
-    Play,
     Quote,
     Star,
     ChevronLeft,
@@ -8,7 +7,6 @@ import {
     Award,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -66,16 +64,12 @@ const successStories = [
 
 export function SuccessStoriesCarousel({ className }: SuccessStoriesCarouselProps) {
     const [currentIndex, setCurrentIndex] = useState(0);
-    const [showVideo, setShowVideo] = useState(false);
-
     const nextSlide = () => {
         setCurrentIndex((prev) => (prev + 1) % successStories.length);
-        setShowVideo(false);
     };
 
     const prevSlide = () => {
         setCurrentIndex((prev) => (prev - 1 + successStories.length) % successStories.length);
-        setShowVideo(false);
     };
 
     const currentStory = successStories[currentIndex];
@@ -107,16 +101,6 @@ export function SuccessStoriesCarousel({ className }: SuccessStoriesCarouselProp
                                 alt={currentStory.businessName}
                                 className="w-full h-full object-cover"
                             />
-                            {currentStory.hasVideo && (
-                                <button
-                                    onClick={() => setShowVideo(true)}
-                                    className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition-colors group"
-                                >
-                                    <div className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                        <Play className="h-8 w-8 text-trust-blue ml-1" fill="currentColor" />
-                                    </div>
-                                </button>
-                            )}
                             {/* Deal badge */}
                             <div className="absolute top-4 left-4 flex gap-2">
                                 <Badge className="bg-growth-green text-white border-0">
@@ -192,7 +176,6 @@ export function SuccessStoriesCarousel({ className }: SuccessStoriesCarouselProp
                                     key={index}
                                     onClick={() => {
                                         setCurrentIndex(index);
-                                        setShowVideo(false);
                                     }}
                                     className={cn(
                                         "w-2 h-2 rounded-full transition-all",

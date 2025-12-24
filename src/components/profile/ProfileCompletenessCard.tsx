@@ -46,11 +46,7 @@ export function ProfileCompletenessCard({
         return 'text-red-600';
     };
 
-    const getProgressColor = () => {
-        if (completeness.score >= 80) return 'bg-green-500';
-        if (completeness.score >= 50) return 'bg-yellow-500';
-        return 'bg-red-500';
-    };
+
 
     return (
         <Card className={`border-dashed ${className}`}>

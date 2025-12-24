@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -52,13 +52,7 @@ export function SellerAnalyticsPage() {
     const [loading, setLoading] = useState(true);
     const [timeRange, setTimeRange] = useState('30d');
 
-    useEffect(() => {
-        if (user) {
-            loadAnalytics();
-        }
-    }, [user, timeRange]);
-
-    const loadAnalytics = async () => {
+    const loadAnalytics = useCallback(async () => {
         if (!user) return;
         setLoading(true);
         try {
@@ -93,7 +87,13 @@ export function SellerAnalyticsPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [user]);
+
+    useEffect(() => {
+        if (user) {
+            loadAnalytics();
+        }
+    }, [user, timeRange, loadAnalytics]);
 
     if (loading) {
         return (

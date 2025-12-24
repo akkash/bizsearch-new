@@ -1,17 +1,14 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { 
-  Target, 
-  TrendingUp, 
-  Award, 
-  DollarSign, 
-  Briefcase,
-  MapPin,
+import {
+  Target,
+  TrendingUp,
+  DollarSign,
   X
 } from 'lucide-react';
 import { AIFranchiseeMatcherService, type FranchiseeProfile } from '@/lib/ai-franchisee-matcher-service';
@@ -151,8 +148,8 @@ export function FranchiseeMatcher({ onClose, className }: FranchiseeMatcherProps
                 </div>
               </div>
 
-              <Button 
-                onClick={handleFindMatches} 
+              <Button
+                onClick={handleFindMatches}
                 disabled={isLoading}
                 className="w-full"
               >

@@ -94,7 +94,7 @@ export function adaptSupabaseProfileToUserProfile(profile: SupabaseProfile): Use
         ndaRequests: [],
       };
 
-    case "franchisor":
+    case "franchisor": {
       const support = profile.support as any;
       return {
         ...baseProfile,
@@ -131,6 +131,7 @@ export function adaptSupabaseProfileToUserProfile(profile: SupabaseProfile): Use
         leads: 0,
         activeNegotiations: 0,
       };
+    }
 
     case "franchisee":
       return {

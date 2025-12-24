@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -7,26 +7,20 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import {
-  Settings,
   ArrowLeft,
   Bell,
   Shield,
   User,
-  Mail,
-  Smartphone,
   Globe,
   Lock,
   Trash2,
   Download,
-  Eye,
-  EyeOff,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getCurrentUserProfile } from "@/polymet/data/profile-data";
 
 export function ProfileSettingsPage() {
   const navigate = useNavigate();
-  const currentUser = getCurrentUserProfile();
   const [settings, setSettings] = useState({
     notifications: {
       email: true,

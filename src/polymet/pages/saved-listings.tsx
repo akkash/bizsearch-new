@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSavedListings } from "@/contexts/SavedListingsContext";
@@ -7,7 +7,6 @@ import { BusinessCard } from "@/polymet/components/business-card";
 import { FranchiseCard } from "@/polymet/components/franchise-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -24,8 +23,6 @@ import {
   Heart,
   Building2,
   Store,
-  Trash2,
-  ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -40,22 +37,16 @@ type FilterType = "all" | "business" | "franchise";
 export function SavedListingsPage({ className }: SavedListingsPageProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { refreshSavedCount, toggleSave, isListingSaved } = useSavedListings();
+  const { toggleSave } = useSavedListings();
   const [savedListings, setSavedListings] = useState<SavedListingWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [sortBy, setSortBy] = useState<SortOption>("recent");
   const [filterType, setFilterType] = useState<FilterType>("all");
 
-  useEffect(() => {
-    if (user) {
-      fetchSavedListings();
-    }
-  }, [user]);
-
-  const fetchSavedListings = async () => {
+  const fetchSavedListings = useCallback(async () => {
     if (!user) return;
-    
+
     setLoading(true);
     try {
       const listings = await SavedListingsService.getSavedListings(user.id);
@@ -65,15 +56,21 @@ export function SavedListingsPage({ className }: SavedListingsPageProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      fetchSavedListings();
+    }
+  }, [user, fetchSavedListings]);
 
   const handleUnsave = async (listingType: 'business' | 'franchise', listingId: string) => {
     if (!user) return;
-    
+
     try {
       await toggleSave(listingType, listingId);
       // Remove from local state
-      setSavedListings(prev => 
+      setSavedListings(prev =>
         prev.filter(item => !(item.listing_type === listingType && item.listing_id === listingId))
       );
     } catch (error) {
@@ -98,14 +95,15 @@ export function SavedListingsPage({ className }: SavedListingsPageProps) {
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       case 'oldest':
         return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-      case 'alphabetical':
-        const aName = a.listing_type === 'business' 
-          ? (a.listing?.name || '') 
+      case 'alphabetical': {
+        const aName = a.listing_type === 'business'
+          ? (a.listing?.name || '')
           : (a.listing?.brand_name || a.listing?.brandName || '');
         const bName = b.listing_type === 'business'
           ? (b.listing?.name || '')
           : (b.listing?.brand_name || b.listing?.brandName || '');
         return aName.localeCompare(bName);
+      }
       default:
         return 0;
     }

@@ -108,8 +108,7 @@ export class AIApplicationAssistantService {
     // Generate next steps
     const nextSteps = await this.generateNextSteps(
       completionPercentage,
-      missingRequiredFields,
-      suggestions
+      missingRequiredFields
     );
 
     return {
@@ -325,20 +324,22 @@ Return data in EXACT JSON format (no markdown):
     }
 
     switch (field.fieldType) {
-      case 'email':
+      case 'email': {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(String(value))) {
           return { isValid: false, message: 'Invalid email format' };
         }
         break;
+      }
 
-      case 'phone':
+      case 'phone': {
         const phoneRegex = /^[0-9]{10}$/;
         const cleaned = String(value).replace(/\D/g, '');
         if (!phoneRegex.test(cleaned)) {
           return { isValid: false, message: 'Invalid phone number (should be 10 digits)' };
         }
         break;
+      }
 
       case 'number':
         if (isNaN(Number(value))) {
@@ -346,12 +347,13 @@ Return data in EXACT JSON format (no markdown):
         }
         break;
 
-      case 'date':
+      case 'date': {
         const date = new Date(value);
         if (isNaN(date.getTime())) {
           return { isValid: false, message: 'Invalid date format' };
         }
         break;
+      }
     }
 
     return { isValid: true, message: 'Valid' };
@@ -379,8 +381,7 @@ Return data in EXACT JSON format (no markdown):
    */
   private static async generateNextSteps(
     completionPercentage: number,
-    missingFields: string[],
-    suggestions: ApplicationAssistance['suggestions']
+    missingFields: string[]
   ): Promise<string[]> {
     if (completionPercentage >= 90) {
       return [

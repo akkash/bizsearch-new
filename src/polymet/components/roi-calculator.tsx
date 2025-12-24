@@ -183,7 +183,7 @@ export function ROICalculator({
     years: number
   ): ROIProjection[] => {
     const projections: ROIProjection[] = [];
-    let cumulativeInvestment = investment;
+    const cumulativeInvestment = investment;
     let cumulativeReturns = 0;
 
     for (let year = 1; year <= years; year++) {

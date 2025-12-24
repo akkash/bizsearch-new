@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -6,10 +6,7 @@ import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
 import {
   LineChart,
   Line,
-  BarChart,
-  Bar,
   XAxis,
-  YAxis,
   ResponsiveContainer,
   PieChart,
   Pie,
@@ -17,14 +14,11 @@ import {
 } from "recharts";
 import {
   TrendingUpIcon,
-  TrendingDownIcon,
   DollarSignIcon,
   UsersIcon,
   StarIcon,
   MapPinIcon,
-  CalendarIcon,
   DownloadIcon,
-  FilterIcon,
   RefreshCwIcon,
 } from "lucide-react";
 
@@ -219,7 +213,6 @@ export function FranchiseMetrics({
   const [selectedFranchise, setSelectedFranchise] = useState<string>(
     metrics[0]?.franchiseId || ""
   );
-  const [timeRange, setTimeRange] = useState<string>("6months");
 
   const selectedMetrics =
     metrics.find((m) => m.franchiseId === selectedFranchise) || metrics[0];
@@ -416,7 +409,7 @@ export function FranchiseMetrics({
                     dataKey="value"
                     label={({ name, value }) => `${name}: ${value}`}
                   >
-                    {performanceData.map((entry, index) => (
+                    {performanceData.map((_, index) => (
                       <Cell
                         key={`cell-${index}`}
                         fill={COLORS[index % COLORS.length]}
@@ -443,11 +436,10 @@ export function FranchiseMetrics({
                 <button
                   key={metric.franchiseId}
                   onClick={() => setSelectedFranchise(metric.franchiseId)}
-                  className={`w-full text-left p-3 rounded-lg border transition-colors ${
-                    selectedFranchise === metric.franchiseId
-                      ? "bg-blue-50 border-blue-200"
-                      : "hover:bg-muted"
-                  }`}
+                  className={`w-full text-left p-3 rounded-lg border transition-colors ${selectedFranchise === metric.franchiseId
+                    ? "bg-blue-50 border-blue-200"
+                    : "hover:bg-muted"
+                    }`}
                 >
                   <div className="flex items-center justify-between">
                     <div>
@@ -516,11 +508,10 @@ export function FranchiseMetrics({
                   {[1, 2, 3, 4, 5].map((star) => (
                     <StarIcon
                       key={star}
-                      className={`h-3 w-3 ${
-                        star <= selectedMetrics.customerSatisfaction
-                          ? "text-yellow-400 fill-current"
-                          : "text-gray-300"
-                      }`}
+                      className={`h-3 w-3 ${star <= selectedMetrics.customerSatisfaction
+                        ? "text-yellow-400 fill-current"
+                        : "text-gray-300"
+                        }`}
                     />
                   ))}
                 </div>

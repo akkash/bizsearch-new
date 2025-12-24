@@ -1,4 +1,3 @@
-import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -10,7 +9,6 @@ import {
   Shield,
   User,
   Lock,
-  Trash2,
   Mail,
   ImageIcon,
 } from "lucide-react";

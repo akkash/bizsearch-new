@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { getCategoryBySlug } from "@/data/categories";
 import {
   Card,
   CardContent,
@@ -247,36 +248,107 @@ export function FranchiseListingWizard({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Industry *</Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select industry" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {franchiseIndustryOptions.map((industry) => (
-                      <SelectItem key={industry.value} value={industry.value}>
-                        {industry.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Controller
+                  control={form.control}
+                  name="brandOverview.industry"
+                  render={({ field }) => (
+                    <Select
+                      onValueChange={(value) => {
+                        field.onChange([value]); // Store as array
+                        form.setValue("brandOverview.subcategory", []); // Reset subcategory
+                      }}
+                      defaultValue={field.value?.[0]}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select industry" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {franchiseIndustryOptions.map((industry) => (
+                          <SelectItem key={industry.value} value={industry.value}>
+                            {industry.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.brandOverview?.industry && (
+                  <p className="text-sm text-red-600">
+                    {errors.brandOverview.industry.message}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
                 <Label>Business Model *</Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select business model" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {franchiseBusinessModelOptions.map((model) => (
-                      <SelectItem key={model.value} value={model.value}>
-                        {model.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Controller
+                  control={form.control}
+                  name="brandOverview.businessModel"
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select business model" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {franchiseBusinessModelOptions.map((model) => (
+                          <SelectItem key={model.value} value={model.value}>
+                            {model.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.brandOverview?.businessModel && (
+                  <p className="text-sm text-red-600">
+                    {errors.brandOverview.businessModel.message}
+                  </p>
+                )}
               </div>
             </div>
+
+            {/* Subcategories Section */}
+            {watchedData.brandOverview?.industry?.[0] && (
+              <div className="space-y-2">
+                <Label>Subcategories *</Label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 p-4 border rounded-md bg-muted/20 max-h-48 overflow-y-auto">
+                  {getCategoryBySlug(watchedData.brandOverview.industry[0])?.subcategories.map((sub) => (
+                    <div key={sub.slug} className="flex items-center space-x-2">
+                      <Controller
+                        control={form.control}
+                        name="brandOverview.subcategory"
+                        render={({ field }) => {
+                          const currentValues = field.value || [];
+                          return (
+                            <Checkbox
+                              id={sub.slug}
+                              checked={currentValues.includes(sub.slug)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  field.onChange([...currentValues, sub.slug]);
+                                } else {
+                                  field.onChange(
+                                    currentValues.filter((v) => v !== sub.slug)
+                                  );
+                                }
+                              }}
+                            />
+                          );
+                        }}
+                      />
+                      <Label htmlFor={sub.slug} className="text-sm font-normal cursor-pointer">
+                        {sub.name}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+                {errors.brandOverview?.subcategory && (
+                  <p className="text-sm text-red-600">
+                    {errors.brandOverview.subcategory.message}
+                  </p>
+                )}
+              </div>
+            )}
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="space-y-2">
@@ -831,23 +903,21 @@ export function FranchiseListingWizard({
                   <button
                     key={step.id}
                     onClick={() => handleStepClick(index)}
-                    className={`w-full text-left p-3 rounded-lg border transition-colors ${
-                      isCurrent
-                        ? "border-primary bg-primary/5"
-                        : isCompleted
-                          ? "border-green-200 bg-green-50"
-                          : "border-muted hover:bg-muted"
-                    }`}
+                    className={`w-full text-left p-3 rounded-lg border transition-colors ${isCurrent
+                      ? "border-primary bg-primary/5"
+                      : isCompleted
+                        ? "border-green-200 bg-green-50"
+                        : "border-muted hover:bg-muted"
+                      }`}
                   >
                     <div className="flex items-center gap-3">
                       <div
-                        className={`p-2 rounded-lg ${
-                          isCurrent
-                            ? "bg-primary text-primary-foreground"
-                            : isCompleted
-                              ? "bg-green-500 text-white"
-                              : "bg-muted"
-                        }`}
+                        className={`p-2 rounded-lg ${isCurrent
+                          ? "bg-primary text-primary-foreground"
+                          : isCompleted
+                            ? "bg-green-500 text-white"
+                            : "bg-muted"
+                          }`}
                       >
                         {isCompleted ? (
                           <CheckCircle className="h-4 w-4" />

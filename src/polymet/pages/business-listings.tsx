@@ -140,105 +140,128 @@ export function BusinessListings({ className }: BusinessListingsProps) {
     if (filters) {
       // Industry filter
       if (filters.industry.length > 0) {
-        filtered = filtered.filter((business) =>
-          filters.industry.includes(business.industry)
-        );
+        filtered = filtered.filter((business) => {
+          const businessIndustry = business.industry?.toLowerCase() || '';
+          return filters.industry.some(f => businessIndustry.includes(f.toLowerCase()));
+        });
       }
 
-      // Subcategory filter (check if business has subcategory field)
+      // Subcategory filter
       if (filters.subcategory && filters.subcategory.length > 0) {
-        filtered = filtered.filter((business) =>
-          filters.subcategory.includes((business as any).subcategory || '')
-        );
+        filtered = filtered.filter((business) => {
+          // Check explicit subcategory field or tags/highlights
+          const sub = (business as any).subcategory;
+          const tags = business.highlights || [];
+
+          // Helper to check if any selected subcategory matches
+          return filters.subcategory.some(filterSub => {
+            const fs = filterSub.toLowerCase();
+            // Check single string subcategory
+            if (typeof sub === 'string' && sub.toLowerCase().includes(fs)) return true;
+            // Check array subcategory
+            if (Array.isArray(sub) && sub.some(s => s.toLowerCase().includes(fs))) return true;
+            // Check highlights/tags as fallback
+            if (Array.isArray(tags) && tags.some((t: any) => typeof t === 'string' && t.toLowerCase().includes(fs))) return true;
+            return false;
+          });
+        });
       }
 
       // State filter
       if (filters.state && filters.state.length > 0) {
-        filtered = filtered.filter((business) =>
-          filters.state.some((state) => business.state?.includes(state) || business.location?.includes(state))
-        );
+        filtered = filtered.filter((business) => {
+          const bLocation = (business.location || '').toLowerCase();
+          const bState = (business.state || '').toLowerCase();
+          return filters.state.some(s =>
+            bState.includes(s.toLowerCase()) || bLocation.includes(s.toLowerCase())
+          );
+        });
       }
 
       // City filter
       if (filters.city && filters.city.length > 0) {
-        filtered = filtered.filter((business) =>
-          filters.city.some((city) => business.city?.includes(city) || business.location?.includes(city))
-        );
+        filtered = filtered.filter((business) => {
+          const bLocation = (business.location || '').toLowerCase();
+          const bCity = (business.city || '').toLowerCase();
+          return filters.city.some(c =>
+            bCity.includes(c.toLowerCase()) || bLocation.includes(c.toLowerCase())
+          );
+        });
+      }
+
+      // Business Type filter
+      if (filters.businessType && filters.businessType.length > 0) {
+        filtered = filtered.filter((business) => {
+          const bType = (business.businessType || business.business_type || '').toLowerCase();
+          return filters.businessType.some(t => bType.includes(t.toLowerCase()));
+        });
       }
 
       // Price range filter
       if (filters.priceRange[0] > 0 || filters.priceRange[1] < 10000000) {
         filtered = filtered.filter((business) => {
-          const price = business.price;
-          return (
-            price >= filters.priceRange[0] && price <= filters.priceRange[1]
-          );
+          const price = business.price || 0;
+          return price >= filters.priceRange[0] && price <= filters.priceRange[1];
         });
       }
 
       // Revenue range filter
       if (filters.revenueRange[0] > 0 || filters.revenueRange[1] < 50000000) {
         filtered = filtered.filter((business) => {
+          // Some businesses might just show profit or cash flow, handle properly
           const revenue = business.revenue || 0;
-          return (
-            revenue >= filters.revenueRange[0] &&
-            revenue <= filters.revenueRange[1]
-          );
+          // If revenue is 0/undefined, do we show it? Maybe strict filtering is better.
+          return revenue >= filters.revenueRange[0] && revenue <= filters.revenueRange[1];
         });
       }
 
       // Business age filter
-      if (filters.businessAge) {
+      if (filters.businessAge && filters.businessAge !== 'any') {
         filtered = filtered.filter((business) => {
-          const age = new Date().getFullYear() - business.establishedYear;
+          const estYear = business.establishedYear || business.established_year;
+          if (!estYear) return false;
+
+          const age = new Date().getFullYear() - estYear;
           switch (filters.businessAge) {
-            case "0-2":
-              return age <= 2;
-            case "3-5":
-              return age >= 3 && age <= 5;
-            case "6-10":
-              return age >= 6 && age <= 10;
-            case "10+":
-              return age > 10;
-            default:
-              return true;
+            case "0-2": return age <= 2;
+            case "3-5": return age >= 3 && age <= 5;
+            case "6-10": return age >= 6 && age <= 10;
+            case "10+": return age > 10;
+            default: return true;
           }
         });
       }
 
       // Employees filter
-      if (filters.employees) {
+      if (filters.employees && filters.employees !== 'any') {
         filtered = filtered.filter((business) => {
-          const employees = business.employees;
+          const employees = business.employees || business.employee_count;
+          if (employees === undefined || employees === null) return false;
+
           switch (filters.employees) {
-            case "1-10":
-              return employees <= 10;
-            case "11-50":
-              return employees >= 11 && employees <= 50;
-            case "51-200":
-              return employees >= 51 && employees <= 200;
-            case "200+":
-              return employees > 200;
-            default:
-              return true;
+            case "1-10": return employees <= 10;
+            case "11-50": return employees >= 11 && employees <= 50;
+            case "51-200": return employees >= 51 && employees <= 200;
+            case "200+": return employees > 200;
+            default: return true;
           }
         });
       }
 
       // Verification filter
       if (filters.verification.length > 0) {
-        filtered = filtered.filter((business) =>
-          filters.verification.some((verification) =>
-            business.badges.includes(verification)
-          )
-        );
+        filtered = filtered.filter((business) => {
+          const badges = business.badges || [];
+          return filters.verification.some((v) => badges.includes(v));
+        });
       }
 
       // Financing filter
       if (filters.financing) {
-        filtered = filtered.filter((business) =>
-          business.badges.includes("Financing Available")
-        );
+        filtered = filtered.filter((business) => {
+          const badges = business.badges || [];
+          return badges.includes("Financing Available");
+        });
       }
     }
 
@@ -493,7 +516,12 @@ export function BusinessListings({ className }: BusinessListingsProps) {
           {/* Filters Sidebar */}
           {showFilters && (
             <div className="lg:w-80 space-y-6">
-              <Filters type="business" onFiltersChange={handleFiltersChange} />
+              <Filters
+                type="business"
+                initialCategory={currentCategory?.name}
+                initialSubcategory={currentSubcategory?.name}
+                onFiltersChange={handleFiltersChange}
+              />
             </div>
           )}
 

@@ -197,7 +197,7 @@ ${dueDiligenceData.criticalIssues?.map((i: string) => `• ${i}`).join('\n') || 
    * Export report to HTML format
    */
   static exportToHTML(report: Report): string {
-    let html = `<!DOCTYPE html>
+    const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">

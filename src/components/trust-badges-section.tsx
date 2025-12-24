@@ -14,19 +14,19 @@ interface TrustBadgesSectionProps {
 }
 
 const mediaLogos = [
-    { name: "Economic Times", logo: "https://logo.clearbit.com/economictimes.com", fallback: "ET" },
-    { name: "Business Standard", logo: "https://logo.clearbit.com/business-standard.com", fallback: "BS" },
-    { name: "YourStory", logo: "https://logo.clearbit.com/yourstory.com", fallback: "YS" },
-    { name: "Inc42", logo: "https://logo.clearbit.com/inc42.com", fallback: "I42" },
-    { name: "Forbes India", logo: "https://logo.clearbit.com/forbesindia.com", fallback: "FI" },
+    { name: "Economic Times", logo: "https://ui-avatars.com/api/?name=Economic+Times&background=random&color=fff", fallback: "ET" },
+    { name: "Business Standard", logo: "https://ui-avatars.com/api/?name=Business+Standard&background=random&color=fff", fallback: "BS" },
+    { name: "YourStory", logo: "https://ui-avatars.com/api/?name=YourStory&background=random&color=fff", fallback: "YS" },
+    { name: "Inc42", logo: "https://ui-avatars.com/api/?name=Inc42&background=random&color=fff", fallback: "I42" },
+    { name: "Forbes India", logo: "https://ui-avatars.com/api/?name=Forbes+India&background=random&color=fff", fallback: "FI" },
 ];
 
 const partnerLogos = [
-    { name: "HDFC Bank", logo: "https://logo.clearbit.com/hdfcbank.com", fallback: "HDFC" },
-    { name: "ICICI Bank", logo: "https://logo.clearbit.com/icicibank.com", fallback: "ICICI" },
-    { name: "Kotak Mahindra", logo: "https://logo.clearbit.com/kotak.com", fallback: "Kotak" },
-    { name: "Axis Bank", logo: "https://logo.clearbit.com/axisbank.com", fallback: "Axis" },
-    { name: "SBI", logo: "https://logo.clearbit.com/sbi.co.in", fallback: "SBI" },
+    { name: "HDFC Bank", logo: "https://ui-avatars.com/api/?name=HDFC+Bank&background=004c8f&color=fff", fallback: "HDFC" },
+    { name: "ICICI Bank", logo: "https://ui-avatars.com/api/?name=ICICI+Bank&background=f37e20&color=fff", fallback: "ICICI" },
+    { name: "Kotak Mahindra", logo: "https://ui-avatars.com/api/?name=Kotak+Mahindra&background=ed1c24&color=fff", fallback: "Kotak" },
+    { name: "Axis Bank", logo: "https://ui-avatars.com/api/?name=Axis+Bank&background=97144d&color=fff", fallback: "Axis" },
+    { name: "SBI", logo: "https://ui-avatars.com/api/?name=SBI&background=280071&color=fff", fallback: "SBI" },
 ];
 
 const trustBadges = [

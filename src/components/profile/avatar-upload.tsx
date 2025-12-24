@@ -1,9 +1,9 @@
-import React, { useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Upload, Trash2, User } from 'lucide-react';
+import { Loader2, Upload, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 /**
@@ -70,7 +70,7 @@ export function AvatarUpload() {
     setError(null);
 
     try {
-      const { url, error } = await uploadAvatar(file);
+      const { error } = await uploadAvatar(file);
 
       if (error) throw error;
 
