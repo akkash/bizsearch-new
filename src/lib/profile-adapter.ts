@@ -226,7 +226,26 @@ export function adaptSupabaseProfileToUserProfile(profile: SupabaseProfile): Use
       };
 
     default:
-      throw new Error(`Unsupported role: ${profile.role}`);
+      // Graceful fallback: treat unknown roles as buyers
+      console.warn(`Unknown role: ${profile.role}, falling back to buyer profile`);
+      return {
+        ...baseProfile,
+        role: "buyer",
+        buyerType: "individual",
+        investmentRange: { min: 0, max: 0 },
+        preferredIndustries: [],
+        preferredLocations: [],
+        experience: "",
+        privateInfo: {
+          financingPreference: "cash",
+          preApprovalAmount: 0,
+          timeline: "",
+          dueDiligenceProcess: "",
+        },
+        savedBusinesses: [],
+        savedSearches: [],
+        ndaRequests: [],
+      };
   }
 }
 

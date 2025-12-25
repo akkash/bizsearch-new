@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { ProfileService } from "@/lib/profile-service";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +12,7 @@ import {
   Building,
   TrendingUp,
   Award,
+  LayoutDashboard,
 } from "lucide-react";
 import { ProfileHeader } from "@/polymet/components/profile-header";
 import { RoleTabs } from "@/polymet/components/role-tabs";
@@ -20,12 +20,14 @@ import { VerificationPanel } from "@/polymet/components/verification-panel";
 import { DocumentsVault } from "@/polymet/components/documents-vault";
 import { ActivityTimeline } from "@/polymet/components/activity-timeline";
 import { TeamManagement } from "@/polymet/components/team-management";
-import { BusinessCard } from "@/polymet/components/business-card";
+import { BusinessCard }
+  from "@/polymet/components/business-card";
 import { FranchiseCard } from "@/polymet/components/franchise-card";
 import { ProfileCompletenessCard } from "@/components/profile/ProfileCompletenessCard";
 import type { UserProfile } from "@/polymet/data/profile-data";
 import { adaptSupabaseProfileToUserProfile } from "@/lib/profile-adapter";
 import type { Business, Franchise } from "@/types/listings";
+import { useProfileData } from "@/hooks/use-profile-data";
 
 interface ProfilePageProps {
   className?: string;
@@ -34,41 +36,38 @@ interface ProfilePageProps {
 export function ProfilePage({ className = "" }: ProfilePageProps) {
   const { userId } = useParams();
   const navigate = useNavigate();
-  const { user, profile: currentUserProfile, loading: authLoading } = useAuth();
+  const { user } = useAuth();
+
+  // Determine whose profile we are viewing
+  const targetUserId = userId || user?.id;
+
+  // Use our new hook to fetch all data
+  const {
+    profile: dataProfile,
+    listings,
+    loading,
+    error
+  } = useProfileData(targetUserId);
+
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
   const [activeRole, setActiveRole] = useState<UserProfile["role"]>("seller");
 
   const isOwnProfile = !userId || userId === user?.id;
 
   useEffect(() => {
-    const loadProfile = async () => {
-      if (authLoading) return;
+    if (dataProfile) {
+      const adapted = adaptSupabaseProfileToUserProfile(dataProfile);
+      setProfile(adapted);
 
-      try {
-        if (userId) {
-          // Load specific user profile
-          const data = await ProfileService.getProfile(userId);
-          const adaptedProfile = adaptSupabaseProfileToUserProfile(data);
-          setProfile(adaptedProfile);
-        } else {
-          // Load current user profile
-          if (currentUserProfile) {
-            const adaptedProfile = adaptSupabaseProfileToUserProfile(currentUserProfile);
-            setProfile(adaptedProfile);
-          }
-        }
-      } catch (error) {
-        console.error('Error loading profile:', error);
-      } finally {
-        setLoading(false);
+      // Auto-select the primary role if available
+      // Use adapted.role because it's normalized (e.g. 'broker' -> 'advisor')
+      if (adapted.role && !activeRole) {
+        setActiveRole(adapted.role);
       }
-    };
+    }
+  }, [dataProfile, activeRole]);
 
-    loadProfile();
-  }, [userId, currentUserProfile, authLoading]);
-
-  if (loading || authLoading) {
+  if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
@@ -79,7 +78,7 @@ export function ProfilePage({ className = "" }: ProfilePageProps) {
     );
   }
 
-  if (!profile) {
+  if (error || !profile) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
@@ -98,10 +97,6 @@ export function ProfilePage({ className = "" }: ProfilePageProps) {
     );
   }
 
-  const handleEdit = () => {
-    navigate('/profile/edit');
-  };
-
   const handleShare = () => {
     console.log("Share profile");
     navigator.clipboard.writeText(window.location.href);
@@ -112,10 +107,14 @@ export function ProfilePage({ className = "" }: ProfilePageProps) {
     // TODO: Implement messaging
   };
 
-  // Get user's listings based on role
-  // TODO: Implement fetching actual user listings from database
+  // Filter listings based on active role
   const getUserListings = (): Business[] | Franchise[] => {
-    // User listings will be fetched from Supabase in the future
+    if (activeRole === 'seller') {
+      return listings.filter(l => 'price' in l) as Business[];
+    }
+    if (activeRole === 'franchisor') {
+      return listings.filter(l => 'franchise_fee' in l) as Franchise[];
+    }
     return [];
   };
 
@@ -420,9 +419,18 @@ export function ProfilePage({ className = "" }: ProfilePageProps) {
       <ProfileHeader
         profile={profile}
         isOwnProfile={isOwnProfile}
-        onEdit={handleEdit}
+        onEdit={() => navigate('/dashboard')}
         onShare={handleShare}
       />
+
+      {isOwnProfile && (
+        <div className="flex justify-end">
+          <Button onClick={() => navigate('/dashboard')} variant="default" className="gap-2">
+            <LayoutDashboard className="w-4 h-4" />
+            Manage in Dashboard
+          </Button>
+        </div>
+      )}
 
       {/* Action Buttons for External Profiles */}
       {!isOwnProfile && (
@@ -459,8 +467,8 @@ export function ProfilePage({ className = "" }: ProfilePageProps) {
             <RoleTabs
               activeRole={activeRole}
               onRoleChange={setActiveRole}
-              showAddRole={true}
-              onAddRole={() => console.log("Add new role")}
+              showAddRole={false}
+              onAddRole={() => navigate('/dashboard')}
             />
           )}
 

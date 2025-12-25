@@ -21,6 +21,7 @@ import { ProfileDocumentsPage } from "@/polymet/pages/profile-documents";
 import { ProfileSettingsPage } from "@/polymet/pages/profile-settings";
 import { ProfileSettingsEnhancedPage } from "@/polymet/pages/profile-settings-enhanced";
 import { AddBusinessListingPage } from "@/polymet/pages/add-business-listing";
+import { EditBusinessListingPage } from "@/polymet/pages/edit-business-listing";
 import { AddFranchiseListingPage } from "@/polymet/pages/add-franchise-listing";
 import { MyListingsPage } from "@/polymet/pages/my-listings";
 import { SavedListingsPage } from "@/polymet/pages/saved-listings";
@@ -66,6 +67,8 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { IndustryIntelligencePage } from "@/polymet/pages/industry-intelligence";
 import { IndustryDetailPage } from "@/polymet/pages/industry-detail";
 import { WebsiteSchema } from "@/components/structured-data";
+import { DashboardPage } from "@/polymet/pages/dashboard/overview";
+import { BuyerMandatePage } from "@/polymet/pages/buyer-mandate";
 
 // Advisor Dashboard
 import { AdvisorLayout } from "@/polymet/layouts/advisor-layout";
@@ -219,13 +222,37 @@ export default function BizSearchApp() {
                       }
                     />
 
-                    {/* Profile Routes - Protected */}
+                    {/* Dashboard Route */}
+                    <Route
+                      path="/dashboard"
+                      element={
+                        <ProtectedRoute>
+                          <MainLayout>
+                            <DashboardPage />
+                          </MainLayout>
+                        </ProtectedRoute>
+                      }
+                    />
+
+                    {/* Profile Routes - specific ID gets the public profile view */}
+                    <Route
+                      path="/profile/:userId"
+                      element={
+                        <ProtectedRoute>
+                          <MainLayout>
+                            <ProfilePage />
+                          </MainLayout>
+                        </ProtectedRoute>
+                      }
+                    />
+
+                    {/* Base /profile redirects to Dashboard (Owner View) */}
                     <Route
                       path="/profile"
                       element={
                         <ProtectedRoute>
                           <MainLayout>
-                            <ProfilePage />
+                            <DashboardPage />
                           </MainLayout>
                         </ProtectedRoute>
                       }
@@ -329,6 +356,29 @@ export default function BizSearchApp() {
                         <ProtectedRoute>
                           <MainLayout>
                             <AddBusinessListingPage />
+                          </MainLayout>
+                        </ProtectedRoute>
+                      }
+                    />
+
+                    <Route
+                      path="/business/edit/:businessId"
+                      element={
+                        <ProtectedRoute>
+                          <MainLayout>
+                            <EditBusinessListingPage />
+                          </MainLayout>
+                        </ProtectedRoute>
+                      }
+                    />
+
+                    {/* Edit Business Listing - Protected */}
+                    <Route
+                      path="/business/edit/:businessId"
+                      element={
+                        <ProtectedRoute>
+                          <MainLayout>
+                            <EditBusinessListingPage />
                           </MainLayout>
                         </ProtectedRoute>
                       }
@@ -480,6 +530,18 @@ export default function BizSearchApp() {
                         <ProtectedRoute>
                           <MainLayout>
                             <ListingOptimizerPage />
+                          </MainLayout>
+                        </ProtectedRoute>
+                      }
+                    />
+
+                    {/* Buyer Routes - Protected */}
+                    <Route
+                      path="/buyer/mandate"
+                      element={
+                        <ProtectedRoute>
+                          <MainLayout>
+                            <BuyerMandatePage />
                           </MainLayout>
                         </ProtectedRoute>
                       }

@@ -21,6 +21,7 @@ import {
   Globe,
   Shield,
   Building,
+  LayoutDashboard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -395,10 +396,11 @@ export function MainLayout({ children }: MainLayoutProps) {
                       <DropdownMenuSeparator />
 
                       {/* General Management - Visible to Everyone */}
-                      <Link to="/profile">
+                      {/* General Management - Visible to Everyone */}
+                      <Link to="/dashboard">
                         <DropdownMenuItem>
-                          <User className="mr-2 h-4 w-4" />
-                          Profile Settings
+                          <LayoutDashboard className="mr-2 h-4 w-4" />
+                          Dashboard
                         </DropdownMenuItem>
                       </Link>
 

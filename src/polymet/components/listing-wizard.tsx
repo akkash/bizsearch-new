@@ -1,6 +1,4 @@
-import React, { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -19,11 +17,8 @@ import { Progress } from "@/components/ui/progress";
 import {
   CheckCircle,
   Circle,
-  ArrowLeft,
-  ArrowRight,
   Save,
   Eye,
-  Upload,
   MapPin,
   DollarSign,
   FileText,
@@ -48,9 +43,11 @@ import {
 } from "@/polymet/data/listing-data";
 import { FileUploader } from "@/polymet/components/file-uploader";
 import { NDAModal } from "@/polymet/components/nda-modal";
-import { AIAssistant } from "@/polymet/components/ai-assistant";
+import { usePhoneVerification } from "@/hooks/use-phone-verification";
+import { PhoneVerificationModal } from "@/polymet/components/phone-verification-modal";
+import { WizardStep } from "./wizard-step";
 
-interface Step {
+export interface Step {
   id: string;
   title: string;
   description: string;
@@ -148,126 +145,82 @@ export function ListingWizard({
   const [showNDAModal, setShowNDAModal] = useState(false);
   const [showAIAssistant, setShowAIAssistant] = useState(false);
 
+  // Phone Verification
+  const { isVerified, verifyPhone, isOpen: isPhoneModalOpen, setIsOpen: setIsPhoneModalOpen, onVerificationComplete } = usePhoneVerification();
+
   const currentStepData = steps[currentStep];
   const progress = ((currentStep + 1) / steps.length) * 100;
 
-  const form = useForm({
-    resolver: zodResolver(currentStepData.schema),
-    defaultValues:
-      formData[currentStepData.id as keyof BusinessListingFormValues] || {},
-    mode: "onChange",
-  });
-
-  // Auto-save functionality
-  useEffect(() => {
-    const autoSave = setTimeout(() => {
-      if (Object.keys(form.formState.dirtyFields).length > 0) {
-        handleAutoSave();
-      }
-    }, 3000);
-
-    return () => clearTimeout(autoSave);
-  }, [form.formState.dirtyFields]);
-
-  const handleAutoSave = async () => {
-    setIsAutoSaving(true);
-    const currentData = form.getValues();
+  const handleStepNext = (stepData: any) => {
     const updatedFormData = {
       ...formData,
-      [currentStepData.id]: currentData,
+      [currentStepData.id]: stepData
+    };
+    setFormData(updatedFormData);
+    setCompletedSteps(prev => new Set([...prev, currentStep]));
+
+    // Autosave on next
+    onSave?.(updatedFormData, true);
+
+    if (currentStep < steps.length - 1) {
+      setCurrentStep(currentStep + 1);
+    } else {
+      handleSubmitFinal(updatedFormData);
+    }
+  };
+
+  const handleSubmitFinal = (finalData: Partial<BusinessListingFormValues>) => {
+    // Gate: Phone Verification
+    if (!isVerified) {
+      const proceed = verifyPhone();
+      if (!proceed) return;
+    }
+
+    try {
+      const validated = businessListingSchema.parse(finalData);
+      onSubmit?.(validated);
+    } catch (e) {
+      console.error("Final validation error", e);
+    }
+  };
+
+  const handleStepAutoSave = (stepData: any) => {
+    setIsAutoSaving(true);
+    const updatedFormData = {
+      ...formData,
+      [currentStepData.id]: stepData,
     };
     setFormData(updatedFormData);
     onSave?.(updatedFormData, true);
-
     setTimeout(() => setIsAutoSaving(false), 1000);
   };
 
-  const validateCurrentStep = async () => {
-    const isValid = await form.trigger();
-    if (isValid) {
-      const currentData = form.getValues();
-      const updatedFormData = {
-        ...formData,
-        [currentStepData.id]: currentData,
-      };
-      setFormData(updatedFormData);
-      setCompletedSteps((prev) => new Set([...prev, currentStep]));
-      return true;
-    }
-    return false;
+  const handleStepPreview = (stepData: any) => {
+    onPreview?.({ ...formData, [currentStepData.id]: stepData });
   };
 
-  const handleNext = async () => {
-    const isValid = await validateCurrentStep();
-    if (isValid && currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
-      form.reset(
-        formData[
-        steps[currentStep + 1].id as keyof BusinessListingFormValues
-        ] || {}
-      );
-    }
-  };
-
-  const handlePrevious = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-      form.reset(
-        formData[
-        steps[currentStep - 1].id as keyof BusinessListingFormValues
-        ] || {}
-      );
-    }
-  };
-
-  const handleStepClick = (stepIndex: number) => {
-    if (stepIndex <= currentStep || completedSteps.has(stepIndex)) {
-      setCurrentStep(stepIndex);
-      form.reset(
-        formData[steps[stepIndex].id as keyof BusinessListingFormValues] || {}
-      );
-    }
-  };
-
-  const handleSubmit = async () => {
-    const isValid = await validateCurrentStep();
-    if (isValid) {
-      try {
-        const validatedData = businessListingSchema.parse(formData);
-        onSubmit?.(validatedData);
-      } catch (error) {
-        console.error("Validation error:", error);
-      }
-    }
-  };
-
-  const handlePreview = async () => {
-    await validateCurrentStep();
-    onPreview?.(formData);
-  };
-
-  const renderStepContent = () => {
+  const renderStepContent = (form: any) => {
     switch (currentStepData.id) {
       case "overview":
-        return renderOverviewStep();
+        return renderOverviewStep(form);
       case "description":
-        return renderDescriptionStep();
+        return renderDescriptionStep(form);
       case "financials":
-        return renderFinancialsStep();
+        return renderFinancialsStep(form);
       case "assets":
-        return renderAssetsStep();
+        return renderAssetsStep(form);
       case "media":
-        return renderMediaStep();
+        return renderMediaStep(form);
       case "contact":
-        return renderContactStep();
+        return renderContactStep(form);
       case "publish":
-        return renderPublishStep();
+        return renderPublishStep(form);
       default:
         return null;
     }
   };
 
-  const renderOverviewStep = () => (
+  const renderOverviewStep = (form: any) => (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
@@ -325,7 +278,7 @@ export function ListingWizard({
                 (slug: string) =>
                   getBusinessCategoryBySlug(slug)?.subcategories || []
               )
-              .map((sub) => (
+              .map((sub: { slug: string; name: string }) => (
                 <div key={sub.slug} className="flex items-center space-x-2">
                   <Checkbox
                     id={sub.slug}
@@ -464,7 +417,7 @@ export function ListingWizard({
     </div>
   );
 
-  const renderDescriptionStep = () => (
+  const renderDescriptionStep = (form: any) => (
     <div className="space-y-6">
       <div className="space-y-2">
         <Label htmlFor="longDescription">Business Description *</Label>
@@ -523,7 +476,7 @@ export function ListingWizard({
     </div>
   );
 
-  const renderFinancialsStep = () => (
+  const renderFinancialsStep = (form: any) => (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Financial Information</h3>
@@ -602,22 +555,23 @@ export function ListingWizard({
         </p>
       </div>
 
-      {showAIAssistant && (
+      {/* AI Assistant (TODO: Implement AIAssistant component) */}
+      {/* {showAIAssistant && (
         <AIAssistant
           businessData={{
             name: form.watch("businessName"),
             industry: form.watch("industry"),
             location: form.watch("city"),
           }}
-          onApplySuggestion={(suggestion) => {
+          onApplySuggestion={(suggestion: any) => {
             console.log("Applied AI suggestion:", suggestion);
           }}
         />
-      )}
+      )} */}
     </div>
   );
 
-  const renderAssetsStep = () => (
+  const renderAssetsStep = (form: any) => (
     <div className="space-y-6">
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">Assets Included in Sale</h3>
@@ -677,7 +631,7 @@ export function ListingWizard({
     </div>
   );
 
-  const renderMediaStep = () => (
+  const renderMediaStep = (_form: any) => (
     <div className="space-y-6">
       <FileUploader
         accept="image/*"
@@ -686,7 +640,10 @@ export function ListingWizard({
         onFilesChange={(files) => {
           const updatedFormData = {
             ...formData,
-            media: { ...formData.media, businessPhotos: files },
+            media: {
+              ...(formData.media || { documents: [] }),
+              businessPhotos: files,
+            },
           };
           setFormData(updatedFormData);
         }}
@@ -700,9 +657,17 @@ export function ListingWizard({
         maxFiles={20}
         files={formData.media?.documents || []}
         onFilesChange={(files) => {
+          const documentsWithMeta = files.map((f) => ({
+            ...f,
+            documentType: "other" as const,
+            confidentiality: "nda_required" as const,
+          }));
           const updatedFormData = {
             ...formData,
-            media: { ...formData.media, documents: files },
+            media: {
+              ...(formData.media || { businessPhotos: [] }),
+              documents: documentsWithMeta,
+            },
           };
           setFormData(updatedFormData);
         }}
@@ -713,7 +678,7 @@ export function ListingWizard({
     </div>
   );
 
-  const renderContactStep = () => (
+  const renderContactStep = (form: any) => (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
@@ -788,7 +753,7 @@ export function ListingWizard({
     </div>
   );
 
-  const renderPublishStep = () => (
+  const renderPublishStep = (form: any) => (
     <div className="space-y-6">
       <div className="text-center">
         <h3 className="text-xl font-semibold mb-2">Ready to Publish?</h3>
@@ -890,20 +855,16 @@ export function ListingWizard({
         {/* Step Navigation */}
         <div className="flex flex-wrap gap-2">
           {steps.map((step, index) => (
-            <button
+            <div
               key={step.id}
-              onClick={() => handleStepClick(index)}
               className={cn(
                 "flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors",
                 index === currentStep
                   ? "bg-primary text-primary-foreground"
                   : completedSteps.has(index)
-                    ? "bg-green-100 text-green-800 hover:bg-green-200"
-                    : index < currentStep
-                      ? "bg-muted hover:bg-muted/80"
-                      : "bg-muted/50 text-muted-foreground cursor-not-allowed"
+                    ? "bg-green-100 text-green-800"
+                    : "bg-muted/50 text-muted-foreground"
               )}
-              disabled={index > currentStep && !completedSteps.has(index)}
             >
               {completedSteps.has(index) ? (
                 <CheckCircle className="w-4 h-4" />
@@ -912,55 +873,32 @@ export function ListingWizard({
               )}
               <span className="hidden sm:inline">{step.title}</span>
               <span className="sm:hidden">{index + 1}</span>
-            </button>
+            </div>
           ))}
         </div>
       </div>
 
-      {/* Step Content */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            {currentStepData.icon}
-            {currentStepData.title}
-          </CardTitle>
-          <p className="text-muted-foreground">{currentStepData.description}</p>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={form.handleSubmit(() => { })}>
-            {renderStepContent()}
-          </form>
-        </CardContent>
-      </Card>
+      {/* Wizard Step */}
+      <WizardStep
+        key={currentStepData.id}
+        step={currentStepData}
+        defaultValues={formData[currentStepData.id as keyof BusinessListingFormValues] || {}}
+        onNext={handleStepNext}
+        onPrevious={() => setCurrentStep((prev) => Math.max(0, prev - 1))}
+        onAutoSave={handleStepAutoSave}
+        onPreview={handleStepPreview}
+        isLastStep={currentStep === steps.length - 1}
+        isFirstStep={currentStep === 0}
+        isAutoSaving={isAutoSaving}
+        renderContent={renderStepContent}
+      />
 
-      {/* Navigation Buttons */}
-      <div className="flex justify-between">
-        <Button
-          variant="outline"
-          onClick={handlePrevious}
-          disabled={currentStep === 0}
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Previous
-        </Button>
-
-        <div className="flex gap-2">
-          {currentStep === steps.length - 1 ? (
-            <>
-              <Button variant="outline" onClick={handlePreview}>
-                <Eye className="w-4 h-4 mr-2" />
-                Preview
-              </Button>
-              <Button onClick={handleSubmit}>Publish Listing</Button>
-            </>
-          ) : (
-            <Button onClick={handleNext}>
-              Next
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          )}
-        </div>
-      </div>
+      {/* Phone Verification Modal */}
+      <PhoneVerificationModal
+        isOpen={isPhoneModalOpen}
+        onOpenChange={setIsPhoneModalOpen}
+        onVerified={onVerificationComplete}
+      />
 
       {/* NDA Modal */}
       <NDAModal

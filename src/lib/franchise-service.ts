@@ -132,10 +132,20 @@ export class FranchiseService {
    * Use this method for route handlers that accept both UUID and slug
    */
   static async getFranchiseByIdOrSlug(identifier: string) {
-    if (isUUID(identifier)) {
-      return this.getFranchiseById(identifier);
-    } else {
-      return this.getFranchiseBySlug(identifier);
+    // Add timeout to prevent infinite loading
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Request timed out')), 8000);
+    });
+
+    const fetchPromise = isUUID(identifier)
+      ? this.getFranchiseById(identifier)
+      : this.getFranchiseBySlug(identifier);
+
+    try {
+      return await Promise.race([fetchPromise, timeoutPromise]);
+    } catch (error) {
+      console.error('Error fetching franchise:', error);
+      throw error;
     }
   }
 

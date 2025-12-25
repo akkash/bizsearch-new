@@ -17,6 +17,8 @@ import { Separator } from "@/components/ui/separator";
 import { Business } from "@/types/listings";
 import { VerificationIcon } from "@/components/verification/VerificationBadge";
 import type { VerificationTier } from "@/hooks/use-verification-tier";
+import { usePhoneVerification } from "@/hooks/use-phone-verification";
+import { PhoneVerificationModal } from "@/polymet/components/phone-verification-modal";
 
 interface BusinessCardProps {
   business: Business;
@@ -24,6 +26,7 @@ interface BusinessCardProps {
   onShare?: (businessId: string) => void;
   onContact?: (businessId: string) => void;
   onViewDetails?: (businessId: string) => void;
+  onEdit?: (businessId: string) => void;
   onMoreLikeThis?: (businessId: string) => void;
   isSaved?: boolean;
   className?: string;
@@ -35,6 +38,7 @@ export function BusinessCard({
   onShare,
   onContact,
   onViewDetails,
+  onEdit,
   onMoreLikeThis,
   isSaved = false,
   className,
@@ -52,6 +56,9 @@ export function BusinessCard({
     if (revenue >= 100000) return `₹${(revenue / 100000).toFixed(1)}L`;
     return `₹${revenue.toLocaleString()}`;
   };
+
+  const { isVerified, verifyPhone, isOpen: isPhoneModalOpen, setIsOpen: setIsPhoneModalOpen, onVerificationComplete } = usePhoneVerification();
+
 
   return (
     <Card
@@ -240,22 +247,40 @@ export function BusinessCard({
                 className="flex-1"
                 onClick={(e) => {
                   e.stopPropagation();
+                  if (!isVerified) {
+                    const proceed = verifyPhone();
+                    if (!proceed) return;
+                  }
                   onContact?.(business.id);
                 }}
               >
                 <Phone className="h-4 w-4 mr-2" />
                 Contact
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onShare?.(business.id);
-                }}
-              >
-                <Share2 className="h-4 w-4" />
-              </Button>
+              {onEdit ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit(business.id);
+                  }}
+                >
+                  Edit
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onShare?.(business.id);
+                  }}
+                >
+                  <Share2 className="h-4 w-4" />
+                </Button>
+              )}
               <Button
                 size="sm"
                 className="flex-1"
@@ -285,6 +310,11 @@ export function BusinessCard({
           </div>
         </div>
       </CardFooter>
+      <PhoneVerificationModal
+        isOpen={isPhoneModalOpen}
+        onOpenChange={setIsPhoneModalOpen}
+        onVerified={onVerificationComplete}
+      />
     </Card>
   );
 }

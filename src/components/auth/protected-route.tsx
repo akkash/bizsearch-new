@@ -41,8 +41,44 @@ export function ProtectedRoute({ children, requiredRole, requiredRoles }: Protec
   const { user, profile, loading, profileMissing } = useAuth();
   const location = useLocation();
 
+  // Safety timeout for loading state
+  const [showTimeoutError, setShowTimeoutError] = React.useState(false);
+
+  React.useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    if (loading) {
+      timeoutId = setTimeout(() => {
+        setShowTimeoutError(true);
+      }, 8000); // 8 seconds timeout
+    }
+    return () => clearTimeout(timeoutId);
+  }, [loading]);
+
   // Show loading state while checking authentication
   if (loading) {
+    if (showTimeoutError) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-background p-4">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle className="text-center text-destructive">Authentication Timed Out</CardTitle>
+              <CardDescription className="text-center">
+                We couldn't verify your session in time. Please try refreshing the page or logging in again.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-2">
+              <Button onClick={() => window.location.reload()} className="w-full">
+                Refresh Page
+              </Button>
+              <Button variant="outline" onClick={() => window.location.href = '/login'} className="w-full">
+                Go to Login
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">

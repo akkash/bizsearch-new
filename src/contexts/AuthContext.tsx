@@ -38,17 +38,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    * Uses direct fetch to avoid Supabase client timeout issues
    */
   const fetchProfile = useCallback(async (userId: string): Promise<void> => {
+    const isDev = import.meta.env.DEV;
     try {
-      console.log('👤 Fetching profile for user:', userId);
+      if (isDev) console.log('👤 Fetching profile for user:', userId);
 
       // First fetch the core profile - this must succeed
-      console.log('📍 Step 1: Fetching profiles table...');
-      const { data: profileData, error: profileError } = await supabase
+      if (isDev) console.log('📍 Step 1: Fetching profiles table...');
+
+      // Create a timeout promise
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)
+      );
+
+      // Race against the timeout
+      const profilePromise = supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
-      console.log('📍 Step 1 done:', profileError ? 'ERROR' : 'OK');
+
+      const { data: profileData, error: profileError } = await Promise.race([
+        profilePromise,
+        timeoutPromise
+      ]) as any;
+
+      if (isDev) console.log('📍 Step 1 done:', profileError ? 'ERROR' : 'OK');
 
       if (profileError || !profileData) {
         console.warn('⚠️ Profile not found, creating minimal profile...', profileError);
@@ -64,51 +78,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       let franchiseeData = null;
       let advisorData = null;
 
-      console.log('📍 Step 2: Fetching profile_roles...');
+      if (isDev) console.log('📍 Step 2: Fetching profile_roles...');
       try {
         const { data, error } = await supabase.from('profile_roles').select('*').eq('profile_id', userId);
         rolesData = data || [];
-        console.log('📍 Step 2 done:', error ? 'ERROR' : `OK (${rolesData.length} roles)`);
+        if (isDev) console.log('📍 Step 2 done:', error ? 'ERROR' : `OK (${rolesData.length} roles)`);
       } catch (e) {
-        console.warn('profile_roles fetch failed:', e);
+        if (isDev) console.warn('profile_roles fetch failed:', e);
       }
 
-      console.log('📍 Step 3: Fetching seller_details...');
+      if (isDev) console.log('📍 Step 3: Fetching seller_details...');
       try {
         const { data } = await supabase.from('seller_details').select('*').eq('profile_id', userId).maybeSingle();
         sellerData = data;
-        console.log('📍 Step 3 done');
-      } catch (e) { console.log('📍 Step 3 skipped'); }
+        if (isDev) console.log('📍 Step 3 done');
+      } catch (e) { if (isDev) console.log('📍 Step 3 skipped'); }
 
-      console.log('📍 Step 4: Fetching buyer_details...');
+      if (isDev) console.log('📍 Step 4: Fetching buyer_details...');
       try {
         const { data } = await supabase.from('buyer_details').select('*').eq('profile_id', userId).maybeSingle();
         buyerData = data;
-        console.log('📍 Step 4 done');
-      } catch (e) { console.log('📍 Step 4 skipped'); }
+        if (isDev) console.log('📍 Step 4 done');
+      } catch (e) { if (isDev) console.log('📍 Step 4 skipped'); }
 
-      console.log('📍 Step 5: Fetching franchisor_details...');
+      if (isDev) console.log('📍 Step 5: Fetching franchisor_details...');
       try {
         const { data } = await supabase.from('franchisor_details').select('*').eq('profile_id', userId).maybeSingle();
         franchisorData = data;
-        console.log('📍 Step 5 done');
-      } catch (e) { console.log('📍 Step 5 skipped'); }
+        if (isDev) console.log('📍 Step 5 done');
+      } catch (e) { if (isDev) console.log('📍 Step 5 skipped'); }
 
-      console.log('📍 Step 6: Fetching franchisee_details...');
+      if (isDev) console.log('📍 Step 6: Fetching franchisee_details...');
       try {
         const { data } = await supabase.from('franchisee_details').select('*').eq('profile_id', userId).maybeSingle();
         franchiseeData = data;
-        console.log('📍 Step 6 done');
-      } catch (e) { console.log('📍 Step 6 skipped'); }
+        if (isDev) console.log('📍 Step 6 done');
+      } catch (e) { if (isDev) console.log('📍 Step 6 skipped'); }
 
-      console.log('📍 Step 7: Fetching advisor_details...');
+      if (isDev) console.log('📍 Step 7: Fetching advisor_details...');
       try {
         const { data } = await supabase.from('advisor_details').select('*').eq('profile_id', userId).maybeSingle();
         advisorData = data;
-        console.log('📍 Step 7 done');
-      } catch (e) { console.log('📍 Step 7 skipped'); }
+        if (isDev) console.log('📍 Step 7 done');
+      } catch (e) { if (isDev) console.log('📍 Step 7 skipped'); }
 
-      console.log('📍 Step 8: Building extended profile...');
+      if (isDev) console.log('📍 Step 8: Building extended profile...');
       // Build extended profile with roles and details
       const extendedProfile = {
         ...profileData,
@@ -120,7 +134,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         advisor_details: advisorData,
       };
 
-      console.log('✅ Profile fetched with roles:', extendedProfile.display_name, 'Roles:', rolesData?.map((r: any) => r.role));
+      if (isDev) console.log('✅ Profile fetched with roles:', extendedProfile.display_name, 'Roles:', rolesData?.map((r: any) => r.role));
       setProfile(extendedProfile);
       setProfileMissing(false);
       setLoading(false); // Important: stop loading spinner
@@ -185,18 +199,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    */
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    const initSession = async () => {
+      try {
+        // Create a timeout promise for session fetch
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Session fetch timeout')), 5000)
+        );
 
-      if (session?.user) {
-        // Don't wait for profile - fetch in background
-        fetchProfile(session.user.id);
+        const { data: { session } } = await Promise.race([
+          supabase.auth.getSession(),
+          timeoutPromise
+        ]) as any;
+
+        setSession(session);
+        setUser(session?.user ?? null);
+
+        if (session?.user) {
+          // Don't wait for profile - fetch in background
+          fetchProfile(session.user.id);
+        }
+      } catch (err) {
+        console.error('Session initialization error:', err);
+      } finally {
+        // Set loading to false immediately - don't wait for profile
+        setLoading(false);
       }
+    };
 
-      // Set loading to false immediately - don't wait for profile
-      setLoading(false);
-    });
+    initSession();
 
     // Listen for auth changes
     const {
