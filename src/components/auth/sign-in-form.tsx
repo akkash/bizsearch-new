@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Mail, Eye, EyeOff } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 export function SignInForm() {
   const navigate = useNavigate();
@@ -56,6 +57,27 @@ export function SignInForm() {
 
     // Small delay to ensure profile is loaded
     await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Check if user needs onboarding (profile incomplete)
+    try {
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (currentUser) {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('phone, city, state')
+          .eq('id', currentUser.id)
+          .single();
+
+        const needsOnboarding = !profileData?.phone || !profileData?.city || !profileData?.state;
+
+        if (needsOnboarding) {
+          navigate('/onboarding', { replace: true });
+          return;
+        }
+      }
+    } catch (err) {
+      console.warn('Could not check onboarding status:', err);
+    }
 
     // Redirect to the intended page or home
     navigate(from, { replace: true });

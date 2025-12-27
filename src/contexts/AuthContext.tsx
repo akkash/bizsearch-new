@@ -39,33 +39,76 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    */
   const fetchProfile = useCallback(async (userId: string): Promise<void> => {
     const isDev = import.meta.env.DEV;
+    const MAX_RETRIES = 3;
+    const TIMEOUT_MS = 10000; // 10 seconds per attempt
+    const startTime = performance.now();
+
     try {
-      if (isDev) console.log('👤 Fetching profile for user:', userId);
+      console.log('👤 Fetching profile for user:', userId);
+      console.log(`⏱️ [Profile Fetch] Started at: ${new Date().toISOString()}`);
 
-      // First fetch the core profile - this must succeed
-      if (isDev) console.log('📍 Step 1: Fetching profiles table...');
+      // First fetch the core profile with retry logic
+      console.log('📍 Step 1: Fetching profiles table...');
 
-      // Create a timeout promise
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)
-      );
+      let profileData = null;
+      let profileError = null;
 
-      // Race against the timeout
-      const profilePromise = supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
+      // Retry loop for fetching profile
+      for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        const attemptStart = performance.now();
+        try {
+          if (attempt > 1) console.log(`📍 Retry attempt ${attempt}/${MAX_RETRIES}...`);
 
-      const { data: profileData, error: profileError } = await Promise.race([
-        profilePromise,
-        timeoutPromise
-      ]) as any;
+          // Create a timeout promise
+          const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error(`Profile fetch timeout (attempt ${attempt})`)), TIMEOUT_MS)
+          );
+
+          console.log(`⏱️ [Attempt ${attempt}] Sending Supabase request...`);
+
+          // Race against the timeout
+          const profilePromise = supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', userId)
+            .single();
+
+          const result = await Promise.race([
+            profilePromise,
+            timeoutPromise
+          ]) as any;
+
+          const attemptDuration = Math.round(performance.now() - attemptStart);
+          console.log(`⏱️ [Attempt ${attempt}] Response received in ${attemptDuration}ms`);
+
+          if (result.error) {
+            profileError = result.error;
+            if (isDev) console.warn(`📍 Attempt ${attempt} error:`, result.error.message);
+            // Wait before retrying (exponential backoff)
+            if (attempt < MAX_RETRIES) {
+              await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+            }
+            continue;
+          }
+
+          profileData = result.data;
+          profileError = null;
+          break; // Success, exit retry loop
+
+        } catch (e: any) {
+          profileError = e;
+          if (isDev) console.warn(`📍 Attempt ${attempt} exception:`, e.message);
+          // Wait before retrying
+          if (attempt < MAX_RETRIES) {
+            await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+          }
+        }
+      }
 
       if (isDev) console.log('📍 Step 1 done:', profileError ? 'ERROR' : 'OK');
 
       if (profileError || !profileData) {
-        console.warn('⚠️ Profile not found, creating minimal profile...', profileError);
+        console.warn('⚠️ Profile fetch failed after retries, creating minimal profile...', profileError);
         await createMinimalProfile(userId);
         return;
       }
@@ -134,12 +177,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         advisor_details: advisorData,
       };
 
-      if (isDev) console.log('✅ Profile fetched with roles:', extendedProfile.display_name, 'Roles:', rolesData?.map((r: any) => r.role));
+      const totalDuration = Math.round(performance.now() - startTime);
+      console.log(`✅ Profile fetched successfully in ${totalDuration}ms for:`, extendedProfile.display_name);
+      console.log(`   Roles: ${rolesData?.map((r: any) => r.role).join(', ') || 'none'}`);
+
       setProfile(extendedProfile);
       setProfileMissing(false);
       setLoading(false); // Important: stop loading spinner
     } catch (error: any) {
-      console.error('❌ Error fetching profile:', error);
+      const totalDuration = Math.round(performance.now() - startTime);
+      console.error(`❌ Error fetching profile after ${totalDuration}ms:`, error);
       console.warn('⚠️ Creating minimal profile after fetch error...');
       await createMinimalProfile(userId);
     }
@@ -201,9 +248,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Get initial session
     const initSession = async () => {
       try {
-        // Create a timeout promise for session fetch
+        // Create a timeout promise for session fetch (15 seconds)
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Session fetch timeout')), 5000)
+          setTimeout(() => reject(new Error('Session fetch timeout')), 15000)
         );
 
         const { data: { session } } = await Promise.race([
@@ -372,20 +419,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   /**
    * Sign out the current user
+   * Includes timeout handling to prevent hanging
    */
   const signOut = async (): Promise<{ error: AuthError | null }> => {
     try {
       setError(null);
-      const { error: authError } = await supabase.auth.signOut();
-      if (authError) throw authError;
+      console.log('🚪 Signing out...');
 
-      // Clear state
+      // Create a timeout promise (5 seconds)
+      const timeoutPromise = new Promise<{ error: Error }>((resolve) =>
+        setTimeout(() => {
+          console.warn('⚠️ Sign out timed out, clearing local state anyway');
+          resolve({ error: new Error('Sign out timeout - cleared locally') });
+        }, 5000)
+      );
+
+      // Race the signOut against timeout
+      const signOutPromise = supabase.auth.signOut().then(({ error }) => ({ error }));
+
+      const result = await Promise.race([signOutPromise, timeoutPromise]);
+
+      // Always clear local state, regardless of Supabase response
       setUser(null);
       setProfile(null);
       setSession(null);
 
+      // Clear any persisted session data
+      localStorage.removeItem('supabase.auth.token');
+
+      console.log('✅ Signed out successfully');
+
+      if (result.error) {
+        console.warn('Sign out had issues:', result.error);
+      }
+
       return { error: null };
     } catch (err) {
+      console.error('❌ Sign out error:', err);
+      // Even on error, clear local state to ensure user can log out
+      setUser(null);
+      setProfile(null);
+      setSession(null);
+
       const authError = err as AuthError;
       setError(authError);
       return { error: authError };

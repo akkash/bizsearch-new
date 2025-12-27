@@ -140,11 +140,27 @@ export function useAuth() {
 
   const signOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      // Create a timeout promise (5 seconds)
+      const timeoutPromise = new Promise<{ error: Error }>((resolve) =>
+        setTimeout(() => resolve({ error: new Error('Sign out timeout') }), 5000)
+      );
+
+      // Race the signOut against timeout
+      const signOutPromise = supabase.auth.signOut().then(({ error }) => ({ error }));
+
+      await Promise.race([signOutPromise, timeoutPromise]);
+
+      // Always clear local state
       setProfile(null);
+      setUser(null);
+      setSession(null);
+
       return { error: null };
     } catch (error) {
+      // Clear local state even on error
+      setProfile(null);
+      setUser(null);
+      setSession(null);
       return { error };
     }
   };

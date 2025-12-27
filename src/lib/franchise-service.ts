@@ -104,7 +104,7 @@ export class FranchiseService {
   static async getFranchiseById(id: string) {
     const { data, error } = await supabase
       .from('franchises')
-      .select('*, profiles(*)')
+      .select('*')
       .eq('id', id)
       .single();
 
@@ -119,7 +119,7 @@ export class FranchiseService {
     const sanitized = sanitizeSlug(slug);
     const { data, error } = await supabase
       .from('franchises')
-      .select('*, profiles(*)')
+      .select('*')
       .eq('slug', sanitized)
       .single();
 

@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import type { Profile, ProfileUpdate } from '@/types/auth.types';
+import type { ProfileUpdate } from '@/types/auth.types';
 
 export type OnboardingStep = 'essentials' | 'role' | 'verification' | 'complete';
 
@@ -117,7 +117,13 @@ export function useOnboarding() {
 
     // Save current step data to profile
     const saveStepData = useCallback(async (): Promise<boolean> => {
-        if (!user || !profile) return false;
+        console.log('💾 saveStepData called', { hasUser: !!user, hasProfile: !!profile, data });
+
+        if (!user || !profile) {
+            console.error('❌ saveStepData: No user or profile available');
+            setError('Profile not loaded. Please refresh the page.');
+            return false;
+        }
 
         setSaving(true);
         setError(null);
@@ -134,6 +140,8 @@ export function useOnboarding() {
 
             // Add role-specific fields
             const role = profile.role;
+            console.log('📋 Role:', role, 'RoleData:', data.roleData);
+
             if (role === 'buyer') {
                 if (data.roleData.investment_min) updates.investment_min = data.roleData.investment_min;
                 if (data.roleData.investment_max) updates.investment_max = data.roleData.investment_max;
@@ -151,19 +159,27 @@ export function useOnboarding() {
                 if (data.roleData.royalty_percentage) updates.royalty_percentage = data.roleData.royalty_percentage;
                 if (data.roleData.franchise_fee) updates.franchise_fee = data.roleData.franchise_fee;
                 if (data.roleData.support) updates.support = data.roleData.support;
+            } else if (role === 'franchisee') {
+                if (data.roleData.investment_min) updates.investment_min = data.roleData.investment_min;
+                if (data.roleData.investment_max) updates.investment_max = data.roleData.investment_max;
+                if (data.roleData.preferred_industries) updates.preferred_industries = data.roleData.preferred_industries;
             }
             // Add more roles as needed
+
+            console.log('📝 Updates to save:', updates);
 
             const { error: updateError } = await updateProfile(updates);
 
             if (updateError) {
+                console.error('❌ updateProfile error:', updateError);
                 throw updateError;
             }
 
+            console.log('✅ Profile updated successfully');
             await refreshProfile();
             return true;
         } catch (err: any) {
-            console.error('Failed to save onboarding data:', err);
+            console.error('❌ Failed to save onboarding data:', err);
             setError(err?.message || 'Failed to save. Please try again.');
             return false;
         } finally {

@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Phone, MapPin, User, Loader2 } from 'lucide-react';
 import type { OnboardingData } from '@/hooks/use-onboarding';
+import { INDIAN_STATES, getCitiesForState } from '@/data/india-locations';
 
 interface OnboardingStepEssentialsProps {
     data: OnboardingData;
@@ -17,29 +18,6 @@ interface OnboardingStepEssentialsProps {
     saving: boolean;
     error: string | null;
 }
-
-const INDIAN_STATES = [
-    'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
-    'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka',
-    'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram',
-    'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana',
-    'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal',
-    'Andaman and Nicobar Islands', 'Chandigarh', 'Dadra and Nagar Haveli',
-    'Daman and Diu', 'Delhi', 'Jammu and Kashmir', 'Ladakh', 'Lakshadweep', 'Puducherry'
-];
-
-const POPULAR_CITIES: Record<string, string[]> = {
-    'Maharashtra': ['Mumbai', 'Pune', 'Nagpur', 'Thane', 'Nashik', 'Aurangabad'],
-    'Karnataka': ['Bangalore', 'Mysore', 'Mangalore', 'Hubli', 'Belgaum'],
-    'Delhi': ['New Delhi', 'Dwarka', 'Rohini', 'Saket'],
-    'Tamil Nadu': ['Chennai', 'Coimbatore', 'Madurai', 'Salem', 'Trichy'],
-    'Gujarat': ['Ahmedabad', 'Surat', 'Vadodara', 'Rajkot', 'Gandhinagar'],
-    'Telangana': ['Hyderabad', 'Warangal', 'Nizamabad', 'Karimnagar'],
-    'West Bengal': ['Kolkata', 'Howrah', 'Durgapur', 'Siliguri'],
-    'Rajasthan': ['Jaipur', 'Jodhpur', 'Udaipur', 'Kota', 'Ajmer'],
-    'Kerala': ['Kochi', 'Thiruvananthapuram', 'Kozhikode', 'Thrissur'],
-    'Uttar Pradesh': ['Lucknow', 'Noida', 'Ghaziabad', 'Kanpur', 'Agra', 'Varanasi'],
-};
 
 export function OnboardingStepEssentials({
     data,
@@ -51,7 +29,7 @@ export function OnboardingStepEssentials({
 }: OnboardingStepEssentialsProps) {
     const [localError, setLocalError] = useState<string | null>(null);
 
-    const cities = data.state ? (POPULAR_CITIES[data.state] || []) : [];
+    const cities = data.state ? getCitiesForState(data.state) : [];
 
     const handlePhoneChange = (value: string) => {
         // Only allow numbers and + sign

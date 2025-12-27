@@ -103,10 +103,17 @@ export function SignUpForm() {
         return;
       }
 
-      // Wait a moment for auth state to update
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Check if signup response already contains a session (auto-confirm enabled)
+      if (signUpData.session) {
+        // User is logged in, redirect to onboarding to complete profile
+        navigate('/onboarding', { replace: true });
+        return;
+      }
 
-      // Check if we have a session (auto-confirm is enabled)
+      // Wait a moment for auth state to update (for some edge cases)
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Double-check if we have a session
       const { data: { session: currentSession } } = await supabase.auth.getSession();
 
       if (currentSession) {
