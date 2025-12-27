@@ -33,11 +33,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState<AuthError | null>(null);
   const [profileMissing, setProfileMissing] = useState(false);
 
+  // Guard to prevent duplicate profile fetches
+  const fetchingProfileRef = React.useRef<string | null>(null);
+  const lastFetchedUserRef = React.useRef<string | null>(null);
+
   /**
    * Fetches user profile from database including roles and role-specific details
    * Uses direct fetch to avoid Supabase client timeout issues
    */
   const fetchProfile = useCallback(async (userId: string): Promise<void> => {
+    // Skip if already fetching for this user or if profile was just fetched
+    if (fetchingProfileRef.current === userId) {
+      console.log('⏭️ Skipping duplicate profile fetch for:', userId);
+      return;
+    }
+
+    // Skip if we just fetched this user's profile (debounce)
+    if (lastFetchedUserRef.current === userId && profile) {
+      console.log('⏭️ Profile already loaded for:', userId);
+      return;
+    }
+
+    fetchingProfileRef.current = userId;
+
     const isDev = import.meta.env.DEV;
     const MAX_RETRIES = 3;
     const TIMEOUT_MS = 10000; // 10 seconds per attempt
@@ -184,13 +202,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setProfile(extendedProfile);
       setProfileMissing(false);
       setLoading(false); // Important: stop loading spinner
+
+      // Mark fetch as complete
+      lastFetchedUserRef.current = userId;
+      fetchingProfileRef.current = null;
     } catch (error: any) {
       const totalDuration = Math.round(performance.now() - startTime);
       console.error(`❌ Error fetching profile after ${totalDuration}ms:`, error);
       console.warn('⚠️ Creating minimal profile after fetch error...');
+
+      // Clear fetch guard
+      fetchingProfileRef.current = null;
+
       await createMinimalProfile(userId);
     }
-  }, []);
+  }, [profile]);
 
   /**
    * Creates a minimal profile for users who don't have one
@@ -443,6 +469,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null);
       setProfile(null);
       setSession(null);
+
+      // Clear profile fetch guards
+      lastFetchedUserRef.current = null;
+      fetchingProfileRef.current = null;
 
       // Clear any persisted session data
       localStorage.removeItem('supabase.auth.token');
