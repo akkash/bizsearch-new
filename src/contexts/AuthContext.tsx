@@ -271,12 +271,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    * Initialize auth state and set up auth state listener
    */
   useEffect(() => {
-    // Get initial session
+    // Get initial session using direct approach to avoid client hangs
     const initSession = async () => {
       try {
-        // Create a timeout promise for session fetch (15 seconds)
+        console.log('🔄 Initializing session...');
+
+        // First, try to get session from localStorage directly (fastest)
+        const storageKey = `sb-${import.meta.env.VITE_SUPABASE_URL?.split('//')[1]?.split('.')[0]}-auth-token`;
+        const storedSession = localStorage.getItem(storageKey);
+
+        if (storedSession) {
+          try {
+            const parsed = JSON.parse(storedSession);
+            if (parsed?.access_token && parsed?.user) {
+              console.log('✅ Found cached session in localStorage');
+
+              // Check if token is expired
+              const expiresAt = parsed.expires_at;
+              const now = Math.floor(Date.now() / 1000);
+
+              if (expiresAt && expiresAt > now) {
+                // Token is still valid, use it
+                setSession(parsed);
+                setUser(parsed.user);
+
+                if (parsed.user?.id) {
+                  fetchProfile(parsed.user.id);
+                }
+                setLoading(false);
+                return;
+              } else {
+                console.log('⚠️ Cached token expired, will refresh...');
+              }
+            }
+          } catch (e) {
+            console.warn('⚠️ Could not parse stored session:', e);
+          }
+        }
+
+        // Fallback: Try the Supabase client with a shorter timeout
+        console.log('🔄 Trying Supabase client getSession...');
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Session fetch timeout')), 15000)
+          setTimeout(() => reject(new Error('Session fetch timeout')), 8000)
         );
 
         const { data: { session } } = await Promise.race([
@@ -288,13 +324,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          // Don't wait for profile - fetch in background
           fetchProfile(session.user.id);
         }
       } catch (err) {
         console.error('Session initialization error:', err);
+        // On timeout, still allow the app to load - user can sign in manually
+        setSession(null);
+        setUser(null);
       } finally {
-        // Set loading to false immediately - don't wait for profile
         setLoading(false);
       }
     };

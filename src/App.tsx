@@ -47,6 +47,7 @@ import { FranchiseApplicationPage } from "@/polymet/pages/franchise-application"
 import { MyApplicationsPage } from "@/polymet/pages/my-applications";
 import { FranchisorApplicationsPage } from "@/polymet/pages/franchisor-applications";
 import { FinancingOptionsPage } from "@/polymet/pages/financing-options";
+import { FinancingComingSoonPage } from "@/polymet/pages/financing-coming-soon";
 import { MessagesPage } from "@/polymet/pages/messages";
 import { BusinessValuationPage } from "@/polymet/pages/business-valuation";
 import { BuyerInquiriesPage } from "@/polymet/pages/buyer-inquiries";
@@ -69,6 +70,11 @@ import { IndustryDetailPage } from "@/polymet/pages/industry-detail";
 import { WebsiteSchema } from "@/components/structured-data";
 import { DashboardPage } from "@/polymet/pages/dashboard/overview";
 import { BuyerMandatePage } from "@/polymet/pages/buyer-mandate";
+import { PrivacyPolicyPage } from "@/polymet/pages/privacy-policy";
+import { TermsOfServicePage } from "@/polymet/pages/terms-of-service";
+import { RefundPolicyPage } from "@/polymet/pages/refund-policy";
+import { DisclaimerPage } from "@/polymet/pages/disclaimer";
+import { ScrollToTop } from "@/components/ScrollToTop";
 
 // Advisor Dashboard
 import { AdvisorLayout } from "@/polymet/layouts/advisor-layout";
@@ -86,6 +92,7 @@ export default function BizSearchApp() {
             <SavedListingsProvider>
               <NotificationsProvider>
                 <Router>
+                  <ScrollToTop />
                   <WebsiteSchema />
                   <Routes>
                     {/* Homepage */}
@@ -174,6 +181,46 @@ export default function BizSearchApp() {
                       element={
                         <MainLayout>
                           <ContactPage />
+                        </MainLayout>
+                      }
+                    />
+
+                    {/* Privacy Policy */}
+                    <Route
+                      path="/privacy"
+                      element={
+                        <MainLayout>
+                          <PrivacyPolicyPage />
+                        </MainLayout>
+                      }
+                    />
+
+                    {/* Terms of Service */}
+                    <Route
+                      path="/terms"
+                      element={
+                        <MainLayout>
+                          <TermsOfServicePage />
+                        </MainLayout>
+                      }
+                    />
+
+                    {/* Refund Policy */}
+                    <Route
+                      path="/refund-policy"
+                      element={
+                        <MainLayout>
+                          <RefundPolicyPage />
+                        </MainLayout>
+                      }
+                    />
+
+                    {/* Disclaimer */}
+                    <Route
+                      path="/disclaimer"
+                      element={
+                        <MainLayout>
+                          <DisclaimerPage />
                         </MainLayout>
                       }
                     />
@@ -459,6 +506,16 @@ export default function BizSearchApp() {
                       element={
                         <MainLayout>
                           <FinancingOptionsPage />
+                        </MainLayout>
+                      }
+                    />
+
+                    {/* Financing Coming Soon */}
+                    <Route
+                      path="/financing-options"
+                      element={
+                        <MainLayout>
+                          <FinancingComingSoonPage />
                         </MainLayout>
                       }
                     />

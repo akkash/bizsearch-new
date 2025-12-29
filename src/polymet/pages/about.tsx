@@ -19,7 +19,13 @@ import {
   Star,
   Building,
   Handshake,
+  Sparkles,
+  ArrowRight,
+  Mail,
+  Phone,
+  MapPin,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export function AboutPage({ className }: { className?: string }) {
   const teamMembers = [
@@ -58,10 +64,10 @@ export function AboutPage({ className }: { className?: string }) {
   ];
 
   const achievements = [
-    { number: "10,000+", label: "Businesses Listed", icon: Building },
-    { number: "5,000+", label: "Successful Matches", icon: Handshake },
-    { number: "₹500Cr+", label: "Deals Facilitated", icon: TrendingUp },
-    { number: "95%", label: "Client Satisfaction", icon: Star },
+    { number: "15,000+", label: "Businesses Listed", icon: Building },
+    { number: "50,000+", label: "Registered Users", icon: Users },
+    { number: "1,00,000+", label: "Successful Matches", icon: Handshake },
+    { number: "500+", label: "Cities Covered", icon: MapPin },
   ];
 
   const features = [
@@ -91,90 +97,145 @@ export function AboutPage({ className }: { className?: string }) {
     },
   ];
 
+  const values = [
+    {
+      icon: Shield,
+      title: "Trust & Transparency",
+      description: "Every listing is verified. No hidden information.",
+    },
+    {
+      icon: Sparkles,
+      title: "Innovation",
+      description: "AI-powered tools for smarter business decisions.",
+    },
+    {
+      icon: Users,
+      title: "Customer First",
+      description: "Your success is our primary goal.",
+    },
+    {
+      icon: Award,
+      title: "Excellence",
+      description: "Industry-leading standards in every interaction.",
+    },
+  ];
+
   return (
     <div className={`min-h-screen ${className}`}>
-      {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-50 to-indigo-100 py-16">
-        <div className="container mx-auto px-4">
+      {/* Hero Section with Gradient */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-trust-blue/5 via-growth-green/5 to-trust-blue/10 dark:from-trust-blue/10 dark:via-growth-green/5 dark:to-trust-blue/5 py-16 md:py-24">
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-primary/10 blur-3xl animate-pulse" />
+          <div className="absolute top-20 -left-20 w-60 h-60 rounded-full bg-growth-green/10 blur-3xl animate-pulse delay-1000" />
+        </div>
+
+        <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
-            <Badge variant="outline" className="mb-4">
-              🚀 AI-Powered Business Discovery Platform
+            <Badge variant="secondary" className="mb-6 px-4 py-2">
+              <Sparkles className="w-4 h-4 mr-2" />
+              AI-Powered Business Discovery Platform
             </Badge>
-            <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
               Transforming Business
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                {" "}
-                Discovery
+              <span className="bg-gradient-to-r from-primary via-primary to-growth-green bg-clip-text text-transparent">
+                {" "}Discovery
               </span>
             </h1>
-            <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
+            <p className="text-lg md:text-xl text-muted-foreground mb-10 leading-relaxed max-w-3xl mx-auto">
               BizSearch is India's most trusted platform for business
               acquisitions and franchise opportunities. We leverage cutting-edge
               AI technology to connect entrepreneurs with their perfect business
               match.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
-                Explore Opportunities
+              <Button asChild size="lg" className="bg-primary hover:bg-primary/90">
+                <Link to="/businesses">
+                  Explore Opportunities
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
               </Button>
-              <Button size="lg" variant="outline">
-                List Your Business
+              <Button asChild size="lg" variant="outline">
+                <Link to="/add-business-listing">
+                  List Your Business
+                </Link>
               </Button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Mission & Vision */}
-      <section className="py-16">
+      {/* Stats Strip */}
+      <section className="py-8 border-y bg-background">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {achievements.map((achievement, index) => (
+              <div key={index} className="text-center">
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <achievement.icon className="h-5 w-5 text-primary" />
+                  <span className="text-2xl md:text-3xl font-bold text-foreground">
+                    {achievement.number}
+                  </span>
+                </div>
+                <p className="text-sm text-muted-foreground">{achievement.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Mission Section */}
+      <section className="py-16 md:py-20">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-foreground mb-6">
+              <Badge variant="secondary" className="mb-4">
                 Our Mission
+              </Badge>
+              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
+                Democratizing Business Ownership
               </h2>
               <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
-                To democratize business ownership by making quality business
-                opportunities accessible to every entrepreneur. We believe that
-                with the right guidance and technology, anyone can build a
-                successful business.
+                We believe that with the right guidance and technology, anyone can build a
+                successful business. Our mission is to make quality business opportunities
+                accessible to every entrepreneur in India.
               </p>
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
-                  <CheckCircle className="h-6 w-6 text-green-600 mt-0.5 flex-shrink-0" />
-
+                  <div className="w-6 h-6 rounded-full bg-growth-green/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <CheckCircle className="h-4 w-4 text-growth-green" />
+                  </div>
                   <p className="text-muted-foreground">
                     Transparent and verified business listings
                   </p>
                 </div>
                 <div className="flex items-start gap-3">
-                  <CheckCircle className="h-6 w-6 text-green-600 mt-0.5 flex-shrink-0" />
-
+                  <div className="w-6 h-6 rounded-full bg-growth-green/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <CheckCircle className="h-4 w-4 text-growth-green" />
+                  </div>
                   <p className="text-muted-foreground">
                     Expert guidance throughout the acquisition process
                   </p>
                 </div>
                 <div className="flex items-start gap-3">
-                  <CheckCircle className="h-6 w-6 text-green-600 mt-0.5 flex-shrink-0" />
-
+                  <div className="w-6 h-6 rounded-full bg-growth-green/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <CheckCircle className="h-4 w-4 text-growth-green" />
+                  </div>
                   <p className="text-muted-foreground">
                     AI-powered recommendations for better matches
                   </p>
                 </div>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-6">
-              {achievements.map((achievement, index) => (
-                <Card key={index} className="text-center">
+            <div className="grid grid-cols-2 gap-4">
+              {values.map((value, index) => (
+                <Card key={index} className="hover:shadow-lg transition-all hover:-translate-y-1">
                   <CardContent className="pt-6">
-                    <achievement.icon className="h-8 w-8 text-blue-600 mx-auto mb-3" />
-
-                    <div className="text-2xl font-bold text-foreground">
-                      {achievement.number}
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
+                      <value.icon className="h-5 w-5 text-primary" />
                     </div>
-                    <div className="text-sm text-muted-foreground">
-                      {achievement.label}
-                    </div>
+                    <h3 className="font-semibold mb-1">{value.title}</h3>
+                    <p className="text-sm text-muted-foreground">{value.description}</p>
                   </CardContent>
                 </Card>
               ))}
@@ -183,11 +244,15 @@ export function AboutPage({ className }: { className?: string }) {
         </div>
       </section>
 
-      {/* Features */}
-      <section className="py-16 bg-muted/30">
+      {/* Why Choose Section */}
+      <section className="py-16 bg-gradient-to-br from-muted/30 via-muted/50 to-muted/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground mb-4">
+            <Badge variant="secondary" className="mb-4">
+              <Star className="w-3 h-3 mr-1" />
+              Why Choose Us
+            </Badge>
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
               Why Choose BizSearch?
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -199,11 +264,12 @@ export function AboutPage({ className }: { className?: string }) {
             {features.map((feature, index) => (
               <Card
                 key={index}
-                className="text-center hover:shadow-lg transition-shadow"
+                className="text-center hover:shadow-xl transition-all hover:-translate-y-1 bg-background"
               >
                 <CardHeader>
-                  <feature.icon className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-
+                  <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                    <feature.icon className="h-7 w-7 text-primary" />
+                  </div>
                   <CardTitle className="text-lg">{feature.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -217,11 +283,14 @@ export function AboutPage({ className }: { className?: string }) {
         </div>
       </section>
 
-      {/* Team */}
-      <section className="py-16">
+      {/* Team Section */}
+      <section className="py-16 md:py-20">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground mb-4">
+            <Badge variant="secondary" className="mb-4">
+              Our Team
+            </Badge>
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
               Meet Our Expert Team
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -233,24 +302,27 @@ export function AboutPage({ className }: { className?: string }) {
             {teamMembers.map((member, index) => (
               <Card
                 key={index}
-                className="text-center hover:shadow-lg transition-shadow"
+                className="text-center hover:shadow-xl transition-all hover:-translate-y-1 group"
               >
-                <CardHeader>
-                  <img
-                    src={member.image}
-                    alt={member.name}
-                    className="w-20 h-20 rounded-full mx-auto mb-4 object-cover"
-                  />
-
+                <CardHeader className="pb-2">
+                  <div className="relative mx-auto mb-4">
+                    <img
+                      src={member.image}
+                      alt={member.name}
+                      className="w-24 h-24 rounded-full mx-auto object-cover border-4 border-primary/20 group-hover:border-primary/40 transition-colors"
+                    />
+                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2">
+                      <Badge variant="secondary" className="text-xs whitespace-nowrap">
+                        {member.experience}
+                      </Badge>
+                    </div>
+                  </div>
                   <CardTitle className="text-lg">{member.name}</CardTitle>
-                  <CardDescription className="text-sm font-medium text-blue-600">
+                  <CardDescription className="text-sm font-medium text-primary">
                     {member.role}
                   </CardDescription>
-                  <Badge variant="secondary" className="text-xs">
-                    {member.experience}
-                  </Badge>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-2">
                   <div className="flex flex-wrap gap-1 justify-center">
                     {member.expertise.map((skill, skillIndex) => (
                       <Badge
@@ -269,31 +341,92 @@ export function AboutPage({ className }: { className?: string }) {
         </div>
       </section>
 
+      {/* Trust Badges */}
+      <section className="py-12 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <CheckCircle className="h-5 w-5 text-growth-green" />
+              <span className="text-sm font-medium">Verified Listings</span>
+            </div>
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Shield className="h-5 w-5 text-growth-green" />
+              <span className="text-sm font-medium">Secure Transactions</span>
+            </div>
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Award className="h-5 w-5 text-growth-green" />
+              <span className="text-sm font-medium">Safe Payments</span>
+            </div>
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Star className="h-5 w-5 text-growth-green" />
+              <span className="text-sm font-medium">Trusted Platform</span>
+            </div>
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Globe className="h-5 w-5 text-growth-green" />
+              <span className="text-sm font-medium">Made with ❤️ in India</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
-      <section className="py-16 bg-gradient-to-r from-blue-600 to-purple-600">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold text-white mb-4">
+      <section className="py-16 md:py-20 bg-gradient-to-r from-primary via-primary to-growth-green relative overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-10 left-10 w-32 h-32 rounded-full bg-white blur-2xl" />
+          <div className="absolute bottom-10 right-10 w-40 h-40 rounded-full bg-white blur-2xl" />
+        </div>
+
+        <div className="container mx-auto px-4 text-center relative z-10">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
             Ready to Find Your Perfect Business Opportunity?
           </h2>
-          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+          <p className="text-xl text-white/80 mb-8 max-w-2xl mx-auto">
             Join thousands of successful entrepreneurs who found their ideal
             business through BizSearch
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
+              asChild
               size="lg"
               variant="secondary"
-              className="bg-white text-blue-600 hover:bg-gray-100"
+              className="bg-white text-primary hover:bg-white/90"
             >
-              Start Your Search
+              <Link to="/businesses">
+                Start Your Search
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
             </Button>
             <Button
+              asChild
               size="lg"
               variant="outline"
-              className="border-white text-white hover:bg-white hover:text-blue-600"
+              className="border-white text-white hover:bg-white hover:text-primary"
             >
-              Talk to an Expert
+              <Link to="/contact">
+                Talk to an Expert
+              </Link>
             </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Contact Info */}
+      <section className="py-12 bg-background border-t">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-wrap items-center justify-center gap-8 text-muted-foreground">
+            <a href="tel:+919876543210" className="flex items-center gap-2 hover:text-primary transition-colors">
+              <Phone className="h-4 w-4" />
+              <span className="text-sm">+91 98765 43210</span>
+            </a>
+            <a href="mailto:contact@bizsearch.in" className="flex items-center gap-2 hover:text-primary transition-colors">
+              <Mail className="h-4 w-4" />
+              <span className="text-sm">contact@bizsearch.in</span>
+            </a>
+            <div className="flex items-center gap-2">
+              <MapPin className="h-4 w-4" />
+              <span className="text-sm">Mumbai, Maharashtra, India</span>
+            </div>
           </div>
         </div>
       </section>
