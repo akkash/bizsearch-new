@@ -99,32 +99,72 @@ export class FranchiseService {
   }
 
   /**
-   * Get a single franchise by ID (UUID)
+   * Get a single franchise by ID (UUID) - using direct fetch
    */
   static async getFranchiseById(id: string) {
-    const { data, error } = await supabase
-      .from('franchises')
-      .select('*')
-      .eq('id', id)
-      .single();
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-    if (error) throw error;
-    return data;
+    console.log('🔍 Fetching franchise by ID:', id);
+
+    const response = await fetch(
+      `${supabaseUrl}/rest/v1/franchises?id=eq.${id}&select=*`,
+      {
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json',
+        }
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (!data || data.length === 0) {
+      throw new Error('Franchise not found');
+    }
+
+    console.log('✅ Franchise fetched by ID:', data[0]?.brand_name);
+    return data[0];
   }
 
   /**
-   * Get franchise by slug
+   * Get franchise by slug - using direct fetch
    */
   static async getFranchiseBySlug(slug: string) {
     const sanitized = sanitizeSlug(slug);
-    const { data, error } = await supabase
-      .from('franchises')
-      .select('*')
-      .eq('slug', sanitized)
-      .single();
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-    if (error) throw error;
-    return data;
+    console.log('🔍 Fetching franchise by slug:', sanitized);
+
+    const response = await fetch(
+      `${supabaseUrl}/rest/v1/franchises?slug=eq.${encodeURIComponent(sanitized)}&select=*`,
+      {
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json',
+        }
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (!data || data.length === 0) {
+      throw new Error('Franchise not found');
+    }
+
+    console.log('✅ Franchise fetched by slug:', data[0]?.brand_name);
+    return data[0];
   }
 
   /**
@@ -132,10 +172,12 @@ export class FranchiseService {
    * Use this method for route handlers that accept both UUID and slug
    */
   static async getFranchiseByIdOrSlug(identifier: string) {
-    // Add timeout to prevent infinite loading
+    // Add timeout to prevent infinite loading (15 seconds for better reliability)
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Request timed out')), 8000);
+      setTimeout(() => reject(new Error('Request timed out')), 15000);
     });
+
+    console.log('🔍 Fetching franchise by identifier:', identifier, 'isUUID:', isUUID(identifier));
 
     const fetchPromise = isUUID(identifier)
       ? this.getFranchiseById(identifier)
@@ -150,18 +192,31 @@ export class FranchiseService {
   }
 
   /**
-   * Get featured franchises
+   * Get featured franchises - using direct fetch
    */
   static async getFeaturedFranchises(limit = 10) {
-    const { data, error } = await supabase
-      .from('franchises')
-      .select('*')
-      .eq('status', 'active')
-      .eq('featured', true)
-      .order('created_at', { ascending: false })
-      .limit(limit);
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-    if (error) throw error;
+    console.log('🌟 Fetching featured franchises...');
+
+    const response = await fetch(
+      `${supabaseUrl}/rest/v1/franchises?select=*&status=eq.active&featured=eq.true&order=created_at.desc&limit=${limit}`,
+      {
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json',
+        }
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('✅ Featured franchises fetched:', data?.length || 0);
     return data;
   }
 

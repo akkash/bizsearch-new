@@ -90,33 +90,72 @@ export class BusinessService {
   }
 
   /**
-   * Get a single business by ID (UUID)
+   * Get a single business by ID (UUID) - using direct fetch
    */
   static async getBusinessById(id: string) {
-    const { data, error } = await supabase
-      .from('businesses')
-      .select('*, profiles(*)')
-      .eq('id', id)
-      .single();
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-    if (error) throw error;
+    console.log('🔍 Fetching business by ID:', id);
 
-    return data;
+    const response = await fetch(
+      `${supabaseUrl}/rest/v1/businesses?id=eq.${id}&select=*,profiles(*)`,
+      {
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json',
+        }
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (!data || data.length === 0) {
+      throw new Error('Business not found');
+    }
+
+    console.log('✅ Business fetched by ID:', data[0]?.name);
+    return data[0];
   }
 
   /**
-   * Get business by slug
+   * Get business by slug - using direct fetch
    */
   static async getBusinessBySlug(slug: string) {
     const sanitized = sanitizeSlug(slug);
-    const { data, error } = await supabase
-      .from('businesses')
-      .select('*, profiles(*)')
-      .eq('slug', sanitized)
-      .single();
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-    if (error) throw error;
-    return data;
+    console.log('🔍 Fetching business by slug:', sanitized);
+
+    const response = await fetch(
+      `${supabaseUrl}/rest/v1/businesses?slug=eq.${encodeURIComponent(sanitized)}&select=*,profiles(*)`,
+      {
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json',
+        }
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (!data || data.length === 0) {
+      throw new Error('Business not found');
+    }
+
+    console.log('✅ Business fetched by slug:', data[0]?.name);
+    return data[0];
   }
 
   /**
@@ -124,26 +163,51 @@ export class BusinessService {
    * Use this method for route handlers that accept both UUID and slug
    */
   static async getBusinessByIdOrSlug(identifier: string) {
-    if (isUUID(identifier)) {
-      return this.getBusinessById(identifier);
-    } else {
-      return this.getBusinessBySlug(identifier);
+    // Add timeout to prevent infinite loading (15 seconds)
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Request timed out')), 15000);
+    });
+
+    console.log('🔍 Fetching business by identifier:', identifier, 'isUUID:', isUUID(identifier));
+
+    const fetchPromise = isUUID(identifier)
+      ? this.getBusinessById(identifier)
+      : this.getBusinessBySlug(identifier);
+
+    try {
+      return await Promise.race([fetchPromise, timeoutPromise]);
+    } catch (error) {
+      console.error('Error fetching business:', error);
+      throw error;
     }
   }
 
   /**
-   * Get featured businesses
+   * Get featured businesses - using direct fetch
    */
   static async getFeaturedBusinesses(limit = 10) {
-    const { data, error } = await supabase
-      .from('businesses')
-      .select('*')
-      .eq('status', 'active')
-      .eq('featured', true)
-      .order('created_at', { ascending: false })
-      .limit(limit);
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-    if (error) throw error;
+    console.log('🌟 Fetching featured businesses...');
+
+    const response = await fetch(
+      `${supabaseUrl}/rest/v1/businesses?select=*&status=eq.active&featured=eq.true&order=created_at.desc&limit=${limit}`,
+      {
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json',
+        }
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('✅ Featured businesses fetched:', data?.length || 0);
     return data;
   }
 
