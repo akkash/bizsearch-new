@@ -75,6 +75,7 @@ import { TermsOfServicePage } from "@/polymet/pages/terms-of-service";
 import { RefundPolicyPage } from "@/polymet/pages/refund-policy";
 import { DisclaimerPage } from "@/polymet/pages/disclaimer";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { HelpCenterPage } from "@/polymet/pages/help-center";
 
 // Advisor Dashboard
 import { AdvisorLayout } from "@/polymet/layouts/advisor-layout";
@@ -221,6 +222,16 @@ export default function BizSearchApp() {
                       element={
                         <MainLayout>
                           <DisclaimerPage />
+                        </MainLayout>
+                      }
+                    />
+
+                    {/* Help Center */}
+                    <Route
+                      path="/help"
+                      element={
+                        <MainLayout>
+                          <HelpCenterPage />
                         </MainLayout>
                       }
                     />
