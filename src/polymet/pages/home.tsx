@@ -183,13 +183,11 @@ export function HomePage({ className }: HomePageProps) {
   };
 
   const handleViewAllBusinesses = () => {
-    // This will be handled by Link component instead
-    console.log("View all businesses clicked");
+    navigate('/businesses');
   };
 
   const handleViewAllFranchises = () => {
-    // This will be handled by Link component instead
-    console.log("View all franchises clicked");
+    navigate('/franchises');
   };
 
   const handleViewAllStories = () => {

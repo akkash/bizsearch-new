@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,7 @@ import { supabase } from '@/lib/supabase';
 export function SignInForm() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { signIn, resetPasswordRequest } = useAuth();
 
   const [email, setEmail] = useState('');
@@ -22,8 +23,9 @@ export function SignInForm() {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
 
-  // Get the redirect path from location state (set by ProtectedRoute)
-  const from = (location.state as any)?.from?.pathname || '/';
+  // Get the redirect path from query params OR location state (set by ProtectedRoute)
+  const redirectParam = searchParams.get('redirect');
+  const from = redirectParam || (location.state as any)?.from?.pathname || '/';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -279,7 +281,7 @@ export function SignInForm() {
             <Button
               variant="link"
               className="p-0 h-auto"
-              onClick={() => navigate('/signup')}
+              onClick={() => navigate(redirectParam ? `/signup?redirect=${encodeURIComponent(redirectParam)}` : '/signup')}
             >
               Sign up
             </Button>

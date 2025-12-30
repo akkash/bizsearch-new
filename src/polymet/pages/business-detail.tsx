@@ -1,24 +1,13 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { BusinessService } from "@/lib/business-service";
-import { MessagingService } from "@/lib/messaging-service";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Business } from "@/types/listings";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import {
   ArrowLeftIcon,
   HeartIcon,
@@ -33,10 +22,10 @@ import {
   ShieldCheckIcon,
   AlertTriangleIcon,
   DownloadIcon,
-  MessageSquareIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AIInsights } from "@/polymet/components/ai-insights";
+import { InquiryDialog } from "@/components/inquiry-dialog";
 
 interface BusinessDetailProps {
   className?: string;
@@ -52,7 +41,6 @@ export function BusinessDetail({ className }: BusinessDetailProps) {
   const [isSaved, setIsSaved] = useState(false);
   const [showContactForm, setShowContactForm] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
-  const [startingConversation, setStartingConversation] = useState(false);
 
   // Fetch business from Supabase (supports both UUID and slug)
   useEffect(() => {
@@ -189,37 +177,6 @@ export function BusinessDetail({ className }: BusinessDetailProps) {
 
   const handleContact = () => {
     setShowContactForm(true);
-  };
-
-  const handleMessage = async () => {
-    if (!user) {
-      navigate('/login', { state: { from: `/business/${id}` } });
-      return;
-    }
-    if (!business?.seller_id && !business?.owner_id) {
-      toast.error('Unable to message seller');
-      return;
-    }
-    setStartingConversation(true);
-    try {
-      const sellerId = business.seller_id || business.owner_id;
-      const conversationId = await MessagingService.getOrCreateConversation(
-        user.id,
-        sellerId!,
-        business.id,
-        'business'
-      );
-      if (conversationId) {
-        navigate(`/messages?conversation=${conversationId}`);
-      } else {
-        toast.error('Failed to start conversation');
-      }
-    } catch (error) {
-      console.error('Error starting conversation:', error);
-      toast.error('Failed to start conversation');
-    } finally {
-      setStartingConversation(false);
-    }
   };
 
   return (
@@ -755,54 +712,16 @@ export function BusinessDetail({ className }: BusinessDetailProps) {
         </div>
       </div>
 
-      {/* Contact Form Dialog */}
-      <Dialog open={showContactForm} onOpenChange={setShowContactForm}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Contact Seller</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="firstName">First Name</Label>
-                <Input id="firstName" placeholder="John" />
-              </div>
-              <div>
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input id="lastName" placeholder="Doe" />
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="john@example.com" />
-            </div>
-            <div>
-              <Label htmlFor="phone">Phone</Label>
-              <Input id="phone" placeholder="+91 98765 43210" />
-            </div>
-            <div>
-              <Label htmlFor="message">Message</Label>
-              <Textarea
-                id="message"
-                placeholder="I'm interested in learning more about this business..."
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button className="flex-1" type="submit">Send Message</Button>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setShowContactForm(false);
-                  handleMessage();
-                }}
-              >
-                <MessageSquareIcon className="h-4 w-4 mr-2" />
-                Chat Now
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Contact Form Dialog - Production Ready */}
+      <InquiryDialog
+        open={showContactForm}
+        onOpenChange={setShowContactForm}
+        listingId={business.id}
+        listingType="business"
+        listingName={business.name}
+        ownerId={business.seller_id || business.owner_id || ''}
+        askingPrice={business.price}
+      />
     </div>
   );
 }

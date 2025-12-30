@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,7 +19,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2, MessageSquare, CheckCircle } from 'lucide-react';
+import { Loader2, MessageSquare, CheckCircle, LogIn, UserPlus, Shield, Bell, BarChart3 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
@@ -135,6 +135,82 @@ export function InquiryDialog({
                         <h3 className="text-xl font-semibold mb-2">Inquiry Sent!</h3>
                         <p className="text-muted-foreground">
                             The {listingType === 'franchise' ? 'franchisor' : 'seller'} will contact you soon.
+                        </p>
+                    </div>
+                </DialogContent>
+            </Dialog>
+        );
+    }
+
+    // Show login prompt for non-authenticated users
+    const location = useLocation();
+
+    if (!user) {
+        return (
+            <Dialog open={open} onOpenChange={onOpenChange}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <MessageSquare className="h-5 w-5" />
+                            {listingType === 'franchise' ? 'Get Franchise Details' : 'Contact Seller'}
+                        </DialogTitle>
+                        <DialogDescription>
+                            Sign in to contact about: <strong>{listingName}</strong>
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="space-y-4 py-4">
+                        <p className="text-sm text-muted-foreground">
+                            Create a free account to unlock these benefits:
+                        </p>
+
+                        <div className="space-y-3">
+                            <div className="flex items-start gap-3">
+                                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                    <BarChart3 className="h-4 w-4 text-primary" />
+                                </div>
+                                <div>
+                                    <div className="font-medium text-sm">Track All Your Inquiries</div>
+                                    <div className="text-xs text-muted-foreground">View status and responses in one place</div>
+                                </div>
+                            </div>
+                            <div className="flex items-start gap-3">
+                                <div className="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center flex-shrink-0">
+                                    <Bell className="h-4 w-4 text-green-600" />
+                                </div>
+                                <div>
+                                    <div className="font-medium text-sm">Get Instant Notifications</div>
+                                    <div className="text-xs text-muted-foreground">Be notified when {listingType === 'franchise' ? 'franchisor' : 'seller'} responds</div>
+                                </div>
+                            </div>
+                            <div className="flex items-start gap-3">
+                                <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center flex-shrink-0">
+                                    <Shield className="h-4 w-4 text-blue-600" />
+                                </div>
+                                <div>
+                                    <div className="font-medium text-sm">Secure Messaging</div>
+                                    <div className="text-xs text-muted-foreground">Direct communication through our platform</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col gap-2 pt-2">
+                            <Button asChild className="w-full">
+                                <Link to={`/login?redirect=${encodeURIComponent(location.pathname + '?contact=true')}`}>
+                                    <LogIn className="h-4 w-4 mr-2" />
+                                    Sign In
+                                </Link>
+                            </Button>
+                            <Button variant="outline" asChild className="w-full">
+                                <Link to={`/signup?redirect=${encodeURIComponent(location.pathname + '?contact=true')}`}>
+                                    <UserPlus className="h-4 w-4 mr-2" />
+                                    Create Free Account
+                                </Link>
+                            </Button>
+                        </div>
+
+                        <p className="text-xs text-center text-muted-foreground">
+                            Takes less than 30 seconds to sign up
                         </p>
                     </div>
                 </DialogContent>
@@ -277,11 +353,6 @@ export function InquiryDialog({
                                 'Send Inquiry'
                             )}
                         </Button>
-                        {!user && (
-                            <p className="text-xs text-center text-muted-foreground">
-                                <Link to="/login" className="text-primary hover:underline">Login</Link> to track your inquiries and get faster responses
-                            </p>
-                        )}
                     </div>
                 </form>
             </DialogContent>

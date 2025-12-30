@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,7 +23,11 @@ import { supabase } from '@/lib/supabase';
 
 export function SignUpForm() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { } = useAuth();
+
+  // Get redirect param to use after signup
+  const redirectParam = searchParams.get('redirect');
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -105,8 +109,8 @@ export function SignUpForm() {
 
       // Check if signup response already contains a session (auto-confirm enabled)
       if (signUpData.session) {
-        // User is logged in, redirect to onboarding to complete profile
-        navigate('/onboarding', { replace: true });
+        // User is logged in, redirect to onboarding (which will then redirect to final destination)
+        navigate(redirectParam ? `/onboarding?redirect=${encodeURIComponent(redirectParam)}` : '/onboarding', { replace: true });
         return;
       }
 
@@ -117,8 +121,8 @@ export function SignUpForm() {
       const { data: { session: currentSession } } = await supabase.auth.getSession();
 
       if (currentSession) {
-        // User is logged in, redirect to onboarding to complete profile
-        navigate('/onboarding', { replace: true });
+        // User is logged in, redirect to onboarding (which will then redirect to final destination)
+        navigate(redirectParam ? `/onboarding?redirect=${encodeURIComponent(redirectParam)}` : '/onboarding', { replace: true });
       } else {
         // Email confirmation required - new user
         setSignupSuccess(true);
@@ -203,7 +207,7 @@ export function SignUpForm() {
           <Button
             variant="ghost"
             className="w-full"
-            onClick={() => navigate('/login')}
+            onClick={() => navigate(redirectParam ? `/login?redirect=${encodeURIComponent(redirectParam)}` : '/login')}
           >
             Back to Sign In
           </Button>
@@ -281,7 +285,7 @@ export function SignUpForm() {
             <Button
               variant="ghost"
               className="flex-1"
-              onClick={() => navigate('/login')}
+              onClick={() => navigate(redirectParam ? `/login?redirect=${encodeURIComponent(redirectParam)}` : '/login')}
             >
               Sign In Instead
             </Button>
@@ -497,7 +501,7 @@ export function SignUpForm() {
             <Button
               variant="link"
               className="p-0 h-auto"
-              onClick={() => navigate('/login')}
+              onClick={() => navigate(redirectParam ? `/login?redirect=${encodeURIComponent(redirectParam)}` : '/login')}
             >
               Sign in
             </Button>

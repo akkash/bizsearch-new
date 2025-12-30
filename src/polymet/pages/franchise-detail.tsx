@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { FranchiseService } from "@/lib/franchise-service";
-import { MessagingService } from "@/lib/messaging-service";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Franchise } from "@/types/listings";
 import { toast } from "sonner";
@@ -10,15 +9,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import {
   ArrowLeftIcon,
@@ -36,10 +26,10 @@ import {
   DownloadIcon,
   PlayCircleIcon,
   CheckCircleIcon,
-  MessageSquareIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AIInsights } from "@/polymet/components/ai-insights";
+import { InquiryDialog } from "@/components/inquiry-dialog";
 
 interface FranchiseDetailProps {
   className?: string;
@@ -55,7 +45,6 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
   const [isSaved, setIsSaved] = useState(false);
   const [showContactForm, setShowContactForm] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
-  const [startingConversation, setStartingConversation] = useState(false);
   const [showPhoneNumber, setShowPhoneNumber] = useState(false);
 
   // Fetch franchise from Supabase (supports both UUID and slug)
@@ -234,37 +223,6 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
     setShowContactForm(true);
   };
 
-  const handleMessage = async () => {
-    if (!user) {
-      navigate('/login', { state: { from: `/franchise/${id}` } });
-      return;
-    }
-    if (!franchise?.owner_id && !franchise?.franchisor_id) {
-      toast.error('Unable to message franchisor');
-      return;
-    }
-    setStartingConversation(true);
-    try {
-      const franchisorId = (franchise as any).franchisor_id || (franchise as any).owner_id;
-      const conversationId = await MessagingService.getOrCreateConversation(
-        user.id,
-        franchisorId,
-        franchise.id,
-        'franchise'
-      );
-      if (conversationId) {
-        navigate(`/messages?conversation=${conversationId}`);
-      } else {
-        toast.error('Failed to start conversation');
-      }
-    } catch (error) {
-      console.error('Error starting conversation:', error);
-      toast.error('Failed to start conversation');
-    } finally {
-      setStartingConversation(false);
-    }
-  };
-
   return (
     <div className={cn("min-h-screen bg-background", className)}>
       {/* Header */}
@@ -322,7 +280,7 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
               </Button>
               <Button onClick={handleContact}>
                 <PhoneIcon className="h-4 w-4 mr-2" />
-                Request Info
+                Get Franchise Details
               </Button>
             </div>
           </div>
@@ -869,7 +827,7 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
                 </div>
                 <Button className="w-full" onClick={handleContact}>
                   <PhoneIcon className="h-4 w-4 mr-2" />
-                  Request Information
+                  Get Franchise Details
                 </Button>
               </CardContent>
             </Card>
@@ -975,58 +933,16 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
         </div>
       </div>
 
-      {/* Contact Form Dialog */}
-      <Dialog open={showContactForm} onOpenChange={setShowContactForm}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Request Franchise Information</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="firstName">First Name</Label>
-                <Input id="firstName" placeholder="John" />
-              </div>
-              <div>
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input id="lastName" placeholder="Doe" />
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="john@example.com" />
-            </div>
-            <div>
-              <Label htmlFor="phone">Phone</Label>
-              <Input id="phone" placeholder="+91 98765 43210" />
-            </div>
-            <div>
-              <Label htmlFor="investment">Available Investment</Label>
-              <Input id="investment" placeholder="₹25,00,000" />
-            </div>
-            <div>
-              <Label htmlFor="location">Preferred Location</Label>
-              <Input id="location" placeholder="Mumbai, Delhi, Bangalore..." />
-            </div>
-            <div>
-              <Label htmlFor="message">Message</Label>
-              <Textarea
-                id="message"
-                placeholder="I'm interested in learning more about this franchise opportunity..."
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button className="flex-1">Send Request</Button>
-              <Button
-                variant="outline"
-                onClick={() => setShowContactForm(false)}
-              >
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Contact Form Dialog - Production Ready */}
+      <InquiryDialog
+        open={showContactForm}
+        onOpenChange={setShowContactForm}
+        listingId={franchise.id}
+        listingType="franchise"
+        listingName={franchise.brandName || 'Franchise Opportunity'}
+        ownerId={(franchise as any).franchisor_id || (franchise as any).owner_id || ''}
+        askingPrice={franchise.investmentMin}
+      />
     </div>
   );
 }

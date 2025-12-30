@@ -68,7 +68,7 @@ export function IndustryIntelligencePage() {
                                 </Button>
                             </Link>
                             <Link to="/businesses">
-                                <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10">
+                                <Button size="lg" variant="secondary" className="bg-white/10 text-white border border-white/30 hover:bg-white/20 backdrop-blur-sm">
                                     Browse Businesses
                                 </Button>
                             </Link>
@@ -199,7 +199,7 @@ export function IndustryIntelligencePage() {
                                 </Button>
                             </Link>
                             <Link to="/contact">
-                                <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10">
+                                <Button size="lg" variant="secondary" className="bg-white/10 text-white border border-white/30 hover:bg-white/20 backdrop-blur-sm">
                                     Talk to an Advisor
                                 </Button>
                             </Link>
