@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
-import { Loader2, Eye, EyeOff, Mail, CheckCircle, RefreshCw } from 'lucide-react';
+import { Loader2, Eye, EyeOff, Mail, CheckCircle, RefreshCw, User, Lock, ArrowRight } from 'lucide-react';
 import { signUpSchema } from '@/utils/validation';
 import {
   formatZodError,
@@ -296,11 +296,19 @@ export function SignUpForm() {
   }
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle>Create Account</CardTitle>
-        <CardDescription>
-          Join BizSearch to buy, sell, or invest in businesses
+    <Card className="w-full max-w-md mx-auto shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
+      <CardHeader className="text-center pb-2">
+        {/* Brand Logo */}
+        <div className="flex justify-center mb-4">
+          <img
+            src="/logo.png"
+            alt="BizSearch"
+            className="h-12 w-auto"
+          />
+        </div>
+        <CardTitle className="text-2xl font-bold text-gray-900">Create Your Account</CardTitle>
+        <CardDescription className="text-base">
+          Join <span className="font-semibold text-primary">BizSearch</span> to discover opportunities
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -312,46 +320,58 @@ export function SignUpForm() {
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="displayName">Full Name</Label>
-            <Input
-              id="displayName"
-              type="text"
-              required
-              value={formData.displayName}
-              onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
-              placeholder="John Doe"
-              disabled={loading}
-              className={fieldErrors.display_name ? 'border-red-500' : ''}
-            />
+            <Label htmlFor="displayName" className="text-sm font-medium">Full Name</Label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="displayName"
+                type="text"
+                required
+                value={formData.displayName}
+                onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
+                placeholder="John Doe"
+                disabled={loading}
+                className={`pl-10 h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20 ${fieldErrors.display_name ? 'border-red-500 focus:border-red-500' : ''}`}
+              />
+            </div>
             {fieldErrors.display_name && (
-              <p className="text-sm text-red-500">{fieldErrors.display_name}</p>
+              <p className="text-xs text-red-500 flex items-center gap-1">
+                <span className="inline-block w-1 h-1 bg-red-500 rounded-full"></span>
+                {fieldErrors.display_name}
+              </p>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              required
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              placeholder="you@example.com"
-              disabled={loading}
-              className={fieldErrors.email ? 'border-red-500' : ''}
-            />
+            <Label htmlFor="email" className="text-sm font-medium">Email Address</Label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="email"
+                type="email"
+                required
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                placeholder="you@example.com"
+                disabled={loading}
+                className={`pl-10 h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20 ${fieldErrors.email ? 'border-red-500 focus:border-red-500' : ''}`}
+              />
+            </div>
             {fieldErrors.email && (
-              <p className="text-sm text-red-500">{fieldErrors.email}</p>
+              <p className="text-xs text-red-500 flex items-center gap-1">
+                <span className="inline-block w-1 h-1 bg-red-500 rounded-full"></span>
+                {fieldErrors.email}
+              </p>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="role">I am a</Label>
+            <Label htmlFor="role" className="text-sm font-medium">I am a</Label>
             <Select
               value={formData.role}
               onValueChange={(value: any) => setFormData({ ...formData, role: value })}
             >
-              <SelectTrigger>
+              <SelectTrigger className="h-11 text-gray-900">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -361,14 +381,14 @@ export function SignUpForm() {
                 <SelectItem value="franchisor">Franchisor - Offering franchise opportunities</SelectItem>
                 <SelectItem value="advisor">Advisor - Business consultant</SelectItem>
                 <SelectItem value="broker">Broker - Business broker</SelectItem>
-                <SelectItem value="admin">Admin - Platform administrator</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password" className="text-sm font-medium">Password</Label>
             <div className="relative">
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
@@ -377,7 +397,7 @@ export function SignUpForm() {
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 placeholder="••••••••"
                 disabled={loading}
-                className={fieldErrors.password ? 'border-red-500 pr-10' : 'pr-10'}
+                className={`pl-10 pr-10 h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20 ${fieldErrors.password ? 'border-red-500 focus:border-red-500' : ''}`}
               />
               <Button
                 type="button"
@@ -395,7 +415,10 @@ export function SignUpForm() {
               </Button>
             </div>
             {fieldErrors.password && (
-              <p className="text-sm text-red-500">{fieldErrors.password}</p>
+              <p className="text-xs text-red-500 flex items-center gap-1">
+                <span className="inline-block w-1 h-1 bg-red-500 rounded-full"></span>
+                {fieldErrors.password}
+              </p>
             )}
 
             {/* Password Strength Indicator */}
@@ -432,8 +455,9 @@ export function SignUpForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <Label htmlFor="confirmPassword" className="text-sm font-medium">Confirm Password</Label>
             <div className="relative">
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 id="confirmPassword"
                 type={showConfirmPassword ? 'text' : 'password'}
@@ -442,7 +466,7 @@ export function SignUpForm() {
                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                 placeholder="••••••••"
                 disabled={loading}
-                className={fieldErrors.confirmPassword ? 'border-red-500 pr-10' : 'pr-10'}
+                className={`pl-10 pr-10 h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20 ${fieldErrors.confirmPassword ? 'border-red-500 focus:border-red-500' : ''}`}
               />
               <Button
                 type="button"
@@ -460,7 +484,10 @@ export function SignUpForm() {
               </Button>
             </div>
             {fieldErrors.confirmPassword && (
-              <p className="text-sm text-red-500">{fieldErrors.confirmPassword}</p>
+              <p className="text-xs text-red-500 flex items-center gap-1">
+                <span className="inline-block w-1 h-1 bg-red-500 rounded-full"></span>
+                {fieldErrors.confirmPassword}
+              </p>
             )}
           </div>
 
@@ -489,23 +516,40 @@ export function SignUpForm() {
 
           <Button
             type="submit"
-            className="w-full"
+            className="w-full h-11 text-base font-semibold shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-200"
             disabled={loading || passwordStrength.score < 3}
           >
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Create Account
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Creating Account...
+              </>
+            ) : (
+              <>
+                Create Account
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </>
+            )}
           </Button>
 
-          <p className="text-sm text-center text-muted-foreground">
-            Already have an account?{' '}
-            <Button
-              variant="link"
-              className="p-0 h-auto"
-              onClick={() => navigate(redirectParam ? `/login?redirect=${encodeURIComponent(redirectParam)}` : '/login')}
-            >
-              Sign in
-            </Button>
-          </p>
+          {/* Divider */}
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-white px-2 text-muted-foreground">Already a member?</span>
+            </div>
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full h-11"
+            onClick={() => navigate(redirectParam ? `/login?redirect=${encodeURIComponent(redirectParam)}` : '/login')}
+          >
+            Sign In Instead
+          </Button>
         </form>
       </CardContent>
     </Card>

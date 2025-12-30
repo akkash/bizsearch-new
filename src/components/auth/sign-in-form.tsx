@@ -4,9 +4,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Mail, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Mail, Eye, EyeOff, Lock, ArrowRight } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 export function SignInForm() {
@@ -18,8 +19,10 @@ export function SignInForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
 
@@ -30,17 +33,18 @@ export function SignInForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setFieldErrors({});
     setLoading(true);
 
     // Validate email format
     if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-      setError('Please enter a valid email address');
+      setFieldErrors({ email: 'Please enter a valid email address' });
       setLoading(false);
       return;
     }
 
     if (password.length < 6) {
-      setError('Password must be at least 6 characters');
+      setFieldErrors({ password: 'Password must be at least 6 characters' });
       setLoading(false);
       return;
     }
@@ -186,15 +190,23 @@ export function SignInForm() {
   }
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle>Sign In</CardTitle>
-        <CardDescription>
-          Welcome back to BizSearch
+    <Card className="w-full max-w-md mx-auto shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
+      <CardHeader className="text-center pb-2">
+        {/* Brand Logo */}
+        <div className="flex justify-center mb-4">
+          <img
+            src="/logo.png"
+            alt="BizSearch"
+            className="h-12 w-auto"
+          />
+        </div>
+        <CardTitle className="text-2xl font-bold text-gray-900">Welcome Back</CardTitle>
+        <CardDescription className="text-base">
+          Sign in to continue to <span className="font-semibold text-primary">BizSearch</span>
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           {error && (
             <Alert variant="destructive">
               <AlertDescription>{error}</AlertDescription>
@@ -203,7 +215,7 @@ export function SignInForm() {
 
           {/* Email */}
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email" className="text-sm font-medium">Email Address</Label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -211,35 +223,48 @@ export function SignInForm() {
                 type="email"
                 placeholder="you@example.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="pl-10"
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (fieldErrors.email) setFieldErrors({ ...fieldErrors, email: undefined });
+                }}
+                className={`pl-10 h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20 ${fieldErrors.email ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''}`}
                 required
                 disabled={loading}
               />
             </div>
+            {fieldErrors.email && (
+              <p className="text-xs text-red-500 flex items-center gap-1">
+                <span className="inline-block w-1 h-1 bg-red-500 rounded-full"></span>
+                {fieldErrors.email}
+              </p>
+            )}
           </div>
 
           {/* Password */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-sm font-medium">Password</Label>
               <Button
                 type="button"
                 variant="link"
-                className="p-0 h-auto text-sm"
+                className="p-0 h-auto text-xs text-primary hover:text-primary/80"
                 onClick={() => setShowForgotPassword(true)}
               >
                 Forgot password?
               </Button>
             </div>
             <div className="relative">
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
                 placeholder="••••••••"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="pr-10"
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (fieldErrors.password) setFieldErrors({ ...fieldErrors, password: undefined });
+                }}
+                className={`pl-10 pr-10 h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20 ${fieldErrors.password ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''}`}
                 required
                 disabled={loading}
               />
@@ -258,12 +283,34 @@ export function SignInForm() {
                 )}
               </Button>
             </div>
+            {fieldErrors.password && (
+              <p className="text-xs text-red-500 flex items-center gap-1">
+                <span className="inline-block w-1 h-1 bg-red-500 rounded-full"></span>
+                {fieldErrors.password}
+              </p>
+            )}
+          </div>
+
+          {/* Remember Me */}
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="rememberMe"
+              checked={rememberMe}
+              onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+              disabled={loading}
+            />
+            <Label
+              htmlFor="rememberMe"
+              className="text-sm font-normal text-muted-foreground cursor-pointer"
+            >
+              Remember me for 30 days
+            </Label>
           </div>
 
           {/* Sign In Button */}
           <Button
             type="submit"
-            className="w-full"
+            className="w-full h-11 text-base font-semibold shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-200"
             disabled={loading}
           >
             {loading ? (
@@ -272,20 +319,31 @@ export function SignInForm() {
                 Signing in...
               </>
             ) : (
-              'Sign In'
+              <>
+                Sign In
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </>
             )}
           </Button>
 
-          <p className="text-sm text-center text-muted-foreground">
-            Don't have an account?{' '}
-            <Button
-              variant="link"
-              className="p-0 h-auto"
-              onClick={() => navigate(redirectParam ? `/signup?redirect=${encodeURIComponent(redirectParam)}` : '/signup')}
-            >
-              Sign up
-            </Button>
-          </p>
+          {/* Divider */}
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-white px-2 text-muted-foreground">New to BizSearch?</span>
+            </div>
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full h-11"
+            onClick={() => navigate(redirectParam ? `/signup?redirect=${encodeURIComponent(redirectParam)}` : '/signup')}
+          >
+            Create an Account
+          </Button>
         </form>
       </CardContent>
     </Card>
