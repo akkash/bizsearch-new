@@ -52,6 +52,11 @@ export interface Business {
     status?: string;
     createdAt?: string;
     created_at?: string;
+    // New verification system fields
+    verified_at?: string;
+    verification_status?: 'verified' | 'pending' | 'unverified' | 'rejected';
+    data_completeness_score?: number;
+    last_activity_at?: string;
 }
 
 export interface Franchise {
@@ -132,4 +137,9 @@ export interface Franchise {
     status?: string;
     createdAt?: string;
     created_at?: string;
+    // New verification system fields
+    verified_at?: string;
+    verification_status?: 'verified' | 'pending' | 'unverified' | 'rejected';
+    data_completeness_score?: number;
+    last_activity_at?: string;
 }

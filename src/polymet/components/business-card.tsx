@@ -15,8 +15,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Business } from "@/types/listings";
-import { VerificationIcon } from "@/components/verification/VerificationBadge";
-import type { VerificationTier } from "@/hooks/use-verification-tier";
+import { VerificationBadge, LastVerifiedLabel, type VerificationStatus } from "@/components/verification-badge";
 import { usePhoneVerification } from "@/hooks/use-phone-verification";
 import { PhoneVerificationModal } from "@/polymet/components/phone-verification-modal";
 
@@ -149,15 +148,25 @@ export function BusinessCard({
           </div>
 
           {/* Industry, Type, and Verification */}
-          <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center gap-2 mb-3 flex-wrap">
             <Badge variant="secondary">{business.industry}</Badge>
             <Badge variant="outline">{business.businessType}</Badge>
-            {business.verification?.verified && (
-              <VerificationIcon
-                tier={(business.verification.documentsVerified ? 4 : 3) as VerificationTier}
+            {business.verification_status && (
+              <VerificationBadge
+                status={business.verification_status as VerificationStatus}
+                verifiedAt={business.verified_at}
+                size="sm"
               />
             )}
           </div>
+
+          {/* Last Verified indicator */}
+          {business.verified_at && (
+            <LastVerifiedLabel
+              verifiedAt={business.verified_at}
+              className="mb-3"
+            />
+          )}
 
           {/* Key Metrics - Price is the visual hero */}
           <div className="grid grid-cols-2 gap-4 mb-4">

@@ -76,6 +76,8 @@ import { RefundPolicyPage } from "@/polymet/pages/refund-policy";
 import { DisclaimerPage } from "@/polymet/pages/disclaimer";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { HelpCenterPage } from "@/polymet/pages/help-center";
+import { ApiDocsPage } from "@/polymet/pages/api-docs";
+import { SmartSearchPage } from "@/polymet/pages/smart-search";
 
 // Advisor Dashboard
 import { AdvisorLayout } from "@/polymet/layouts/advisor-layout";
@@ -251,6 +253,22 @@ export default function BizSearchApp() {
                         <MainLayout>
                           <IndustryDetailPage />
                         </MainLayout>
+                      }
+                    />
+
+                    {/* API Documentation */}
+                    <Route
+                      path="/api/docs"
+                      element={
+                        <ApiDocsPage />
+                      }
+                    />
+
+                    {/* Smart Search (AI-powered) */}
+                    <Route
+                      path="/smart-search"
+                      element={
+                        <SmartSearchPage />
                       }
                     />
 

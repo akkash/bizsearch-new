@@ -20,6 +20,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { Franchise } from "@/types/listings";
+import { VerificationBadge, LastVerifiedLabel, type VerificationStatus } from "@/components/verification-badge";
 
 interface FranchiseCardProps {
   franchise: Franchise;
@@ -158,6 +159,20 @@ export function FranchiseCard({
               </div>
             </div>
           </div>
+
+          {/* Verification Status Badge */}
+          {franchise.verification_status && (
+            <div className="flex items-center gap-2 mb-2">
+              <VerificationBadge
+                status={franchise.verification_status as VerificationStatus}
+                verifiedAt={franchise.verified_at}
+                size="sm"
+              />
+              {franchise.verified_at && (
+                <LastVerifiedLabel verifiedAt={franchise.verified_at} />
+              )}
+            </div>
+          )}
 
           {/* Investment and ROI - Investment is now the visual hero */}
           <div className="grid grid-cols-2 gap-4 mb-4">
