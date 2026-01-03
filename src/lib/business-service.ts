@@ -133,13 +133,16 @@ export class BusinessService {
 
     console.log('🔍 Fetching business by slug:', sanitized);
 
+    // Use limit=1 to avoid 300 Multiple Choices error when duplicates exist
+    // Removed profiles(*) join as it causes 300 error with ambiguous FK
     const response = await fetch(
-      `${supabaseUrl}/rest/v1/businesses?slug=eq.${encodeURIComponent(sanitized)}&select=*,profiles(*)`,
+      `${supabaseUrl}/rest/v1/businesses?slug=eq.${encodeURIComponent(sanitized)}&select=*&limit=1`,
       {
         headers: {
           'apikey': supabaseKey,
           'Authorization': `Bearer ${supabaseKey}`,
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         }
       }
     );
