@@ -20,6 +20,7 @@ import {
     FileText,
     BarChart3,
     Shield,
+    ShieldCheck,
     Settings,
     ChevronLeft,
     Menu,
@@ -46,6 +47,11 @@ const sidebarItems = [
         title: 'Listings',
         icon: Building2,
         href: '/admin/listings'
+    },
+    {
+        title: 'Verification',
+        icon: ShieldCheck,
+        href: '/admin/verification'
     },
     {
         title: 'Documents',

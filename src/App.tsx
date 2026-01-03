@@ -43,6 +43,7 @@ import { AdminFraudAlerts } from "@/polymet/pages/admin/admin-fraud-alerts";
 import { AdminContentManagement } from "@/polymet/pages/admin/admin-content";
 import { AdminSettings } from "@/polymet/pages/admin/admin-settings";
 import { AdminFeatureFlags } from "@/polymet/pages/admin/admin-feature-flags";
+import { AdminVerification } from "@/polymet/pages/admin/admin-verification";
 import { FranchiseApplicationPage } from "@/polymet/pages/franchise-application";
 import { MyApplicationsPage } from "@/polymet/pages/my-applications";
 import { FranchisorApplicationsPage } from "@/polymet/pages/franchisor-applications";
@@ -491,6 +492,7 @@ export default function BizSearchApp() {
                       <Route path="content" element={<AdminContentManagement />} />
                       <Route path="settings" element={<AdminSettings />} />
                       <Route path="feature-flags" element={<AdminFeatureFlags />} />
+                      <Route path="verification" element={<AdminVerification />} />
                     </Route>
 
                     {/* Franchise Application - Protected */}
