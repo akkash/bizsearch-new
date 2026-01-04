@@ -211,8 +211,10 @@ export function AddBusinessListingPage() {
         // NEW FIELDS for Bento View Completion
         reason_for_sale: data.description?.reasonForSale,
         training_period: data.description?.trainingPeriod,
-        growth_opportunities: data.description?.growthOpportunities?.filter(Boolean) || [],
-        location_highlights: data.description?.locationHighlights?.filter(Boolean) || [],
+        growth_opportunities: data.description?.growthOpportunities
+          ?.split('\n').map(s => s.trim()).filter(Boolean) || [],
+        location_highlights: data.description?.locationHighlights
+          ?.split('\n').map(s => s.trim()).filter(Boolean) || [],
         annual_profit: data.financials?.annualProfit,
         revenue_growth_yoy: data.financials?.revenueGrowthYoY,
         profit_growth_yoy: data.financials?.profitGrowthYoY,
@@ -426,8 +428,8 @@ export function AddBusinessListingPage() {
         {submitStatus.type && (
           <Alert
             className={`mb-4 ${submitStatus.type === "success"
-                ? "border-green-200 bg-green-50"
-                : "border-red-200 bg-red-50"
+              ? "border-green-200 bg-green-50"
+              : "border-red-200 bg-red-50"
               }`}
           >
             {submitStatus.type === "success" ? (

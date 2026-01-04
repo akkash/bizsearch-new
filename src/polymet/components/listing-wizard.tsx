@@ -507,34 +507,30 @@ export function ListingWizard({
 
       {/* GROWTH OPPORTUNITIES */}
       <div className="space-y-2">
-        <Label>Growth Opportunities (for new owner)</Label>
-        <p className="text-xs text-muted-foreground mb-2">
-          List untapped opportunities that a new owner could pursue
+        <Label htmlFor="growthOpportunities">Growth Opportunities (for new owner)</Label>
+        <Textarea
+          id="growthOpportunities"
+          {...form.register("growthOpportunities")}
+          placeholder="List untapped opportunities that a new owner could pursue, e.g.:\n• Expand to online sales\n• Add delivery service\n• Open new locations"
+          rows={4}
+        />
+        <p className="text-xs text-muted-foreground">
+          Each opportunity on a new line
         </p>
-        {[0, 1, 2, 3, 4].map((index) => (
-          <Input
-            key={index}
-            {...form.register(`growthOpportunities.${index}`)}
-            placeholder={index === 0 ? "e.g., Expand to online sales" : index === 1 ? "e.g., Add delivery service" : "Add another opportunity..."}
-            className="mb-2"
-          />
-        ))}
       </div>
 
       {/* LOCATION HIGHLIGHTS */}
       <div className="space-y-2">
-        <Label>Location Highlights</Label>
-        <p className="text-xs text-muted-foreground mb-2">
-          What makes your location special?
+        <Label htmlFor="locationHighlights">Location Highlights</Label>
+        <Textarea
+          id="locationHighlights"
+          {...form.register("locationHighlights")}
+          placeholder="What makes your location special? e.g.:\n• High foot traffic area\n• Near metro station\n• Ample parking available"
+          rows={3}
+        />
+        <p className="text-xs text-muted-foreground">
+          Each highlight on a new line
         </p>
-        {[0, 1, 2].map((index) => (
-          <Input
-            key={index}
-            {...form.register(`locationHighlights.${index}`)}
-            placeholder={index === 0 ? "e.g., High foot traffic area" : index === 1 ? "e.g., Near metro station" : "e.g., Ample parking available"}
-            className="mb-2"
-          />
-        ))}
       </div>
 
       <div className="space-y-2">

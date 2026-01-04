@@ -57,10 +57,10 @@ export const descriptionSchema = z.object({
   reasonForSale: z.string().min(10, "Please explain why you're selling").optional(),
   // NEW: Training/transition support period
   trainingPeriod: z.string().optional(), // e.g., "2-4 weeks", "30 days"
-  // NEW: Growth opportunities for new owner
-  growthOpportunities: z.array(z.string()).max(5).optional(),
-  // NEW: Location advantages
-  locationHighlights: z.array(z.string()).max(5).optional(),
+  // NEW: Growth opportunities for new owner (newline-separated string, parsed to array on submit)
+  growthOpportunities: z.string().optional(),
+  // NEW: Location advantages (newline-separated string, parsed to array on submit)
+  locationHighlights: z.string().optional(),
   leaseDetails: z
     .object({
       type: z.enum(["owned", "leased", "mixed"]),
