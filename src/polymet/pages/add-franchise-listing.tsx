@@ -142,6 +142,14 @@ export function AddFranchiseListingPage({
         contact_person: data.contact?.primaryContact?.name,
         website: data.brandOverview?.website,
         highlights: data.description?.uniqueSellingPoints || [],
+        // NEW FIELDS for Bento View Completion
+        mission: data.description?.mission,
+        founder_bio: data.description?.founderBio,
+        awards: data.brandOverview?.awards || [],
+        countries_operating: data.brandOverview?.countriesOperating || 1,
+        breakeven_period: data.investment?.breakEvenPeriod ? `${data.investment.breakEvenPeriod} months` : undefined,
+        territory_availability: data.territory?.territoryAvailability || [],
+        available_territories_count: data.territory?.availableTerritoriesCount,
       };
 
       // Create franchise listing

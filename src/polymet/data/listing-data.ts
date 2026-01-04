@@ -53,12 +53,26 @@ export const descriptionSchema = z.object({
     .string()
     .min(50, "Customer profile must be at least 50 characters"),
   supplierRelationships: z.string().optional(),
+  // NEW: Reason for selling - critical trust signal
+  reasonForSale: z.string().min(10, "Please explain why you're selling").optional(),
+  // NEW: Training/transition support period
+  trainingPeriod: z.string().optional(), // e.g., "2-4 weeks", "30 days"
+  // NEW: Growth opportunities for new owner
+  growthOpportunities: z.array(z.string()).max(5).optional(),
+  // NEW: Location advantages
+  locationHighlights: z.array(z.string()).max(5).optional(),
   leaseDetails: z
     .object({
       type: z.enum(["owned", "leased", "mixed"]),
       terms: z.string().optional(),
       monthlyRent: z.number().optional(),
       leaseExpiry: z.string().optional(),
+      // NEW: Lease remaining years
+      leaseRemainingYears: z.number().min(0).optional(),
+      // NEW: Lock-in period
+      lockInPeriod: z.string().optional(), // e.g., "2 years"
+      // NEW: Security deposit
+      securityDeposit: z.number().min(0).optional(),
     })
     .optional(),
 });
@@ -88,6 +102,11 @@ export const financialsSchema = z.object({
   profitMargins: z.number().min(0).max(100).optional(),
   financingAvailable: z.boolean(),
   financingDetails: z.string().optional(),
+  // NEW: Annual profit (for SDE calculation)
+  annualProfit: z.number().min(0).optional(),
+  // NEW: Year-over-year growth percentages
+  revenueGrowthYoY: z.number().min(-100).max(500).optional(),
+  profitGrowthYoY: z.number().min(-100).max(500).optional(),
 });
 
 export const assetsSchema = z.object({
@@ -104,6 +123,12 @@ export const assetsSchema = z.object({
   equipmentDetails: z.string().optional(),
   inventoryValue: z.number().min(0).optional(),
   inventorySnapshotDate: z.string().optional(),
+  // NEW: Detailed physical assets list
+  physicalAssets: z.array(z.object({
+    name: z.string(),
+    value: z.number().optional(),
+    condition: z.enum(["excellent", "good", "fair", "needs_repair"]).optional(),
+  })).optional(),
 });
 
 export const mediaSchema = z.object({

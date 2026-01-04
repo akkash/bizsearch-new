@@ -208,6 +208,18 @@ export function AddBusinessListingPage() {
         customer_profile: data.description?.customerProfile,
         ebitda: data.financials?.ebitda?.year1,
         profit_margin: data.financials?.profitMargins,
+        // NEW FIELDS for Bento View Completion
+        reason_for_sale: data.description?.reasonForSale,
+        training_period: data.description?.trainingPeriod,
+        growth_opportunities: data.description?.growthOpportunities?.filter(Boolean) || [],
+        location_highlights: data.description?.locationHighlights?.filter(Boolean) || [],
+        annual_profit: data.financials?.annualProfit,
+        revenue_growth_yoy: data.financials?.revenueGrowthYoY,
+        profit_growth_yoy: data.financials?.profitGrowthYoY,
+        lease_remaining_years: data.description?.leaseDetails?.leaseRemainingYears,
+        lease_lock_in_period: data.description?.leaseDetails?.lockInPeriod,
+        security_deposit: data.description?.leaseDetails?.securityDeposit,
+        physical_assets: data.assets?.physicalAssets?.filter(a => a.name) || [],
       };
 
       // Create business listing
@@ -413,11 +425,10 @@ export function AddBusinessListingPage() {
         {/* Submit Status */}
         {submitStatus.type && (
           <Alert
-            className={`mb-4 ${
-              submitStatus.type === "success"
+            className={`mb-4 ${submitStatus.type === "success"
                 ? "border-green-200 bg-green-50"
                 : "border-red-200 bg-red-50"
-            }`}
+              }`}
           >
             {submitStatus.type === "success" ? (
               <CheckCircle className="w-4 h-4 text-green-600" />

@@ -25,6 +25,9 @@ import {
   Camera,
   User,
   Sparkles,
+  AlertCircle,
+  Home,
+  TrendingUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getBusinessCategoryBySlug } from "@/data/categories";
@@ -434,6 +437,23 @@ export function ListingWizard({
         </p>
       </div>
 
+      {/* REASON FOR SALE - Critical Trust Signal */}
+      <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg space-y-2">
+        <Label htmlFor="reasonForSale" className="flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 text-amber-600" />
+          Why Are You Selling? *
+        </Label>
+        <Textarea
+          id="reasonForSale"
+          {...form.register("reasonForSale")}
+          placeholder="Be honest about your reason for selling (e.g., retirement, relocating, health reasons, new venture). Buyers appreciate transparency."
+          rows={3}
+        />
+        <p className="text-sm text-amber-700">
+          This is one of the first things buyers look at. Honest, clear reasons build trust.
+        </p>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="businessModel">Business Model *</Label>
@@ -450,6 +470,27 @@ export function ListingWizard({
             </SelectContent>
           </Select>
         </div>
+
+        {/* TRAINING PERIOD */}
+        <div className="space-y-2">
+          <Label htmlFor="trainingPeriod">Training/Transition Period</Label>
+          <Select {...form.register("trainingPeriod")}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select training period" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1 week">1 Week</SelectItem>
+              <SelectItem value="2 weeks">2 Weeks</SelectItem>
+              <SelectItem value="1 month">1 Month</SelectItem>
+              <SelectItem value="2-3 months">2-3 Months</SelectItem>
+              <SelectItem value="Until comfortable">Until Buyer is Comfortable</SelectItem>
+              <SelectItem value="Negotiable">Negotiable</SelectItem>
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground">
+            How long will you train the new owner?
+          </p>
+        </div>
       </div>
 
       <div className="space-y-2">
@@ -464,6 +505,38 @@ export function ListingWizard({
         />
       </div>
 
+      {/* GROWTH OPPORTUNITIES */}
+      <div className="space-y-2">
+        <Label>Growth Opportunities (for new owner)</Label>
+        <p className="text-xs text-muted-foreground mb-2">
+          List untapped opportunities that a new owner could pursue
+        </p>
+        {[0, 1, 2, 3, 4].map((index) => (
+          <Input
+            key={index}
+            {...form.register(`growthOpportunities.${index}`)}
+            placeholder={index === 0 ? "e.g., Expand to online sales" : index === 1 ? "e.g., Add delivery service" : "Add another opportunity..."}
+            className="mb-2"
+          />
+        ))}
+      </div>
+
+      {/* LOCATION HIGHLIGHTS */}
+      <div className="space-y-2">
+        <Label>Location Highlights</Label>
+        <p className="text-xs text-muted-foreground mb-2">
+          What makes your location special?
+        </p>
+        {[0, 1, 2].map((index) => (
+          <Input
+            key={index}
+            {...form.register(`locationHighlights.${index}`)}
+            placeholder={index === 0 ? "e.g., High foot traffic area" : index === 1 ? "e.g., Near metro station" : "e.g., Ample parking available"}
+            className="mb-2"
+          />
+        ))}
+      </div>
+
       <div className="space-y-2">
         <Label htmlFor="supplierRelationships">Supplier Relationships</Label>
         <Textarea
@@ -472,6 +545,80 @@ export function ListingWizard({
           placeholder="Describe key supplier relationships, contracts, and dependencies..."
           rows={3}
         />
+      </div>
+
+      {/* LEASE DETAILS SECTION */}
+      <div className="p-4 border rounded-lg space-y-4">
+        <h4 className="font-medium flex items-center gap-2">
+          <Home className="w-4 h-4" />
+          Lease & Property Details
+        </h4>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="leaseType">Property Type</Label>
+            <Select {...form.register("leaseDetails.type")}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="owned">Owned</SelectItem>
+                <SelectItem value="leased">Leased</SelectItem>
+                <SelectItem value="mixed">Mixed</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="monthlyRent">Monthly Rent (₹)</Label>
+            <Input
+              id="monthlyRent"
+              type="number"
+              {...form.register("leaseDetails.monthlyRent", { valueAsNumber: true })}
+              placeholder="85000"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="leaseRemainingYears">Lease Remaining (Years)</Label>
+            <Input
+              id="leaseRemainingYears"
+              type="number"
+              {...form.register("leaseDetails.leaseRemainingYears", { valueAsNumber: true })}
+              placeholder="3"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="lockInPeriod">Lock-in Period</Label>
+            <Input
+              id="lockInPeriod"
+              {...form.register("leaseDetails.lockInPeriod")}
+              placeholder="e.g., 2 years"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="securityDeposit">Security Deposit (₹)</Label>
+            <Input
+              id="securityDeposit"
+              type="number"
+              {...form.register("leaseDetails.securityDeposit", { valueAsNumber: true })}
+              placeholder="500000"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="leaseExpiry">Lease Expiry Date</Label>
+            <Input
+              id="leaseExpiry"
+              type="date"
+              {...form.register("leaseDetails.leaseExpiry")}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -499,6 +646,20 @@ export function ListingWizard({
             {...form.register("askingPrice", { valueAsNumber: true })}
             placeholder="2500000"
           />
+        </div>
+
+        {/* ANNUAL PROFIT - Key for SDE calculation */}
+        <div className="space-y-2">
+          <Label htmlFor="annualProfit">Annual Profit (₹)</Label>
+          <Input
+            id="annualProfit"
+            type="number"
+            {...form.register("annualProfit", { valueAsNumber: true })}
+            placeholder="1200000"
+          />
+          <p className="text-xs text-muted-foreground">
+            Used for payback period calculation (SDE)
+          </p>
         </div>
       </div>
 
@@ -536,6 +697,40 @@ export function ListingWizard({
                 valueAsNumber: true,
               })}
               placeholder="500000"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* YEAR-OVER-YEAR GROWTH */}
+      <div className="p-4 border rounded-lg space-y-4">
+        <h4 className="font-medium flex items-center gap-2">
+          <TrendingUp className="w-4 h-4 text-green-600" />
+          Year-over-Year Growth
+        </h4>
+        <p className="text-sm text-muted-foreground">
+          Show buyers your growth trajectory - this significantly impacts valuation
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="revenueGrowthYoY">Revenue Growth (%)</Label>
+            <Input
+              id="revenueGrowthYoY"
+              type="number"
+              {...form.register("revenueGrowthYoY", { valueAsNumber: true })}
+              placeholder="15"
+            />
+            <p className="text-xs text-muted-foreground">
+              Enter negative values for decline (e.g., -10)
+            </p>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="profitGrowthYoY">Profit Growth (%)</Label>
+            <Input
+              id="profitGrowthYoY"
+              type="number"
+              {...form.register("profitGrowthYoY", { valueAsNumber: true })}
+              placeholder="20"
             />
           </div>
         </div>

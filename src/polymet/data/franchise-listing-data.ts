@@ -18,6 +18,14 @@ export const franchiseListingSchema = z.object({
     franchiseOutlets: z.number().min(0, "Franchise outlets cannot be negative"),
     territories: z.array(z.string()).min(1, "Select at least one territory"),
     website: z.string().url("Invalid website URL").optional(),
+    // NEW: Countries where franchise operates
+    countriesOperating: z.number().min(1).optional(),
+    // NEW: Awards and recognition
+    awards: z.array(z.object({
+      name: z.string(),
+      org: z.string(),
+      year: z.number().optional(),
+    })).optional(),
   }),
 
   // Franchise Description
@@ -35,6 +43,10 @@ export const franchiseListingSchema = z.object({
     growthPotential: z
       .string()
       .min(50, "Growth potential description required"),
+    // NEW: Mission statement for brand carousel
+    mission: z.string().min(50, "Mission statement should be at least 50 characters").optional(),
+    // NEW: Founder/leadership bio
+    founderBio: z.string().min(50, "Founder bio should be at least 50 characters").optional(),
   }),
 
   // Investment & Financials
@@ -188,6 +200,14 @@ export const franchiseListingSchema = z.object({
         additionalIncentives: z.string().optional(),
       })
       .optional(),
+    // NEW: Count of available territories for summary display
+    availableTerritoriesCount: z.number().min(0).optional(),
+    // NEW: Territory availability list for Bento search feature
+    territoryAvailability: z.array(z.object({
+      city: z.string(),
+      status: z.enum(["available", "taken", "limited"]),
+      state: z.string().optional(),
+    })).optional(),
   }),
 
   // Franchisee Profile
