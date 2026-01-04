@@ -96,7 +96,7 @@
     "react-pdf": "latest",
     "react-plotly.js": "latest",
     "react-resizable-panels": "latest",
-    "react-router-dom": "^6.22.3",
+    "react-router-dom": "6.22.3",
     "react-syntax-highlighter": "latest",
     "react-type-animation": "latest",
     "reactflow": "latest",
