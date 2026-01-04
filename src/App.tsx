@@ -92,10 +92,10 @@ export default function BizSearchApp() {
     <ErrorBoundary>
       <ThemeProvider>
         <FeatureFlagsProvider>
-          <AuthProvider>
-            <SavedListingsProvider>
-              <NotificationsProvider>
-                <Router>
+          <Router>
+            <AuthProvider>
+              <SavedListingsProvider>
+                <NotificationsProvider>
                   <ScrollToTop />
                   <WebsiteSchema />
                   <Routes>
@@ -715,10 +715,10 @@ export default function BizSearchApp() {
                     <Route path="*" element={<NotFoundPage />} />
                   </Routes>
                   <Toaster />
-                </Router>
-              </NotificationsProvider>
-            </SavedListingsProvider>
-          </AuthProvider>
+                </NotificationsProvider>
+              </SavedListingsProvider>
+            </AuthProvider>
+          </Router>
         </FeatureFlagsProvider>
       </ThemeProvider>
     </ErrorBoundary>
