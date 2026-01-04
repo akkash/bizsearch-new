@@ -39,6 +39,7 @@ import {
   FileText,
   Settings,
   Upload,
+  User,
 } from "lucide-react";
 import {
   franchiseListingSchema,
@@ -756,6 +757,198 @@ export function FranchiseListingWizard({
           </div>
         );
 
+      case "media":
+        return (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <Upload className="h-5 w-5 text-primary" />
+                  Visual Assets
+                </CardTitle>
+                <CardDescription>
+                  High-quality visuals significantly increase engagement
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div>
+                    <Label className="mb-2 block">Brand Logo *</Label>
+                    <Controller
+                      name="media.brandLogo"
+                      control={form.control}
+                      render={({ field }) => (
+                        <FileUploader
+                          files={(field.value || []).map((f: any) => ({
+                            ...f,
+                            filename: f.name,
+                          }))}
+                          onFilesChange={(files) =>
+                            field.onChange(
+                              files.map((f) => ({ ...f, name: f.filename }))
+                            )
+                          }
+                          maxFiles={1}
+                          maxSize={5 * 1024 * 1024}
+                          accept="image/*"
+                          emptyText="Drag & drop your logo here"
+                        />
+                      )}
+                    />
+                    {form.formState.errors.media?.brandLogo && (
+                      <p className="text-sm text-destructive mt-1">
+                        {form.formState.errors.media.brandLogo.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <Separator />
+
+                  <div>
+                    <Label className="mb-2 block">Outlet Photos *</Label>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Upload at least 3 photos of existing outlets (interior/exterior)
+                    </p>
+                    <Controller
+                      name="media.outletPhotos"
+                      control={form.control}
+                      render={({ field }) => (
+                        <FileUploader
+                          files={(field.value || []).map((f: any) => ({
+                            ...f,
+                            filename: f.name,
+                          }))}
+                          onFilesChange={(files) =>
+                            field.onChange(
+                              files.map((f) => ({ ...f, name: f.filename }))
+                            )
+                          }
+                          maxFiles={10}
+                          maxSize={5 * 1024 * 1024}
+                          accept="image/*"
+                          emptyText="Drag & drop outlet photos here"
+                        />
+                      )}
+                    />
+                    {form.formState.errors.media?.outletPhotos && (
+                      <p className="text-sm text-destructive mt-1">
+                        {form.formState.errors.media.outletPhotos.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-primary" />
+                  Documents
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div>
+                    <Label className="mb-2 block">Marketing Materials</Label>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Brochures, presentations, or menu cards
+                    </p>
+                    <Controller
+                      name="media.marketingMaterials"
+                      control={form.control}
+                      render={({ field }) => (
+                        <FileUploader
+                          files={(field.value || []).map((f: any) => ({
+                            ...f,
+                            filename: f.name,
+                          }))}
+                          onFilesChange={(files) =>
+                            field.onChange(
+                              files.map((f) => ({ ...f, name: f.filename }))
+                            )
+                          }
+                          maxFiles={5}
+                          maxSize={10 * 1024 * 1024}
+                          accept="application/pdf,image/*,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                          emptyText="Drag & drop marketing docs here"
+                        />
+                      )}
+                    />
+                  </div>
+
+                  <Separator />
+
+                  <div>
+                    <Label className="mb-2 block">
+                      Franchise Disclosure Document (FDD) *
+                    </Label>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Required for verification
+                    </p>
+                    <Controller
+                      name="media.franchiseDisclosureDocument"
+                      control={form.control}
+                      render={({ field }) => (
+                        <FileUploader
+                          files={(field.value || []).map((f: any) => ({
+                            ...f,
+                            filename: f.name,
+                          }))}
+                          onFilesChange={(files) =>
+                            field.onChange(
+                              files.map((f) => ({ ...f, name: f.filename }))
+                            )
+                          }
+                          maxFiles={1}
+                          maxSize={10 * 1024 * 1024}
+                          accept="application/pdf"
+                          emptyText="Upload FDD (PDF)"
+                        />
+                      )}
+                    />
+                    {form.formState.errors.media?.franchiseDisclosureDocument && (
+                      <p className="text-sm text-destructive mt-1">
+                        {
+                          form.formState.errors.media.franchiseDisclosureDocument
+                            .message
+                        }
+                      </p>
+                    )}
+                  </div>
+
+                  <Separator />
+
+                  <div>
+                    <Label className="mb-2 block">Financial Statements</Label>
+                    <Controller
+                      name="media.financialStatements"
+                      control={form.control}
+                      render={({ field }) => (
+                        <FileUploader
+                          files={(field.value || []).map((f: any) => ({
+                            ...f,
+                            filename: f.name,
+                          }))}
+                          onFilesChange={(files) =>
+                            field.onChange(
+                              files.map((f) => ({ ...f, name: f.filename }))
+                            )
+                          }
+                          maxFiles={3}
+                          maxSize={10 * 1024 * 1024}
+                          accept="application/pdf"
+                          emptyText="Upload Financial Statements (PDF)"
+                        />
+                      )}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
+
       case "publishing":
         return (
           <div className="space-y-6">
@@ -852,10 +1045,220 @@ export function FranchiseListingWizard({
 
       default:
         return (
-          <div className="text-center py-8">
-            <p className="text-muted-foreground">
-              Step content for {currentStepData.title} coming soon...
-            </p>
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <User className="h-5 w-5 text-primary" />
+                  Primary Contact
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="contactName">Conatct Name *</Label>
+                    <Input
+                      id="contactName"
+                      placeholder="e.g. John Doe"
+                      {...form.register("contact.primaryContact.name")}
+                    />
+                    {form.formState.errors.contact?.primaryContact?.name && (
+                      <p className="text-sm text-destructive">
+                        {form.formState.errors.contact.primaryContact.name.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="contactTitle">Title/Designation *</Label>
+                    <Input
+                      id="contactTitle"
+                      placeholder="e.g. Franchise Development Manager"
+                      {...form.register("contact.primaryContact.title")}
+                    />
+                    {form.formState.errors.contact?.primaryContact?.title && (
+                      <p className="text-sm text-destructive">
+                        {form.formState.errors.contact.primaryContact.title.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="contactEmail">Email Address *</Label>
+                    <Input
+                      id="contactEmail"
+                      type="email"
+                      placeholder="e.g. franchise@brand.com"
+                      {...form.register("contact.primaryContact.email")}
+                    />
+                    {form.formState.errors.contact?.primaryContact?.email && (
+                      <p className="text-sm text-destructive">
+                        {form.formState.errors.contact.primaryContact.email.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="contactPhone">Phone Number *</Label>
+                    <Input
+                      id="contactPhone"
+                      placeholder="e.g. +91 98765 43210"
+                      {...form.register("contact.primaryContact.phone")}
+                    />
+                    {form.formState.errors.contact?.primaryContact?.phone && (
+                      <p className="text-sm text-destructive">
+                        {form.formState.errors.contact.primaryContact.phone.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <MapPin className="h-5 w-5 text-primary" />
+                  Company Headquarters
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="streetAddress">Street Address *</Label>
+                  <Textarea
+                    id="streetAddress"
+                    placeholder="Enter full street address"
+                    className="min-h-[80px]"
+                    {...form.register("contact.companyAddress.street")}
+                  />
+                  {form.formState.errors.contact?.companyAddress?.street && (
+                    <p className="text-sm text-destructive">
+                      {form.formState.errors.contact.companyAddress.street.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="city">City *</Label>
+                    <Input
+                      id="city"
+                      placeholder="City"
+                      {...form.register("contact.companyAddress.city")}
+                    />
+                    {form.formState.errors.contact?.companyAddress?.city && (
+                      <p className="text-sm text-destructive">
+                        {form.formState.errors.contact.companyAddress.city.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="state">State *</Label>
+                    <Input
+                      id="state"
+                      placeholder="State"
+                      {...form.register("contact.companyAddress.state")}
+                    />
+                    {form.formState.errors.contact?.companyAddress?.state && (
+                      <p className="text-sm text-destructive">
+                        {form.formState.errors.contact.companyAddress.state.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="zipCode">Zip/Postal Code *</Label>
+                    <Input
+                      id="zipCode"
+                      placeholder="Zip Code"
+                      {...form.register("contact.companyAddress.zipCode")}
+                    />
+                    {form.formState.errors.contact?.companyAddress?.zipCode && (
+                      <p className="text-sm text-destructive">
+                        {form.formState.errors.contact.companyAddress.zipCode.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="country">Country *</Label>
+                    <Input
+                      id="country"
+                      defaultValue="India"
+                      {...form.register("contact.companyAddress.country")}
+                    />
+                    {form.formState.errors.contact?.companyAddress?.country && (
+                      <p className="text-sm text-destructive">
+                        {form.formState.errors.contact.companyAddress.country.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-primary" />
+                  Legal Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="legalStructure">Legal Entity Structre *</Label>
+                    <Select
+                      onValueChange={(value) =>
+                        form.setValue("contact.legalStructure", value)
+                      }
+                      defaultValue={form.watch("contact.legalStructure")}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select structure" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Private Limited">Private Limited</SelectItem>
+                        <SelectItem value="Public Limited">Public Limited</SelectItem>
+                        <SelectItem value="LLP">LLP</SelectItem>
+                        <SelectItem value="Sole Proprietorship">Sole Proprietorship</SelectItem>
+                        <SelectItem value="Partnership">Partnership</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {form.formState.errors.contact?.legalStructure && (
+                      <p className="text-sm text-destructive">
+                        {form.formState.errors.contact.legalStructure.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="registrationNumber">Company Registration Number *</Label>
+                    <Input
+                      id="registrationNumber"
+                      placeholder="CIN / Registration No."
+                      {...form.register("contact.registrationNumber")}
+                    />
+                    {form.formState.errors.contact?.registrationNumber && (
+                      <p className="text-sm text-destructive">
+                        {form.formState.errors.contact.registrationNumber.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="franchiseRegistration">Franchise Registration Number (if applicable)</Label>
+                    <Input
+                      id="franchiseRegistration"
+                      placeholder="Franchise Reg No."
+                      {...form.register("contact.franchiseRegistration")}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         );
     }
