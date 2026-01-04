@@ -202,12 +202,8 @@ export const franchiseListingSchema = z.object({
       .optional(),
     // NEW: Count of available territories for summary display
     availableTerritoriesCount: z.number().min(0).optional(),
-    // NEW: Territory availability list for Bento search feature
-    territoryAvailability: z.array(z.object({
-      city: z.string(),
-      status: z.enum(["available", "taken", "limited"]),
-      state: z.string().optional(),
-    })).optional(),
+    // NEW: Territory availability list for Bento search (newline-separated string, parsed on submit)
+    territoryAvailability: z.string().optional(),
   }),
 
   // Franchisee Profile

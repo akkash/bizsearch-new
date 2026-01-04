@@ -148,7 +148,14 @@ export function AddFranchiseListingPage({
         awards: data.brandOverview?.awards || [],
         countries_operating: data.brandOverview?.countriesOperating || 1,
         breakeven_period: data.investment?.breakEvenPeriod ? `${data.investment.breakEvenPeriod} months` : undefined,
-        territory_availability: data.territory?.territoryAvailability || [],
+        territory_availability: (data.territory?.territoryAvailability || '')
+          .split('\n')
+          .map(s => s.trim())
+          .filter(Boolean)
+          .map(line => {
+            const [city, state] = line.split(',').map(p => p.trim());
+            return { city: city || '', status: 'available' as const, state: state || undefined };
+          }),
         available_territories_count: data.territory?.availableTerritoriesCount,
       };
 
