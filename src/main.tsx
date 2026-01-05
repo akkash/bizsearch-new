@@ -11,6 +11,9 @@ import '@/lib/supabase-diagnostics';
 window.React = React;
 window.ReactDOM = ReactDOM;
 
+console.log('⚛️ React Version:', React.version);
+console.log('📦 Node Environment:', process.env.NODE_ENV);
+
 function Main() {
   return (
     <React.StrictMode>
