@@ -46,8 +46,8 @@ import {
 } from "@/polymet/data/listing-data";
 import { FileUploader } from "@/polymet/components/file-uploader";
 import { NDAModal } from "@/polymet/components/nda-modal";
-import { usePhoneVerification } from "@/hooks/use-phone-verification";
-import { PhoneVerificationModal } from "@/polymet/components/phone-verification-modal";
+// import { usePhoneVerification } from "@/hooks/use-phone-verification";
+// import { PhoneVerificationModal } from "@/polymet/components/phone-verification-modal";
 import { WizardStep } from "./wizard-step";
 
 export interface Step {
@@ -149,7 +149,8 @@ export function ListingWizard({
   const [showAIAssistant, setShowAIAssistant] = useState(false);
 
   // Phone Verification
-  const { isVerified, verifyPhone, isOpen: isPhoneModalOpen, setIsOpen: setIsPhoneModalOpen, onVerificationComplete } = usePhoneVerification();
+  // const { isVerified, verifyPhone, isOpen: isPhoneModalOpen, setIsOpen: setIsPhoneModalOpen, onVerificationComplete } = usePhoneVerification();
+  const isVerified = true; // Temporary bypass for debugging
 
   const currentStepData = steps[currentStep];
   const progress = ((currentStep + 1) / steps.length) * 100;
@@ -174,10 +175,10 @@ export function ListingWizard({
 
   const handleSubmitFinal = (finalData: Partial<BusinessListingFormValues>) => {
     // Gate: Phone Verification
-    if (!isVerified) {
-      const proceed = verifyPhone();
-      if (!proceed) return;
-    }
+    // if (!isVerified) {
+    //   const proceed = verifyPhone();
+    //   if (!proceed) return;
+    // }
 
     try {
       const validated = businessListingSchema.parse(finalData);
@@ -1085,11 +1086,11 @@ export function ListingWizard({
       />
 
       {/* Phone Verification Modal */}
-      <PhoneVerificationModal
+      {/* <PhoneVerificationModal
         isOpen={isPhoneModalOpen}
         onOpenChange={setIsPhoneModalOpen}
         onVerified={onVerificationComplete}
-      />
+      /> */}
 
       {/* NDA Modal */}
       <NDAModal
