@@ -31,13 +31,24 @@ export interface FranchiseCreateInput {
   total_outlets?: number;
   company_owned_outlets?: number;
   franchise_outlets?: number;
-  space_required_sqft?: number;
+  space_required_sqft?: number; // Legacy field, prefer store_formats
+  // Store formats for multiple outlet types (Kiosk, Express, Standard, etc.)
+  store_formats?: {
+    id: string;
+    name: string;
+    minSqft: number;
+    maxSqft: number;
+    investmentMin?: number;
+    investmentMax?: number;
+    description?: string;
+  }[];
   tagline?: string;
   brand_story?: string;
   operating_locations?: string[];
   expansion_territories?: string[];
   support_provided?: string[];
   images?: string[];
+  videos?: { id: string; name: string; url: string; type: string; size: number }[];
   logo_url?: string;
   highlights?: string[];
   contact_email?: string;

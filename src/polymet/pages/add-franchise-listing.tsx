@@ -127,24 +127,40 @@ export function AddFranchiseListingPage({
         training_provided: true,
         training_duration_days: data.support?.initialTrainingDuration,
         marketing_support: (data.support?.marketingSupport?.length || 0) > 0,
-        minimum_net_worth: data.investment?.liquidCapitalRequired,
+        // Franchisee profile fields
+        minimum_net_worth: data.franchiseeProfile?.minimumNetWorth,
         minimum_liquid_capital: data.investment?.liquidCapitalRequired,
         experience_required: data.franchiseeProfile?.experienceRequired,
+        ideal_candidate_profile: data.franchiseeProfile?.idealCandidateProfile,
+        skills_required: data.franchiseeProfile?.skillsRequired || [],
+        time_commitment: data.franchiseeProfile?.timeCommitment,
+        background_preferences: data.franchiseeProfile?.backgroundPreferences || [],
+        // Financial projections
         average_unit_revenue: data.investment?.totalInvestment?.min,
         average_unit_profit: data.investment?.averageROI,
         payback_period_months: data.investment?.breakEvenPeriod,
         expected_roi_percentage: data.investment?.averageROI,
-        space_required_sqft: data.territory?.populationRequirement,
+        // Store formats for multiple outlet types
+        store_formats: data.investment?.storeFormats || [],
+        // Legacy field - use first format's minSqft if available
+        space_required_sqft: data.investment?.storeFormats?.[0]?.minSqft,
+        // Media
         images: data.media?.outletPhotos?.map(p => p.url) || [],
+        videos: data.media?.videos || [],
         logo_url: data.media?.brandLogo?.[0]?.url,
+        // Contact
         contact_email: data.contact?.primaryContact?.email,
         contact_phone: data.contact?.primaryContact?.phone,
         contact_person: data.contact?.primaryContact?.name,
         website: data.brandOverview?.website,
+        // Description fields
         highlights: data.description?.uniqueSellingPoints || [],
-        // NEW FIELDS for Bento View Completion
+        target_market: data.description?.targetMarket,
+        growth_potential: data.description?.growthPotential,
+        competitive_advantages: data.description?.competitiveAdvantages || [],
         mission: data.description?.mission,
         founder_bio: data.description?.founderBio,
+        // Brand info
         awards: data.brandOverview?.awards || [],
         countries_operating: data.brandOverview?.countriesOperating || 1,
         breakeven_period: data.investment?.breakEvenPeriod ? `${data.investment.breakEvenPeriod} months` : undefined,

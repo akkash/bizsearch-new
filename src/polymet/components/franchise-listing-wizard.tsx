@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { getCategoryBySlug } from "@/data/categories";
@@ -25,21 +25,15 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import {
-  ChevronLeft,
-  ChevronRight,
-  Save,
-  Eye,
-  Send,
   CheckCircle,
   AlertCircle,
   Building2,
-  Users,
   DollarSign,
-  MapPin,
-  FileText,
   Settings,
   Upload,
   User,
+  FileText,
+  MapPin,
 } from "lucide-react";
 import {
   franchiseListingSchema,
@@ -51,14 +45,11 @@ import {
 } from "@/polymet/data/franchise-listing-data";
 import { FileUploader } from "@/polymet/components/file-uploader";
 import { NDAModal } from "@/polymet/components/nda-modal";
-import { AIAssistant } from "@/polymet/components/ai-assistant";
-import { TerritoryMapper } from "@/polymet/components/territory-mapper";
 import { ROICalculator } from "@/polymet/components/roi-calculator";
 import { RoyaltyScheduler } from "@/polymet/components/royalty-scheduler";
 import { InvestmentBreakdown } from "@/polymet/components/investment-breakdown";
-import { WorkflowManager } from "@/polymet/components/workflow-manager";
-import { TerritoryAvailability } from "@/polymet/components/territory-availability";
-import { FranchiseMetrics } from "@/polymet/components/franchise-metrics";
+import { StickyActionBar } from "@/polymet/components/sticky-action-bar";
+import { cn } from "@/lib/utils";
 
 interface FranchiseListingWizardProps {
   initialData?: Partial<FranchiseListingFormValues>;
@@ -71,60 +62,31 @@ interface FranchiseListingWizardProps {
   className?: string;
 }
 
+// Consolidated 4-chapter structure (combining previous 9 steps)
 const steps = [
   {
-    id: "brand-overview",
-    title: "Brand Overview",
-    description: "Basic brand information and outlet details",
+    id: "identity",
+    title: "Brand Identity",
+    description: "Brand overview, description, and unique selling points",
     icon: Building2,
   },
   {
-    id: "description",
-    title: "Brand Description",
-    description: "Detailed brand story and unique selling points",
-    icon: FileText,
-  },
-  {
-    id: "investment",
-    title: "Investment & Financials",
-    description: "Investment requirements and financial projections",
+    id: "financials",
+    title: "Financials & Legal",
+    description: "Investment requirements, projections, and legal details",
     icon: DollarSign,
   },
   {
-    id: "support",
-    title: "Support & Training",
-    description: "Training programs and ongoing support details",
-    icon: Users,
-  },
-  {
-    id: "territory",
-    title: "Territory & Requirements",
-    description: "Available territories and demographic requirements",
-    icon: MapPin,
-  },
-  {
-    id: "franchisee-profile",
-    title: "Franchisee Profile",
-    description: "Ideal franchisee characteristics and requirements",
-    icon: Users,
-  },
-  {
-    id: "media",
-    title: "Media & Documents",
-    description: "Brand assets and legal documentation",
-    icon: Upload,
-  },
-  {
-    id: "contact",
-    title: "Contact & Legal",
-    description: "Contact information and legal details",
+    id: "operations",
+    title: "Operations",
+    description: "Support, training, territory, and franchisee requirements",
     icon: Settings,
   },
   {
-    id: "publishing",
-    title: "Publishing Settings",
-    description: "Listing visibility and contact preferences",
-    icon: Eye,
+    id: "assets",
+    title: "Media & Publishing",
+    description: "Brand assets, documents, and listing settings",
+    icon: Upload,
   },
 ];
 
@@ -211,7 +173,7 @@ export function FranchiseListingWizard({
 
   const renderStepContent = () => {
     switch (currentStepData.id) {
-      case "brand-overview":
+      case "identity":
         return (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -410,10 +372,235 @@ export function FranchiseListingWizard({
                 placeholder="https://yourbrand.com"
               />
             </div>
+
+            {/* Countries Operating */}
+            <div className="space-y-2">
+              <Label htmlFor="countriesOperating">Countries Operating In</Label>
+              <Input
+                id="countriesOperating"
+                type="number"
+                {...form.register("brandOverview.countriesOperating", {
+                  valueAsNumber: true,
+                })}
+                placeholder="1"
+              />
+            </div>
+
+            <Separator className="my-6" />
+
+            {/* Brand Description Section */}
+            <div className="space-y-4">
+              <h4 className="font-semibold text-lg flex items-center gap-2">
+                <FileText className="h-5 w-5 text-primary" />
+                Brand Description
+              </h4>
+
+              <div className="space-y-2">
+                <Label htmlFor="brandDescription">Brand Description *</Label>
+                <Textarea
+                  id="brandDescription"
+                  {...form.register("description.brandDescription")}
+                  placeholder="Describe your brand's story, history, and what makes it unique..."
+                  rows={4}
+                />
+                {errors.description?.brandDescription && (
+                  <p className="text-sm text-red-600">
+                    {errors.description.brandDescription.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="targetMarket">Target Market *</Label>
+                <Textarea
+                  id="targetMarket"
+                  {...form.register("description.targetMarket")}
+                  placeholder="Describe your ideal customer demographics, preferences, and buying behavior..."
+                  rows={3}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="growthPotential">Growth Potential *</Label>
+                <Textarea
+                  id="growthPotential"
+                  {...form.register("description.growthPotential")}
+                  placeholder="Describe the market opportunity and expected growth trajectory..."
+                  rows={3}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="mission">Mission Statement</Label>
+                  <Textarea
+                    id="mission"
+                    {...form.register("description.mission")}
+                    placeholder="Your brand's mission and purpose..."
+                    rows={2}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="founderBio">Founder Bio</Label>
+                  <Textarea
+                    id="founderBio"
+                    {...form.register("description.founderBio")}
+                    placeholder="Brief background of the founder(s)..."
+                    rows={2}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <Separator className="my-6" />
+
+            {/* Unique Selling Points */}
+            <div className="space-y-4">
+              <h4 className="font-semibold text-lg">Unique Selling Points *</h4>
+              <p className="text-sm text-muted-foreground">Add at least 3 key differentiators</p>
+              <Controller
+                control={form.control}
+                name="description.uniqueSellingPoints"
+                render={({ field }) => {
+                  const usps = field.value || ['', '', ''];
+                  return (
+                    <div className="space-y-2">
+                      {usps.map((usp: string, index: number) => (
+                        <div key={index} className="flex gap-2">
+                          <Input
+                            value={usp}
+                            onChange={(e) => {
+                              const newUsps = [...usps];
+                              newUsps[index] = e.target.value;
+                              field.onChange(newUsps);
+                            }}
+                            placeholder={`Selling point ${index + 1}`}
+                          />
+                          {index >= 3 && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                field.onChange(usps.filter((_: string, i: number) => i !== index));
+                              }}
+                            >
+                              Remove
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => field.onChange([...usps, ''])}
+                      >
+                        + Add More
+                      </Button>
+                    </div>
+                  );
+                }}
+              />
+            </div>
+
+            {/* Competitive Advantages */}
+            <div className="space-y-4">
+              <h4 className="font-semibold text-lg">Competitive Advantages *</h4>
+              <Controller
+                control={form.control}
+                name="description.competitiveAdvantages"
+                render={({ field }) => {
+                  const advantages = field.value || ['', ''];
+                  return (
+                    <div className="space-y-2">
+                      {advantages.map((adv: string, index: number) => (
+                        <div key={index} className="flex gap-2">
+                          <Input
+                            value={adv}
+                            onChange={(e) => {
+                              const newAdvs = [...advantages];
+                              newAdvs[index] = e.target.value;
+                              field.onChange(newAdvs);
+                            }}
+                            placeholder={`Advantage ${index + 1}`}
+                          />
+                          {index >= 2 && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                field.onChange(advantages.filter((_: string, i: number) => i !== index));
+                              }}
+                            >
+                              Remove
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => field.onChange([...advantages, ''])}
+                      >
+                        + Add More
+                      </Button>
+                    </div>
+                  );
+                }}
+              />
+            </div>
+
+            <Separator className="my-6" />
+
+            {/* Operating Territories */}
+            <div className="space-y-4">
+              <h4 className="font-semibold text-lg">Operating Territories *</h4>
+              <p className="text-sm text-muted-foreground">Select states/regions where you currently operate</p>
+              <Controller
+                control={form.control}
+                name="brandOverview.territories"
+                render={({ field }) => {
+                  const territories = field.value || [];
+                  const indianStates = [
+                    'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
+                    'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand',
+                    'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur',
+                    'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab',
+                    'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura',
+                    'Uttar Pradesh', 'Uttarakhand', 'West Bengal', 'Delhi', 'Pan India'
+                  ];
+                  return (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 p-4 border rounded-md bg-muted/20 max-h-48 overflow-y-auto">
+                      {indianStates.map((state) => (
+                        <div key={state} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`territory-${state}`}
+                            checked={territories.includes(state)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                field.onChange([...territories, state]);
+                              } else {
+                                field.onChange(territories.filter((t: string) => t !== state));
+                              }
+                            }}
+                          />
+                          <Label htmlFor={`territory-${state}`} className="text-sm font-normal cursor-pointer">
+                            {state}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                }}
+              />
+            </div>
           </div>
         );
 
-      case "investment":
+      case "financials":
         return (
           <div className="space-y-6">
             {!ndaSigned && (
@@ -556,12 +743,144 @@ export function FranchiseListingWizard({
                     }}
                   />
                 </div>
+
+                {/* Store Formats */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-semibold text-lg">
+                      Store Formats & Space Requirements
+                    </h4>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const currentFormats = watchedData.investment?.storeFormats || [];
+                        form.setValue("investment.storeFormats", [
+                          ...currentFormats,
+                          {
+                            id: `format-${Date.now()}`,
+                            name: "",
+                            minSqft: 0,
+                            maxSqft: 0,
+                            investmentMin: 0,
+                            investmentMax: 0,
+                            description: "",
+                          },
+                        ]);
+                      }}
+                    >
+                      + Add Format
+                    </Button>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Define different store formats your franchise supports (e.g., Kiosk, Express, Standard, Flagship)
+                  </p>
+
+                  <div className="space-y-4">
+                    {(watchedData.investment?.storeFormats || []).map((format, index) => (
+                      <Card key={format?.id || index} className="p-4">
+                        <div className="flex justify-between items-start mb-4">
+                          <div className="space-y-1">
+                            <Label>Format {index + 1}</Label>
+                          </div>
+                          {(watchedData.investment?.storeFormats?.length || 0) > 1 && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="text-destructive"
+                              onClick={() => {
+                                const currentFormats = watchedData.investment?.storeFormats || [];
+                                form.setValue(
+                                  "investment.storeFormats",
+                                  currentFormats.filter((_, i) => i !== index)
+                                );
+                              }}
+                            >
+                              Remove
+                            </Button>
+                          )}
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor={`format-name-${index}`}>Format Name *</Label>
+                            <Controller
+                              control={form.control}
+                              name={`investment.storeFormats.${index}.name`}
+                              render={({ field }) => (
+                                <Select onValueChange={field.onChange} value={field.value || ""}>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select format type" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="Kiosk">Kiosk (Mall/Airport)</SelectItem>
+                                    <SelectItem value="Express">Express (Quick Service)</SelectItem>
+                                    <SelectItem value="Standard">Standard (Full Service)</SelectItem>
+                                    <SelectItem value="Flagship">Flagship (Premium)</SelectItem>
+                                    <SelectItem value="Drive-Through">Drive-Through</SelectItem>
+                                    <SelectItem value="Cloud Kitchen">Cloud Kitchen</SelectItem>
+                                    <SelectItem value="Custom">Custom</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              )}
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label>Space Required (sqft) *</Label>
+                            <div className="flex gap-2 items-center">
+                              <Input
+                                type="number"
+                                placeholder="Min"
+                                {...form.register(`investment.storeFormats.${index}.minSqft`, { valueAsNumber: true })}
+                              />
+                              <span className="text-muted-foreground">to</span>
+                              <Input
+                                type="number"
+                                placeholder="Max"
+                                {...form.register(`investment.storeFormats.${index}.maxSqft`, { valueAsNumber: true })}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label>Investment Range (₹)</Label>
+                            <div className="flex gap-2 items-center">
+                              <Input
+                                type="number"
+                                placeholder="Min"
+                                {...form.register(`investment.storeFormats.${index}.investmentMin`, { valueAsNumber: true })}
+                              />
+                              <span className="text-muted-foreground">to</span>
+                              <Input
+                                type="number"
+                                placeholder="Max"
+                                {...form.register(`investment.storeFormats.${index}.investmentMax`, { valueAsNumber: true })}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor={`format-desc-${index}`}>Description</Label>
+                            <Input
+                              id={`format-desc-${index}`}
+                              placeholder="Brief description of this format"
+                              {...form.register(`investment.storeFormats.${index}.description`)}
+                            />
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
           </div>
         );
 
-      case "support":
+      case "operations":
         return (
           <div className="space-y-6">
             <div className="space-y-2">
@@ -619,145 +938,168 @@ export function FranchiseListingWizard({
                 rows={4}
               />
             </div>
-          </div>
-        );
 
-      case "territory":
-        return (
-          <div className="space-y-6">
-            <div className="space-y-4">
-              <h4 className="font-semibold text-lg">
-                Territory Selection & Management
-              </h4>
-              <TerritoryMapper
-                onTerritoriesChange={(territories) => {
-                  form.setValue("territory.selectedTerritories", territories);
-                }}
-                onProtectedTerritoryChange={(enabled) => {
-                  form.setValue("territory.protectedTerritoryEnabled", enabled);
-                }}
-              />
-            </div>
+            {/* Franchisee Requirements Section */}
+            <Separator className="my-4" />
+            <div className="space-y-6">
+              <h4 className="font-semibold text-lg">Franchisee Requirements</h4>
 
-            <div className="space-y-4">
-              <h4 className="font-semibold text-lg">
-                Multi-Unit Development Options
-              </h4>
-              <div className="p-4 border rounded-lg space-y-4">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="multi-unit-enabled"
-                    {...form.register("territory.multiUnitDevelopment.enabled")}
-                  />
-
-                  <Label htmlFor="multi-unit-enabled" className="font-medium">
-                    Enable Multi-Unit Development Rights
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="minimumNetWorth">
+                    Minimum Net Worth Required (₹)
                   </Label>
+                  <Input
+                    id="minimumNetWorth"
+                    type="number"
+                    {...form.register("franchiseeProfile.minimumNetWorth", {
+                      valueAsNumber: true,
+                    })}
+                    placeholder="5000000"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    The minimum net worth a franchisee should have
+                  </p>
                 </div>
 
-                {watchedData.territory?.multiUnitDevelopment?.enabled && (
-                  <div className="ml-6 space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="minimum-units">
-                          Minimum Units Required
-                        </Label>
-                        <Input
-                          id="minimum-units"
-                          type="number"
-                          {...form.register(
-                            "territory.multiUnitDevelopment.minimumUnits",
-                            {
-                              valueAsNumber: true,
-                            }
-                          )}
-                          placeholder="3"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="development-timeline">
-                          Development Timeline
-                        </Label>
-                        <Input
-                          id="development-timeline"
-                          {...form.register(
-                            "territory.multiUnitDevelopment.developmentTimeline"
-                          )}
-                          placeholder="36 months"
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="additional-incentives">
-                        Additional Incentives
-                      </Label>
-                      <Textarea
-                        id="additional-incentives"
-                        {...form.register(
-                          "territory.multiUnitDevelopment.additionalIncentives"
-                        )}
-                        placeholder="Describe any additional incentives for multi-unit developers..."
-                        rows={3}
-                      />
-                    </div>
-                  </div>
-                )}
+                <div className="space-y-2">
+                  <Label htmlFor="experienceRequired">Experience Required *</Label>
+                  <Controller
+                    control={form.control}
+                    name="franchiseeProfile.experienceRequired"
+                    render={({ field }) => (
+                      <Select onValueChange={field.onChange} value={field.value || ""}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select experience level" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">No prior experience needed</SelectItem>
+                          <SelectItem value="any_business">Any business experience</SelectItem>
+                          <SelectItem value="industry_specific">Industry-specific experience</SelectItem>
+                          <SelectItem value="management">Management experience required</SelectItem>
+                          <SelectItem value="franchise_owner">Prior franchise ownership</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="territory-size">
-                  Territory Size Description *
-                </Label>
-                <Input
-                  id="territory-size"
-                  {...form.register("territory.territorySize")}
-                  placeholder="e.g., 5km radius, City center, District-wide"
+                <Label htmlFor="idealCandidateProfile">Ideal Candidate Profile *</Label>
+                <Textarea
+                  id="idealCandidateProfile"
+                  {...form.register("franchiseeProfile.idealCandidateProfile")}
+                  placeholder="Describe the ideal franchisee candidate - their background, skills, personality traits, and what makes them successful in your system..."
+                  rows={4}
                 />
               </div>
+
               <div className="space-y-2">
-                <Label htmlFor="population-requirement">
-                  Minimum Population
-                </Label>
-                <Input
-                  id="population-requirement"
-                  type="number"
-                  {...form.register("territory.populationRequirement", {
-                    valueAsNumber: true,
-                  })}
-                  placeholder="100000"
+                <Label htmlFor="timeCommitment">Time Commitment *</Label>
+                <Controller
+                  control={form.control}
+                  name="franchiseeProfile.timeCommitment"
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value || ""}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select time commitment" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="full_time_owner">Full-time owner-operator</SelectItem>
+                        <SelectItem value="semi_absentee">Semi-absentee (20-30 hrs/week)</SelectItem>
+                        <SelectItem value="absentee">Absentee ownership possible</SelectItem>
+                        <SelectItem value="flexible">Flexible arrangement</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
                 />
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="demographic-profile">
-                Target Demographic Profile *
-              </Label>
-              <Textarea
-                id="demographic-profile"
-                {...form.register("territory.demographicProfile")}
-                placeholder="Describe the ideal demographic profile for this franchise..."
-                rows={3}
-              />
-            </div>
+              <div className="space-y-4">
+                <Label>Skills Required *</Label>
+                <p className="text-sm text-muted-foreground">Select at least 3 key skills</p>
+                <Controller
+                  control={form.control}
+                  name="franchiseeProfile.skillsRequired"
+                  render={({ field }) => {
+                    const skills = field.value || [];
+                    const availableSkills = [
+                      'Sales & Marketing', 'Customer Service', 'Team Management',
+                      'Financial Management', 'Operations', 'Networking',
+                      'Leadership', 'Problem Solving', 'Communication',
+                      'Technical Skills', 'Negotiation', 'Strategic Planning'
+                    ];
+                    return (
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                        {availableSkills.map((skill) => (
+                          <div key={skill} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`skill-${skill}`}
+                              checked={skills.includes(skill)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  field.onChange([...skills, skill]);
+                                } else {
+                                  field.onChange(skills.filter((s: string) => s !== skill));
+                                }
+                              }}
+                            />
+                            <Label htmlFor={`skill-${skill}`} className="text-sm font-normal cursor-pointer">
+                              {skill}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  }}
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="competition-analysis">
-                Competition Analysis *
-              </Label>
-              <Textarea
-                id="competition-analysis"
-                {...form.register("territory.competitionAnalysis")}
-                placeholder="Analyze the competitive landscape in target territories..."
-                rows={3}
-              />
+              <div className="space-y-4">
+                <Label>Background Preferences</Label>
+                <p className="text-sm text-muted-foreground">Preferred professional backgrounds</p>
+                <Controller
+                  control={form.control}
+                  name="franchiseeProfile.backgroundPreferences"
+                  render={({ field }) => {
+                    const backgrounds = field.value || [];
+                    const availableBackgrounds = [
+                      'Corporate Executive', 'Entrepreneur', 'Retail Experience',
+                      'Food & Beverage', 'Healthcare', 'Education',
+                      'Military/Veterans', 'Professional Services', 'Sales Background'
+                    ];
+                    return (
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                        {availableBackgrounds.map((bg) => (
+                          <div key={bg} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`bg-${bg}`}
+                              checked={backgrounds.includes(bg)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  field.onChange([...backgrounds, bg]);
+                                } else {
+                                  field.onChange(backgrounds.filter((b: string) => b !== bg));
+                                }
+                              }}
+                            />
+                            <Label htmlFor={`bg-${bg}`} className="text-sm font-normal cursor-pointer">
+                              {bg}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  }}
+                />
+              </div>
             </div>
           </div>
         );
 
-      case "media":
+
+      case "assets":
         return (
           <div className="space-y-6">
             <Card>
@@ -791,7 +1133,6 @@ export function FranchiseListingWizard({
                           maxFiles={1}
                           maxSize={5 * 1024 * 1024}
                           accept="image/*"
-                          emptyText="Drag & drop your logo here"
                         />
                       )}
                     />
@@ -826,7 +1167,6 @@ export function FranchiseListingWizard({
                           maxFiles={10}
                           maxSize={5 * 1024 * 1024}
                           accept="image/*"
-                          emptyText="Drag & drop outlet photos here"
                         />
                       )}
                     />
@@ -871,7 +1211,6 @@ export function FranchiseListingWizard({
                           maxFiles={5}
                           maxSize={10 * 1024 * 1024}
                           accept="application/pdf,image/*,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                          emptyText="Drag & drop marketing docs here"
                         />
                       )}
                     />
@@ -903,7 +1242,6 @@ export function FranchiseListingWizard({
                           maxFiles={1}
                           maxSize={10 * 1024 * 1024}
                           accept="application/pdf"
-                          emptyText="Upload FDD (PDF)"
                         />
                       )}
                     />
@@ -938,7 +1276,35 @@ export function FranchiseListingWizard({
                           maxFiles={3}
                           maxSize={10 * 1024 * 1024}
                           accept="application/pdf"
-                          emptyText="Upload Financial Statements (PDF)"
+                        />
+                      )}
+                    />
+                  </div>
+
+                  <Separator />
+
+                  <div>
+                    <Label className="mb-2 block">Promotional Videos</Label>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Upload franchise overview videos, training clips, or promotional content
+                    </p>
+                    <Controller
+                      name="media.videos"
+                      control={form.control}
+                      render={({ field }) => (
+                        <FileUploader
+                          files={(field.value || []).map((f: any) => ({
+                            ...f,
+                            filename: f.name,
+                          }))}
+                          onFilesChange={(files) =>
+                            field.onChange(
+                              files.map((f) => ({ ...f, name: f.filename }))
+                            )
+                          }
+                          maxFiles={5}
+                          maxSize={100 * 1024 * 1024}
+                          accept="video/mp4,video/webm,video/quicktime"
                         />
                       )}
                     />
@@ -949,99 +1315,6 @@ export function FranchiseListingWizard({
           </div>
         );
 
-      case "publishing":
-        return (
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="listingTitle">Listing Title *</Label>
-              <Input
-                id="listingTitle"
-                {...form.register("publishing.listingTitle")}
-                placeholder="Profitable Food Franchise - Prime Locations Available"
-              />
-            </div>
-
-            <div className="space-y-4">
-              <Label>Listing Visibility *</Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select visibility" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="public">
-                    Public - Visible to all users
-                  </SelectItem>
-                  <SelectItem value="verified_only">
-                    Verified Users Only
-                  </SelectItem>
-                  <SelectItem value="private">
-                    Private - By invitation only
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-4">
-              <Label>Listing Options</Label>
-              <div className="space-y-3">
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="featured" />
-
-                  <Label htmlFor="featured">
-                    Featured Listing (+₹5,000/month)
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="urgent" />
-
-                  <Label htmlFor="urgent">
-                    Urgent Listing Badge (+₹2,000/month)
-                  </Label>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <Label>Contact Preferences</Label>
-              <div className="space-y-3">
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="directContact" />
-
-                  <Label htmlFor="directContact">
-                    Allow direct contact from interested parties
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="requireNDA" />
-
-                  <Label htmlFor="requireNDA">
-                    Require NDA before sharing detailed information
-                  </Label>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <Label>Legal Agreements *</Label>
-              <div className="space-y-3">
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="termsAccepted" />
-
-                  <Label htmlFor="termsAccepted">
-                    I accept the Terms of Service and Privacy Policy
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="verificationConsent" />
-
-                  <Label htmlFor="verificationConsent">
-                    I consent to franchise verification process
-                  </Label>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
 
       default:
         return (
@@ -1290,15 +1563,21 @@ export function FranchiseListingWizard({
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Step Navigation */}
+        {/* Chapter-Based Step Navigation */}
         <div className="lg:col-span-1">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Steps</CardTitle>
+          <Card className="sticky top-4">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">Progress</CardTitle>
+                <Badge variant="secondary" className="font-mono">
+                  {Math.round(progress)}%
+                </Badge>
+              </div>
+              <Progress value={progress} className="h-2 mt-2" />
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className="space-y-2 pt-0">
               {steps.map((step, index) => {
-                const Icon = step.icon;
+                const StepIcon = step.icon;
                 const isCompleted = completedSteps.has(index);
                 const isCurrent = index === currentStep;
 
@@ -1306,35 +1585,42 @@ export function FranchiseListingWizard({
                   <button
                     key={step.id}
                     onClick={() => handleStepClick(index)}
-                    className={`w-full text-left p-3 rounded-lg border transition-colors ${isCurrent
-                      ? "border-primary bg-primary/5"
-                      : isCompleted
-                        ? "border-green-200 bg-green-50"
-                        : "border-muted hover:bg-muted"
-                      }`}
+                    className={cn(
+                      "w-full flex items-center gap-3 p-3 rounded-lg border transition-all",
+                      isCurrent
+                        ? "border-primary bg-primary/5 ring-2 ring-primary/20"
+                        : isCompleted
+                          ? "border-green-200 bg-green-50 dark:bg-green-950/30 dark:border-green-800"
+                          : "border-muted hover:bg-muted/50"
+                    )}
                   >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`p-2 rounded-lg ${isCurrent
+                    <div
+                      className={cn(
+                        "p-2 rounded-lg transition-colors flex-shrink-0",
+                        isCurrent
                           ? "bg-primary text-primary-foreground"
                           : isCompleted
                             ? "bg-green-500 text-white"
                             : "bg-muted"
-                          }`}
-                      >
-                        {isCompleted ? (
-                          <CheckCircle className="h-4 w-4" />
-                        ) : (
-                          <Icon className="h-4 w-4" />
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-medium text-sm">{step.title}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {step.description}
-                        </div>
+                      )}
+                    >
+                      {isCompleted ? (
+                        <CheckCircle className="h-4 w-4" />
+                      ) : isCurrent ? (
+                        <div className="h-4 w-4 rounded-full bg-primary-foreground/30 animate-pulse" />
+                      ) : (
+                        <StepIcon className="h-4 w-4" />
+                      )}
+                    </div>
+                    <div className="flex-1 text-left">
+                      <div className="font-medium text-sm">{step.title}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {step.description}
                       </div>
                     </div>
+                    {isCompleted && (
+                      <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
+                    )}
                   </button>
                 );
               })}
@@ -1361,51 +1647,24 @@ export function FranchiseListingWizard({
             <CardContent>{renderStepContent()}</CardContent>
           </Card>
 
-          {/* Action Buttons */}
-          <div className="flex items-center justify-between mt-6">
-            <Button
-              variant="outline"
-              onClick={handlePrevious}
-              disabled={currentStep === 0}
-            >
-              <ChevronLeft className="h-4 w-4 mr-2" />
-              Previous
-            </Button>
-
-            <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={handleSaveDraft}>
-                <Save className="h-4 w-4 mr-2" />
-                Save Draft
-              </Button>
-
-              <Button variant="outline" onClick={handlePreview}>
-                <Eye className="h-4 w-4 mr-2" />
-                Preview
-              </Button>
-
-              {currentStep === steps.length - 1 ? (
-                <Button onClick={handleSubmit} disabled={!isValid}>
-                  <Send className="h-4 w-4 mr-2" />
-                  Submit Listing
-                </Button>
-              ) : (
-                <Button onClick={handleNext}>
-                  Next
-                  <ChevronRight className="h-4 w-4 ml-2" />
-                </Button>
-              )}
-            </div>
-          </div>
+          {/* Action Buttons - Now using StickyActionBar */}
         </div>
       </div>
 
-      {/* AI Assistant */}
-      <AIAssistant
-        businessData={{
-          name: watchedData.brandOverview?.brandName,
-          industry: watchedData.brandOverview?.industry,
-        }}
-        className="fixed bottom-6 right-6"
+      {/* Sticky Action Bar */}
+      <StickyActionBar
+        onSaveDraft={handleSaveDraft}
+        onNext={handleNext}
+        onPrevious={handlePrevious}
+        nextStepName={steps[currentStep + 1]?.title || "Submit"}
+        currentStepIndex={currentStep}
+        totalSteps={steps.length}
+        isFirstStep={currentStep === 0}
+        isLastStep={currentStep === steps.length - 1}
+        isSaving={false}
+        lastSaved={lastSaved}
+        isValid={isValid}
+        onSubmit={handleSubmit}
       />
 
       {/* NDA Modal */}

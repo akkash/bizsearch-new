@@ -138,6 +138,18 @@ export const franchiseListingSchema = z.object({
         ),
       })
       .optional(),
+    // Store formats with space and investment requirements
+    storeFormats: z.array(
+      z.object({
+        id: z.string(),
+        name: z.string().min(1, "Format name is required"),
+        minSqft: z.number().min(0, "Minimum sqft cannot be negative"),
+        maxSqft: z.number().min(0, "Maximum sqft cannot be negative"),
+        investmentMin: z.number().min(0).optional(),
+        investmentMax: z.number().min(0).optional(),
+        description: z.string().optional(),
+      })
+    ).min(1, "At least one store format is required"),
   }),
 
   // Support & Training
@@ -217,6 +229,8 @@ export const franchiseListingSchema = z.object({
       .min(3, "Add at least 3 required skills"),
     timeCommitment: z.string().min(1, "Time commitment required"),
     backgroundPreferences: z.array(z.string()),
+    // Minimum net worth requirement for franchisees
+    minimumNetWorth: z.number().min(0, "Net worth cannot be negative").optional(),
   }),
 
   // Media & Documents
@@ -272,6 +286,18 @@ export const franchiseListingSchema = z.object({
         size: z.number(),
       })
     ),
+    // Promotional and training videos
+    videos: z.array(
+      z.object({
+        id: z.string(),
+        name: z.string(),
+        url: z.string(),
+        type: z.string(),
+        size: z.number(),
+        duration: z.number().optional(), // Duration in seconds
+        description: z.string().optional(),
+      })
+    ).optional(),
   }),
 
   // Contact & Legal
@@ -427,6 +453,17 @@ export const mockFranchiseListing: Partial<FranchiseListingFormValues> = {
       "Working capital loans",
     ],
     investmentBreakdown: [], // Added required empty array to match schema
+    storeFormats: [
+      {
+        id: "standard",
+        name: "Standard",
+        minSqft: 800,
+        maxSqft: 1200,
+        investmentMin: 2500000,
+        investmentMax: 4000000,
+        description: "Full-service restaurant outlet",
+      },
+    ],
   },
   support: {
     initialTrainingDuration: 21,
