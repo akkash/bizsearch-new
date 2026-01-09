@@ -36,7 +36,7 @@ export const businessOverviewSchema = z.object({
 export const descriptionSchema = z.object({
   longDescription: z
     .string()
-    .min(150, "Description must be at least 150 characters"),
+    .min(1, "Description required").optional(),
   businessModel: z.enum([
     "retail",
     "manufacturing",
@@ -48,30 +48,30 @@ export const descriptionSchema = z.object({
     "consulting",
     "e_commerce",
     "other",
-  ]),
+  ]).optional(),
   customerProfile: z
     .string()
-    .min(50, "Customer profile must be at least 50 characters"),
+    .optional(),
   supplierRelationships: z.string().optional(),
-  // NEW: Reason for selling - critical trust signal
-  reasonForSale: z.string().min(10, "Please explain why you're selling"),
-  // NEW: Training/transition support period
-  trainingPeriod: z.string().optional(), // e.g., "2-4 weeks", "30 days"
-  // NEW: Growth opportunities for new owner (newline-separated string, parsed to array on submit)
+  // Reason for selling - critical trust signal
+  reasonForSale: z.string().optional(),
+  // Training/transition support period
+  trainingPeriod: z.string().optional(),
+  // Growth opportunities for new owner
   growthOpportunities: z.string().optional(),
-  // NEW: Location advantages (newline-separated string, parsed to array on submit)
+  // Location advantages
   locationHighlights: z.string().optional(),
   leaseDetails: z
     .object({
-      type: z.enum(["owned", "leased", "mixed"]),
+      type: z.enum(["owned", "leased", "mixed"]).optional(),
       terms: z.string().optional(),
       monthlyRent: z.number().optional(),
       leaseExpiry: z.string().optional(),
-      // NEW: Lease remaining years
+      // Lease remaining years
       leaseRemainingYears: z.number().min(0).optional(),
-      // NEW: Lock-in period
-      lockInPeriod: z.string().optional(), // e.g., "2 years"
-      // NEW: Security deposit
+      // Lock-in period
+      lockInPeriod: z.string().optional(),
+      // Security deposit
       securityDeposit: z.number().min(0).optional(),
     })
     .optional(),
