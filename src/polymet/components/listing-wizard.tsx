@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -258,50 +258,78 @@ export function ListingWizard({
 
       <div className="space-y-2">
         <Label>Industry *</Label>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-          {industryOptions.slice(0, 12).map((industry) => (
-            <div key={industry.value} className="flex items-center space-x-2">
-              <Checkbox
-                id={industry.value}
-                {...form.register("industry")}
-                value={industry.value}
-              />
-
-              <Label htmlFor={industry.value} className="text-sm">
-                {industry.label}
-              </Label>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Subcategories Section */}
-      {form.watch("industry")?.length > 0 && (
-        <div className="space-y-2">
-          <Label>Subcategories *</Label>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 p-4 border rounded-md bg-muted/20 max-h-48 overflow-y-auto">
-            {form
-              .watch("industry")
-              .flatMap(
-                (slug: string) =>
-                  getBusinessCategoryBySlug(slug)?.subcategories || []
-              )
-              .map((sub: { slug: string; name: string }) => (
-                <div key={sub.slug} className="flex items-center space-x-2">
+        <Controller
+          name="industry"
+          control={form.control}
+          render={({ field }) => (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              {industryOptions.slice(0, 12).map((industry) => (
+                <div key={industry.value} className="flex items-center space-x-2">
                   <Checkbox
-                    id={sub.slug}
-                    {...form.register("subcategory")}
-                    value={sub.slug}
+                    id={industry.value}
+                    checked={field.value?.includes(industry.value)}
+                    onCheckedChange={(checked) => {
+                      const current = field.value || [];
+                      const updated = checked
+                        ? [...current, industry.value]
+                        : current.filter((v: string) => v !== industry.value);
+                      field.onChange(updated);
+                    }}
                   />
-                  <Label
-                    htmlFor={sub.slug}
-                    className="text-sm font-normal cursor-pointer"
-                  >
-                    {sub.name}
+                  <Label htmlFor={industry.value} className="text-sm">
+                    {industry.label}
                   </Label>
                 </div>
               ))}
-          </div>
+            </div>
+          )}
+        />
+        {form.formState.errors.industry && (
+          <p className="text-sm text-red-600">
+            {form.formState.errors.industry.message as string}
+          </p>
+        )}
+      </div>
+
+      {/* Subcategories Section */}
+      {Array.isArray(form.watch("industry")) && form.watch("industry").length > 0 && (
+        <div className="space-y-2">
+          <Label>Subcategories *</Label>
+          <Controller
+            name="subcategory"
+            control={form.control}
+            render={({ field }) => (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 p-4 border rounded-md bg-muted/20 max-h-48 overflow-y-auto">
+                {form
+                  .watch("industry")
+                  .flatMap(
+                    (slug: string) =>
+                      getBusinessCategoryBySlug(slug)?.subcategories || []
+                  )
+                  .map((sub: { slug: string; name: string }) => (
+                    <div key={sub.slug} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={sub.slug}
+                        checked={field.value?.includes(sub.slug)}
+                        onCheckedChange={(checked) => {
+                          const current = field.value || [];
+                          const updated = checked
+                            ? [...current, sub.slug]
+                            : current.filter((v: string) => v !== sub.slug);
+                          field.onChange(updated);
+                        }}
+                      />
+                      <Label
+                        htmlFor={sub.slug}
+                        className="text-sm font-normal cursor-pointer"
+                      >
+                        {sub.name}
+                      </Label>
+                    </div>
+                  ))}
+              </div>
+            )}
+          />
           {form.formState.errors.subcategory && (
             <p className="text-sm text-red-600">
               {form.formState.errors.subcategory.message as string}
@@ -313,16 +341,27 @@ export function ListingWizard({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="space-y-2">
           <Label htmlFor="businessType">Business Type *</Label>
-          <Select {...form.register("businessType")}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="asset_sale">Asset Sale</SelectItem>
-              <SelectItem value="stock_sale">Stock Sale</SelectItem>
-              <SelectItem value="franchise">Franchise</SelectItem>
-            </SelectContent>
-          </Select>
+          <Controller
+            name="businessType"
+            control={form.control}
+            render={({ field }) => (
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <SelectTrigger id="businessType">
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="asset_sale">Asset Sale</SelectItem>
+                  <SelectItem value="stock_sale">Stock Sale</SelectItem>
+                  <SelectItem value="franchise">Franchise</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          />
+          {form.formState.errors.businessType && (
+            <p className="text-sm text-red-600">
+              {form.formState.errors.businessType.message as string}
+            </p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -333,6 +372,11 @@ export function ListingWizard({
             {...form.register("establishedYear", { valueAsNumber: true })}
             placeholder="2020"
           />
+          {form.formState.errors.establishedYear && (
+            <p className="text-sm text-red-600">
+              {form.formState.errors.establishedYear.message as string}
+            </p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -343,6 +387,11 @@ export function ListingWizard({
             {...form.register("numberOfEmployees", { valueAsNumber: true })}
             placeholder="10"
           />
+          {form.formState.errors.numberOfEmployees && (
+            <p className="text-sm text-red-600">
+              {form.formState.errors.numberOfEmployees.message as string}
+            </p>
+          )}
         </div>
       </div>
 
@@ -421,6 +470,11 @@ export function ListingWizard({
 
           <span>We'll use this to show your business location on the map</span>
         </div>
+        {form.formState.errors.fullAddress && (
+          <p className="text-sm text-red-600">
+            {form.formState.errors.fullAddress.message as string}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -440,6 +494,11 @@ export function ListingWizard({
           Minimum 150 characters. Be specific about your business model, target
           customers, and competitive advantages.
         </p>
+        {form.formState.errors.longDescription && (
+          <p className="text-sm text-red-600">
+            {form.formState.errors.longDescription.message as string}
+          </p>
+        )}
       </div>
 
       {/* REASON FOR SALE - Critical Trust Signal */}
@@ -457,41 +516,63 @@ export function ListingWizard({
         <p className="text-sm text-amber-700">
           This is one of the first things buyers look at. Honest, clear reasons build trust.
         </p>
+        {form.formState.errors.reasonForSale && (
+          <p className="text-sm text-red-600">
+            {form.formState.errors.reasonForSale.message as string}
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="businessModel">Business Model *</Label>
-          <Select {...form.register("businessModel")}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select business model" />
-            </SelectTrigger>
-            <SelectContent>
-              {businessModelOptions.map((model) => (
-                <SelectItem key={model.value} value={model.value}>
-                  {model.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Controller
+            name="businessModel"
+            control={form.control}
+            render={({ field }) => (
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <SelectTrigger id="businessModel">
+                  <SelectValue placeholder="Select business model" />
+                </SelectTrigger>
+                <SelectContent>
+                  {businessModelOptions.map((model) => (
+                    <SelectItem key={model.value} value={model.value}>
+                      {model.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
+          {form.formState.errors.businessModel && (
+            <p className="text-sm text-red-600">
+              {form.formState.errors.businessModel.message as string}
+            </p>
+          )}
         </div>
 
         {/* TRAINING PERIOD */}
         <div className="space-y-2">
           <Label htmlFor="trainingPeriod">Training/Transition Period</Label>
-          <Select {...form.register("trainingPeriod")}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select training period" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1 week">1 Week</SelectItem>
-              <SelectItem value="2 weeks">2 Weeks</SelectItem>
-              <SelectItem value="1 month">1 Month</SelectItem>
-              <SelectItem value="2-3 months">2-3 Months</SelectItem>
-              <SelectItem value="Until comfortable">Until Buyer is Comfortable</SelectItem>
-              <SelectItem value="Negotiable">Negotiable</SelectItem>
-            </SelectContent>
-          </Select>
+          <Controller
+            name="trainingPeriod"
+            control={form.control}
+            render={({ field }) => (
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <SelectTrigger id="trainingPeriod">
+                  <SelectValue placeholder="Select training period" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1 week">1 Week</SelectItem>
+                  <SelectItem value="2 weeks">2 Weeks</SelectItem>
+                  <SelectItem value="1 month">1 Month</SelectItem>
+                  <SelectItem value="2-3 months">2-3 Months</SelectItem>
+                  <SelectItem value="Until comfortable">Until Buyer is Comfortable</SelectItem>
+                  <SelectItem value="Negotiable">Negotiable</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          />
           <p className="text-xs text-muted-foreground">
             How long will you train the new owner?
           </p>
@@ -508,6 +589,11 @@ export function ListingWizard({
           placeholder="Describe your typical customers, their demographics, and buying patterns..."
           rows={4}
         />
+        {form.formState.errors.customerProfile && (
+          <p className="text-sm text-red-600">
+            {form.formState.errors.customerProfile.message as string}
+          </p>
+        )}
       </div>
 
       {/* GROWTH OPPORTUNITIES */}
@@ -558,16 +644,27 @@ export function ListingWizard({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-2">
             <Label htmlFor="leaseType">Property Type</Label>
-            <Select {...form.register("leaseDetails.type")}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="owned">Owned</SelectItem>
-                <SelectItem value="leased">Leased</SelectItem>
-                <SelectItem value="mixed">Mixed</SelectItem>
-              </SelectContent>
-            </Select>
+            <Controller
+              name="leaseDetails.type"
+              control={form.control}
+              render={({ field }) => (
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <SelectTrigger id="leaseType">
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="owned">Owned</SelectItem>
+                    <SelectItem value="leased">Leased</SelectItem>
+                    <SelectItem value="mixed">Mixed</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            {form.formState.errors.leaseDetails?.type && (
+              <p className="text-sm text-red-600">
+                {form.formState.errors.leaseDetails.type.message as string}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -647,6 +744,11 @@ export function ListingWizard({
             {...form.register("askingPrice", { valueAsNumber: true })}
             placeholder="2500000"
           />
+          {form.formState.errors.askingPrice && (
+            <p className="text-sm text-red-600">
+              {form.formState.errors.askingPrice.message as string}
+            </p>
+          )}
         </div>
 
         {/* ANNUAL PROFIT - Key for SDE calculation */}
@@ -677,6 +779,11 @@ export function ListingWizard({
               })}
               placeholder="800000"
             />
+            {form.formState.errors.priceBreakdown?.assets && (
+              <p className="text-sm text-red-600">
+                {form.formState.errors.priceBreakdown.assets.message as string}
+              </p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="goodwill">Goodwill (₹)</Label>
@@ -688,6 +795,11 @@ export function ListingWizard({
               })}
               placeholder="1200000"
             />
+            {form.formState.errors.priceBreakdown?.goodwill && (
+              <p className="text-sm text-red-600">
+                {form.formState.errors.priceBreakdown.goodwill.message as string}
+              </p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="workingCapital">Working Capital (₹)</Label>
@@ -699,8 +811,54 @@ export function ListingWizard({
               })}
               placeholder="500000"
             />
+            {form.formState.errors.priceBreakdown?.workingCapital && (
+              <p className="text-sm text-red-600">
+                {form.formState.errors.priceBreakdown.workingCapital.message as string}
+              </p>
+            )}
           </div>
         </div>
+      </div>
+
+      {/* FINANCING INFORMATION */}
+      <div className="p-4 border rounded-lg space-y-4">
+        <h4 className="font-medium flex items-center gap-2">
+          <DollarSign className="w-4 h-4 text-blue-600" />
+          Financing Options
+        </h4>
+        <div className="flex items-center space-x-2">
+          <Controller
+            name="financingAvailable"
+            control={form.control}
+            render={({ field }) => (
+              <Checkbox
+                id="financingAvailable"
+                checked={field.value}
+                onCheckedChange={field.onChange}
+              />
+            )}
+          />
+          <Label htmlFor="financingAvailable">
+            Seller financing is available for this business *
+          </Label>
+        </div>
+        {form.formState.errors.financingAvailable && (
+          <p className="text-sm text-red-600">
+            {form.formState.errors.financingAvailable.message as string}
+          </p>
+        )}
+
+        {form.watch("financingAvailable") && (
+          <div className="space-y-2 mt-4">
+            <Label htmlFor="financingDetails">Financing Details</Label>
+            <Textarea
+              id="financingDetails"
+              {...form.register("financingDetails")}
+              placeholder="Describe available terms, down payment required, interest rate, etc."
+              rows={3}
+            />
+          </div>
+        )}
       </div>
 
       {/* YEAR-OVER-YEAR GROWTH */}
@@ -772,26 +930,44 @@ export function ListingWizard({
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">Assets Included in Sale</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          {[
-            { value: "equipment", label: "Equipment" },
-            { value: "inventory", label: "Inventory" },
-            { value: "intellectual_property", label: "Intellectual Property" },
-            { value: "customer_lists", label: "Customer Lists" },
-            { value: "brand", label: "Brand & Trademarks" },
-            { value: "real_estate", label: "Real Estate" },
-          ].map((asset) => (
-            <div key={asset.value} className="flex items-center space-x-2">
-              <Checkbox
-                id={asset.value}
-                {...form.register("assetsIncluded")}
-                value={asset.value}
-              />
-
-              <Label htmlFor={asset.value} className="text-sm">
-                {asset.label}
-              </Label>
-            </div>
-          ))}
+          <Controller
+            name="assetsIncluded"
+            control={form.control}
+            render={({ field }) => (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {[
+                  { value: "equipment", label: "Equipment" },
+                  { value: "inventory", label: "Inventory" },
+                  { value: "intellectual_property", label: "Intellectual Property" },
+                  { value: "customer_lists", label: "Customer Lists" },
+                  { value: "brand", label: "Brand & Trademarks" },
+                  { value: "real_estate", label: "Real Estate" },
+                ].map((asset) => (
+                  <div key={asset.value} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={asset.value}
+                      checked={field.value?.includes(asset.value)}
+                      onCheckedChange={(checked) => {
+                        const current = field.value || [];
+                        const updated = checked
+                          ? [...current, asset.value]
+                          : current.filter((v: string) => v !== asset.value);
+                        field.onChange(updated);
+                      }}
+                    />
+                    <Label htmlFor={asset.value} className="text-sm">
+                      {asset.label}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            )}
+          />
+          {form.formState.errors.assetsIncluded && (
+            <p className="text-sm text-red-600 mt-2">
+              {form.formState.errors.assetsIncluded.message as string}
+            </p>
+          )}
         </div>
       </div>
 
@@ -827,13 +1003,14 @@ export function ListingWizard({
     </div>
   );
 
-  const renderMediaStep = (_form: any) => (
+  const renderMediaStep = (form: any) => (
     <div className="space-y-6">
       <FileUploader
         accept="image/*"
         maxFiles={10}
         files={formData.media?.businessPhotos || []}
         onFilesChange={(files) => {
+          form.setValue("businessPhotos", files, { shouldValidate: true });
           const updatedFormData = {
             ...formData,
             media: {
@@ -847,6 +1024,11 @@ export function ListingWizard({
         description="Upload high-quality photos of your business. First photo will be the main image."
         required={true}
       />
+      {form.formState.errors.businessPhotos && (
+        <p className="text-sm text-red-600">
+          {form.formState.errors.businessPhotos.message as string}
+        </p>
+      )}
 
       <FileUploader
         accept=".pdf,.doc,.docx,.xls,.xlsx"
@@ -858,6 +1040,7 @@ export function ListingWizard({
             documentType: "other" as const,
             confidentiality: "nda_required" as const,
           }));
+          form.setValue("documents", documentsWithMeta, { shouldValidate: true });
           const updatedFormData = {
             ...formData,
             media: {
@@ -884,6 +1067,11 @@ export function ListingWizard({
             {...form.register("sellerDisplayName")}
             placeholder="Your name as it will appear to buyers"
           />
+          {form.formState.errors.sellerDisplayName && (
+            <p className="text-sm text-red-600">
+              {form.formState.errors.sellerDisplayName.message as string}
+            </p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -894,6 +1082,11 @@ export function ListingWizard({
             {...form.register("contactEmail")}
             placeholder="your.email@example.com"
           />
+          {form.formState.errors.contactEmail && (
+            <p className="text-sm text-red-600">
+              {form.formState.errors.contactEmail.message as string}
+            </p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -903,30 +1096,53 @@ export function ListingWizard({
             {...form.register("contactPhone")}
             placeholder="+91 98765 43210"
           />
+          {form.formState.errors.contactPhone && (
+            <p className="text-sm text-red-600">
+              {form.formState.errors.contactPhone.message as string}
+            </p>
+          )}
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="preferredContactMethod">
             Preferred Contact Method *
           </Label>
-          <Select {...form.register("preferredContactMethod")}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select method" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="phone">Phone</SelectItem>
-              <SelectItem value="email">Email</SelectItem>
-              <SelectItem value="platform">Platform Messages</SelectItem>
-            </SelectContent>
-          </Select>
+          <Controller
+            name="preferredContactMethod"
+            control={form.control}
+            render={({ field }) => (
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <SelectTrigger id="preferredContactMethod">
+                  <SelectValue placeholder="Select method" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="phone">Phone</SelectItem>
+                  <SelectItem value="email">Email</SelectItem>
+                  <SelectItem value="platform">Platform Messages</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          />
+          {form.formState.errors.preferredContactMethod && (
+            <p className="text-sm text-red-600">
+              {form.formState.errors.preferredContactMethod.message as string}
+            </p>
+          )}
         </div>
       </div>
 
       <div className="space-y-4">
         <div className="flex items-center space-x-2">
-          <Checkbox
-            id="enablePublicContact"
-            {...form.register("enablePublicContact")}
+          <Controller
+            name="enablePublicContact"
+            control={form.control}
+            render={({ field }) => (
+              <Checkbox
+                id="enablePublicContact"
+                checked={field.value}
+                onCheckedChange={field.onChange}
+              />
+            )}
           />
 
           <Label htmlFor="enablePublicContact">
@@ -935,9 +1151,16 @@ export function ListingWizard({
         </div>
 
         <div className="flex items-center space-x-2">
-          <Checkbox
-            id="verificationConsent"
-            {...form.register("verificationConsent")}
+          <Controller
+            name="verificationConsent"
+            control={form.control}
+            render={({ field }) => (
+              <Checkbox
+                id="verificationConsent"
+                checked={field.value}
+                onCheckedChange={field.onChange}
+              />
+            )}
           />
 
           <Label htmlFor="verificationConsent">
@@ -945,6 +1168,11 @@ export function ListingWizard({
             information provided is accurate *
           </Label>
         </div>
+        {form.formState.errors.verificationConsent && (
+          <p className="text-sm text-red-600">
+            {form.formState.errors.verificationConsent.message as string}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -995,28 +1223,41 @@ export function ListingWizard({
 
         <div className="space-y-2">
           <Label htmlFor="visibility">Visibility *</Label>
-          <Select {...form.register("visibility")}>
-            <SelectTrigger>
-              <SelectValue placeholder="Choose visibility" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="public">
-                Public - Visible to all users
-              </SelectItem>
-              <SelectItem value="private">
-                Private - Only you can see it
-              </SelectItem>
-              <SelectItem value="link_only">
-                Link Only - Accessible via direct link
-              </SelectItem>
-            </SelectContent>
-          </Select>
+          <Controller
+            name="visibility"
+            control={form.control}
+            render={({ field }) => (
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <SelectTrigger id="visibility">
+                  <SelectValue placeholder="Choose visibility" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="public">
+                    Public - Visible to all users
+                  </SelectItem>
+                  <SelectItem value="private">
+                    Private - Only you can see it
+                  </SelectItem>
+                  <SelectItem value="link_only">
+                    Link Only - Accessible via direct link
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          />
         </div>
 
         <div className="flex items-center space-x-2">
-          <Checkbox
-            id="featuredListing"
-            {...form.register("featuredListing")}
+          <Controller
+            name="featuredListing"
+            control={form.control}
+            render={({ field }) => (
+              <Checkbox
+                id="featuredListing"
+                checked={field.value}
+                onCheckedChange={field.onChange}
+              />
+            )}
           />
 
           <Label htmlFor="featuredListing">

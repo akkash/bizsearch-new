@@ -54,7 +54,7 @@ export const descriptionSchema = z.object({
     .min(50, "Customer profile must be at least 50 characters"),
   supplierRelationships: z.string().optional(),
   // NEW: Reason for selling - critical trust signal
-  reasonForSale: z.string().min(10, "Please explain why you're selling").optional(),
+  reasonForSale: z.string().min(10, "Please explain why you're selling"),
   // NEW: Training/transition support period
   trainingPeriod: z.string().optional(), // e.g., "2-4 weeks", "30 days"
   // NEW: Growth opportunities for new owner (newline-separated string, parsed to array on submit)
@@ -262,6 +262,7 @@ export const mockListingDraft: Partial<BusinessListingFormValues> = {
       "Our primary customers are young professionals (25-40 years), college students, and local residents. We see high foot traffic from office workers during lunch hours and evening commuters. Weekend customers include families and tourists exploring the Bandra area.",
     supplierRelationships:
       "Strong relationships with local coffee roasters and food suppliers. Exclusive partnership with organic vegetable suppliers.",
+    reasonForSale: "Retiring after 6 successful years to spend time with family.",
     leaseDetails: {
       type: "leased",
       terms: "5-year lease with 2-year renewal option",
