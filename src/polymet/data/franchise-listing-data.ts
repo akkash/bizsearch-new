@@ -32,22 +32,22 @@ export const franchiseListingSchema = z.object({
   description: z.object({
     brandDescription: z
       .string()
-      .min(100, "Brand description must be at least 100 characters"),
+      .min(1, "Brand description required").optional(),
     uniqueSellingPoints: z
       .array(z.string())
-      .min(3, "Add at least 3 unique selling points"),
-    targetMarket: z.string().min(50, "Target market description required"),
+      .optional(),
+    targetMarket: z.string().optional(),
     competitiveAdvantages: z
       .array(z.string())
-      .min(2, "Add at least 2 competitive advantages"),
+      .optional(),
     growthPotential: z
       .string()
-      .min(50, "Growth potential description required"),
-    // NEW: Mission statement for brand carousel
-    mission: z.string().min(50, "Mission statement should be at least 50 characters").optional(),
-    // NEW: Founder/leadership bio
-    founderBio: z.string().min(50, "Founder bio should be at least 50 characters").optional(),
-  }),
+      .optional(),
+    // Mission statement for brand carousel
+    mission: z.string().optional(),
+    // Founder/leadership bio
+    founderBio: z.string().optional(),
+  }).optional(),
 
   // Investment & Financials
   investment: z.object({
@@ -222,16 +222,16 @@ export const franchiseListingSchema = z.object({
   franchiseeProfile: z.object({
     idealCandidateProfile: z
       .string()
-      .min(100, "Ideal candidate profile required"),
-    experienceRequired: z.string().min(1, "Experience requirement needed"),
+      .optional(),
+    experienceRequired: z.string().optional(),
     skillsRequired: z
       .array(z.string())
-      .min(3, "Add at least 3 required skills"),
-    timeCommitment: z.string().min(1, "Time commitment required"),
-    backgroundPreferences: z.array(z.string()),
+      .optional(),
+    timeCommitment: z.string().optional(),
+    backgroundPreferences: z.array(z.string()).optional(),
     // Minimum net worth requirement for franchisees
     minimumNetWorth: z.number().min(0, "Net worth cannot be negative").optional(),
-  }),
+  }).optional(),
 
   // Media & Documents
   media: z.object({
