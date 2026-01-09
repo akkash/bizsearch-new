@@ -178,11 +178,12 @@ export function ListingWizard({
   };
 
   const handleSubmitFinal = (finalData: Partial<BusinessListingFormValues>) => {
-    // Gate: Phone Verification
-    if (!isVerified) {
-      const proceed = verifyPhone();
-      if (!proceed) return;
-    }
+    // TEMPORARILY SKIPPED: Phone Verification
+    // TODO: Re-enable phone verification when SMS provider is configured
+    // if (!isVerified) {
+    //   const proceed = verifyPhone();
+    //   if (!proceed) return;
+    // }
 
     try {
       const validated = businessListingSchema.parse(finalData);
