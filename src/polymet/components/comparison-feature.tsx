@@ -49,7 +49,7 @@ export function ComparisonFeature({
 
           <h3 className="text-lg font-semibold mb-2">Start Comparing</h3>
           <p className="text-muted-foreground text-center mb-4">
-            Add businesses or franchises to compare side-by-side
+            Add up to 3 franchises to compare investment, fees, and requirements side-by-side
           </p>
           <Button onClick={onAddMore}>
             <Plus className="h-4 w-4 mr-2" />
@@ -67,27 +67,55 @@ export function ComparisonFeature({
   };
 
   const getBusinessName = (item: ComparisonItem) => {
-    return item.type === "business"
-      ? (item.data as Business).name
-      : (item.data as Franchise).brandName;
+    if (item.type === "business") {
+      return (item.data as Business).name;
+    }
+    const franchise = item.data as Franchise;
+    return franchise.brandName || franchise.brand_name || "Franchise";
   };
 
-  const getPrice = (item: ComparisonItem) => {
-    return item.type === "business"
-      ? (item.data as Business).price
-      : (item.data as Franchise).investmentMin;
+  const getPrice = (item: ComparisonItem): number | null => {
+    if (item.type === "business") {
+      return (item.data as Business).price ?? null;
+    }
+    const franchise = item.data as Franchise;
+    return franchise.investmentMin ?? franchise.total_investment_min ?? franchise.franchiseFee ?? franchise.franchise_fee ?? null;
   };
 
-  const getRevenue = (item: ComparisonItem) => {
-    return item.type === "business"
-      ? (item.data as Business).revenue
-      : (item.data as Franchise).roiProjections[0]?.revenue || 0;
+  const getFranchiseFee = (item: ComparisonItem): number | null => {
+    if (item.type !== "franchise") return null;
+    const franchise = item.data as Franchise;
+    return franchise.franchiseFee ?? franchise.franchise_fee ?? null;
+  };
+
+  const getRoyalty = (item: ComparisonItem): number | null => {
+    if (item.type !== "franchise") return null;
+    const franchise = item.data as Franchise;
+    return franchise.royaltyPercentage ?? franchise.royalty_percentage ?? null;
+  };
+
+  const getRevenue = (item: ComparisonItem): number | null => {
+    if (item.type === "business") {
+      return (item.data as Business).revenue ?? null;
+    }
+    const franchise = item.data as Franchise;
+    return franchise.average_unit_revenue ?? null;
   };
 
   const getLocation = (item: ComparisonItem) => {
-    return item.type === "business"
-      ? (item.data as Business).location
-      : (item.data as Franchise).territories[0] || "Multiple Locations";
+    if (item.type === "business") {
+      return (item.data as Business).location || "N/A";
+    }
+    const franchise = item.data as Franchise;
+    const city = (franchise as Record<string, unknown>).headquarters_city as string | undefined;
+    const state = (franchise as Record<string, unknown>).headquarters_state as string | undefined;
+    if (city && state) return `${city}, ${state}`;
+    if (city || state) return city || state;
+    const territories = franchise.territories || franchise.expansion_territories;
+    if (Array.isArray(territories) && territories.length > 0) {
+      return String(territories[0]);
+    }
+    return "Contact for territories";
   };
 
   const getIndustry = (item: ComparisonItem) => {
@@ -97,21 +125,82 @@ export function ComparisonFeature({
   };
 
   const getEstablished = (item: ComparisonItem) => {
-    return item.type === "business"
-      ? (item.data as Business).establishedYear
-      : (item.data as Franchise).establishedYear;
+    if (item.type === "business") {
+      return (item.data as Business).establishedYear ?? (item.data as Business).established_year ?? "N/A";
+    }
+    const franchise = item.data as Franchise;
+    return franchise.establishedYear ?? franchise.established_year ?? "N/A";
   };
 
   const getEmployees = (item: ComparisonItem) => {
-    return item.type === "business"
-      ? (item.data as Business).employees
-      : (item.data as Franchise).outlets; // For franchises, show outlets instead
+    if (item.type === "business") {
+      return (item.data as Business).employees ?? "N/A";
+    }
+    const franchise = item.data as Franchise;
+    return franchise.outlets ?? franchise.total_outlets ?? "N/A";
   };
 
   const getBadges = (item: ComparisonItem) => {
-    return item.type === "business"
+    const badges = item.type === "business"
       ? (item.data as Business).badges
       : (item.data as Franchise).badges;
+    return Array.isArray(badges) ? badges : [];
+  };
+
+  const formatOptionalCurrency = (value: number | null) => {
+    if (value === null || value === undefined) return "Not provided";
+    return formatCurrency(value);
+  };
+
+  const formatOptionalText = (value: unknown) => {
+    if (value === null || value === undefined || value === '') return "Not provided";
+    return String(value);
+  };
+
+  const getMarketingFee = (item: ComparisonItem): number | null => {
+    if (item.type !== "franchise") return null;
+    const franchise = item.data as Franchise;
+    return franchise.marketingFeePercentage ?? franchise.marketing_fee_percentage ?? null;
+  };
+
+  const getSpaceRequirement = (item: ComparisonItem) => {
+    if (item.type !== "franchise") return "Not provided";
+    const franchise = item.data as Franchise;
+    const sqft = franchise.spaceRequiredSqft ?? franchise.space_required_sqft;
+    return sqft ? `${sqft} sq ft` : "Not provided";
+  };
+
+  const getLiquidCapital = (item: ComparisonItem): number | null => {
+    if (item.type !== "franchise") return null;
+    const franchise = item.data as Franchise;
+    return franchise.minimumLiquidCapital ?? franchise.minimum_liquid_capital ?? null;
+  };
+
+  const getTraining = (item: ComparisonItem) => {
+    if (item.type !== "franchise") return "Not provided";
+    const franchise = item.data as Franchise;
+    if (franchise.trainingProvided || franchise.training_provided) {
+      const days = franchise.trainingDurationDays ?? franchise.training_duration_days;
+      return days ? `${days} days training` : "Provided";
+    }
+    return "Not provided";
+  };
+
+  const getSupport = (item: ComparisonItem) => {
+    if (item.type !== "franchise") return "Not provided";
+    const franchise = item.data as Franchise;
+    const support = franchise.supportProvided ?? franchise.support_provided;
+    if (Array.isArray(support) && support.length > 0) return support.slice(0, 2).join(', ');
+    if (franchise.marketingSupport || franchise.marketing_support) return "Marketing support";
+    return "Not provided";
+  };
+
+  const getFinancing = (item: ComparisonItem) => {
+    if (item.type !== "franchise") return "Not provided";
+    const franchise = item.data as Franchise;
+    const badges = franchise.badges || [];
+    if (badges.includes("Financing Available")) return "Available";
+    return "Not provided";
   };
 
   return (
@@ -229,7 +318,7 @@ export function ComparisonFeature({
                             : "Investment Required"}
                         </div>
                         <div className="font-semibold text-lg text-primary">
-                          {formatCurrency(getPrice(item))}
+                          {formatOptionalCurrency(getPrice(item))}
                         </div>
                       </div>
 
@@ -237,22 +326,40 @@ export function ComparisonFeature({
                         <div className="text-muted-foreground text-sm">
                           {item.type === "business"
                             ? "Annual Revenue"
-                            : "Expected Returns"}
+                            : "Avg. Unit Revenue"}
                         </div>
                         <div className="font-semibold text-lg text-green-600">
-                          {formatCurrency(getRevenue(item))}
+                          {formatOptionalCurrency(getRevenue(item))}
                         </div>
                       </div>
 
                       {item.type === "franchise" && (
-                        <div>
-                          <div className="text-muted-foreground text-sm">
-                            Royalty
+                        <>
+                          <div>
+                            <div className="text-muted-foreground text-sm">
+                              Franchise Fee
+                            </div>
+                            <div className="font-medium">
+                              {formatOptionalCurrency(getFranchiseFee(item))}
+                            </div>
                           </div>
-                          <div className="font-medium">
-                            {(item.data as Franchise).royaltyPercentage}%
+                          <div>
+                            <div className="text-muted-foreground text-sm">
+                              Royalty
+                            </div>
+                            <div className="font-medium">
+                              {getRoyalty(item) != null ? `${getRoyalty(item)}%` : "Not provided"}
+                            </div>
                           </div>
-                        </div>
+                          <div>
+                            <div className="text-muted-foreground text-sm">
+                              Marketing Fee
+                            </div>
+                            <div className="font-medium">
+                              {getMarketingFee(item) != null ? `${getMarketingFee(item)}%` : "Not provided"}
+                            </div>
+                          </div>
+                        </>
                       )}
                     </div>
                   )}
@@ -272,21 +379,58 @@ export function ComparisonFeature({
                           <div className="text-muted-foreground">Type</div>
                           <div className="font-medium">
                             {item.type === "business"
-                              ? (item.data as Business).businessType
-                              : (item.data as Franchise).businessModel}
+                              ? (item.data as Business).businessType || (item.data as Business).business_type || "N/A"
+                              : (item.data as Franchise).experience_required || (item.data as Record<string, unknown>).experienceRequired || "N/A"}
                           </div>
                         </div>
                       </div>
 
                       {item.type === "franchise" && (
-                        <div>
-                          <div className="text-muted-foreground text-sm">
-                            Training Support
+                        <>
+                          <div>
+                            <div className="text-muted-foreground text-sm">
+                              Space Requirement
+                            </div>
+                            <div className="font-medium">{getSpaceRequirement(item)}</div>
                           </div>
-                          <div className="font-medium">
-                            {(item.data as Franchise).support.training}
+                          <div>
+                            <div className="text-muted-foreground text-sm">
+                              Liquid Capital
+                            </div>
+                            <div className="font-medium">
+                              {formatOptionalCurrency(getLiquidCapital(item))}
+                            </div>
                           </div>
-                        </div>
+                          <div>
+                            <div className="text-muted-foreground text-sm">
+                              Experience
+                            </div>
+                            <div className="font-medium">
+                              {formatOptionalText(
+                                (item.data as Franchise).experienceRequired ??
+                                  (item.data as Franchise).experience_required
+                              )}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-muted-foreground text-sm">
+                              Training
+                            </div>
+                            <div className="font-medium">{getTraining(item)}</div>
+                          </div>
+                          <div>
+                            <div className="text-muted-foreground text-sm">
+                              Support
+                            </div>
+                            <div className="font-medium">{getSupport(item)}</div>
+                          </div>
+                          <div>
+                            <div className="text-muted-foreground text-sm">
+                              Financing
+                            </div>
+                            <div className="font-medium">{getFinancing(item)}</div>
+                          </div>
+                        </>
                       )}
                     </div>
                   )}

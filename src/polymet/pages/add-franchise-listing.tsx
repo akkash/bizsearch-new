@@ -17,7 +17,6 @@ import {
 } from "lucide-react";
 import { FranchiseListingWizard } from "@/polymet/components/franchise-listing-wizard";
 import {
-  mockFranchiseListing,
   type FranchiseListingFormValues,
 } from "@/polymet/data/franchise-listing-data";
 import { useAuth } from "@/contexts/AuthContext";
@@ -44,21 +43,22 @@ export function AddFranchiseListingPage({
     }
   }, [user, navigate]);
 
-  // Load saved drafts on component mount
+  // Load saved drafts for the current user only
   useEffect(() => {
-    // In a real app, this would load from localStorage or API
-    const drafts = [
-      {
-        id: "draft-1",
-        brandName: "FreshBite Café",
-        lastModified: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-        completionPercentage: 65,
-        data: mockFranchiseListing,
-      },
-    ];
-
-    setSavedDrafts(drafts);
-  }, []);
+    if (!user) return;
+    const storageKey = `franchise_listing_drafts_${user.id}`;
+    try {
+      const stored = localStorage.getItem(storageKey);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          setSavedDrafts(parsed);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load franchise listing drafts:', error);
+    }
+  }, [user]);
 
   const handleStartNew = () => {
     setCurrentDraft(null);
@@ -77,7 +77,7 @@ export function AddFranchiseListingPage({
     console.log("Saving franchise listing:", { data, isDraft });
 
     // Update current draft
-    if (isDraft) {
+    if (isDraft && user) {
       const updatedDraft = {
         id: "current-draft",
         brandName: data.brandOverview?.brandName || "Untitled Franchise",
@@ -88,7 +88,12 @@ export function AddFranchiseListingPage({
 
       setSavedDrafts((prev) => {
         const filtered = prev.filter((d) => d.id !== "current-draft");
-        return [updatedDraft, ...filtered];
+        const next = [updatedDraft, ...filtered];
+        localStorage.setItem(
+          `franchise_listing_drafts_${user.id}`,
+          JSON.stringify(next)
+        );
+        return next;
       });
     }
   };

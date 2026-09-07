@@ -1,17 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   ArrowRight,
   Shield,
-  Users,
-  TrendingUp,
-  CheckCircle2,
   Sparkles,
-  Building2,
   Store,
   Coffee,
-  HeartPulse,
   GraduationCap,
-  Wrench,
+  IndianRupee,
+  GitCompareArrows,
+  Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,19 +25,26 @@ interface HeroSectionProps {
   className?: string;
 }
 
-export function HeroSection({ onSearch, className }: HeroSectionProps) {
-  const [currentSearchType, setCurrentSearchType] = useState<
-    "business" | "franchise"
-  >("business");
-  const [activeStatIndex, setActiveStatIndex] = useState(0);
+const exampleSearches = [
+  {
+    label: "Food business under ₹30 lakh in Chennai",
+    href: "/smart-search?q=food+business+under+30+lakh+in+Chennai",
+    icon: Coffee,
+  },
+  {
+    label: "Education franchise in Coimbatore",
+    href: "/franchises?industry=education&q=Coimbatore",
+    icon: GraduationCap,
+  },
+  {
+    label: "Low-investment franchise under ₹15 lakh",
+    href: "/franchises?q=low+investment+under+15+lakh",
+    icon: IndianRupee,
+  },
+];
 
-  // Animate through stats
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveStatIndex((prev) => (prev + 1) % 4);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
+export function HeroSection({ onSearch, className }: HeroSectionProps) {
+  const [, setCurrentSearchType] = useState<"business" | "franchise">("franchise");
 
   const handleSearchSubmit = (
     query: string,
@@ -48,165 +52,113 @@ export function HeroSection({ onSearch, className }: HeroSectionProps) {
     filters: any
   ) => {
     setCurrentSearchType(type);
-    if (onSearch) {
-      onSearch(query, type, filters);
-    }
+    onSearch?.(query, type, filters);
   };
-
-  // Live stats with trust signals
-  const stats = [
-    { label: "Active Buyers", value: "8,400+", icon: Users, color: "text-blue-400" },
-    { label: "Live Listings", value: "3,850+", icon: Building2, color: "text-emerald-400" },
-    { label: "Verified Sellers", value: "2,100+", icon: CheckCircle2, color: "text-green-400" },
-    { label: "Deals Completed", value: "₹850Cr+", icon: TrendingUp, color: "text-amber-400" },
-  ];
-
-  // Quick filter chips for common searches
-  const quickFilters = [
-    { label: "Restaurants", icon: Coffee, href: "/businesses?category=restaurants" },
-    { label: "Retail Shops", icon: Store, href: "/businesses?category=retail-shops" },
-    { label: "Healthcare", icon: HeartPulse, href: "/businesses?category=healthcare" },
-    { label: "Education", icon: GraduationCap, href: "/businesses?category=education" },
-    { label: "Manufacturing", icon: Wrench, href: "/businesses?category=manufacturing" },
-  ];
 
   return (
     <section className={cn("relative overflow-hidden", className)}>
-      {/* Dynamic Background with Abstract Data Visualization */}
       <div className="absolute inset-0 bg-gradient-to-br from-trust-blue via-[hsl(213,55%,18%)] to-[hsl(213,60%,12%)] dark:from-[hsl(213,40%,8%)] dark:via-[hsl(213,45%,6%)] dark:to-[hsl(213,50%,4%)]">
-        {/* Animated gradient orbs */}
         <div className="absolute top-1/4 -left-20 w-96 h-96 bg-growth-green/20 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse delay-1000" />
-
-        {/* Grid pattern overlay */}
-        <div className="absolute inset-0 opacity-[0.03]"
+        <div
+          className="absolute inset-0 opacity-[0.03]"
           style={{
             backgroundImage: `linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px)`,
-            backgroundSize: '60px 60px'
+            backgroundSize: "60px 60px",
           }}
         />
-
-        {/* Floating particles */}
-        <div className="absolute inset-0 overflow-hidden">
-          {[...Array(6)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute w-2 h-2 bg-white/10 rounded-full animate-float"
-              style={{
-                left: `${15 + i * 15}%`,
-                top: `${20 + (i % 3) * 25}%`,
-                animationDelay: `${i * 0.5}s`,
-                animationDuration: `${3 + i}s`,
-              }}
-            />
-          ))}
-        </div>
       </div>
 
       <div className="relative z-10 container mx-auto px-4 py-16 lg:py-24">
         <div className="max-w-5xl mx-auto text-center">
-          {/* Trust Badge */}
           <Badge className="mb-6 bg-white/10 text-white border-white/20 hover:bg-white/20 backdrop-blur-sm px-4 py-1.5">
             <Shield className="h-3.5 w-3.5 mr-2" />
-            India's Most Trusted Business Marketplace
+            India&apos;s Franchise Discovery Marketplace
             <Sparkles className="h-3.5 w-3.5 ml-2 text-amber-400" />
           </Badge>
 
-          {/* Benefit-Driven Main Heading */}
           <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-6 leading-[1.1] tracking-tight">
-            Find Your Perfect
+            Find the right
             <span className="block mt-2 bg-gradient-to-r from-growth-green via-emerald-400 to-teal-300 bg-clip-text text-transparent">
-              Business Opportunity
+              franchise for you
             </span>
           </h1>
 
-          {/* Value Proposition Subheading */}
-          <p className="text-lg md:text-xl lg:text-2xl text-blue-100/90 mb-10 max-w-3xl mx-auto leading-relaxed font-light">
-            Explore franchise opportunities. Browse verified businesses for sale.
-            <span className="block mt-2 text-growth-green font-medium">Connect directly with serious buyers and sellers.</span>
+          <p className="text-lg md:text-xl text-blue-100/90 mb-4 max-w-3xl mx-auto leading-relaxed font-light">
+            What kind of business do you want to start?
+          </p>
+          <p className="text-sm md:text-base text-blue-200/70 mb-10 max-w-2xl mx-auto">
+            Search by industry, investment budget, and location — then compare
+            opportunities and request information from franchisors.
           </p>
 
-          {/* Unified Search Bar */}
-          <div className="mb-8 relative z-20 max-w-4xl mx-auto">
+          <div className="mb-6 relative z-20 max-w-4xl mx-auto">
             <SearchBar
               onSearch={handleSearchSubmit}
               onSearchTypeChange={setCurrentSearchType}
+              defaultSearchType="franchise"
               className="bg-white dark:bg-gray-900 rounded-2xl p-4 md:p-6 shadow-2xl shadow-black/20 border border-white/10"
             />
           </div>
 
-          {/* Quick Filter Chips */}
-          <div className="flex flex-wrap justify-center gap-2 mb-12">
-            <span className="text-blue-200/70 text-sm mr-2 self-center">Popular:</span>
-            {quickFilters.map((filter) => (
+          <div className="flex flex-wrap justify-center gap-2 mb-10">
+            <span className="text-blue-200/70 text-sm mr-1 self-center">Examples:</span>
+            {exampleSearches.map((example) => (
               <Link
-                key={filter.label}
-                to={filter.href}
-                className="group inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white/90 text-sm font-medium transition-all duration-200 hover:scale-105 backdrop-blur-sm border border-white/10"
+                key={example.label}
+                to={example.href}
+                className="group inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white/90 text-sm font-medium transition-all duration-200 backdrop-blur-sm border border-white/10"
               >
-                <filter.icon className="h-4 w-4 text-growth-green group-hover:scale-110 transition-transform" />
-                {filter.label}
+                <example.icon className="h-4 w-4 text-growth-green group-hover:scale-110 transition-transform" />
+                {example.label}
               </Link>
             ))}
           </div>
 
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
             <Link to="/franchises">
               <Button
                 size="lg"
-                className="bg-growth-green hover:bg-growth-green/90 text-white px-8 py-6 text-lg font-semibold rounded-xl shadow-lg shadow-growth-green/25 w-full sm:w-auto transition-all hover:scale-105"
+                className="bg-growth-green hover:bg-growth-green/90 text-white px-8 py-6 text-lg font-semibold rounded-xl shadow-lg shadow-growth-green/25 w-full sm:w-auto"
               >
-                Explore Franchises
+                Find a Franchise
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
-            <Link to="/businesses">
+            <Link to="/add-franchise-listing">
               <Button
                 size="lg"
                 variant="outline"
-                className="border-2 border-white/50 text-white bg-transparent hover:bg-white/10 px-8 py-6 text-lg font-semibold rounded-xl w-full sm:w-auto backdrop-blur-sm transition-all hover:scale-105"
+                className="border-2 border-white/50 text-white bg-transparent hover:bg-white/10 px-8 py-6 text-lg font-semibold rounded-xl w-full sm:w-auto backdrop-blur-sm"
               >
-                Browse Businesses
+                <Plus className="mr-2 h-5 w-5" />
+                List Your Franchise
+              </Button>
+            </Link>
+            <Link to="/franchises">
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-2 border-white/30 text-white/90 bg-transparent hover:bg-white/10 px-8 py-6 text-lg font-semibold rounded-xl w-full sm:w-auto backdrop-blur-sm"
+              >
+                <GitCompareArrows className="mr-2 h-5 w-5" />
+                Compare Franchises
               </Button>
             </Link>
           </div>
 
-          {/* Live Stats - Trust Signals */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            {stats.map((stat, index) => {
-              const Icon = stat.icon;
-              const isActive = index === activeStatIndex;
-              return (
-                <div
-                  key={index}
-                  className={cn(
-                    "text-center p-4 rounded-2xl transition-all duration-500",
-                    isActive ? "bg-white/10 scale-105" : "bg-transparent"
-                  )}
-                >
-                  <div className="flex justify-center mb-3">
-                    <div className={cn(
-                      "p-3 rounded-xl backdrop-blur-sm transition-all",
-                      isActive ? "bg-white/20" : "bg-white/10"
-                    )}>
-                      <Icon className={cn("h-6 w-6", stat.color)} />
-                    </div>
-                  </div>
-                  <div className="text-2xl md:text-3xl font-bold text-white mb-1 font-mono">
-                    {stat.value}
-                  </div>
-                  <div className="text-xs md:text-sm text-blue-200/80 font-medium">
-                    {stat.label}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <p className="text-sm text-blue-200/60">
+            Already operating a business?{" "}
+            <Link
+              to="/businesses"
+              className="text-white/90 underline underline-offset-4 hover:text-growth-green transition-colors"
+            >
+              Explore businesses for sale
+            </Link>
+          </p>
         </div>
       </div>
 
-      {/* Smooth Wave Transition */}
       <div className="absolute bottom-0 left-0 right-0">
         <svg
           viewBox="0 0 1200 120"

@@ -1,13 +1,25 @@
 import { supabase } from './supabase';
 import { isUUID, sanitizeSlug } from './slug-utils';
+import { mapFranchiseFromDb, mapFranchisesFromDb } from './franchise-mapper';
+import type { Franchise } from '@/types/listings';
+
+export { mapFranchiseFromDb, mapFranchisesFromDb } from './franchise-mapper';
+
+/** @deprecated Use mapFranchiseFromDb */
+export const normalizeFranchise = mapFranchiseFromDb;
 
 export interface FranchiseFilters {
   industry?: string[];
   state?: string[];
+  city?: string[];
   franchiseFeeMin?: number;
   franchiseFeeMax?: number;
   investmentMin?: number;
   investmentMax?: number;
+  royaltyMin?: number;
+  royaltyMax?: number;
+  spaceMax?: number;
+  verificationStatus?: string[];
   totalOutletsMin?: number;
   featured?: boolean;
   trending?: boolean;
@@ -77,32 +89,77 @@ export class FranchiseService {
   /**
    * Get all active franchises with optional filters
    */
-  static async getFranchises(filters?: FranchiseFilters) {
-    console.log('🏪 Fetching franchises with filters:', filters);
+  private static buildPublicFranchisesQuery(filters?: FranchiseFilters): string {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const params = new URLSearchParams();
+    params.set('select', '*');
+    params.set('status', 'eq.active');
+    params.set('order', 'created_at.desc');
+
+    if (filters?.featured) params.set('featured', 'eq.true');
+    if (filters?.trending) params.set('trending', 'eq.true');
+    if (filters?.verified) params.set('verified', 'eq.true');
+    if (filters?.verificationStatus?.length === 1) {
+      params.set('verification_status', `eq.${filters.verificationStatus[0]}`);
+    }
+    if (filters?.investmentMin != null) {
+      params.set('total_investment_min', `gte.${filters.investmentMin}`);
+    }
+    if (filters?.investmentMax != null) {
+      params.set('total_investment_max', `lte.${filters.investmentMax}`);
+    }
+    if (filters?.franchiseFeeMin != null) {
+      params.set('franchise_fee', `gte.${filters.franchiseFeeMin}`);
+    }
+    if (filters?.franchiseFeeMax != null) {
+      params.set('franchise_fee', `lte.${filters.franchiseFeeMax}`);
+    }
+    if (filters?.industry?.length === 1) {
+      params.set('industry', `ilike.*${filters.industry[0]}*`);
+    }
+    if (filters?.state?.length === 1) {
+      params.set('headquarters_state', `ilike.*${filters.state[0]}*`);
+    }
+    if (filters?.search?.trim()) {
+      const term = encodeURIComponent(`*${filters.search.trim()}*`);
+      params.set('or', `(brand_name.ilike.${term},description.ilike.${term},industry.ilike.${term})`);
+    }
+
+    return `${supabaseUrl}/rest/v1/franchises?${params.toString()}`;
+  }
+
+  static async getFranchises(filters?: FranchiseFilters): Promise<Franchise[]> {
+    console.log('🏪 Fetching active franchises with filters:', filters);
 
     try {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      const url = this.buildPublicFranchisesQuery(filters);
 
-      const response = await fetch(
-        `${supabaseUrl}/rest/v1/franchises?select=*&order=created_at.desc`,
-        {
-          headers: {
-            'apikey': supabaseKey,
-            'Authorization': `Bearer ${supabaseKey}`,
-            'Content-Type': 'application/json',
-            'Prefer': 'return=representation'
-          }
-        }
-      );
+      const response = await fetch(url, {
+        headers: {
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=representation',
+        },
+      });
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log('✅ Franchises fetched:', data?.length || 0, 'franchises');
-      return data;
+      let rows = Array.isArray(data) ? data : [];
+
+      if (filters?.industry && filters.industry.length > 1) {
+        const industries = filters.industry.map((i) => i.toLowerCase());
+        rows = rows.filter((row: Record<string, unknown>) =>
+          industries.some((ind) => String(row.industry || '').toLowerCase().includes(ind))
+        );
+      }
+
+      console.log('✅ Franchises fetched:', rows.length, 'active franchises');
+      return mapFranchisesFromDb(rows);
     } catch (err) {
       console.error('❌ Exception in getFranchises:', err);
       throw err;
@@ -140,7 +197,7 @@ export class FranchiseService {
     }
 
     console.log('✅ Franchise fetched by ID:', data[0]?.brand_name);
-    return data[0];
+    return mapFranchiseFromDb(data[0]);
   }
 
   /**
@@ -175,7 +232,7 @@ export class FranchiseService {
     }
 
     console.log('✅ Franchise fetched by slug:', data[0]?.brand_name);
-    return data[0];
+    return mapFranchiseFromDb(data[0]);
   }
 
   /**
@@ -199,6 +256,24 @@ export class FranchiseService {
     } catch (error) {
       console.error('Error fetching franchise:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Public marketplace fetch — active listings only unless viewer owns the listing.
+   */
+  static async getPublicFranchiseByIdOrSlug(
+    identifier: string,
+    viewerUserId?: string
+  ): Promise<Franchise | null> {
+    try {
+      const franchise = (await this.getFranchiseByIdOrSlug(identifier)) as Franchise;
+      if (franchise.status === 'active') return franchise;
+      const ownerId = franchise.franchisorId || franchise.franchisor_id || franchise.owner_id;
+      if (viewerUserId && ownerId === viewerUserId) return franchise;
+      return null;
+    } catch {
+      return null;
     }
   }
 
@@ -227,8 +302,26 @@ export class FranchiseService {
     }
 
     const data = await response.json();
-    console.log('✅ Featured franchises fetched:', data?.length || 0);
-    return data;
+    let rows = Array.isArray(data) ? data : [];
+
+    if (rows.length === 0) {
+      const fallback = await fetch(
+        `${supabaseUrl}/rest/v1/franchises?select=*&status=eq.active&order=created_at.desc&limit=${limit}`,
+        {
+          headers: {
+            apikey: supabaseKey,
+            Authorization: `Bearer ${supabaseKey}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      if (fallback.ok) {
+        rows = await fallback.json();
+      }
+    }
+
+    console.log('✅ Featured franchises fetched:', rows.length);
+    return mapFranchisesFromDb(rows.slice(0, limit));
   }
 
   /**
@@ -287,7 +380,7 @@ export class FranchiseService {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data;
+    return mapFranchisesFromDb(data || []);
   }
 
   /**

@@ -22,6 +22,7 @@ import {
   Shield,
   Building,
   LayoutDashboard,
+  GitCompareArrows,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -164,29 +165,29 @@ export function MainLayout({ children }: MainLayoutProps) {
             </Link>
 
             {/* Center Navigation - Desktop */}
-            <div className="hidden md:flex items-center gap-6">
+            <div className="hidden lg:flex items-center gap-1">
               <NavigationMenu>
                 <NavigationMenuList>
-                  {/* Business for Sale Mega Menu */}
+                  {/* Franchise — primary */}
                   <NavigationMenuItem>
-                    <NavigationMenuTrigger className="bg-transparent hover:bg-transparent data-[state=open]:bg-transparent text-sm font-medium text-gray-500 hover:text-gray-900 data-[state=open]:text-gray-900 h-auto p-0">
-                      <Link to="/businesses" className={isActivePath("/businesses") ? "text-gray-900" : ""}>
-                        Business for Sale
+                    <NavigationMenuTrigger className="bg-transparent hover:bg-transparent data-[state=open]:bg-transparent text-sm font-semibold text-gray-900 hover:text-gray-900 data-[state=open]:text-gray-900 h-auto p-0">
+                      <Link to="/franchises" className={isActivePath("/franchises") ? "text-growth-green" : ""}>
+                        Find a Franchise
                       </Link>
                     </NavigationMenuTrigger>
                     <NavigationMenuContent>
                       <div className="w-[600px] p-4 bg-white rounded-md shadow-lg border">
                         <div className="flex items-center justify-between mb-4 pb-2 border-b">
-                          <h4 className="font-semibold text-sm">Top Business Categories</h4>
-                          <Link to="/businesses" className="text-xs text-blue-600 hover:underline">
-                            View All Categories &rarr;
+                          <h4 className="font-semibold text-sm">Franchise Categories</h4>
+                          <Link to="/franchises" className="text-xs text-blue-600 hover:underline">
+                            View All Franchises &rarr;
                           </Link>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
-                          {SMERGERS_BUSINESS_CATEGORIES.slice(0, 8).map((category) => (
+                          {FRANCHISE_CATEGORIES.slice(0, 8).map((category) => (
                             <Link
                               key={category.id}
-                              to={`/businesses?category=${category.slug}`}
+                              to={`/franchises?industry=${category.slug}`}
                               className="group block space-y-1 p-2 hover:bg-gray-50 rounded-md transition-colors"
                             >
                               <div className="font-medium text-sm text-gray-900 group-hover:text-blue-600">
@@ -202,26 +203,67 @@ export function MainLayout({ children }: MainLayoutProps) {
                     </NavigationMenuContent>
                   </NavigationMenuItem>
 
-                  {/* Franchise Mega Menu */}
+                  <Link
+                    to="/franchise-map"
+                    className={cn(
+                      "ml-4 text-sm font-medium transition-colors hover:text-gray-900",
+                      isActivePath("/franchise-map") ? "text-gray-900" : "text-gray-500"
+                    )}
+                  >
+                    Locations
+                  </Link>
+
+                  <Link
+                    to="/franchises"
+                    className={cn(
+                      "ml-4 text-sm font-medium transition-colors hover:text-gray-900 inline-flex items-center gap-1",
+                      isActivePath("/franchises") ? "text-gray-900" : "text-gray-500"
+                    )}
+                  >
+                    <GitCompareArrows className="h-3.5 w-3.5" />
+                    Compare
+                  </Link>
+
+                  <Link
+                    to="/add-franchise-listing"
+                    className={cn(
+                      "ml-4 text-sm font-medium transition-colors hover:text-gray-900",
+                      isActivePath("/add-franchise-listing") ? "text-gray-900" : "text-gray-500"
+                    )}
+                  >
+                    For Franchisors
+                  </Link>
+
+                  <Link
+                    to="/help"
+                    className={cn(
+                      "ml-4 text-sm font-medium transition-colors hover:text-gray-900",
+                      isActivePath("/help") ? "text-gray-900" : "text-gray-500"
+                    )}
+                  >
+                    Resources
+                  </Link>
+
+                  {/* Business for Sale — secondary */}
                   <NavigationMenuItem>
-                    <NavigationMenuTrigger className="bg-transparent hover:bg-transparent data-[state=open]:bg-transparent text-sm font-medium text-gray-500 hover:text-gray-900 data-[state=open]:text-gray-900 h-auto p-0 ml-4">
-                      <Link to="/franchises" className={isActivePath("/franchises") ? "text-gray-900" : ""}>
-                        Franchise
+                    <NavigationMenuTrigger className="bg-transparent hover:bg-transparent data-[state=open]:bg-transparent text-sm font-medium text-gray-400 hover:text-gray-600 data-[state=open]:text-gray-600 h-auto p-0 ml-4">
+                      <Link to="/businesses" className={isActivePath("/businesses") ? "text-gray-700" : ""}>
+                        Businesses for Sale
                       </Link>
                     </NavigationMenuTrigger>
                     <NavigationMenuContent>
                       <div className="w-[600px] p-4 bg-white rounded-md shadow-lg border">
                         <div className="flex items-center justify-between mb-4 pb-2 border-b">
-                          <h4 className="font-semibold text-sm">Top Franchise Sectors</h4>
-                          <Link to="/franchises" className="text-xs text-blue-600 hover:underline">
-                            View All Sectors &rarr;
+                          <h4 className="font-semibold text-sm text-gray-600">Business Categories</h4>
+                          <Link to="/businesses" className="text-xs text-blue-600 hover:underline">
+                            View All &rarr;
                           </Link>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
-                          {FRANCHISE_CATEGORIES.slice(0, 8).map((category) => (
+                          {SMERGERS_BUSINESS_CATEGORIES.slice(0, 8).map((category) => (
                             <Link
                               key={category.id}
-                              to={`/franchises?industry=${category.slug}`}
+                              to={`/businesses?category=${category.slug}`}
                               className="group block space-y-1 p-2 hover:bg-gray-50 rounded-md transition-colors"
                             >
                               <div className="font-medium text-sm text-gray-900 group-hover:text-blue-600">
@@ -276,7 +318,7 @@ export function MainLayout({ children }: MainLayoutProps) {
               }
 
               {/* Search */}
-              <Link to="/businesses" className="hidden md:block">
+              <Link to="/franchises" className="hidden md:block">
                 <Button variant="ghost" size="icon" className="text-gray-500 hover:text-gray-900">
                   <Search className="h-4 w-4" />
                 </Button>
@@ -466,9 +508,12 @@ export function MainLayout({ children }: MainLayoutProps) {
                     <div className="flex-1 py-4">
                       <nav className="space-y-1 px-2">
                         {[
-                          { name: "Businesses", href: "/businesses" },
-                          { name: "Franchises", href: "/franchises" },
-                          { name: "Advisors", href: "/advisors" },
+                          { name: "Find a Franchise", href: "/franchises" },
+                          { name: "Locations", href: "/franchise-map" },
+                          { name: "Smart Search", href: "/smart-search" },
+                          { name: "For Franchisors", href: "/add-franchise-listing" },
+                          { name: "Businesses for Sale", href: "/businesses" },
+                          { name: "Help", href: "/help" },
                           { name: "About", href: "/about" },
                           { name: "Contact", href: "/contact" },
                         ].map((item) => (
@@ -486,10 +531,36 @@ export function MainLayout({ children }: MainLayoutProps) {
                         ))}
                       </nav>
 
-                      {/* Categories Section - Mobile */}
+                      {/* Franchise Categories - Mobile (primary) */}
                       <div className="mt-4 px-2">
                         <p className="px-3 text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
-                          Business Categories
+                          Franchise Categories
+                        </p>
+                        <div className="space-y-1 max-h-36 overflow-y-auto">
+                          {FRANCHISE_CATEGORIES.slice(0, 6).map((category) => (
+                            <Link
+                              key={category.id}
+                              to={`/franchises?industry=${category.slug}`}
+                              onClick={() => setIsMobileMenuOpen(false)}
+                              className="block px-3 py-1.5 rounded-md text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                            >
+                              {category.name}
+                            </Link>
+                          ))}
+                          <Link
+                            to="/franchises"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className="block px-3 py-1.5 rounded-md text-sm text-blue-600 hover:bg-blue-50 font-medium"
+                          >
+                            View All Franchises →
+                          </Link>
+                        </div>
+                      </div>
+
+                      {/* Business Categories - Mobile (secondary) */}
+                      <div className="mt-4 px-2">
+                        <p className="px-3 text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+                          Businesses for Sale
                         </p>
                         <div className="space-y-1 max-h-36 overflow-y-auto">
                           {SMERGERS_BUSINESS_CATEGORIES.slice(0, 6).map((category) => (
@@ -512,50 +583,24 @@ export function MainLayout({ children }: MainLayoutProps) {
                         </div>
                       </div>
 
-                      {/* Franchise Categories - Mobile */}
-                      <div className="mt-4 px-2">
-                        <p className="px-3 text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
-                          Franchise Categories
-                        </p>
-                        <div className="space-y-1 max-h-36 overflow-y-auto">
-                          {FRANCHISE_CATEGORIES.slice(0, 6).map((category) => (
-                            <Link
-                              key={category.id}
-                              to={`/franchises?category=${category.slug}`}
-                              onClick={() => setIsMobileMenuOpen(false)}
-                              className="block px-3 py-1.5 rounded-md text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                            >
-                              {category.name}
-                            </Link>
-                          ))}
-                          <Link
-                            to="/franchises"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                            className="block px-3 py-1.5 rounded-md text-sm text-blue-600 hover:bg-blue-50 font-medium"
-                          >
-                            View All Franchises →
-                          </Link>
-                        </div>
-                      </div>
-
                       {user ? (
                         <div className="mt-6 px-2">
                           <p className="px-3 text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
-                            List Your Business
+                            List on BizSearch
                           </p>
-                          <Link
-                            to="/add-business-listing"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                            className="block px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-50"
-                          >
-                            Sell Business
-                          </Link>
                           <Link
                             to="/add-franchise-listing"
                             onClick={() => setIsMobileMenuOpen(false)}
                             className="block px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-50"
                           >
                             List Franchise
+                          </Link>
+                          <Link
+                            to="/add-business-listing"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className="block px-3 py-2 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-50"
+                          >
+                            Sell Business
                           </Link>
                           <div className="mt-4 px-3 flex items-center justify-between">
                             <span className="text-sm font-medium text-gray-600">Theme</span>

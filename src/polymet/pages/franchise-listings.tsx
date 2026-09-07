@@ -2,11 +2,15 @@ import { useState, useMemo, useEffect } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { FranchiseCard } from "@/polymet/components/franchise-card";
 import { Filters, FilterState } from "@/polymet/components/filters";
-import { FranchiseService } from "@/lib/franchise-service";
+import { ComparisonFeature } from "@/polymet/components/comparison-feature";
+import { FranchiseService, type FranchiseFilters } from "@/lib/franchise-service";
 import { SkeletonLoader } from "@/polymet/components/skeleton-loader";
 import { EmptyState } from "@/polymet/components/empty-state";
 import type { Franchise } from "@/types/listings";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { useSavedListings } from "@/contexts/SavedListingsContext";
+import { useFranchiseCompare } from "@/hooks/use-franchise-compare";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -29,6 +33,8 @@ import {
   TrendingUpIcon,
   ChevronRightIcon,
   HomeIcon,
+  GitCompareArrows,
+  Scale,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FRANCHISE_CATEGORIES, getCategoryBySlug } from "@/data/categories";
@@ -56,24 +62,27 @@ const investmentRanges = [
 
 export function FranchiseListings({ className }: FranchiseListingsProps) {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { isListingSaved, toggleSave } = useSavedListings();
+  const { compareIds, toggleCompare, removeCompare, clearCompare, isCompared, maxCompare } =
+    useFranchiseCompare();
   const [searchParams] = useSearchParams();
   const [franchises, setFranchises] = useState<Franchise[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState<FilterState | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [sortBy, setSortBy] = useState<SortOption>("relevance");
   const [showFilters, setShowFilters] = useState(true);
-  const [savedFranchises, setSavedFranchises] = useState<Set<string>>(
-    new Set()
-  );
+  const [showComparePanel, setShowComparePanel] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedInvestmentRange, setSelectedInvestmentRange] =
     useState<string>("");
   const itemsPerPage = 12;
 
   // Parse URL params for category filtering and search
-  const categorySlug = searchParams.get('category');
+  const categorySlug = searchParams.get("category") || searchParams.get("industry");
   const subcategorySlug = searchParams.get('subcategory');
   const urlSearchQuery = searchParams.get('q');
   const currentCategory = categorySlug ? getCategoryBySlug(categorySlug) : null;
@@ -86,28 +95,51 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
     }
   }, [urlSearchQuery]);
 
-  // Fetch franchises from Supabase
+  // Fetch franchises from Supabase (active only, with server-side filters)
   useEffect(() => {
     const fetchFranchises = async () => {
       setLoading(true);
+      setError(null);
       try {
-        const result = await FranchiseService.getFranchises({});
-        if (result && Array.isArray(result)) {
-          setFranchises(result as Franchise[]);
-          console.log('✅ FranchiseListings: Set', result.length, 'franchises from database');
-        } else {
-          setFranchises([]);
-          console.log('ℹ️ FranchiseListings: No franchises in database');
+        const serverFilters: FranchiseFilters = {};
+        if (urlSearchQuery) serverFilters.search = urlSearchQuery;
+        if (searchQuery.trim()) serverFilters.search = searchQuery.trim();
+        if (currentCategory) {
+          serverFilters.industry = [currentCategory.name];
         }
-      } catch (error) {
-        console.error('❌ FranchiseListings: Error:', error);
+        if (filters?.industry?.length) {
+          serverFilters.industry = filters.industry;
+        }
+        if (filters?.state?.length) {
+          serverFilters.state = filters.state;
+        }
+        if (filters?.city?.length) {
+          serverFilters.city = filters.city;
+        }
+        if (filters?.franchiseFee) {
+          serverFilters.investmentMin = filters.franchiseFee[0];
+          serverFilters.investmentMax = filters.franchiseFee[1];
+        }
+        if (selectedInvestmentRange) {
+          const range = investmentRanges.find((r) => r.label === selectedInvestmentRange);
+          if (range) {
+            serverFilters.investmentMin = range.min;
+            serverFilters.investmentMax = range.max === Infinity ? undefined : range.max;
+          }
+        }
+
+        const result = await FranchiseService.getFranchises(serverFilters);
+        setFranchises(Array.isArray(result) ? result : []);
+      } catch (fetchError) {
+        console.error('❌ FranchiseListings: Error:', fetchError);
         setFranchises([]);
+        setError('Unable to load franchise listings. Please try again.');
       } finally {
         setLoading(false);
       }
     };
     fetchFranchises();
-  }, []);
+  }, [urlSearchQuery, searchQuery, filters, selectedInvestmentRange, currentCategory?.name]);
 
   // Filter and search logic
   const filteredFranchises = useMemo(() => {
@@ -119,10 +151,11 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
       filtered = filtered.filter(
         (franchise) =>
           franchise.brandName?.toLowerCase().includes(query) ||
+          franchise.brand_name?.toLowerCase().includes(query) ||
           franchise.industry.toLowerCase().includes(query) ||
           franchise.description.toLowerCase().includes(query) ||
-          (franchise.competitiveEdge || franchise.highlights || []).some((advantage: any) =>
-            advantage?.toLowerCase().includes(query)
+          (franchise.highlights || franchise.competitiveEdge || []).some((advantage: unknown) =>
+            String(advantage).toLowerCase().includes(query)
           )
       );
     }
@@ -154,7 +187,12 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
       );
       if (range) {
         filtered = filtered.filter((franchise) => {
-          const investment = franchise.total_investment_min || franchise.total_investment_max || 0;
+          const investment =
+            franchise.investmentMin ??
+            franchise.total_investment_min ??
+            franchise.investmentMax ??
+            franchise.total_investment_max ??
+            0;
           return investment >= range.min && investment <= range.max;
         });
       }
@@ -173,12 +211,14 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
       // Investment range filter (franchiseFee from filter state maps to total_investment)
       if (filters.franchiseFee[0] > 0 || filters.franchiseFee[1] < 5000000) {
         filtered = filtered.filter((franchise) => {
-          const minInv = franchise.total_investment_min || franchise.investmentMin || 0;
-          const maxInv = franchise.total_investment_max || franchise.investmentMax || minInv;
-
-          // Check overlap: Filter range overlaps with Franchise range
-          // Filter [A, B], Franchise [C, D]
-          // Overlap if A <= D && C <= B
+          const minInv =
+            franchise.investmentMin ??
+            franchise.total_investment_min ??
+            0;
+          const maxInv =
+            franchise.investmentMax ??
+            franchise.total_investment_max ??
+            minInv;
           return filters.franchiseFee[0] <= maxInv && minInv <= filters.franchiseFee[1];
         });
       }
@@ -189,11 +229,8 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
         filters.royaltyPercentage[1] < 20
       ) {
         filtered = filtered.filter((franchise) => {
-          const royalty = franchise.royalty_percentage || franchise.royaltyPercentage;
-          // If royalty is undefined (e.g. not disclosed), should we include? 
-          // Assuming undefined means 0 or hidden. Let's filter strictly if defined.
+          const royalty = franchise.royaltyPercentage ?? franchise.royalty_percentage;
           if (royalty === undefined || royalty === null) return true;
-
           return (
             royalty >= filters.royaltyPercentage[0] &&
             royalty <= filters.royaltyPercentage[1]
@@ -204,7 +241,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
       // Outlets filter
       if (filters.outlets && filters.outlets !== 'any') {
         filtered = filtered.filter((franchise) => {
-          const outlets = franchise.total_outlets || franchise.outlets || 0;
+          const outlets = franchise.outlets ?? franchise.totalOutlets ?? franchise.total_outlets ?? 0;
           switch (filters.outlets) {
             case "1-10": return outlets <= 10;
             case "11-50": return outlets >= 11 && outlets <= 50;
@@ -245,23 +282,38 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
     // Apply sorting
     switch (sortBy) {
       case "investment-low":
-        filtered.sort((a, b) => (a.total_investment_min || 0) - (b.total_investment_min || 0));
+        filtered.sort(
+          (a, b) =>
+            (a.investmentMin ?? a.total_investment_min ?? 0) -
+            (b.investmentMin ?? b.total_investment_min ?? 0)
+        );
         break;
       case "investment-high":
-        filtered.sort((a, b) => (b.total_investment_min || 0) - (a.total_investment_min || 0));
+        filtered.sort(
+          (a, b) =>
+            (b.investmentMin ?? b.total_investment_min ?? 0) -
+            (a.investmentMin ?? a.total_investment_min ?? 0)
+        );
         break;
       case "roi-high":
         filtered.sort((a, b) => {
-          const roiA = a.expected_roi_percentage || 0;
-          const roiB = b.expected_roi_percentage || 0;
+          const roiA = a.expectedRoiPercentage ?? a.expected_roi_percentage ?? 0;
+          const roiB = b.expectedRoiPercentage ?? b.expected_roi_percentage ?? 0;
           return roiB - roiA;
         });
         break;
       case "outlets-high":
-        filtered.sort((a, b) => (b.total_outlets || b.outlets || 0) - (a.total_outlets || a.outlets || 0));
+        filtered.sort(
+          (a, b) =>
+            (b.outlets ?? b.total_outlets ?? 0) - (a.outlets ?? a.total_outlets ?? 0)
+        );
         break;
       case "newest":
-        // Since establishedYear doesn't exist, skip this sort
+        filtered.sort((a, b) => {
+          const dateA = new Date(a.createdAt ?? a.created_at ?? 0).getTime();
+          const dateB = new Date(b.createdAt ?? b.created_at ?? 0).getTime();
+          return dateB - dateA;
+        });
         break;
       default:
         // Keep original order for relevance
@@ -285,20 +337,43 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
     setCurrentPage(1);
   };
 
-  const handleSave = (franchiseId: string) => {
-    setSavedFranchises((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(franchiseId)) {
-        newSet.delete(franchiseId);
-      } else {
-        newSet.add(franchiseId);
-      }
-      return newSet;
-    });
+  const handleSave = async (franchiseId: string) => {
+    if (!user) {
+      toast.info("Sign in to save franchises");
+      navigate("/login");
+      return;
+    }
+    await toggleSave("franchise", franchiseId);
   };
 
+  const handleCompare = (franchiseId: string) => {
+    if (isCompared(franchiseId)) {
+      removeCompare(franchiseId);
+      return;
+    }
+    const added = toggleCompare(franchiseId);
+    if (!added) {
+      toast.error(`You can compare up to ${maxCompare} franchises at a time`);
+      return;
+    }
+    setShowComparePanel(true);
+  };
+
+  const compareItems = compareIds
+    .map((id) => franchises.find((f) => f.id === id))
+    .filter(Boolean)
+    .map((franchise) => ({
+      id: franchise!.id,
+      type: "franchise" as const,
+      data: franchise!,
+    }));
+
   const handleShare = (franchiseId: string) => {
-    console.log("Share franchise:", franchiseId);
+    const franchise = franchises.find((f) => f.id === franchiseId);
+    const identifier = franchise?.slug || franchiseId;
+    const url = `${window.location.origin}/franchise/${identifier}`;
+    navigator.clipboard.writeText(url);
+    toast.success("Franchise link copied");
   };
 
   const handleContact = (franchiseId: string) => {
@@ -335,16 +410,32 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
     );
   }
 
-  // Empty state
-  if (!loading && filteredFranchises.length === 0 && franchises.length === 0) {
+  // Error state
+  if (!loading && error) {
     return (
       <div className={cn("min-h-screen bg-background", className)}>
         <div className="container mx-auto px-4 py-8">
-          <h1 className="text-3xl font-bold mb-6">Franchise Opportunities</h1>
+          <EmptyState
+            type="error"
+            title="Unable to Load Franchises"
+            description={error}
+            actionText="Try Again"
+            onAction={() => window.location.reload()}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Empty database state
+  if (!loading && !error && franchises.length === 0) {
+    return (
+      <div className={cn("min-h-screen bg-background", className)}>
+        <div className="container mx-auto px-4 py-8">
           <EmptyState
             type="no-data"
-            title="No Franchises Available Yet"
-            description="We're constantly adding new franchise opportunities. Check back soon!"
+            title="No Active Franchise Opportunities"
+            description="No active franchise opportunities are currently available."
             actionText="List Your Franchise"
             actionLink="/add-franchise-listing"
           />
@@ -649,7 +740,9 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
                           onShare={handleShare}
                           onContact={handleContact}
                           onViewDetails={handleViewDetails}
-                          isSaved={savedFranchises.has(franchise.id)}
+                          onCompare={handleCompare}
+                          isSaved={isListingSaved("franchise", franchise.id)}
+                          isCompared={isCompared(franchise.id)}
                         />
                       </div>
                     ))}
@@ -690,7 +783,9 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
                       onShare={handleShare}
                       onContact={handleContact}
                       onViewDetails={handleViewDetails}
-                      isSaved={savedFranchises.has(franchise.id)}
+                      onCompare={handleCompare}
+                      isSaved={isListingSaved("franchise", franchise.id)}
+                      isCompared={isCompared(franchise.id)}
                     />
                   ))}
                 </div>
@@ -707,7 +802,9 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
                     onShare={handleShare}
                     onContact={handleContact}
                     onViewDetails={handleViewDetails}
-                    isSaved={savedFranchises.has(franchise.id)}
+                    onCompare={handleCompare}
+                    isSaved={isListingSaved("franchise", franchise.id)}
+                    isCompared={isCompared(franchise.id)}
                     className="flex flex-row items-center p-4 h-auto"
                   />
                 ))}
@@ -729,15 +826,14 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
               </Card>
             )}
 
-            {/* No Results */}
-            {filteredFranchises.length === 0 && (
+            {filteredFranchises.length === 0 && franchises.length > 0 && (
               <Card>
                 <CardContent className="p-12 text-center">
                   <SearchIcon className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
 
-                  <h3 className="font-semibold mb-2">No franchises found</h3>
+                  <h3 className="font-semibold mb-2">No franchises match your current criteria.</h3>
                   <p className="text-muted-foreground mb-4">
-                    Try adjusting your search criteria or filters
+                    Try adjusting your search criteria or filters.
                   </p>
                   <Button
                     variant="outline"
@@ -748,7 +844,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
                       setCurrentPage(1);
                     }}
                   >
-                    Clear All Filters
+                    Clear Filters
                   </Button>
                 </CardContent>
               </Card>
@@ -788,6 +884,47 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
           </div>
         </div>
       </div>
-    </div >
+
+      {compareIds.length > 0 && (
+        <div className="fixed bottom-20 md:bottom-6 left-4 right-4 md:left-auto md:right-6 md:w-96 z-40">
+          <Card className="shadow-xl border-growth-green/30">
+            <CardContent className="p-4 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <Scale className="h-4 w-4 text-growth-green" />
+                {compareIds.length} selected to compare
+              </div>
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" onClick={clearCompare}>
+                  Clear
+                </Button>
+                <Button size="sm" onClick={() => setShowComparePanel(true)}>
+                  Compare
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {showComparePanel && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="container mx-auto max-w-6xl py-8">
+            <ComparisonFeature
+              items={compareItems}
+              onRemoveItem={(id) => {
+                removeCompare(id);
+              }}
+              onAddMore={() => setShowComparePanel(false)}
+              className="bg-background"
+            />
+            <div className="mt-4 flex justify-end">
+              <Button variant="outline" onClick={() => setShowComparePanel(false)}>
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

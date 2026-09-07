@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
     Dialog,
     DialogContent,
@@ -31,57 +30,36 @@ import {
     MoreVertical,
     Mail,
     Phone,
-    Calendar,
     MessageSquare,
     Star,
     TrendingUp,
-    Filter,
     Loader2,
     CheckCircle,
     Clock,
     XCircle,
     Send,
+    FileText,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/lib/supabase';
+import { InquiryService } from '@/lib/inquiry-service';
+import {
+    INQUIRY_STATUS_LABELS,
+    INQUIRY_STATUS_ORDER,
+    type FranchiseInquiry,
+    type InquiryStatus,
+} from '@/types/franchise-domain';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
 
-interface Lead {
-    id: string;
-    sender_id: string | null;
-    listing_id: string;
-    listing_type: 'business' | 'franchise';
-    subject: string;
-    message: string;
-    contact_email: string;
-    contact_phone: string | null;
-    status: 'new' | 'contacted' | 'qualified' | 'converted' | 'lost';
-    priority: 'low' | 'medium' | 'high' | 'hot';
-    notes: string | null;
-    metadata: {
-        sender_name?: string;
-        budget_range?: string;
-        timeline?: string;
-        nda_accepted?: boolean;
-    } | null;
-    created_at: string;
-    sender?: {
-        display_name: string;
-        email: string;
-        avatar_url: string | null;
-    };
-    listing?: {
-        name: string;
-    };
-}
-
-const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
+const statusConfig: Record<InquiryStatus, { label: string; color: string; icon: typeof Star }> = {
     new: { label: 'New', color: 'bg-blue-100 text-blue-800', icon: Star },
     contacted: { label: 'Contacted', color: 'bg-yellow-100 text-yellow-800', icon: Phone },
     qualified: { label: 'Qualified', color: 'bg-green-100 text-green-800', icon: CheckCircle },
-    converted: { label: 'Converted', color: 'bg-purple-100 text-purple-800', icon: TrendingUp },
+    information_sent: { label: 'Information Sent', color: 'bg-indigo-100 text-indigo-800', icon: Send },
+    meeting: { label: 'Meeting', color: 'bg-purple-100 text-purple-800', icon: Clock },
+    application: { label: 'Application', color: 'bg-cyan-100 text-cyan-800', icon: FileText },
+    negotiation: { label: 'Negotiation', color: 'bg-orange-100 text-orange-800', icon: TrendingUp },
+    converted: { label: 'Converted', color: 'bg-emerald-100 text-emerald-800', icon: TrendingUp },
     lost: { label: 'Lost', color: 'bg-gray-100 text-gray-600', icon: XCircle },
 };
 
@@ -92,16 +70,22 @@ const priorityConfig: Record<string, { label: string; color: string }> = {
     low: { label: 'Low', color: 'bg-gray-100 text-gray-600' },
 };
 
+function getSenderName(lead: FranchiseInquiry): string {
+    const meta = lead.metadata as { sender_name?: string } | null;
+    return meta?.sender_name || lead.sender?.displayName || 'Unknown';
+}
+
 export function LeadManagementPage() {
     const { user } = useAuth();
-    const [leads, setLeads] = useState<Lead[]>([]);
+    const [leads, setLeads] = useState<FranchiseInquiry[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [priorityFilter, setPriorityFilter] = useState('all');
-    const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+    const [selectedLead, setSelectedLead] = useState<FranchiseInquiry | null>(null);
     const [replyMessage, setReplyMessage] = useState('');
-    const [sending, setSending] = useState(false);
+    const [notesDraft, setNotesDraft] = useState('');
+    const [saving, setSaving] = useState(false);
 
     useEffect(() => {
         if (user) {
@@ -114,59 +98,8 @@ export function LeadManagementPage() {
         setLoading(true);
 
         try {
-            // Get all franchises owned by user
-            const { data: franchises } = await supabase
-                .from('franchises')
-                .select('id, brand_name')
-                .eq('owner_id', user.id);
-
-            // Get all businesses owned by user
-            const { data: businesses } = await supabase
-                .from('businesses')
-                .select('id, name')
-                .eq('owner_id', user.id);
-
-            const franchiseIds = franchises?.map(f => f.id) || [];
-            const businessIds = businesses?.map(b => b.id) || [];
-            const allListingIds = [...franchiseIds, ...businessIds];
-
-            if (allListingIds.length === 0) {
-                setLeads([]);
-                setLoading(false);
-                return;
-            }
-
-            // Get inquiries for all listings
-            const { data: inquiries, error } = await supabase
-                .from('inquiries')
-                .select(`
-          *,
-          sender:profiles!sender_id(display_name, email, avatar_url)
-        `)
-                .in('listing_id', allListingIds)
-                .order('created_at', { ascending: false });
-
-            if (error) throw error;
-
-            // Map listing names
-            const leadsWithNames = (inquiries || []).map(inquiry => {
-                let listingName = 'Unknown Listing';
-                if (inquiry.listing_type === 'franchise') {
-                    const franchise = franchises?.find(f => f.id === inquiry.listing_id);
-                    listingName = franchise?.brand_name || listingName;
-                } else {
-                    const business = businesses?.find(b => b.id === inquiry.listing_id);
-                    listingName = business?.name || listingName;
-                }
-                return {
-                    ...inquiry,
-                    status: inquiry.status || 'new',
-                    priority: inquiry.priority || 'medium',
-                    listing: { name: listingName },
-                };
-            });
-
-            setLeads(leadsWithNames);
+            const inquiries = await InquiryService.getReceivedInquiries(user.id);
+            setLeads(inquiries);
         } catch (error) {
             console.error('Error loading leads:', error);
             toast.error('Failed to load leads');
@@ -175,79 +108,96 @@ export function LeadManagementPage() {
         }
     };
 
-    const updateLeadStatus = async (leadId: string, status: string) => {
+    const updateLeadStatus = async (leadId: string, status: InquiryStatus) => {
         try {
-            const { error } = await supabase
-                .from('inquiries')
-                .update({ status, updated_at: new Date().toISOString() })
-                .eq('id', leadId);
-
-            if (error) throw error;
-
-            setLeads(prev => prev.map(l =>
-                l.id === leadId ? { ...l, status: status as Lead['status'] } : l
-            ));
-            toast.success('Lead status updated');
+            await InquiryService.updateInquiry(leadId, { status });
+            setLeads((prev) =>
+                prev.map((l) => (l.id === leadId ? { ...l, status } : l))
+            );
+            if (selectedLead?.id === leadId) {
+                setSelectedLead((prev) => (prev ? { ...prev, status } : prev));
+            }
+            toast.success(`Lead marked as ${INQUIRY_STATUS_LABELS[status]}`);
         } catch (error) {
+            console.error('Failed to update status:', error);
             toast.error('Failed to update status');
         }
     };
 
     const updateLeadPriority = async (leadId: string, priority: string) => {
         try {
-            const { error } = await supabase
-                .from('inquiries')
-                .update({ priority })
-                .eq('id', leadId);
-
-            if (error) throw error;
-
-            setLeads(prev => prev.map(l =>
-                l.id === leadId ? { ...l, priority: priority as Lead['priority'] } : l
-            ));
+            await InquiryService.updateInquiry(leadId, {
+                priority: priority as FranchiseInquiry['priority'],
+            });
+            setLeads((prev) =>
+                prev.map((l) =>
+                    l.id === leadId ? { ...l, priority: priority as FranchiseInquiry['priority'] } : l
+                )
+            );
             toast.success('Priority updated');
         } catch (error) {
             toast.error('Failed to update priority');
         }
     };
 
-    const sendReply = async () => {
-        if (!selectedLead || !replyMessage.trim()) return;
-
-        setSending(true);
+    const saveNotes = async () => {
+        if (!selectedLead) return;
+        setSaving(true);
         try {
-            // In production, this would send an email or create a message
-            // For now, we'll update the status to 'contacted' and add a note
-            const { error } = await supabase
-                .from('inquiries')
-                .update({
-                    status: 'contacted',
-                    notes: replyMessage,
-                    updated_at: new Date().toISOString(),
-                })
-                .eq('id', selectedLead.id);
-
-            if (error) throw error;
-
-            setLeads(prev => prev.map(l =>
-                l.id === selectedLead.id ? { ...l, status: 'contacted', notes: replyMessage } : l
-            ));
-
-            toast.success('Reply sent and lead marked as contacted');
-            setReplyMessage('');
-            setSelectedLead(null);
+            await InquiryService.updateInquiry(selectedLead.id, { notes: notesDraft });
+            setLeads((prev) =>
+                prev.map((l) =>
+                    l.id === selectedLead.id ? { ...l, notes: notesDraft } : l
+                )
+            );
+            setSelectedLead((prev) => (prev ? { ...prev, notes: notesDraft } : prev));
+            toast.success('Notes saved');
         } catch (error) {
-            toast.error('Failed to send reply');
+            toast.error('Failed to save notes');
         } finally {
-            setSending(false);
+            setSaving(false);
         }
     };
 
-    const filteredLeads = leads.filter(lead => {
+    const sendReply = async () => {
+        if (!selectedLead || !replyMessage.trim()) return;
+
+        setSaving(true);
+        try {
+            await InquiryService.updateInquiry(selectedLead.id, {
+                status: 'contacted',
+                notes: replyMessage,
+            });
+
+            setLeads((prev) =>
+                prev.map((l) =>
+                    l.id === selectedLead.id
+                        ? { ...l, status: 'contacted', notes: replyMessage }
+                        : l
+                )
+            );
+
+            toast.success('Reply saved and lead marked as contacted');
+            setReplyMessage('');
+        } catch (error) {
+            toast.error('Failed to send reply');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const openLead = (lead: FranchiseInquiry) => {
+        setSelectedLead(lead);
+        setNotesDraft(lead.notes || '');
+        setReplyMessage('');
+    };
+
+    const filteredLeads = leads.filter((lead) => {
+        const senderName = getSenderName(lead);
         const matchesSearch =
-            (lead.metadata?.sender_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-            lead.contact_email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            lead.listing?.name?.toLowerCase().includes(searchQuery.toLowerCase());
+            senderName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            lead.contactEmail.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (lead.listingName || '').toLowerCase().includes(searchQuery.toLowerCase());
         const matchesStatus = statusFilter === 'all' || lead.status === statusFilter;
         const matchesPriority = priorityFilter === 'all' || lead.priority === priorityFilter;
         return matchesSearch && matchesStatus && matchesPriority;
@@ -255,9 +205,9 @@ export function LeadManagementPage() {
 
     const stats = {
         total: leads.length,
-        new: leads.filter(l => l.status === 'new').length,
-        hot: leads.filter(l => l.priority === 'hot').length,
-        converted: leads.filter(l => l.status === 'converted').length,
+        new: leads.filter((l) => l.status === 'new').length,
+        hot: leads.filter((l) => l.priority === 'hot').length,
+        converted: leads.filter((l) => l.status === 'converted').length,
     };
 
     if (loading) {
@@ -280,7 +230,6 @@ export function LeadManagementPage() {
                 </div>
             </div>
 
-            {/* Stats */}
             <div className="grid gap-4 md:grid-cols-4 mb-8">
                 <Card>
                     <CardContent className="p-4 text-center">
@@ -308,7 +257,6 @@ export function LeadManagementPage() {
                 </Card>
             </div>
 
-            {/* Filters */}
             <Card className="mb-6">
                 <CardContent className="p-4">
                     <div className="flex flex-col sm:flex-row gap-4">
@@ -322,16 +270,16 @@ export function LeadManagementPage() {
                             />
                         </div>
                         <Select value={statusFilter} onValueChange={setStatusFilter}>
-                            <SelectTrigger className="w-40">
+                            <SelectTrigger className="w-48">
                                 <SelectValue placeholder="Status" />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">All Status</SelectItem>
-                                <SelectItem value="new">New</SelectItem>
-                                <SelectItem value="contacted">Contacted</SelectItem>
-                                <SelectItem value="qualified">Qualified</SelectItem>
-                                <SelectItem value="converted">Converted</SelectItem>
-                                <SelectItem value="lost">Lost</SelectItem>
+                                {INQUIRY_STATUS_ORDER.map((status) => (
+                                    <SelectItem key={status} value={status}>
+                                        {INQUIRY_STATUS_LABELS[status]}
+                                    </SelectItem>
+                                ))}
                             </SelectContent>
                         </Select>
                         <Select value={priorityFilter} onValueChange={setPriorityFilter}>
@@ -350,7 +298,6 @@ export function LeadManagementPage() {
                 </CardContent>
             </Card>
 
-            {/* Leads List */}
             <div className="space-y-4">
                 {filteredLeads.length === 0 ? (
                     <Card>
@@ -359,26 +306,30 @@ export function LeadManagementPage() {
                             <h3 className="font-medium text-lg mb-2">No Leads Found</h3>
                             <p className="text-muted-foreground">
                                 {leads.length === 0
-                                    ? "Inquiries from potential buyers will appear here"
-                                    : "No leads match your current filters"}
+                                    ? 'Inquiries from potential franchisees will appear here.'
+                                    : 'No leads match your current filters.'}
                             </p>
                         </CardContent>
                     </Card>
                 ) : (
                     filteredLeads.map((lead) => {
-                        const status = statusConfig[lead.status];
-                        const priority = priorityConfig[lead.priority];
+                        const status = statusConfig[lead.status] || statusConfig.new;
+                        const priority = priorityConfig[lead.priority] || priorityConfig.medium;
                         const StatusIcon = status.icon;
-                        const senderName = lead.metadata?.sender_name || lead.sender?.display_name || 'Unknown';
+                        const senderName = getSenderName(lead);
+                        const meta = lead.metadata as {
+                            sender_name?: string;
+                            budget_range?: string;
+                        } | null;
 
                         return (
                             <Card key={lead.id} className="hover:shadow-md transition-shadow">
                                 <CardContent className="p-6">
                                     <div className="flex items-start gap-4">
                                         <Avatar className="h-12 w-12">
-                                            <AvatarImage src={lead.sender?.avatar_url || ''} />
+                                            <AvatarImage src={lead.sender?.avatarUrl || ''} />
                                             <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                                                {senderName.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                                                {senderName.split(' ').map((n) => n[0]).join('').slice(0, 2)}
                                             </AvatarFallback>
                                         </Avatar>
 
@@ -387,7 +338,8 @@ export function LeadManagementPage() {
                                                 <div>
                                                     <h3 className="font-semibold">{senderName}</h3>
                                                     <p className="text-sm text-muted-foreground">
-                                                        Inquired about: <span className="font-medium">{lead.listing?.name}</span>
+                                                        Inquired about:{' '}
+                                                        <span className="font-medium">{lead.listingName || 'Listing'}</span>
                                                     </p>
                                                 </div>
                                                 <div className="flex items-center gap-2">
@@ -406,30 +358,30 @@ export function LeadManagementPage() {
                                             <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                                                 <span className="flex items-center gap-1">
                                                     <Mail className="h-4 w-4" />
-                                                    {lead.contact_email}
+                                                    {lead.contactEmail}
                                                 </span>
-                                                {lead.contact_phone && (
+                                                {lead.contactPhone && (
                                                     <span className="flex items-center gap-1">
                                                         <Phone className="h-4 w-4" />
-                                                        {lead.contact_phone}
+                                                        {lead.contactPhone}
                                                     </span>
                                                 )}
                                                 <span className="flex items-center gap-1">
                                                     <Clock className="h-4 w-4" />
-                                                    {formatDistanceToNow(new Date(lead.created_at), { addSuffix: true })}
+                                                    {formatDistanceToNow(new Date(lead.createdAt), { addSuffix: true })}
                                                 </span>
-                                                {lead.metadata?.budget_range && (
+                                                {meta?.budget_range && (
                                                     <span className="text-primary font-medium">
-                                                        Budget: {lead.metadata.budget_range.replace('_', '-')}
+                                                        Budget: {meta.budget_range.replace('_', '-')}
                                                     </span>
                                                 )}
                                             </div>
                                         </div>
 
                                         <div className="flex flex-col gap-2">
-                                            <Button size="sm" onClick={() => setSelectedLead(lead)}>
+                                            <Button size="sm" onClick={() => openLead(lead)}>
                                                 <MessageSquare className="h-4 w-4 mr-1" />
-                                                Reply
+                                                Manage
                                             </Button>
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
@@ -438,20 +390,18 @@ export function LeadManagementPage() {
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem onClick={() => updateLeadStatus(lead.id, 'contacted')}>
-                                                        Mark as Contacted
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => updateLeadStatus(lead.id, 'qualified')}>
-                                                        Mark as Qualified
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => updateLeadStatus(lead.id, 'converted')}>
-                                                        Mark as Converted
-                                                    </DropdownMenuItem>
+                                                    {INQUIRY_STATUS_ORDER.filter((s) => s !== lead.status).map(
+                                                        (statusValue) => (
+                                                            <DropdownMenuItem
+                                                                key={statusValue}
+                                                                onClick={() => updateLeadStatus(lead.id, statusValue)}
+                                                            >
+                                                                Mark as {INQUIRY_STATUS_LABELS[statusValue]}
+                                                            </DropdownMenuItem>
+                                                        )
+                                                    )}
                                                     <DropdownMenuItem onClick={() => updateLeadPriority(lead.id, 'hot')}>
                                                         Set as Hot Lead 🔥
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => updateLeadStatus(lead.id, 'lost')}>
-                                                        Mark as Lost
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
@@ -464,39 +414,94 @@ export function LeadManagementPage() {
                 )}
             </div>
 
-            {/* Reply Dialog */}
             <Dialog open={!!selectedLead} onOpenChange={() => setSelectedLead(null)}>
-                <DialogContent className="sm:max-w-lg">
+                <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
-                        <DialogTitle>Reply to {selectedLead?.metadata?.sender_name || 'Lead'}</DialogTitle>
+                        <DialogTitle>Lead: {selectedLead ? getSenderName(selectedLead) : ''}</DialogTitle>
                     </DialogHeader>
-                    <div className="space-y-4">
-                        <div className="bg-muted p-4 rounded-lg">
-                            <p className="text-sm font-medium mb-2">Original Message:</p>
-                            <p className="text-sm text-muted-foreground">{selectedLead?.message}</p>
+                    {selectedLead && (
+                        <div className="space-y-4">
+                            <div className="bg-muted p-4 rounded-lg space-y-2 text-sm">
+                                <p>
+                                    <span className="font-medium">Franchise:</span>{' '}
+                                    {selectedLead.listingName || 'Unknown'}
+                                </p>
+                                <p>
+                                    <span className="font-medium">Received:</span>{' '}
+                                    {formatDistanceToNow(new Date(selectedLead.createdAt), { addSuffix: true })}
+                                </p>
+                                <p className="font-medium mb-1">Original Message:</p>
+                                <p className="text-muted-foreground">{selectedLead.message}</p>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Pipeline Status</label>
+                                <Select
+                                    value={selectedLead.status}
+                                    onValueChange={(value) =>
+                                        updateLeadStatus(selectedLead.id, value as InquiryStatus)
+                                    }
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {INQUIRY_STATUS_ORDER.map((status) => (
+                                            <SelectItem key={status} value={status}>
+                                                {INQUIRY_STATUS_LABELS[status]}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Internal Notes</label>
+                                <Textarea
+                                    value={notesDraft}
+                                    onChange={(e) => setNotesDraft(e.target.value)}
+                                    placeholder="Add notes about this lead..."
+                                    rows={3}
+                                />
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={saveNotes}
+                                    disabled={saving}
+                                >
+                                    Save Notes
+                                </Button>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Reply to Lead</label>
+                                <Textarea
+                                    value={replyMessage}
+                                    onChange={(e) => setReplyMessage(e.target.value)}
+                                    placeholder="Type your reply..."
+                                    rows={3}
+                                />
+                            </div>
+
+                            <div className="flex gap-2">
+                                <Button
+                                    onClick={sendReply}
+                                    disabled={saving || !replyMessage.trim()}
+                                    className="flex-1"
+                                >
+                                    {saving ? (
+                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                    ) : (
+                                        <Send className="h-4 w-4 mr-2" />
+                                    )}
+                                    Send Reply & Mark Contacted
+                                </Button>
+                                <Button variant="outline" onClick={() => setSelectedLead(null)}>
+                                    Close
+                                </Button>
+                            </div>
                         </div>
-                        <div className="space-y-2">
-                            <Textarea
-                                value={replyMessage}
-                                onChange={(e) => setReplyMessage(e.target.value)}
-                                placeholder="Type your reply..."
-                                rows={4}
-                            />
-                        </div>
-                        <div className="flex gap-2">
-                            <Button onClick={sendReply} disabled={sending || !replyMessage.trim()} className="flex-1">
-                                {sending ? (
-                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                ) : (
-                                    <Send className="h-4 w-4 mr-2" />
-                                )}
-                                Send Reply
-                            </Button>
-                            <Button variant="outline" onClick={() => setSelectedLead(null)}>
-                                Cancel
-                            </Button>
-                        </div>
-                    </div>
+                    )}
                 </DialogContent>
             </Dialog>
         </div>

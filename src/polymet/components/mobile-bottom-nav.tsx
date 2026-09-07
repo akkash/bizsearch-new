@@ -28,8 +28,8 @@ export function MobileBottomNav({
       isActive: location.pathname === "/",
     },
     {
-      name: "Search",
-      href: "/businesses",
+      name: "Franchises",
+      href: "/franchises",
       icon: Search,
       isActive:
         location.pathname.startsWith("/businesses") ||

@@ -60,16 +60,16 @@ export function DashboardPage() {
                         View Public Profile
                     </Button>
                     {(isSeller || isFranchisor) && (
-                        <Button onClick={() => navigate('/create-listing')}>
+                        <Button onClick={() => navigate(isFranchisor ? '/add-franchise-listing' : '/add-business-listing')}>
                             <Plus className="w-4 h-4 mr-2" />
-                            Create New Listing
+                            {isFranchisor ? 'List Franchise' : 'Create New Listing'}
                         </Button>
                     )}
                 </div>
             </div>
 
             {/* Stats Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
                 <Card>
                     <CardContent className="pt-6">
                         <div className="flex items-center gap-4">
@@ -91,11 +91,56 @@ export function DashboardPage() {
                             </div>
                             <div>
                                 <div className="text-2xl font-bold">{stats.inquiries}</div>
-                                <div className="text-sm text-muted-foreground">Inquiries Received</div>
+                                <div className="text-sm text-muted-foreground">Total Enquiries</div>
                             </div>
                         </div>
                     </CardContent>
                 </Card>
+                {(isFranchisor || isSeller) && (
+                    <>
+                        <Card>
+                            <CardContent className="pt-6">
+                                <div className="flex items-center gap-4">
+                                    <div className="p-3 bg-indigo-100 text-indigo-600 rounded-lg">
+                                        <FileText className="w-6 h-6" />
+                                    </div>
+                                    <div>
+                                        <div className="text-2xl font-bold">{stats.activeListings}</div>
+                                        <div className="text-sm text-muted-foreground">Active Listings</div>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardContent className="pt-6">
+                                <div className="flex items-center gap-4">
+                                    <div className="p-3 bg-amber-100 text-amber-600 rounded-lg">
+                                        <MessageSquare className="w-6 h-6" />
+                                    </div>
+                                    <div>
+                                        <div className="text-2xl font-bold">{stats.newInquiries}</div>
+                                        <div className="text-sm text-muted-foreground">New Enquiries</div>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        {isFranchisor && (
+                            <Card>
+                                <CardContent className="pt-6">
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-3 bg-purple-100 text-purple-600 rounded-lg">
+                                            <TrendingUp className="w-6 h-6" />
+                                        </div>
+                                        <div>
+                                            <div className="text-2xl font-bold">{stats.applications}</div>
+                                            <div className="text-sm text-muted-foreground">Applications</div>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
+                    </>
+                )}
                 <Card>
                     <CardContent className="pt-6">
                         <div className="flex items-center gap-4">
@@ -103,8 +148,8 @@ export function DashboardPage() {
                                 <TrendingUp className="w-6 h-6" />
                             </div>
                             <div>
-                                <div className="text-2xl font-bold">{stats.connections}</div>
-                                <div className="text-sm text-muted-foreground">Connections Made</div>
+                                <div className="text-2xl font-bold">{listings.length}</div>
+                                <div className="text-sm text-muted-foreground">My Listings</div>
                             </div>
                         </div>
                     </CardContent>
@@ -162,7 +207,9 @@ export function DashboardPage() {
                                 {isBuyer ? (
                                     <Button onClick={() => navigate('/buyer/mandate')}>Setup Investment Mandate</Button>
                                 ) : (
-                                    <Button onClick={() => navigate('/create-listing')}>Create Listing</Button>
+                                    <Button onClick={() => navigate(isFranchisor ? '/add-franchise-listing' : '/add-business-listing')}>
+                                        {isFranchisor ? 'List Franchise' : 'Create Listing'}
+                                    </Button>
                                 )}
                             </CardContent>
                         </Card>
@@ -191,20 +238,11 @@ export function DashboardPage() {
                         </CardHeader>
                         <CardContent>
                             <div className="text-center py-8 space-y-4">
-                                <div className="p-4 bg-muted/50 rounded-lg max-w-md mx-auto">
-                                    <h3 className="font-medium mb-2">Coming Soon</h3>
-                                    <p className="text-sm text-muted-foreground mb-4">
-                                        Inquiry management will allow you to:
-                                    </p>
-                                    <ul className="text-sm text-muted-foreground text-left space-y-2">
-                                        <li>• View and respond to buyer inquiries</li>
-                                        <li>• Track inquiry status (new, responded, negotiating)</li>
-                                        <li>• Schedule calls and meetings</li>
-                                        <li>• Share documents securely via NDA</li>
-                                    </ul>
-                                </div>
-                                <Button variant="outline" onClick={() => navigate('/messages')}>
-                                    View Messages Instead
+                                <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                                    View and manage franchise and business enquiries from entrepreneurs and buyers.
+                                </p>
+                                <Button onClick={() => navigate('/leads')}>
+                                    Open Lead Management
                                 </Button>
                             </div>
                         </CardContent>

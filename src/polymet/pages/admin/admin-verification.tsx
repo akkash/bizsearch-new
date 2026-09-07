@@ -48,6 +48,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Listing {
     id: string;
@@ -64,50 +66,69 @@ interface Listing {
     ownerEmail: string;
 }
 
-const mockListings: Listing[] = [
-    {
-        id: '1',
-        name: 'Mumbai Cafe Chain',
-        type: 'business',
-        industry: 'Food & Beverage',
-        location: 'Mumbai, Maharashtra',
-        verificationStatus: 'pending',
-        dataCompletenessScore: 72,
-        createdAt: '2025-11-15',
-        updatedAt: '2025-12-20',
-        verifiedAt: null,
-        isStale: false,
-        ownerEmail: 'owner@cafe.com',
-    },
-    {
-        id: '2',
-        name: '5K Car Care',
-        type: 'franchise',
-        industry: 'Automotive',
-        location: 'Delhi, NCR',
-        verificationStatus: 'verified',
-        dataCompletenessScore: 95,
-        createdAt: '2024-06-01',
-        updatedAt: '2025-12-28',
-        verifiedAt: '2025-12-15',
-        isStale: false,
-        ownerEmail: 'franchise@5k.com',
-    },
-    {
-        id: '3',
-        name: 'Old Retail Shop',
-        type: 'business',
-        industry: 'Retail',
-        location: 'Chennai, Tamil Nadu',
-        verificationStatus: 'unverified',
-        dataCompletenessScore: 35,
-        createdAt: '2024-01-10',
-        updatedAt: '2024-08-15',
-        verifiedAt: null,
-        isStale: true,
-        ownerEmail: 'old@retail.com',
-    },
-];
+function computeCompletenessScore(row: Record<string, unknown>, type: 'business' | 'franchise'): number {
+    const fields =
+        type === 'franchise'
+            ? ['brand_name', 'industry', 'description', 'franchise_fee', 'total_investment_min', 'logo_url', 'contact_email']
+            : ['name', 'industry', 'description', 'price', 'city', 'state', 'contact_email'];
+    const filled = fields.filter((field) => {
+        const value = row[field];
+        return value !== null && value !== undefined && String(value).trim() !== '';
+    }).length;
+    return Math.round((filled / fields.length) * 100);
+}
+
+function mapRowToListing(
+    row: Record<string, unknown>,
+    type: 'business' | 'franchise',
+    ownerEmail = '—'
+): Listing {
+    const updatedAt = String(row.updated_at || row.created_at || new Date().toISOString());
+    const daysSinceUpdate = Math.floor(
+        (Date.now() - new Date(updatedAt).getTime()) / (1000 * 60 * 60 * 24)
+    );
+    const verificationStatus = String(row.verification_status || 'unverified') as Listing['verificationStatus'];
+    const location =
+        type === 'franchise'
+            ? [row.headquarters_city, row.headquarters_state].filter(Boolean).join(', ')
+            : [row.city, row.state].filter(Boolean).join(', ');
+
+    return {
+        id: String(row.id),
+        name: String(type === 'franchise' ? row.brand_name : row.name),
+        type,
+        industry: String(row.industry || '—'),
+        location: location || '—',
+        verificationStatus,
+        dataCompletenessScore: computeCompletenessScore(row, type),
+        createdAt: String(row.created_at || updatedAt),
+        updatedAt,
+        verifiedAt: row.verified_at ? String(row.verified_at) : null,
+        isStale: daysSinceUpdate >= 90,
+        ownerEmail,
+    };
+}
+
+async function resolveOwnerEmails(userIds: string[]): Promise<Map<string, string>> {
+    const emails = new Map<string, string>();
+    const uniqueIds = [...new Set(userIds.filter(Boolean))];
+    if (uniqueIds.length === 0) return emails;
+
+    const { data, error } = await supabase
+        .from('profiles')
+        .select('id, email')
+        .in('id', uniqueIds);
+
+    if (error) {
+        console.error('Failed to resolve owner emails:', error);
+        return emails;
+    }
+
+    data?.forEach((profile) => {
+        emails.set(profile.id, profile.email || '—');
+    });
+    return emails;
+}
 
 const statusColors = {
     pending: 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300',
@@ -124,6 +145,7 @@ const statusIcons = {
 };
 
 export function AdminVerification() {
+    const { user } = useAuth();
     const [listings, setListings] = useState<Listing[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -141,26 +163,84 @@ export function AdminVerification() {
 
     const loadListings = async () => {
         setLoading(true);
-        // TODO: Replace with actual Supabase query
-        await new Promise(resolve => setTimeout(resolve, 500));
+        try {
+            const results: Listing[] = [];
 
-        let filtered = [...mockListings];
-        if (statusFilter !== 'all') {
-            filtered = filtered.filter(l => l.verificationStatus === statusFilter);
-        }
-        if (typeFilter !== 'all') {
-            filtered = filtered.filter(l => l.type === typeFilter);
-        }
-        if (searchQuery) {
-            const query = searchQuery.toLowerCase();
-            filtered = filtered.filter(l =>
-                l.name.toLowerCase().includes(query) ||
-                l.location.toLowerCase().includes(query)
-            );
-        }
+            if (typeFilter === 'all' || typeFilter === 'franchise') {
+                let franchiseQuery = supabase
+                    .from('franchises')
+                    .select('*')
+                    .neq('status', 'draft');
 
-        setListings(filtered);
-        setLoading(false);
+                if (statusFilter !== 'all') {
+                    franchiseQuery = franchiseQuery.eq('verification_status', statusFilter);
+                }
+
+                const { data: franchises, error: franchiseError } = await franchiseQuery;
+                if (franchiseError) throw franchiseError;
+
+                const ownerEmails = await resolveOwnerEmails(
+                    (franchises || []).map((row) => String(row.franchisor_id))
+                );
+
+                franchises?.forEach((row) => {
+                    results.push(
+                        mapRowToListing(
+                            row as Record<string, unknown>,
+                            'franchise',
+                            ownerEmails.get(String(row.franchisor_id)) || '—'
+                        )
+                    );
+                });
+            }
+
+            if (typeFilter === 'all' || typeFilter === 'business') {
+                let businessQuery = supabase
+                    .from('businesses')
+                    .select('*')
+                    .neq('status', 'draft');
+
+                if (statusFilter !== 'all') {
+                    businessQuery = businessQuery.eq('verification_status', statusFilter);
+                }
+
+                const { data: businesses, error: businessError } = await businessQuery;
+                if (businessError) throw businessError;
+
+                const sellerEmails = await resolveOwnerEmails(
+                    (businesses || []).map((row) => String(row.seller_id))
+                );
+
+                businesses?.forEach((row) => {
+                    results.push(
+                        mapRowToListing(
+                            row as Record<string, unknown>,
+                            'business',
+                            sellerEmails.get(String(row.seller_id)) || '—'
+                        )
+                    );
+                });
+            }
+
+            let filtered = results;
+            if (searchQuery) {
+                const query = searchQuery.toLowerCase();
+                filtered = filtered.filter(
+                    (l) =>
+                        l.name.toLowerCase().includes(query) ||
+                        l.location.toLowerCase().includes(query) ||
+                        l.industry.toLowerCase().includes(query)
+                );
+            }
+
+            setListings(filtered);
+        } catch (error) {
+            console.error('Failed to load verification queue:', error);
+            toast.error('Failed to load verification records');
+            setListings([]);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleVerify = (listing: Listing) => {
@@ -180,44 +260,70 @@ export function AdminVerification() {
     const confirmAction = async () => {
         if (!selectedListing || !dialogAction) return;
 
-        // TODO: Call actual API
         const newStatus = dialogAction === 'verify' ? 'verified' : 'rejected';
+        const table = selectedListing.type === 'franchise' ? 'franchises' : 'businesses';
+        const now = new Date().toISOString();
 
-        setListings(prev => prev.map(l =>
-            l.id === selectedListing.id
-                ? { ...l, verificationStatus: newStatus as any, verifiedAt: new Date().toISOString() }
-                : l
-        ));
+        try {
+            const { error } = await supabase
+                .from(table)
+                .update({
+                    verification_status: newStatus,
+                    verified_at: dialogAction === 'verify' ? now : null,
+                    updated_at: now,
+                })
+                .eq('id', selectedListing.id);
 
-        toast.success(
-            dialogAction === 'verify'
-                ? `${selectedListing.name} has been verified`
-                : `${selectedListing.name} has been rejected`
-        );
+            if (error) throw error;
 
-        setShowDialog(false);
-        setSelectedListing(null);
-        setDialogAction(null);
-        setVerificationNotes('');
+            const { error: logError } = await supabase.from('verification_logs').insert({
+                listing_id: selectedListing.id,
+                listing_type: selectedListing.type,
+                previous_status: selectedListing.verificationStatus,
+                new_status: newStatus,
+                verified_by: user?.id ?? null,
+                notes: verificationNotes.trim() || null,
+                verification_method: 'manual',
+            });
+
+            if (logError) {
+                console.error('Could not write verification log:', logError);
+                toast.error('Listing updated, but verification log could not be saved.');
+            }
+
+            toast.success(
+                dialogAction === 'verify'
+                    ? `${selectedListing.name} has been verified`
+                    : `${selectedListing.name} has been rejected`
+            );
+
+            setShowDialog(false);
+            setSelectedListing(null);
+            setDialogAction(null);
+            setVerificationNotes('');
+            loadListings();
+        } catch (error) {
+            console.error('Verification update failed:', error);
+            toast.error('Failed to update verification status');
+        }
     };
 
     const flagStaleListings = async () => {
         setRefreshing(true);
-        // TODO: Call actual API to run stale listing check
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        toast.success('Stale listing check complete. 3 listings flagged.');
+        await loadListings();
+        const staleCount = listings.filter((l) => l.isStale).length;
+        toast.success(`Stale listing check complete. ${staleCount} listings flagged as stale (90+ days).`);
         setRefreshing(false);
-        loadListings();
     };
 
-    // Stats
+    // Stats from loaded listings
     const stats = {
-        total: mockListings.length,
-        pending: mockListings.filter(l => l.verificationStatus === 'pending').length,
-        verified: mockListings.filter(l => l.verificationStatus === 'verified').length,
-        rejected: mockListings.filter(l => l.verificationStatus === 'rejected').length,
-        stale: mockListings.filter(l => l.isStale).length,
-        lowCompleteness: mockListings.filter(l => l.dataCompletenessScore < 50).length,
+        total: listings.length,
+        pending: listings.filter((l) => l.verificationStatus === 'pending').length,
+        verified: listings.filter((l) => l.verificationStatus === 'verified').length,
+        rejected: listings.filter((l) => l.verificationStatus === 'rejected').length,
+        stale: listings.filter((l) => l.isStale).length,
+        lowCompleteness: listings.filter((l) => l.dataCompletenessScore < 50).length,
     };
 
     const getDaysAgo = (dateStr: string) => {

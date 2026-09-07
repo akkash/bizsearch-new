@@ -14,7 +14,6 @@ import {
   CheckCircle,
   ArrowRight,
   Award,
-  CreditCard,
   Lock,
   ChevronDown,
   ChevronUp,
@@ -65,7 +64,7 @@ export function Footer() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="text-center md:text-left">
               <h3 className="text-xl font-bold text-white mb-1">
-                Stay Updated with Business Opportunities
+                Stay updated on franchise opportunities
               </h3>
               <p className="text-sm text-slate-400">
                 Get weekly insights on franchises, market trends, and investment opportunities
@@ -101,8 +100,9 @@ export function Footer() {
               <span className="text-2xl font-bold text-white">BizSearch</span>
             </div>
             <p className="text-sm text-slate-400 mb-4">
-              India's leading marketplace for buying, selling, and investing in
-              verified businesses and franchise opportunities.
+              India&apos;s franchise discovery marketplace — find, compare, and
+              enquire about franchise opportunities. Businesses for sale available
+              as a secondary marketplace.
             </p>
             <div className="flex gap-2">
               <a
@@ -188,18 +188,10 @@ export function Footer() {
             <ul className="space-y-2">
               <li>
                 <Link
-                  to="/businesses"
-                  className="text-sm text-slate-400 hover:text-blue-400 transition-colors"
-                >
-                  Browse Businesses
-                </Link>
-              </li>
-              <li>
-                <Link
                   to="/franchises"
                   className="text-sm text-slate-400 hover:text-blue-400 transition-colors"
                 >
-                  Franchise Opportunities
+                  Find a Franchise
                 </Link>
               </li>
               <li>
@@ -207,31 +199,39 @@ export function Footer() {
                   to="/franchise-map"
                   className="text-sm text-slate-400 hover:text-blue-400 transition-colors"
                 >
-                  Franchise Map
+                  Franchise Locations
                 </Link>
               </li>
               <li>
                 <Link
-                  to="/add-business-listing"
+                  to="/smart-search"
                   className="text-sm text-slate-400 hover:text-blue-400 transition-colors"
                 >
-                  Sell Your Business
+                  Smart Search
                 </Link>
               </li>
               <li>
                 <Link
-                  to="/financing-options"
+                  to="/add-franchise-listing"
                   className="text-sm text-slate-400 hover:text-blue-400 transition-colors"
                 >
-                  Financing Options
+                  List Your Franchise
                 </Link>
               </li>
               <li>
                 <Link
-                  to="/advisors"
+                  to="/businesses"
                   className="text-sm text-slate-400 hover:text-blue-400 transition-colors"
                 >
-                  Find Advisors
+                  Businesses for Sale
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/help"
+                  className="text-sm text-slate-400 hover:text-blue-400 transition-colors"
+                >
+                  Help Center
                 </Link>
               </li>
             </ul>
@@ -436,39 +436,19 @@ export function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="flex items-center gap-2 p-3 bg-slate-800/50 rounded-lg">
             <Shield className="h-5 w-5 text-green-400 flex-shrink-0" />
-            <span className="text-xs text-slate-300">Verified Listings</span>
+            <span className="text-xs text-slate-300">Listing moderation</span>
           </div>
           <div className="flex items-center gap-2 p-3 bg-slate-800/50 rounded-lg">
             <Lock className="h-5 w-5 text-blue-400 flex-shrink-0" />
-            <span className="text-xs text-slate-300">Secure Transactions</span>
+            <span className="text-xs text-slate-300">Secure platform</span>
           </div>
           <div className="flex items-center gap-2 p-3 bg-slate-800/50 rounded-lg">
-            <CreditCard className="h-5 w-5 text-purple-400 flex-shrink-0" />
-            <span className="text-xs text-slate-300">Safe Payments</span>
+            <CheckCircle className="h-5 w-5 text-purple-400 flex-shrink-0" />
+            <span className="text-xs text-slate-300">Verification levels</span>
           </div>
           <div className="flex items-center gap-2 p-3 bg-slate-800/50 rounded-lg">
             <Award className="h-5 w-5 text-yellow-400 flex-shrink-0" />
-            <span className="text-xs text-slate-300">Trusted Platform</span>
-          </div>
-        </div>
-
-        {/* Stats Bar */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="text-center">
-            <div className="text-xl font-bold text-white">15,000+</div>
-            <div className="text-xs text-slate-400">Franchise Brands</div>
-          </div>
-          <div className="text-center">
-            <div className="text-xl font-bold text-white">50,000+</div>
-            <div className="text-xs text-slate-400">Business Listings</div>
-          </div>
-          <div className="text-center">
-            <div className="text-xl font-bold text-white">1,00,000+</div>
-            <div className="text-xs text-slate-400">Active Investors</div>
-          </div>
-          <div className="text-center">
-            <div className="text-xl font-bold text-white">500+</div>
-            <div className="text-xs text-slate-400">Cities Covered</div>
+            <span className="text-xs text-slate-300">Transparent listings</span>
           </div>
         </div>
 
@@ -478,7 +458,7 @@ export function Footer() {
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-2 text-sm text-slate-400">
             <CheckCircle className="h-4 w-4 text-green-400" />
-            <span>All businesses are verified and secure</span>
+            <span>Listings reviewed before publication where moderation is enabled</span>
           </div>
           <p className="text-sm text-slate-400 text-center">
             © {currentYear} BizSearch. All rights reserved. Made with ❤️ in India

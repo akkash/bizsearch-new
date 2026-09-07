@@ -111,8 +111,8 @@ export function FeaturedCarousel({
   };
 
   const defaultSubtitles = {
-    business: "Discover verified businesses ready for acquisition",
-    franchise: "Explore profitable franchise opportunities",
+    business: "Verified businesses ready for acquisition",
+    franchise: "Franchise opportunities from active listings",
   };
 
   if (loading) {

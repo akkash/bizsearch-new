@@ -36,6 +36,7 @@ interface SearchBarProps {
     filters: SearchFilters
   ) => void;
   onSearchTypeChange?: (type: "business" | "franchise") => void;
+  defaultSearchType?: "business" | "franchise";
   className?: string;
 }
 
@@ -90,11 +91,11 @@ const popularSearches = {
     { text: "Retail Store", query: "retail store" },
   ],
   franchise: [
-    { text: "Food Franchise", query: "food franchise under ₹20L" },
-    { text: "Education", query: "education franchise" },
+    { text: "Food under ₹30L Chennai", query: "food business under ₹30 lakh in Chennai" },
+    { text: "Education Coimbatore", query: "education franchise in Coimbatore" },
+    { text: "Under ₹15L", query: "low-investment franchise under ₹15 lakh" },
     { text: "Fitness", query: "fitness franchise" },
-    { text: "Retail Franchise", query: "retail franchise under ₹15L" },
-    { text: "Convenience Store", query: "convenience store franchise" },
+    { text: "Retail", query: "retail franchise" },
   ],
 };
 
@@ -114,10 +115,11 @@ const quickFilters = {
 export function SearchBar({
   onSearch,
   onSearchTypeChange,
+  defaultSearchType = "franchise",
   className,
 }: SearchBarProps) {
   const [searchType, setSearchType] = useState<"business" | "franchise">(
-    "franchise"
+    defaultSearchType
   );
   const [query, setQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
@@ -240,7 +242,7 @@ export function SearchBar({
             placeholder={
               searchType === "business"
                 ? "Search for restaurants, retail stores, tech startups..."
-                : "Search for food, education, fitness franchises..."
+                : "What kind of business do you want to start?"
             }
             value={query}
             onChange={(e) => {

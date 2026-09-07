@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { supabase } from './supabase';
+import { mapFranchisesFromDb } from './franchise-mapper';
 
 const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GOOGLE_AI_API_KEY || '');
 
@@ -15,6 +16,7 @@ export interface SearchIntent {
 
 export interface SmartSearchResult {
   businesses: any[];
+  franchises: any[];
   searchIntent: SearchIntent;
   totalResults: number;
   suggestions: string[];
@@ -126,69 +128,94 @@ Return ONLY the JSON:`;
    */
   static async smartSearch(query: string): Promise<SmartSearchResult> {
     try {
-      // Parse the query
       const intent = await this.parseSearchQuery(query);
+      const isFranchiseQuery =
+        intent.businessType?.toLowerCase().includes('franchise') ||
+        query.toLowerCase().includes('franchise');
 
-      // Build database query
-      let dbQuery = supabase
-        .from('businesses')
-        .select('*')
-        .eq('status', 'active');
+      let businesses: any[] = [];
+      let franchises: any[] = [];
 
-      // Apply filters from intent
-      if (intent.industries && intent.industries.length > 0) {
-        const industryFilters = intent.industries.map(ind =>
-          `industry.ilike.%${ind}%`
-        ).join(',');
-        dbQuery = dbQuery.or(industryFilters);
-      }
+      if (!isFranchiseQuery) {
+        let dbQuery = supabase.from('businesses').select('*').eq('status', 'active');
 
-      if (intent.locations && intent.locations.length > 0) {
-        const locationFilters = intent.locations.map(loc =>
-          `city.ilike.%${loc}%,state.ilike.%${loc}%`
-        ).join(',');
-        dbQuery = dbQuery.or(locationFilters);
-      }
-
-      if (intent.priceRange) {
-        if (intent.priceRange.min) {
-          dbQuery = dbQuery.gte('price', intent.priceRange.min);
+        if (intent.industries && intent.industries.length > 0) {
+          const industryFilters = intent.industries
+            .map((ind) => `industry.ilike.%${ind}%`)
+            .join(',');
+          dbQuery = dbQuery.or(industryFilters);
         }
-        if (intent.priceRange.max) {
-          dbQuery = dbQuery.lte('price', intent.priceRange.max);
+
+        if (intent.locations && intent.locations.length > 0) {
+          const locationFilters = intent.locations
+            .map((loc) => `city.ilike.%${loc}%,state.ilike.%${loc}%`)
+            .join(',');
+          dbQuery = dbQuery.or(locationFilters);
         }
+
+        if (intent.priceRange?.min) dbQuery = dbQuery.gte('price', intent.priceRange.min);
+        if (intent.priceRange?.max) dbQuery = dbQuery.lte('price', intent.priceRange.max);
+
+        if (intent.keywords?.length) {
+          const keywordFilter = intent.keywords
+            .map((kw) => `name.ilike.%${kw}%,description.ilike.%${kw}%`)
+            .join(',');
+          dbQuery = dbQuery.or(keywordFilter);
+        }
+
+        const { data, error } = await dbQuery.order('created_at', { ascending: false }).limit(50);
+        if (error) throw error;
+        businesses = data || [];
       }
 
-      if (intent.revenueRange) {
-        if (intent.revenueRange.min) {
-          dbQuery = dbQuery.gte('revenue', intent.revenueRange.min);
-        }
-        if (intent.revenueRange.max) {
-          dbQuery = dbQuery.lte('revenue', intent.revenueRange.max);
-        }
+      let franchiseQuery = supabase.from('franchises').select('*').eq('status', 'active');
+
+      if (intent.industries?.length) {
+        const industryFilters = intent.industries
+          .map((ind) => `industry.ilike.%${ind}%`)
+          .join(',');
+        franchiseQuery = franchiseQuery.or(industryFilters);
       }
 
-      // Add keyword search
-      if (intent.keywords && intent.keywords.length > 0) {
-        const keywordFilter = intent.keywords.map(kw =>
-          `name.ilike.%${kw}%,description.ilike.%${kw}%`
-        ).join(',');
-        dbQuery = dbQuery.or(keywordFilter);
+      if (intent.locations?.length) {
+        const locationFilters = intent.locations
+          .map(
+            (loc) =>
+              `headquarters_city.ilike.%${loc}%,headquarters_state.ilike.%${loc}%,operating_locations.cs.{"${loc}"}`
+          )
+          .join(',');
+        franchiseQuery = franchiseQuery.or(locationFilters);
       }
 
-      const { data: businesses, error } = await dbQuery
+      if (intent.priceRange?.max) {
+        franchiseQuery = franchiseQuery.lte('total_investment_min', intent.priceRange.max);
+      }
+      if (intent.priceRange?.min) {
+        franchiseQuery = franchiseQuery.gte('total_investment_max', intent.priceRange.min);
+      }
+
+      if (intent.keywords?.length) {
+        const keywordFilter = intent.keywords
+          .map((kw) => `brand_name.ilike.%${kw}%,description.ilike.%${kw}%`)
+          .join(',');
+        franchiseQuery = franchiseQuery.or(keywordFilter);
+      }
+
+      const { data: franchiseRows, error: franchiseError } = await franchiseQuery
         .order('created_at', { ascending: false })
-        .limit(50);
+        .limit(isFranchiseQuery ? 50 : 25);
 
-      if (error) throw error;
+      if (franchiseError) throw franchiseError;
+      franchises = mapFranchisesFromDb(franchiseRows || []);
 
-      // Generate search suggestions
       const suggestions = await this.generateSuggestions(query, intent);
+      const totalResults = businesses.length + franchises.length;
 
       return {
-        businesses: businesses || [],
+        businesses,
+        franchises,
         searchIntent: intent,
-        totalResults: businesses?.length || 0,
+        totalResults,
         suggestions,
       };
     } catch (error) {
@@ -257,23 +284,35 @@ Provide ONLY the suggestions, one per line:`;
       const { data: businesses } = await supabase
         .from('businesses')
         .select('name, industry, city')
+        .eq('status', 'active')
         .or(`name.ilike.%${partial}%,industry.ilike.%${partial}%,city.ilike.%${partial}%`)
-        .limit(10);
+        .limit(5);
 
-      if (!businesses) return [];
+      const { data: franchises } = await supabase
+        .from('franchises')
+        .select('brand_name, industry, headquarters_city')
+        .eq('status', 'active')
+        .or(`brand_name.ilike.%${partial}%,industry.ilike.%${partial}%`)
+        .limit(5);
 
-      // Extract unique suggestions
       const suggestions = new Set<string>();
-      
-      businesses.forEach(b => {
-        if (b.name?.toLowerCase().includes(partial.toLowerCase())) {
-          suggestions.add(b.name);
-        }
+
+      businesses?.forEach((b) => {
+        if (b.name?.toLowerCase().includes(partial.toLowerCase())) suggestions.add(b.name);
         if (b.industry?.toLowerCase().includes(partial.toLowerCase())) {
           suggestions.add(`${b.industry} businesses`);
         }
         if (b.city?.toLowerCase().includes(partial.toLowerCase())) {
           suggestions.add(`Businesses in ${b.city}`);
+        }
+      });
+
+      franchises?.forEach((f) => {
+        if (f.brand_name?.toLowerCase().includes(partial.toLowerCase())) {
+          suggestions.add(f.brand_name);
+        }
+        if (f.industry?.toLowerCase().includes(partial.toLowerCase())) {
+          suggestions.add(`${f.industry} franchises`);
         }
       });
 

@@ -11,7 +11,7 @@ import {
   Building,
   Percent,
   Users2,
-  Award,
+  GitCompareArrows,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +19,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
+import { cn } from "@/lib/utils";
 import { Franchise } from "@/types/listings";
 import { VerificationBadge, LastVerifiedLabel, type VerificationStatus } from "@/components/verification-badge";
 
@@ -29,7 +30,9 @@ interface FranchiseCardProps {
   onContact?: (franchiseId: string) => void;
   onViewDetails?: (franchiseId: string) => void;
   onMoreLikeThis?: (franchiseId: string) => void;
+  onCompare?: (franchiseId: string) => void;
   isSaved?: boolean;
+  isCompared?: boolean;
   className?: string;
 }
 
@@ -40,7 +43,9 @@ export function FranchiseCard({
   onContact,
   onViewDetails,
   onMoreLikeThis,
+  onCompare,
   isSaved = false,
+  isCompared = false,
   className,
 }: FranchiseCardProps) {
   const formatInvestment = (amount?: number | null) => {
@@ -98,19 +103,37 @@ export function FranchiseCard({
           </Avatar>
 
           {/* Save button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm hover:bg-background"
-            onClick={(e) => {
-              e.stopPropagation();
-              onSave?.(franchise.id);
-            }}
-          >
-            <Heart
-              className={`h-4 w-4 ${isSaved ? "fill-red-500 text-red-500" : ""}`}
-            />
-          </Button>
+          <div className="absolute top-2 right-2 flex gap-1">
+            {onCompare && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn(
+                  "bg-background/80 backdrop-blur-sm hover:bg-background",
+                  isCompared && "text-growth-green"
+                )}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCompare(franchise.id);
+                }}
+              >
+                <GitCompareArrows className="h-4 w-4" />
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="bg-background/80 backdrop-blur-sm hover:bg-background"
+              onClick={(e) => {
+                e.stopPropagation();
+                onSave?.(franchise.id);
+              }}
+            >
+              <Heart
+                className={`h-4 w-4 ${isSaved ? "fill-red-500 text-red-500" : ""}`}
+              />
+            </Button>
+          </div>
 
           {/* Status badges */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
@@ -318,7 +341,7 @@ export function FranchiseCard({
                 }}
               >
                 <Phone className="h-4 w-4 mr-2" />
-                Contact
+                Request Info
               </Button>
               <Button
                 variant="outline"

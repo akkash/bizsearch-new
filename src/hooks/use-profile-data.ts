@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { BusinessService } from '@/lib/business-service';
 import { FranchiseService } from '@/lib/franchise-service';
+import { InquiryService } from '@/lib/inquiry-service';
 import { type ExtendedProfile } from '@/types/auth.types';
 import type { Business, Franchise } from '@/types/listings';
 
@@ -13,6 +14,9 @@ interface ProfileDataState {
         views: number;
         inquiries: number;
         connections: number;
+        activeListings: number;
+        newInquiries: number;
+        applications: number;
     };
     loading: boolean;
     error: Error | null;
@@ -23,7 +27,7 @@ export function useProfileData(userId: string | undefined) {
         profile: null,
         listings: [],
         savedListings: [],
-        stats: { views: 0, inquiries: 0, connections: 0 },
+        stats: { views: 0, inquiries: 0, connections: 0, activeListings: 0, newInquiries: 0, applications: 0 },
         loading: true,
         error: null,
     });
@@ -105,11 +109,47 @@ export function useProfileData(userId: string | undefined) {
                 // Ignore error (likely RLS forbidding access to someone else's saved items)
             }
 
-            // 4. Calculate Stats (mock for now, or aggregate from listings)
+            // 4. Calculate Stats from real Supabase data
+            const views = listings.reduce((acc, item: any) => acc + (item.viewsCount ?? item.views_count ?? 0), 0);
+            const listingInquiries = listings.reduce(
+                (acc, item: any) => acc + (item.inquiriesCount ?? item.inquiries_count ?? 0),
+                0
+            );
+            const activeListings = listings.filter((item: any) => item.status === 'active').length;
+
+            let receivedInquiries = listingInquiries;
+            let newInquiries = 0;
+            let applications = 0;
+
+            if (isFranchisor || isSeller) {
+                try {
+                    receivedInquiries = await InquiryService.getReceivedInquiries(userId).then((rows) => rows.length);
+                    newInquiries = await InquiryService.countReceivedByStatus(userId, 'new');
+                } catch (e) {
+                    console.error('Failed to load inquiry stats:', e);
+                }
+
+                if (isFranchisor) {
+                    const franchiseIds = listings
+                        .filter((item: any) => !('price' in item))
+                        .map((item: any) => item.id);
+                    if (franchiseIds.length > 0) {
+                        const { count } = await supabase
+                            .from('franchise_applications')
+                            .select('id', { count: 'exact', head: true })
+                            .in('franchise_id', franchiseIds);
+                        applications = count || 0;
+                    }
+                }
+            }
+
             const stats = {
-                views: listings.reduce((acc, item: any) => acc + (item.views_count || 0), 0),
-                inquiries: listings.reduce((acc, item: any) => acc + (item.inquiries_count || 0), 0),
-                connections: 0, // Placeholder
+                views,
+                inquiries: receivedInquiries,
+                connections: 0,
+                activeListings,
+                newInquiries,
+                applications,
             };
 
             setState({
