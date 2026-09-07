@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import {
     X,
-    Sparkles,
     ArrowRight,
     TrendingUp,
     UserCheck
@@ -32,13 +31,11 @@ export function ProfileNudgeBanner({
     const completeness = useProfileCompleteness(profile);
     const [dismissed, setDismissed] = useState(false);
 
-    // Check if dismissed in localStorage
     useEffect(() => {
         if (dismissible && user) {
             const dismissedData = localStorage.getItem(`${storageKey}_${user.id}`);
             if (dismissedData) {
                 const { dismissedAt } = JSON.parse(dismissedData);
-                // Re-show after 7 days
                 const daysDiff = (Date.now() - dismissedAt) / (1000 * 60 * 60 * 24);
                 if (daysDiff < 7) {
                     setDismissed(true);
@@ -47,7 +44,6 @@ export function ProfileNudgeBanner({
         }
     }, [user, dismissible, storageKey]);
 
-    // Don't show if not logged in, profile not loaded, already complete, or dismissed
     if (!user || !profile || completeness.score >= 80 || dismissed) {
         return null;
     }
@@ -72,16 +68,16 @@ export function ProfileNudgeBanner({
 
     if (variant === 'inline') {
         return (
-            <div className={cn('flex items-center gap-3 p-3 bg-primary/5 rounded-lg', className)}>
-                <div className="p-2 bg-primary/10 rounded-full">
-                    <Sparkles className="h-4 w-4 text-primary" />
+            <div className={cn('flex items-center gap-3 p-3 bg-muted/50 border border-border rounded-lg', className)}>
+                <div className="p-2 bg-growth-green/15 rounded-full">
+                    <UserCheck className="h-4 w-4 text-growth-green" />
                 </div>
                 <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">
                         Complete your profile for better matches
                     </p>
                 </div>
-                <Button size="sm" onClick={handleComplete}>
+                <Button size="sm" onClick={handleComplete} className="bg-growth-green hover:bg-growth-green/90 text-white">
                     Complete
                 </Button>
             </div>
@@ -91,7 +87,7 @@ export function ProfileNudgeBanner({
     if (variant === 'card') {
         return (
             <div className={cn(
-                'relative p-4 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border border-primary/20',
+                'relative p-4 bg-card rounded-lg border border-border',
                 className
             )}>
                 {dismissible && (
@@ -104,22 +100,22 @@ export function ProfileNudgeBanner({
                 )}
 
                 <div className="flex items-start gap-3">
-                    <div className="p-2 bg-primary/20 rounded-full">
-                        <TrendingUp className="h-5 w-5 text-primary" />
+                    <div className="p-2 bg-growth-green/15 rounded-full">
+                        <TrendingUp className="h-5 w-5 text-growth-green" />
                     </div>
                     <div className="flex-1 space-y-2">
                         <div>
                             <p className="font-medium text-sm">
-                                Get 3x more responses!
+                                Improve your match quality
                             </p>
                             <p className="text-xs text-muted-foreground">
-                                Complete {highPriorityCount} more field{highPriorityCount !== 1 ? 's' : ''} to boost your visibility
+                                Complete {highPriorityCount} more field{highPriorityCount !== 1 ? 's' : ''} to improve visibility
                             </p>
                         </div>
 
                         <div className="flex items-center gap-2">
                             <Progress value={completeness.score} className="h-1.5 flex-1" />
-                            <span className="text-xs font-medium text-primary">{completeness.score}%</span>
+                            <span className="text-xs font-medium text-growth-green">{completeness.score}%</span>
                         </div>
 
                         <Button size="sm" variant="outline" onClick={handleComplete} className="w-full">
@@ -132,10 +128,9 @@ export function ProfileNudgeBanner({
         );
     }
 
-    // Default: Banner variant
     return (
         <Alert className={cn(
-            'relative bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-primary/20',
+            'relative bg-card border-border',
             className
         )}>
             {dismissible && (
@@ -149,15 +144,15 @@ export function ProfileNudgeBanner({
 
             <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                 <div className="flex items-center gap-3 flex-1">
-                    <div className="p-2 bg-primary/20 rounded-full shrink-0">
-                        <UserCheck className="h-5 w-5 text-primary" />
+                    <div className="p-2 bg-growth-green/15 rounded-full shrink-0">
+                        <UserCheck className="h-5 w-5 text-growth-green" />
                     </div>
                     <div>
                         <AlertTitle className="text-base font-semibold mb-1">
                             Complete your profile for better visibility
                         </AlertTitle>
                         <AlertDescription className="text-sm">
-                            Verified profiles get <span className="font-semibold">3x more responses</span> from serious buyers and sellers.
+                            Verified profiles receive more responses from serious buyers and sellers.
                             {highPriorityCount > 0 && (
                                 <span className="text-muted-foreground ml-1">
                                     • {highPriorityCount} key field{highPriorityCount !== 1 ? 's' : ''} remaining
@@ -172,7 +167,7 @@ export function ProfileNudgeBanner({
                         <Progress value={completeness.score} className="h-2 w-20" />
                         <span className="text-sm font-medium">{completeness.score}%</span>
                     </div>
-                    <Button onClick={handleComplete} size="sm">
+                    <Button onClick={handleComplete} size="sm" className="bg-growth-green hover:bg-growth-green/90 text-white">
                         Complete Now
                         <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>

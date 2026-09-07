@@ -296,7 +296,7 @@ export function SignUpForm() {
   }
 
   return (
-    <Card className="w-full max-w-md mx-auto shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
+    <Card className="w-full max-w-md mx-auto bg-card border border-border shadow-sm">
       <CardHeader className="text-center pb-2">
         {/* Brand Logo */}
         <div className="flex justify-center mb-4">
@@ -306,9 +306,9 @@ export function SignUpForm() {
             className="h-12 w-auto"
           />
         </div>
-        <CardTitle className="text-2xl font-bold text-gray-900">Create Your Account</CardTitle>
+        <CardTitle className="text-2xl font-bold text-foreground">Create Your Account</CardTitle>
         <CardDescription className="text-base">
-          Join <span className="font-semibold text-primary">BizSearch</span> to discover opportunities
+          Join <span className="font-semibold text-foreground">BizSearch</span> to browse listings and save opportunities
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -371,7 +371,7 @@ export function SignUpForm() {
               value={formData.role}
               onValueChange={(value: any) => setFormData({ ...formData, role: value })}
             >
-              <SelectTrigger className="h-11 text-gray-900">
+              <SelectTrigger className="h-11 text-foreground">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -516,7 +516,7 @@ export function SignUpForm() {
 
           <Button
             type="submit"
-            className="w-full h-11 text-base font-semibold shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-200"
+            className="w-full h-11 text-base font-semibold bg-growth-green hover:bg-growth-green-dark text-white"
             disabled={loading || passwordStrength.score < 3}
           >
             {loading ? (
@@ -535,10 +535,10 @@ export function SignUpForm() {
           {/* Divider */}
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
+              <span className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-muted-foreground">Already a member?</span>
+              <span className="bg-card px-2 text-muted-foreground">Already a member?</span>
             </div>
           </div>
 

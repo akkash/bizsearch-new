@@ -46,15 +46,15 @@ const notificationIcons: Record<NotificationType, any> = {
 
 const notificationColors: Record<NotificationType, string> = {
   inquiry: "text-blue-500",
-  message: "text-purple-500",
+  message: "text-growth-green",
   listing_approved: "text-green-500",
   listing_rejected: "text-red-500",
   verification_approved: "text-green-500",
   verification_rejected: "text-red-500",
   saved_listing_update: "text-pink-500",
   new_inquiry: "text-blue-500",
-  inquiry_response: "text-purple-500",
-  system: "text-gray-500",
+  inquiry_response: "text-growth-green",
+  system: "text-muted-foreground",
 };
 
 export function NotificationsPage({ className }: NotificationsPageProps) {
@@ -102,7 +102,7 @@ export function NotificationsPage({ className }: NotificationsPageProps) {
 
   const NotificationIcon = ({ type }: { type: NotificationType }) => {
     const Icon = notificationIcons[type] || Bell;
-    const colorClass = notificationColors[type] || "text-gray-500";
+    const colorClass = notificationColors[type] || "text-muted-foreground";
     return <Icon className={cn("h-5 w-5", colorClass)} />;
   };
 

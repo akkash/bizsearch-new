@@ -140,57 +140,57 @@ export function CommissionTrackingPage() {
 
             {/* Stats Overview */}
             <div className="grid gap-4 md:grid-cols-4 mb-8">
-                <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+                <Card className="border-border bg-card">
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm text-green-600 font-medium">Total Earned</p>
-                                <p className="text-3xl font-bold text-green-700">{formatCurrency(stats.totalEarned)}</p>
+                                <p className="text-sm text-muted-foreground font-medium">Total Earned</p>
+                                <p className="text-3xl font-bold font-mono tabular-nums text-growth-green">{formatCurrency(stats.totalEarned)}</p>
                             </div>
-                            <div className="p-3 bg-green-200 rounded-lg">
-                                <DollarSign className="h-6 w-6 text-green-700" />
+                            <div className="p-3 bg-growth-green/15 rounded-lg">
+                                <DollarSign className="h-6 w-6 text-growth-green" />
                             </div>
                         </div>
                     </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="border-border bg-card">
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm text-muted-foreground">Pending</p>
-                                <p className="text-2xl font-bold text-yellow-600">{formatCurrency(stats.pending)}</p>
+                                <p className="text-2xl font-bold font-mono tabular-nums text-amber-600">{formatCurrency(stats.pending)}</p>
                             </div>
-                            <div className="p-3 bg-yellow-100 rounded-lg">
-                                <Clock className="h-6 w-6 text-yellow-600" />
+                            <div className="p-3 bg-amber-500/10 rounded-lg">
+                                <Clock className="h-6 w-6 text-amber-600" />
                             </div>
                         </div>
                     </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="border-border bg-card">
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm text-muted-foreground">Approved</p>
-                                <p className="text-2xl font-bold text-blue-600">{formatCurrency(stats.approved)}</p>
+                                <p className="text-2xl font-bold font-mono tabular-nums text-primary">{formatCurrency(stats.approved)}</p>
                             </div>
-                            <div className="p-3 bg-blue-100 rounded-lg">
-                                <CheckCircle className="h-6 w-6 text-blue-600" />
+                            <div className="p-3 bg-primary/10 rounded-lg">
+                                <CheckCircle className="h-6 w-6 text-primary" />
                             </div>
                         </div>
                     </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="border-border bg-card">
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm text-muted-foreground">Avg Commission Rate</p>
-                                <p className="text-2xl font-bold">{stats.avgRate.toFixed(1)}%</p>
+                                <p className="text-2xl font-bold font-mono tabular-nums">{stats.avgRate.toFixed(1)}%</p>
                             </div>
-                            <div className="p-3 bg-purple-100 rounded-lg">
-                                <Percent className="h-6 w-6 text-purple-600" />
+                            <div className="p-3 bg-growth-green/10 rounded-lg">
+                                <Percent className="h-6 w-6 text-growth-green" />
                             </div>
                         </div>
                     </CardContent>

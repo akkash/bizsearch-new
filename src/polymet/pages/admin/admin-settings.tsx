@@ -278,7 +278,7 @@ export function AdminSettings() {
                         <CardContent className="space-y-4">
                             {[
                                 { key: 'enableFranchiseMap', label: 'Franchise Map', desc: 'Enable the interactive franchise map discovery', active: true },
-                                { key: 'enableAIMatching', label: 'AI Matching', desc: 'Enable AI-powered business/franchise matching', active: true },
+                                { key: 'enableAIMatching', label: 'AI Matching', desc: 'Enable Smart business/franchise matching', active: true },
                                 { key: 'enableFraudDetection', label: 'Fraud Detection', desc: 'Enable AI fraud detection system', active: true },
                                 { key: 'maintenanceMode', label: 'Maintenance Mode', desc: 'Put platform in maintenance mode', active: false, danger: true },
                             ].map((item) => (

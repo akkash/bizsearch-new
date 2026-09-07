@@ -46,7 +46,7 @@ const activityColors = {
   listing_created: "bg-blue-500",
   inquiry_received: "bg-green-500",
   offer_made: "bg-orange-500",
-  document_uploaded: "bg-purple-500",
+  document_uploaded: "bg-growth-green",
   nda_signed: "bg-red-500",
   profile_viewed: "bg-gray-500",
   meeting_scheduled: "bg-indigo-500",

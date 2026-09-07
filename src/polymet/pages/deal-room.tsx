@@ -50,7 +50,7 @@ const categoryIcons: Record<string, any> = {
 
 const categoryColors: Record<string, string> = {
     financial: 'bg-green-100 text-green-800',
-    legal: 'bg-purple-100 text-purple-800',
+    legal: 'bg-growth-green/10 text-growth-green',
     operational: 'bg-blue-100 text-blue-800',
     overview: 'bg-orange-100 text-orange-800',
 };
@@ -286,7 +286,7 @@ export function DealRoomPage() {
                                                 className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
                                             >
                                                 <div className="flex items-center gap-4">
-                                                    <div className={`p-2 rounded-lg ${categoryColors[doc.category] || 'bg-gray-100'}`}>
+                                                    <div className={`p-2 rounded-lg ${categoryColors[doc.category] || 'bg-secondary'}`}>
                                                         <Icon className="h-5 w-5" />
                                                     </div>
                                                     <div>

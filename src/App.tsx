@@ -265,11 +265,13 @@ export default function BizSearchApp() {
                       }
                     />
 
-                    {/* Smart Search (AI-powered) */}
+                    {/* Smart Search */}
                     <Route
                       path="/smart-search"
                       element={
-                        <SmartSearchPage />
+                        <MainLayout>
+                          <SmartSearchPage />
+                        </MainLayout>
                       }
                     />
 

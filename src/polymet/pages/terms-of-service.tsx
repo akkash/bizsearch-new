@@ -18,6 +18,7 @@ import {
     BookOpen,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { PageHero } from "@/components/page-hero";
 
 export function TermsOfServicePage({ className }: { className?: string }) {
     const lastUpdated = "December 29, 2024";
@@ -81,7 +82,7 @@ export function TermsOfServicePage({ className }: { className?: string }) {
                     items: [
                         "A platform to list and discover businesses for sale",
                         "Franchise opportunity listings and matching services",
-                        "AI-powered tools for business valuation and due diligence",
+                        "Smart tools for business valuation and due diligence",
                         "Communication tools to connect buyers, sellers, and franchisors",
                         "Advisory services and expert consultation (premium feature)",
                     ],
@@ -290,38 +291,16 @@ export function TermsOfServicePage({ className }: { className?: string }) {
 
     return (
         <div className={`min-h-screen ${className}`}>
-            {/* Hero Section with Gradient */}
-            <section className="relative overflow-hidden bg-gradient-to-br from-trust-blue/5 via-growth-green/5 to-trust-blue/10 dark:from-trust-blue/10 dark:via-growth-green/5 dark:to-trust-blue/5 py-16 md:py-24">
-                {/* Animated Background Elements */}
-                <div className="absolute inset-0 overflow-hidden">
-                    <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-primary/10 blur-3xl animate-pulse" />
-                    <div className="absolute top-20 -left-20 w-60 h-60 rounded-full bg-growth-green/10 blur-3xl animate-pulse delay-1000" />
+            <PageHero
+                eyebrow="Legal"
+                title="Terms of Service"
+                description="These terms govern your use of BizSearch. By using the platform, you agree to them."
+            >
+                <div className="flex items-center gap-2 text-muted-foreground">
+                    <Calendar className="w-4 h-4" />
+                    <span className="text-sm">Last updated: {lastUpdated}</span>
                 </div>
-
-                <div className="container mx-auto px-4 relative z-10">
-                    <div className="max-w-4xl mx-auto text-center">
-                        <Badge variant="secondary" className="mb-6 px-4 py-2">
-                            <FileText className="w-4 h-4 mr-2" />
-                            Legal Agreement
-                        </Badge>
-                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-                            Terms of
-                            <span className="bg-gradient-to-r from-primary via-primary to-growth-green bg-clip-text text-transparent">
-                                {" "}Service
-                            </span>
-                        </h1>
-                        <p className="text-lg md:text-xl text-muted-foreground mb-6 leading-relaxed max-w-3xl mx-auto">
-                            These terms govern your use of BizSearch. Please read them carefully
-                            before using our platform. By using our services, you agree to be
-                            bound by these terms.
-                        </p>
-                        <div className="flex items-center justify-center gap-2 text-muted-foreground">
-                            <Calendar className="w-4 h-4" />
-                            <span className="text-sm">Last Updated: {lastUpdated}</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
+            </PageHero>
 
             {/* Terms Highlights */}
             <section className="py-12 border-b">
@@ -401,7 +380,7 @@ export function TermsOfServicePage({ className }: { className?: string }) {
             </section>
 
             {/* Contact Section */}
-            <section className="py-16 bg-gradient-to-br from-muted/30 via-muted/50 to-muted/30">
+            <section className="py-16 border-t border-border bg-muted/30">
                 <div className="container mx-auto px-4">
                     <div className="max-w-2xl mx-auto text-center">
                         <Badge variant="secondary" className="mb-4">

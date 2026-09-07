@@ -190,12 +190,12 @@ export function AdvisorDirectoryPage() {
             {featuredAdvisors.length > 0 && (
                 <div className="mb-8">
                     <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                        <Award className="h-5 w-5 text-yellow-500" />
+                        <Award className="h-5 w-5 text-growth-green" />
                         Featured Advisors
                     </h2>
                     <div className="grid gap-6 md:grid-cols-2">
                         {featuredAdvisors.map((advisor) => (
-                            <Card key={advisor.id} className="overflow-hidden border-2 border-yellow-200 bg-gradient-to-br from-yellow-50 to-white">
+                            <Card key={advisor.id} className="overflow-hidden border-border bg-card border-l-4 border-l-growth-green">
                                 <CardContent className="p-6">
                                     <div className="flex items-start gap-4">
                                         <Avatar className="h-16 w-16">
@@ -218,7 +218,7 @@ export function AdvisorDirectoryPage() {
                                                         <p className="text-sm text-muted-foreground">{advisor.company}</p>
                                                     )}
                                                 </div>
-                                                <Badge className="bg-yellow-100 text-yellow-800">
+                                                <Badge className="bg-growth-green/15 text-growth-green border-growth-green/30" variant="outline">
                                                     <Award className="h-3 w-3 mr-1" />
                                                     Featured
                                                 </Badge>

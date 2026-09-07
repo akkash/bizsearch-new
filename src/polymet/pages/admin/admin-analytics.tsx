@@ -55,7 +55,7 @@ export function AdminAnalytics() {
             value: stats?.totalFranchises || 0,
             subtitle: 'Listed on platform',
             icon: TrendingUp,
-            color: 'text-purple-600 bg-purple-100',
+            color: 'text-growth-green bg-growth-green/10',
         },
         {
             title: 'New This Week',
@@ -138,7 +138,7 @@ export function AdminAnalytics() {
                             <p className="text-sm text-muted-foreground">Pending Listings</p>
                         </div>
                         <div className="p-4 bg-muted/50 rounded-lg">
-                            <p className="text-2xl font-bold text-purple-600">{stats?.pendingDocuments || 0}</p>
+                            <p className="text-2xl font-bold text-growth-green">{stats?.pendingDocuments || 0}</p>
                             <p className="text-sm text-muted-foreground">Pending Documents</p>
                         </div>
                         <div className="p-4 bg-muted/50 rounded-lg">

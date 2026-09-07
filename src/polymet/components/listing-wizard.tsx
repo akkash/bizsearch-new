@@ -26,7 +26,7 @@ import {
   FileText,
   Camera,
   User,
-  Sparkles,
+  Calculator,
   AlertCircle,
   Home,
   TrendingUp,
@@ -731,8 +731,8 @@ export function ListingWizard({
           size="sm"
           onClick={() => setShowAIAssistant(!showAIAssistant)}
         >
-          <Sparkles className="w-4 h-4 mr-2" />
-          AI Valuation Help
+          <Calculator className="w-4 h-4 mr-2" />
+          Valuation Help
         </Button>
       </div>
 

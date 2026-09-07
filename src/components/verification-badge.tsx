@@ -31,8 +31,8 @@ const statusConfig = {
     unverified: {
         icon: ShieldQuestion,
         label: 'Unverified',
-        color: 'bg-gray-500/10 text-gray-600 border-gray-500/20 hover:bg-gray-500/20',
-        iconColor: 'text-gray-500',
+        color: 'bg-gray-500/10 text-muted-foreground border-gray-500/20 hover:bg-gray-500/20',
+        iconColor: 'text-muted-foreground',
         description: 'This listing has not been verified yet',
     },
     rejected: {

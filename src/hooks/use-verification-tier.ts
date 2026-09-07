@@ -52,9 +52,9 @@ const TIER_INFO: Record<VerificationTier, Omit<VerificationTierInfo, 'tier' | 'n
     4: {
         label: 'Business Verified',
         description: 'Fully verified business',
-        color: 'text-purple-600',
-        bgColor: 'bg-purple-50',
-        borderColor: 'border-purple-200',
+        color: 'text-growth-green',
+        bgColor: 'bg-accent',
+        borderColor: 'border-growth-green/30',
         icon: 'verified',
     },
 };

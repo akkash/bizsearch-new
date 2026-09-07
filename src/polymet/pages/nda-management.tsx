@@ -57,7 +57,7 @@ const statusColors: Record<string, string> = {
     sent: 'bg-blue-100 text-blue-800',
     viewed: 'bg-yellow-100 text-yellow-800',
     signed: 'bg-green-100 text-green-800',
-    expired: 'bg-gray-100 text-gray-600',
+    expired: 'bg-secondary text-muted-foreground',
 };
 
 export function NDAManagementPage() {
@@ -216,7 +216,7 @@ export function NDAManagementPage() {
                 </Card>
                 <Card>
                     <CardContent className="p-4 text-center">
-                        <p className="text-2xl font-bold text-gray-600">{stats.expired}</p>
+                        <p className="text-2xl font-bold text-muted-foreground">{stats.expired}</p>
                         <p className="text-sm text-muted-foreground">Expired</p>
                     </CardContent>
                 </Card>

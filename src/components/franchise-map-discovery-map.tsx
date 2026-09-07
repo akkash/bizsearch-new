@@ -230,7 +230,7 @@ export function FranchiseMapDiscoveryMap({ locations, onLocationClick }: Franchi
                             className={
                                 selectedLocation.status === 'operating'
                                     ? 'text-white'
-                                    : 'bg-white text-gray-800 border border-gray-300'
+                                    : 'bg-card text-foreground border border-gray-300'
                             }
                             style={{
                                 backgroundColor: selectedLocation.status === 'operating'
@@ -289,7 +289,7 @@ export function FranchiseMapDiscoveryMap({ locations, onLocationClick }: Franchi
                             <span>Operating</span>
                         </div>
                         <div className="flex items-center gap-1">
-                            <div className="w-3 h-3 rounded-full bg-white border-2 border-gray-400" />
+                            <div className="w-3 h-3 rounded-full bg-card border-2 border-gray-400" />
                             <span>Available</span>
                         </div>
                     </div>

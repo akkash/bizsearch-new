@@ -120,7 +120,7 @@ export function ProfileEditPage({ className = "" }: ProfileEditPageProps) {
   }, [(profile as any)?.roles]);
 
   const roleOptions: { value: UserRole; label: string; description: string; icon: any; color: string }[] = [
-    { value: 'buyer', label: 'Business Buyer', description: 'Looking to acquire a business', icon: User, color: 'text-indigo-600' },
+    { value: 'buyer', label: 'Business Buyer', description: 'Looking to acquire a business', icon: User, color: 'text-trust-blue' },
     { value: 'seller', label: 'Business Seller', description: 'Looking to sell your business', icon: Building2, color: 'text-green-600' },
     { value: 'franchisor', label: 'Franchisor', description: 'Offering franchise opportunities', icon: Store, color: 'text-orange-600' },
     { value: 'franchisee', label: 'Franchisee', description: 'Looking for franchise opportunities', icon: Store, color: 'text-amber-600' },

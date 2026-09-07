@@ -120,50 +120,170 @@ export function BusinessBentoView({ business, className }: BusinessBentoViewProp
     const verificationStatus = business.verificationStatus || business.verification_status;
     const dataCompletenessScore = business.dataCompletenessScore || business.data_completeness_score;
 
+    // Fair value band from profit multiple when data exists (indicative, not a formal appraisal)
+    const fairLow = annualProfit ? Math.round(annualProfit * 2.2) : null;
+    const fairHigh = annualProfit ? Math.round(annualProfit * 3.2) : null;
+    const priceInRange =
+        askingPrice && fairLow && fairHigh
+            ? askingPrice >= fairLow && askingPrice <= fairHigh
+            : null;
+
     return (
         <div className={cn("space-y-6", className)}>
-            {/* Hero Section */}
-            <div className="relative aspect-[21/9] rounded-xl overflow-hidden bg-muted">
-                {images[0] ? (
-                    <img
-                        src={images[0]}
-                        alt={business.name}
-                        className="w-full h-full object-cover"
-                    />
-                ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                        <Store className="h-24 w-24 text-muted-foreground/30" />
-                    </div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-[hsl(var(--trust-blue-dark))] via-black/20 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-6">
-                    <div className="flex items-center gap-4">
-                        <div className="h-16 w-16 rounded-xl border-4 border-white shadow-lg bg-white flex items-center justify-center">
-                            <Store className="h-8 w-8 text-primary" />
+            {/* Identity + key economics */}
+            <div className="rounded-lg border border-border bg-card p-5 md:p-6">
+                <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
+                    <div>
+                        <div className="flex flex-wrap items-center gap-2 mb-2">
+                            {verificationStatus === 'verified' && (
+                                <Badge className="bg-growth-green/15 text-growth-green border-0">
+                                    <Shield className="h-3 w-3 mr-1" />
+                                    Verified
+                                </Badge>
+                            )}
+                            {business.industry && (
+                                <Badge variant="secondary">{business.industry}</Badge>
+                            )}
                         </div>
-                        <div>
-                            <h1 className="text-3xl font-bold text-white">{business.name || 'Business Name'}</h1>
-                            <p className="text-white/80">
-                                {business.industry || 'Industry N/A'} • {business.city || 'City'}, {business.state || 'State'}
-                            </p>
+                        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+                            {business.name || 'Business'}
+                        </h1>
+                        <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1.5">
+                            <MapPin className="h-3.5 w-3.5" />
+                            {business.city || business.location || 'Location N/A'}
+                            {business.state ? `, ${business.state}` : ''}
+                        </p>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6 mb-6">
+                    <div className="col-span-2 md:col-span-1">
+                        <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
+                            Asking price
+                        </div>
+                        <div className="text-3xl md:text-4xl font-bold font-mono tabular-nums tracking-tight">
+                            {formatCurrency(askingPrice)}
+                        </div>
+                    </div>
+                    <div>
+                        <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
+                            Revenue
+                        </div>
+                        <div className="text-xl md:text-2xl font-semibold font-mono tabular-nums">
+                            {formatCurrency(annualRevenue)}
+                        </div>
+                    </div>
+                    <div>
+                        <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
+                            EBITDA / Profit
+                        </div>
+                        <div className="text-xl md:text-2xl font-semibold font-mono tabular-nums text-growth-green">
+                            {formatCurrency(annualProfit)}
+                        </div>
+                    </div>
+                    <div>
+                        <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
+                            Margin
+                        </div>
+                        <div className="text-xl md:text-2xl font-semibold font-mono tabular-nums">
+                            {profitMargin !== null ? `${profitMargin}%` : '—'}
+                        </div>
+                    </div>
+                    <div>
+                        <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
+                            Established
+                        </div>
+                        <div className="text-xl md:text-2xl font-semibold">
+                            {establishedYear || '—'}
                         </div>
                     </div>
                 </div>
-                <div className="absolute top-4 right-4 flex gap-2">
-                    {business.featured && <Badge className="bg-amber-500 text-white">Featured</Badge>}
-                    {business.trending && <Badge className="bg-rose-500 text-white">Trending</Badge>}
-                    {verificationStatus === 'verified' && (
-                        <Badge className="bg-growth-green text-white"><Shield className="h-3 w-3 mr-1" />Verified</Badge>
+
+                {/* Is this price fair? */}
+                <div className="rounded-md border border-border bg-secondary/40 p-4 md:p-5">
+                    <div className="text-sm font-semibold mb-3">Is this price fair?</div>
+                    {annualProfit && fairLow && fairHigh ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div>
+                                <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                                    Asking price
+                                </div>
+                                <div className="text-lg font-semibold font-mono">
+                                    {formatCurrency(askingPrice)}
+                                </div>
+                            </div>
+                            <div>
+                                <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                                    Estimated fair value
+                                </div>
+                                <div className="text-lg font-semibold font-mono">
+                                    {formatCurrency(fairLow)}–{formatCurrency(fairHigh)}
+                                </div>
+                            </div>
+                            <div>
+                                <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                                    Price position
+                                </div>
+                                <div className={cn(
+                                    "text-lg font-semibold",
+                                    priceInRange ? "text-growth-green" : "text-warning"
+                                )}>
+                                    {priceInRange
+                                        ? "Within estimated range"
+                                        : askingPrice && askingPrice > fairHigh
+                                            ? "Above estimated range"
+                                            : "Below estimated range"}
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <p className="text-sm text-muted-foreground">
+                            Valuation is unavailable because financial data is incomplete.
+                        </p>
                     )}
+                    <p className="text-xs text-muted-foreground mt-3">
+                        Indicative range based on uploaded profit and common SME multiples — not a formal appraisal.
+                    </p>
                 </div>
             </div>
 
+            {/* Gallery */}
+            {hasImages && (
+                <div className="relative aspect-[21/9] rounded-lg overflow-hidden bg-muted">
+                    <img
+                        src={images[galleryIndex] || images[0]}
+                        alt={business.name}
+                        className="w-full h-full object-cover"
+                    />
+                    {images.length > 1 && (
+                        <div className="absolute bottom-3 right-3 flex gap-2">
+                            <Button
+                                size="icon"
+                                variant="secondary"
+                                className="h-8 w-8"
+                                onClick={() => setGalleryIndex((i) => (i - 1 + images.length) % images.length)}
+                            >
+                                <ChevronLeft className="h-4 w-4" />
+                            </Button>
+                            <Button
+                                size="icon"
+                                variant="secondary"
+                                className="h-8 w-8"
+                                onClick={() => setGalleryIndex((i) => (i + 1) % images.length)}
+                            >
+                                <ChevronRight className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    )}
+                </div>
+            )}
+
             {/* ============ CARD A: PROOF OF PROFIT ============ */}
             <Card className="overflow-hidden border-border">
-                <CardHeader className="gradient-trust text-primary-foreground pb-2">
+                <CardHeader className="bg-secondary/50 pb-2">
                     <div className="flex items-center gap-2">
-                        <IndianRupee className="h-5 w-5" />
-                        <CardTitle className="text-lg">Proof of Profit</CardTitle>
+                        <IndianRupee className="h-5 w-5 text-growth-green" />
+                        <CardTitle className="text-lg">Financial performance</CardTitle>
                     </div>
                 </CardHeader>
                 <CardContent className="p-0">

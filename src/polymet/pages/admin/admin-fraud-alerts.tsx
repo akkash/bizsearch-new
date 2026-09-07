@@ -107,7 +107,7 @@ export function AdminFraudAlerts() {
                 <Card>
                     <CardContent className="p-6">
                         <div className="flex items-center gap-4">
-                            <div className="p-3 rounded-lg bg-purple-100 text-purple-600">
+                            <div className="p-3 rounded-lg bg-growth-green/10 text-growth-green">
                                 <Shield className="h-6 w-6" />
                             </div>
                             <div>

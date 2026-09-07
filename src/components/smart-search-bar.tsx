@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Loader2, Sparkles, TrendingUp } from 'lucide-react';
+import { Search, Loader2, TrendingUp } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -76,26 +76,22 @@ export function SmartSearchBar({
     setSearchExplanation('');
 
     try {
-      // Use AI to parse and execute search
       const result = await AISmartSearchService.smartSearch(finalQuery);
-      
-      // Get explanation of results
+
       const explanation = await AISmartSearchService.explainResults(
         finalQuery,
         result.searchIntent,
         result.totalResults
       );
-      
+
       setSearchExplanation(explanation);
-      
-      // Call callbacks
+
       onSearch(finalQuery, result.searchIntent);
       if (onResultsFound) {
         onResultsFound(result.businesses, result.searchIntent);
       }
     } catch (error) {
       console.error('Search error:', error);
-      // Fallback to basic search
       onSearch(finalQuery);
     } finally {
       setIsSearching(false);
@@ -123,12 +119,11 @@ export function SmartSearchBar({
 
   return (
     <div className={cn('relative w-full', className)}>
-      {/* Search Input */}
       <div className="relative">
         <div className="absolute left-3 top-1/2 -translate-y-1/2">
           <Search className="h-5 w-5 text-muted-foreground" />
         </div>
-        
+
         <Input
           ref={inputRef}
           type="text"
@@ -137,47 +132,45 @@ export function SmartSearchBar({
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
           onFocus={() => query.length >= 3 && setShowSuggestionsList(true)}
-          className="pl-11 pr-24 h-12 text-base"
+          className="pl-11 pr-24 h-12 text-base border-border"
           disabled={isSearching}
         />
 
         <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
           {isSearching ? (
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-md">
-              <Loader2 className="h-4 w-4 animate-spin text-primary" />
-              <span className="text-xs font-medium text-primary">Searching...</span>
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-muted rounded-md border border-border">
+              <Loader2 className="h-4 w-4 animate-spin text-growth-green" />
+              <span className="text-xs font-medium text-muted-foreground">Searching...</span>
             </div>
           ) : (
             <Button
               size="sm"
               onClick={() => handleSearch()}
               disabled={!query.trim()}
-              className="h-8"
+              className="h-8 bg-growth-green hover:bg-growth-green-dark text-white"
             >
-              <Sparkles className="h-4 w-4 mr-1" />
+              <Search className="h-4 w-4 mr-1" />
               Search
             </Button>
           )}
         </div>
       </div>
 
-      {/* Search Explanation */}
       {searchExplanation && (
-        <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+        <div className="mt-3 p-3 bg-card rounded-lg border border-border">
           <div className="flex items-start gap-2">
-            <Sparkles className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-            <p className="text-sm text-blue-900 dark:text-blue-100">
+            <Search className="h-4 w-4 text-growth-green mt-0.5 flex-shrink-0" />
+            <p className="text-sm text-muted-foreground">
               {searchExplanation}
             </p>
           </div>
         </div>
       )}
 
-      {/* Autocomplete Suggestions Dropdown */}
       {showSuggestionsList && suggestions.length > 0 && (
         <Card
           ref={suggestionsRef}
-          className="absolute top-full left-0 right-0 mt-2 p-2 z-50 shadow-lg"
+          className="absolute top-full left-0 right-0 mt-2 p-2 z-50 border border-border shadow-sm"
         >
           <div className="space-y-1">
             {suggestions.map((suggestion, index) => (
@@ -194,7 +187,6 @@ export function SmartSearchBar({
         </Card>
       )}
 
-      {/* Popular Searches */}
       {!query && showSuggestions && (
         <div className="mt-4">
           <div className="flex items-center gap-2 mb-2">

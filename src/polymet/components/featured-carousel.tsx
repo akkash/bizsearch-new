@@ -4,7 +4,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Eye,
-  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BusinessCard } from "@/polymet/components/business-card";
@@ -82,11 +81,6 @@ export function FeaturedCarousel({
     setCurrentIndex((prev) => (prev >= maxIndex ? 0 : prev + 1));
   };
 
-  const goToSlide = (index: number) => {
-    setIsAutoPlaying(false);
-    setCurrentIndex(index);
-  };
-
   // Touch handlers for mobile swipe
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStart(e.targetTouches[0].clientX);
@@ -117,11 +111,24 @@ export function FeaturedCarousel({
 
   if (loading) {
     return (
-      <section className={`py-12 ${className}`}>
+      <section className={className}>
         <div className="container mx-auto px-4">
-          <div className="flex flex-col items-center justify-center py-16">
-            <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-            <p className="text-muted-foreground">Loading {type === "franchise" ? "franchises" : "businesses"}...</p>
+          <div className="h-8 w-64 bg-muted rounded animate-pulse mb-2" />
+          <div className="h-4 w-96 max-w-full bg-muted rounded animate-pulse mb-8" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="rounded-lg border border-border overflow-hidden">
+                <div className="h-36 bg-muted animate-pulse" />
+                <div className="p-4 space-y-3">
+                  <div className="h-5 w-3/4 bg-muted rounded animate-pulse" />
+                  <div className="h-8 w-1/2 bg-muted rounded animate-pulse" />
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="h-10 bg-muted rounded animate-pulse" />
+                    <div className="h-10 bg-muted rounded animate-pulse" />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -130,17 +137,31 @@ export function FeaturedCarousel({
 
   if (items.length === 0) {
     return (
-      <section className={`py-12 ${className}`}>
+      <section className={className}>
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold mb-2">{title || defaultTitles[type]}</h2>
-          <p className="text-muted-foreground mb-8">{subtitle || defaultSubtitles[type]}</p>
-          <div className="text-center py-12 bg-muted/30 rounded-lg">
-            <p className="text-muted-foreground">No featured {type === "franchise" ? "franchises" : "businesses"} available at the moment.</p>
-            {onViewAll && (
-              <Button onClick={onViewAll} className="mt-4">
-                Browse All {type === "franchise" ? "Franchises" : "Businesses"}
+          <h2 className="text-2xl md:text-3xl font-bold tracking-tight mb-2">
+            {title || defaultTitles[type]}
+          </h2>
+          <p className="text-muted-foreground mb-6">
+            {subtitle || defaultSubtitles[type]}
+          </p>
+          <div className="rounded-lg border border-border bg-card p-8 text-center">
+            <p className="text-foreground font-medium mb-1">
+              No {type === "franchise" ? "franchises" : "businesses"} match all your filters.
+            </p>
+            <p className="text-sm text-muted-foreground mb-4">
+              Browse the full catalog or try a broader search.
+            </p>
+            <div className="flex flex-wrap justify-center gap-2">
+              {onViewAll && (
+                <Button onClick={onViewAll} className="bg-growth-green hover:bg-growth-green/90 text-white">
+                  Browse all {type === "franchise" ? "franchises" : "businesses"}
+                </Button>
+              )}
+              <Button variant="outline" onClick={() => navigate("/smart-search")}>
+                Try smart search
               </Button>
-            )}
+            </div>
           </div>
         </div>
       </section>
@@ -148,39 +169,26 @@ export function FeaturedCarousel({
   }
 
   return (
-    <section className={`py-12 ${className}`}>
+    <section className={className}>
       <div className="container mx-auto px-4">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
           <div>
-            <h2 className="text-3xl font-bold mb-2">
+            <h2 className="text-2xl md:text-3xl font-bold tracking-tight mb-1">
               {title || defaultTitles[type]}
             </h2>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground text-sm md:text-base">
               {subtitle || defaultSubtitles[type]}
             </p>
           </div>
 
-          <div className="flex items-center gap-4 mt-4 md:mt-0">
-            {/* Navigation Dots - Desktop Only */}
-            <div className="hidden md:flex gap-2">
-              {Array.from({ length: maxIndex + 1 }).map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => goToSlide(index)}
-                  className={`w-2 h-2 rounded-full transition-colors ${index === currentIndex ? "bg-primary" : "bg-muted"
-                    }`}
-                />
-              ))}
-            </div>
-
-            {/* Navigation Buttons - Desktop Only */}
+          <div className="flex items-center gap-3 mt-4 md:mt-0">
             <div className="hidden md:flex gap-2">
               <Button
                 variant="outline"
                 size="icon"
                 onClick={goToPrevious}
                 disabled={items.length <= itemsPerView}
+                aria-label="Previous"
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
@@ -189,14 +197,15 @@ export function FeaturedCarousel({
                 size="icon"
                 onClick={goToNext}
                 disabled={items.length <= itemsPerView}
+                aria-label="Next"
               >
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
 
             {onViewAll && (
-              <Button onClick={onViewAll} className="hidden md:flex">
-                View All
+              <Button variant="outline" onClick={onViewAll} className="hidden md:flex">
+                View all
                 <Eye className="ml-2 h-4 w-4" />
               </Button>
             )}
@@ -286,40 +295,14 @@ export function FeaturedCarousel({
           </div>
         </div>
 
-        {/* Mobile View All Button */}
         {onViewAll && (
-          <div className="flex justify-center mt-8 md:hidden">
-            <Button onClick={onViewAll}>
-              View All {type === "franchise" ? "Franchises" : "Businesses"}
+          <div className="flex justify-center mt-6 md:hidden">
+            <Button variant="outline" onClick={onViewAll}>
+              View all {type === "franchise" ? "franchises" : "businesses"}
               <Eye className="ml-2 h-4 w-4" />
             </Button>
           </div>
         )}
-
-        {/* Auto-play Control - Desktop Only */}
-        <div className="hidden md:flex justify-center mt-6">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsAutoPlaying(!isAutoPlaying)}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            {isAutoPlaying ? "Pause" : "Play"} Auto-scroll
-          </Button>
-        </div>
-
-        {/* Mobile Navigation Dots */}
-        <div className="md:hidden flex justify-center gap-2 mt-6">
-          {Array.from({ length: Math.min(items.length, 5) }).map((_, index) => (
-            <div
-              key={index}
-              className={`h-2 rounded-full transition-all ${index === currentIndex % Math.min(items.length, 5)
-                ? "bg-primary w-8"
-                : "bg-muted w-2"
-                }`}
-            />
-          ))}
-        </div>
       </div>
     </section>
   );

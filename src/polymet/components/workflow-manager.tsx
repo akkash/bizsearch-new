@@ -81,7 +81,7 @@ const defaultSteps: WorkflowStep[] = [
 
 const statusConfig = {
   draft: {
-    color: "bg-gray-100 text-gray-800",
+    color: "bg-secondary text-foreground",
     icon: EditIcon,
     label: "Draft",
   },
@@ -233,7 +233,7 @@ export function WorkflowManager({
                           ? "bg-green-500 text-white"
                           : isCurrent
                             ? "bg-blue-500 text-white"
-                            : "bg-gray-200 text-gray-500"
+                            : "bg-gray-200 text-muted-foreground"
                       }`}
                     >
                       {isCompleted ? (
@@ -257,7 +257,7 @@ export function WorkflowManager({
                           ? "text-blue-600"
                           : isCompleted
                             ? "text-green-600"
-                            : "text-gray-500"
+                            : "text-muted-foreground"
                       }`}
                     >
                       {step.title}

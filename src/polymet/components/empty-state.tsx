@@ -23,58 +23,55 @@ export function EmptyState({
   const configs = {
     "no-results": {
       icon: Search,
-      defaultTitle: "No Results Found",
+      defaultTitle: "No businesses match all your filters.",
       defaultDescription:
-        "We couldn't find any opportunities matching your criteria. Try adjusting your filters or search terms.",
-      defaultActionText: "Clear Filters",
+        "Relax filters or try a broader search. Suggested: businesses under ₹1Cr, food businesses in Chennai, or similar listings.",
+      defaultActionText: "Relax Filters",
       illustration: (
         <svg
-          className="w-64 h-64 mx-auto mb-6 opacity-50"
+          className="w-48 h-48 mx-auto mb-6 opacity-50"
           viewBox="0 0 200 200"
           fill="none"
         >
-          <circle cx="100" cy="100" r="80" fill="#E2E8F0" />
-          <circle cx="100" cy="100" r="60" fill="#CBD5E1" />
+          <circle cx="100" cy="100" r="80" fill="currentColor" className="text-muted" opacity="0.3" />
+          <circle cx="100" cy="100" r="60" fill="currentColor" className="text-muted" opacity="0.4" />
           <path
             d="M100 60 L100 100 L130 130"
-            stroke="#64748B"
+            stroke="currentColor"
+            className="text-muted-foreground"
             strokeWidth="6"
             strokeLinecap="round"
           />
-          <circle cx="140" cy="140" r="15" fill="#3B82F6" />
         </svg>
       ),
     },
     "no-data": {
       icon: Building2,
-      defaultTitle: "No Listings Available Yet",
+      defaultTitle: "No details found in the table.",
       defaultDescription:
-        "We're constantly adding new opportunities. Check back soon or subscribe to get notified when new listings are available.",
-      defaultActionText: "Browse Other Categories",
+        "Listings will appear here when available. You can also list a business or browse franchises.",
+      defaultActionText: "Browse Franchises",
       illustration: (
         <svg
-          className="w-64 h-64 mx-auto mb-6 opacity-50"
+          className="w-48 h-48 mx-auto mb-6 opacity-50"
           viewBox="0 0 200 200"
           fill="none"
         >
-          <rect x="40" y="60" width="120" height="100" fill="#E2E8F0" rx="8" />
-          <rect x="60" y="80" width="30" height="25" fill="#CBD5E1" rx="2" />
-          <rect x="110" y="80" width="30" height="25" fill="#CBD5E1" rx="2" />
-          <rect x="60" y="115" width="30" height="25" fill="#CBD5E1" rx="2" />
-          <rect x="110" y="115" width="30" height="25" fill="#CBD5E1" rx="2" />
-          <rect x="70" y="145" width="60" height="10" fill="#3B82F6" rx="2" />
+          <rect x="40" y="60" width="120" height="100" fill="currentColor" className="text-muted" opacity="0.3" rx="8" />
+          <rect x="60" y="80" width="30" height="25" fill="currentColor" className="text-muted" opacity="0.5" rx="2" />
+          <rect x="110" y="80" width="30" height="25" fill="currentColor" className="text-muted" opacity="0.5" rx="2" />
         </svg>
       ),
     },
     error: {
       icon: AlertCircle,
-      defaultTitle: "Oops! Something Went Wrong",
+      defaultTitle: "Unable to load businesses.",
       defaultDescription:
-        "We're having trouble loading the data. Please try again in a moment.",
-      defaultActionText: "Retry",
+        "Something went wrong while loading listings. Try again.",
+      defaultActionText: "Try Again",
       illustration: (
         <svg
-          className="w-64 h-64 mx-auto mb-6 opacity-50"
+          className="w-48 h-48 mx-auto mb-6 opacity-50"
           viewBox="0 0 200 200"
           fill="none"
         >

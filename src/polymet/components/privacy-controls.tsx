@@ -230,7 +230,7 @@ export function PrivacyControls({
                 label: "Team Only",
                 description: "Only team members",
                 icon: Users,
-                color: "text-purple-600",
+                color: "text-growth-green",
               },
               ...visibilityOptions.filter(
                 (o) => o.value === "nda-required" || o.value === "private"

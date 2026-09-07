@@ -176,7 +176,7 @@ export function NDAModal({
 
         <Card>
           <CardContent className="p-4 text-center">
-            <CheckCircle className="w-8 h-8 mx-auto mb-2 text-purple-600" />
+            <CheckCircle className="w-8 h-8 mx-auto mb-2 text-growth-green" />
 
             <h4 className="font-medium">Instant Access</h4>
             <p className="text-sm text-muted-foreground">

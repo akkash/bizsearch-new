@@ -55,7 +55,7 @@ export function LiveMetricsDashboard({ className }: LiveMetricsDashboardProps) {
             numericValue: 3850,
             suffix: "+",
             icon: Building2,
-            color: "text-purple-500"
+            color: "text-growth-green"
         },
     ]);
 

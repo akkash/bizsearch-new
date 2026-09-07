@@ -37,7 +37,7 @@ export function TrustIndicators({
       icon: Lock,
       label: "Secure Platform",
       description: "Encrypted connections and protected account data",
-      color: "bg-purple-500",
+      color: "bg-growth-green",
     },
     {
       icon: Award,
@@ -142,7 +142,7 @@ export function TrustIndicators({
             {trustFeatures.map((feature, index) => (
               <div
                 key={index}
-                className="flex items-start gap-4 p-4 bg-white dark:bg-card rounded-lg"
+                className="flex items-start gap-4 p-4 bg-card dark:bg-card rounded-lg"
               >
                 <div className="p-2 bg-primary/10 rounded-lg">
                   <feature.icon className="h-5 w-5 text-primary" />

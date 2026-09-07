@@ -248,7 +248,7 @@ export function AddFranchiseListingPage({
         </h1>
         <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
           Connect with qualified franchisees and expand your brand across India.
-          Our AI-powered platform helps you find the right partners for
+          Our Smart platform helps you find the right partners for
           sustainable growth.
         </p>
       </div>
@@ -287,7 +287,7 @@ export function AddFranchiseListingPage({
           <CardHeader>
             <Lightbulb className="h-12 w-12 text-primary mx-auto mb-4" />
 
-            <CardTitle>AI-Powered Matching</CardTitle>
+            <CardTitle>Smart Matching</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground">

@@ -78,7 +78,7 @@ export function AdminDashboard() {
             value: stats?.pendingDocuments || 0,
             change: 'awaiting verification',
             icon: FileCheck,
-            color: 'text-purple-600 bg-purple-100',
+            color: 'text-growth-green bg-growth-green/10',
             urgent: (stats?.pendingDocuments || 0) > 0,
         },
     ];
@@ -86,7 +86,7 @@ export function AdminDashboard() {
     return (
         <div className="space-y-6">
             {/* Welcome Banner */}
-            <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-background rounded-lg p-6 border">
+            <div className="bg-card rounded-lg p-6 border border-border">
                 <h1 className="text-2xl font-bold mb-2">Welcome to Admin Dashboard</h1>
                 <p className="text-muted-foreground">
                     Monitor platform activity, moderate content, and manage users.
@@ -170,7 +170,7 @@ export function AdminDashboard() {
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle className="flex items-center gap-2">
-                            <FileCheck className="h-5 w-5 text-purple-600" />
+                            <FileCheck className="h-5 w-5 text-growth-green" />
                             Pending Documents
                         </CardTitle>
                         <Button variant="ghost" size="sm" asChild>

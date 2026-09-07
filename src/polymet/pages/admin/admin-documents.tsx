@@ -40,7 +40,7 @@ import { toast } from 'sonner';
 const documentTypeColors: Record<string, string> = {
     identity: 'bg-blue-100 text-blue-800',
     business: 'bg-green-100 text-green-800',
-    financial: 'bg-purple-100 text-purple-800',
+    financial: 'bg-growth-green/10 text-purple-800',
     legal: 'bg-orange-100 text-orange-800',
 };
 

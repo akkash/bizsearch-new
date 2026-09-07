@@ -55,14 +55,14 @@ export function StickyActionBar({
     return (
         <div
             className={cn(
-                "fixed bottom-0 left-0 right-0 z-40 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80",
+                "fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80",
                 className
             )}
         >
             {/* Progress bar at top of sticky bar */}
             <div className="h-1 w-full bg-muted">
                 <div
-                    className="h-full bg-gradient-to-r from-primary to-primary/80 transition-all duration-500"
+                    className="h-full bg-growth-green transition-all duration-500"
                     style={{ width: `${progress}%` }}
                 />
             </div>
@@ -94,7 +94,7 @@ export function StickyActionBar({
 
                         {lastSaved && !isSaving && (
                             <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                                <CheckCircle className="h-3.5 w-3.5 text-green-500" />
+                                <CheckCircle className="h-3.5 w-3.5 text-growth-green" />
                                 Saved {formatLastSaved(lastSaved)}
                             </div>
                         )}
@@ -127,7 +127,7 @@ export function StickyActionBar({
                                 onClick={onSubmit}
                                 disabled={!isValid}
                                 size="lg"
-                                className="gap-2 min-w-[160px] bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary"
+                                className="gap-2 min-w-[160px] bg-growth-green hover:bg-growth-green/90 text-white"
                             >
                                 <Send className="h-4 w-4" />
                                 Submit Listing
@@ -152,7 +152,7 @@ export function StickyActionBar({
                         <div className="flex items-center gap-2">
                             {lastSaved && !isSaving && (
                                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                    <CheckCircle className="h-3 w-3 text-green-500" />
+                                    <CheckCircle className="h-3 w-3 text-growth-green" />
                                     Saved
                                 </div>
                             )}
@@ -184,7 +184,7 @@ export function StickyActionBar({
                             <Button
                                 onClick={onSubmit}
                                 disabled={!isValid}
-                                className="flex-[2] bg-gradient-to-r from-primary to-primary/90"
+                                className="flex-[2] bg-growth-green hover:bg-growth-green/90 text-white"
                             >
                                 <Send className="h-4 w-4 mr-2" />
                                 Submit Listing

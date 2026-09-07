@@ -73,7 +73,7 @@ export function DueDiligenceDashboard({
                 Due Diligence Report
               </CardTitle>
               <CardDescription>
-                AI-powered comprehensive analysis for {businessData.name}
+                Smart comprehensive analysis for {businessData.name}
               </CardDescription>
             </div>
             {!report && (
@@ -235,7 +235,7 @@ export function DueDiligenceDashboard({
                   score={report.legalAnalysis.score}
                   findings={report.legalAnalysis.findings}
                   redFlags={report.legalAnalysis.redFlags}
-                  icon={<Scale className="h-6 w-6 text-purple-600" />}
+                  icon={<Scale className="h-6 w-6 text-growth-green" />}
                 />
               </TabsContent>
 

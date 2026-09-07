@@ -5,7 +5,6 @@ import {
   Send,
   Paperclip,
   User,
-  Bot,
   Building2,
   Briefcase,
   FileText,
@@ -49,7 +48,7 @@ const agents = {
       "Market Analysis",
     ],
 
-    description: "Expert in business acquisitions with 8+ years experience",
+    description: "Supports valuation, diligence, and acquisition workflows",
   },
   vijay: {
     name: "Vijay Sharma",
@@ -63,7 +62,7 @@ const agents = {
     ],
 
     description:
-      "Franchise specialist helping entrepreneurs find the right opportunities",
+      "Helps compare franchise models, investment ranges, and territory fit",
   },
 };
 
@@ -111,7 +110,7 @@ export function AIChat({ className }: AIChatProps) {
     const welcomeMessage: Message = {
       id: Date.now().toString(),
       type: "agent",
-      content: `Hi! I'm ${agents[agent].name}, your ${agents[agent].role}. ${agents[agent].description}. How can I help you today?`,
+      content: `Hi! I'm ${agents[agent].name}, ${agents[agent].role}. ${agents[agent].description}. What would you like to work on?`,
       timestamp: new Date(),
       agent,
       suggestions:
@@ -264,25 +263,22 @@ export function AIChat({ className }: AIChatProps) {
     return (
       <Button
         onClick={() => setIsOpen(true)}
-        className={`fixed bottom-24 md:bottom-6 right-4 md:right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 z-50 bg-primary hover:bg-primary/90 ${className}`}
+        className={`fixed bottom-24 md:bottom-6 right-4 md:right-6 h-14 w-14 rounded-full shadow-md hover:shadow-lg transition-shadow z-50 bg-growth-green hover:bg-growth-green-dark text-white ${className}`}
         size="icon"
+        data-ai-chat
       >
-        <div className="relative">
-          <MessageCircle className="h-6 w-6 text-white" />
-
-          <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse" />
-        </div>
+        <MessageCircle className="h-6 w-6" />
       </Button>
     );
   }
 
   return (
     <Card
-      className={`fixed bottom-24 md:bottom-6 right-4 md:right-6 w-[calc(100vw-2rem)] md:w-96 h-[calc(100vh-8rem)] md:h-[600px] shadow-xl z-50 flex flex-col ${className}`}
+      className={`fixed bottom-24 md:bottom-6 right-4 md:right-6 w-[calc(100vw-2rem)] md:w-96 h-[calc(100vh-8rem)] md:h-[600px] border border-border shadow-lg z-50 flex flex-col ${className}`}
     >
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-3 border-b border-border">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">AI Assistant</CardTitle>
+          <CardTitle className="text-lg">Advisor chat</CardTitle>
           <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
             <X className="h-4 w-4" />
           </Button>
@@ -313,15 +309,15 @@ export function AIChat({ className }: AIChatProps) {
         {!selectedAgent ? (
           <div className="p-4 space-y-4">
             <div className="text-center">
-              <h3 className="font-semibold mb-2">Choose Your AI Assistant</h3>
+              <h3 className="font-semibold mb-2">Choose a specialist</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Select the specialist who can best help you
+                Select the advisor who best matches your question
               </p>
             </div>
 
             <div className="space-y-3">
               <Card
-                className="cursor-pointer hover:bg-muted/50 transition-colors"
+                className="cursor-pointer border border-border hover:border-growth-green/40 transition-colors"
                 onClick={() => handleAgentSelect("ajay")}
               >
                 <CardContent className="p-4">
@@ -337,7 +333,7 @@ export function AIChat({ className }: AIChatProps) {
                         {agents.ajay.role}
                       </div>
                     </div>
-                    <Building2 className="h-5 w-5 text-blue-500 ml-auto" />
+                    <Building2 className="h-5 w-5 text-primary ml-auto" />
                   </div>
                   <p className="text-xs text-muted-foreground mb-2">
                     {agents.ajay.description}
@@ -357,7 +353,7 @@ export function AIChat({ className }: AIChatProps) {
               </Card>
 
               <Card
-                className="cursor-pointer hover:bg-muted/50 transition-colors"
+                className="cursor-pointer border border-border hover:border-growth-green/40 transition-colors"
                 onClick={() => handleAgentSelect("vijay")}
               >
                 <CardContent className="p-4">
@@ -373,7 +369,7 @@ export function AIChat({ className }: AIChatProps) {
                         {agents.vijay.role}
                       </div>
                     </div>
-                    <Briefcase className="h-5 w-5 text-green-500 ml-auto" />
+                    <Briefcase className="h-5 w-5 text-growth-green ml-auto" />
                   </div>
                   <p className="text-xs text-muted-foreground mb-2">
                     {agents.vijay.description}
@@ -396,8 +392,8 @@ export function AIChat({ className }: AIChatProps) {
         ) : (
           <>
             {/* Quick Actions */}
-            <div className="p-3 border-b">
-              <div className="text-xs font-medium mb-2">Quick Actions</div>
+            <div className="p-3 border-b border-border">
+              <div className="text-xs font-medium mb-2">Quick actions</div>
               <div className="grid grid-cols-2 gap-2">
                 {quickActions[selectedAgent].map((action) => (
                   <Button
@@ -439,10 +435,10 @@ export function AIChat({ className }: AIChatProps) {
                           )}
                         </Avatar>
                         <div
-                          className={`rounded-lg p-3 ${
+                          className={`rounded-lg p-3 border ${
                             message.type === "user"
-                              ? "bg-primary text-primary-foreground"
-                              : "bg-muted"
+                              ? "bg-growth-green text-white border-growth-green"
+                              : "bg-card border-border"
                           }`}
                         >
                           <p className="text-sm">{message.content}</p>
@@ -474,7 +470,7 @@ export function AIChat({ className }: AIChatProps) {
                       <Avatar className="h-6 w-6">
                         <AvatarImage src={agents[selectedAgent].avatar} />
                       </Avatar>
-                      <div className="bg-muted rounded-lg p-3">
+                      <div className="bg-muted rounded-lg p-3 border border-border">
                         <div className="flex space-x-1">
                           <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"></div>
                           <div
@@ -495,7 +491,7 @@ export function AIChat({ className }: AIChatProps) {
             </ScrollArea>
 
             {/* Input */}
-            <div className="p-3 border-t">
+            <div className="p-3 border-t border-border">
               <div className="flex gap-2">
                 <Button
                   variant="outline"
@@ -521,6 +517,7 @@ export function AIChat({ className }: AIChatProps) {
                   onClick={handleSendMessage}
                   disabled={!inputValue.trim() || isTyping}
                   data-send-button="true"
+                  className="bg-growth-green hover:bg-growth-green-dark text-white"
                 >
                   {isTyping ? (
                     <Loader2 className="h-4 w-4 animate-spin" />

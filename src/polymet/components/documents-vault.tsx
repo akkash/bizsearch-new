@@ -285,8 +285,8 @@ export function DocumentsVault({
       financial: "bg-green-100 text-green-800",
       legal: "bg-blue-100 text-blue-800",
       operational: "bg-orange-100 text-orange-800",
-      marketing: "bg-purple-100 text-purple-800",
-      other: "bg-gray-100 text-gray-800",
+      marketing: "bg-growth-green/10 text-purple-800",
+      other: "bg-secondary text-foreground",
     };
 
     return (
@@ -313,15 +313,15 @@ export function DocumentsVault({
   };
 
   return (
-    <div className={`bg-white border rounded-lg p-6 ${className}`}>
+    <div className={`bg-card border rounded-lg p-6 ${className}`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
             <FileText className="w-5 h-5" />
             Documents Vault
           </h3>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-muted-foreground">
             {isOwnVault
               ? "Manage your documents"
               : `${profile.displayName}'s documents`}
@@ -360,7 +360,7 @@ export function DocumentsVault({
           <div className="flex items-center gap-2 mb-4">
             <Unlock className="w-4 h-4 text-green-600" />
 
-            <h4 className="font-medium text-gray-900">Public Documents</h4>
+            <h4 className="font-medium text-foreground">Public Documents</h4>
             <Badge variant="outline" className="text-xs">
               {publicDocuments.length} documents
             </Badge>
@@ -370,23 +370,23 @@ export function DocumentsVault({
             {publicDocuments.map((document) => (
               <div
                 key={document.id}
-                className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted transition-colors"
               >
                 <div className="flex items-center gap-3 flex-1">
                   <span className="text-2xl">{getTypeIcon(document.type)}</span>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <h5 className="font-medium text-gray-900">
+                      <h5 className="font-medium text-foreground">
                         {document.name}
                       </h5>
                       {getTypeBadge(document.type)}
                     </div>
                     {document.description && (
-                      <p className="text-sm text-gray-600 mb-1">
+                      <p className="text-sm text-muted-foreground mb-1">
                         {document.description}
                       </p>
                     )}
-                    <div className="flex items-center gap-4 text-xs text-gray-500">
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
                       <span>{document.size}</span>
                       <span className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
@@ -433,7 +433,7 @@ export function DocumentsVault({
           <div className="flex items-center gap-2 mb-4">
             <Lock className="w-4 h-4 text-red-600" />
 
-            <h4 className="font-medium text-gray-900">Private Documents</h4>
+            <h4 className="font-medium text-foreground">Private Documents</h4>
             <Badge variant="outline" className="text-xs">
               {privateDocuments.length} documents
             </Badge>
@@ -471,15 +471,15 @@ export function DocumentsVault({
                 key={document.id}
                 className={`flex items-center justify-between p-4 border rounded-lg transition-colors ${
                   !isOwnVault && !hasSignedNDA
-                    ? "opacity-50 bg-gray-50"
-                    : "hover:bg-gray-50"
+                    ? "opacity-50 bg-muted"
+                    : "hover:bg-muted"
                 }`}
               >
                 <div className="flex items-center gap-3 flex-1">
                   <span className="text-2xl">{getTypeIcon(document.type)}</span>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <h5 className="font-medium text-gray-900">
+                      <h5 className="font-medium text-foreground">
                         {document.name}
                       </h5>
                       {getTypeBadge(document.type)}
@@ -491,11 +491,11 @@ export function DocumentsVault({
                       )}
                     </div>
                     {document.description && (
-                      <p className="text-sm text-gray-600 mb-1">
+                      <p className="text-sm text-muted-foreground mb-1">
                         {document.description}
                       </p>
                     )}
-                    <div className="flex items-center gap-4 text-xs text-gray-500">
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
                       <span>{document.size}</span>
                       <span className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
@@ -533,12 +533,12 @@ export function DocumentsVault({
       {/* Empty State */}
       {filteredDocuments.length === 0 && (
         <div className="text-center py-12">
-          <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
 
-          <h4 className="text-lg font-medium text-gray-900 mb-2">
+          <h4 className="text-lg font-medium text-foreground mb-2">
             No Documents Found
           </h4>
-          <p className="text-gray-600 mb-4">
+          <p className="text-muted-foreground mb-4">
             {selectedDocumentType === "all"
               ? "No documents have been uploaded yet."
               : `No ${selectedDocumentType} documents found.`}
@@ -566,7 +566,7 @@ export function DocumentsVault({
           </DialogHeader>
 
           <div className="space-y-4">
-            <div className="max-h-64 overflow-y-auto p-4 bg-gray-50 rounded-lg text-sm">
+            <div className="max-h-64 overflow-y-auto p-4 bg-muted rounded-lg text-sm">
               <h4 className="font-medium mb-2">
                 CONFIDENTIALITY AND NON-DISCLOSURE AGREEMENT
               </h4>

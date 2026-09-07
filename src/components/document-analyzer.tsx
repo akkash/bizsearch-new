@@ -69,11 +69,11 @@ export function DocumentAnalyzer({ onClose, className }: DocumentAnalyzerProps) 
       case 'financial':
         return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'legal':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
+        return 'bg-growth-green/10 text-purple-800 border-growth-green/30';
       case 'operational':
         return 'bg-green-100 text-green-800 border-green-200';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-secondary text-foreground border-border';
     }
   };
 
@@ -94,7 +94,7 @@ export function DocumentAnalyzer({ onClose, className }: DocumentAnalyzerProps) 
                 AI Document Analyzer
               </CardTitle>
               <CardDescription>
-                Upload business documents for AI-powered analysis
+                Upload business documents for Smart analysis
               </CardDescription>
             </div>
             {onClose && (
@@ -115,7 +115,7 @@ export function DocumentAnalyzer({ onClose, className }: DocumentAnalyzerProps) 
             onClick={() => fileInputRef.current?.click()}
             style={{ cursor: 'pointer' }}
           >
-            <Upload className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+            <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <p className="text-sm font-medium mb-1">
               Click to upload or drag and drop
             </p>
@@ -173,7 +173,7 @@ export function DocumentAnalyzer({ onClose, className }: DocumentAnalyzerProps) 
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
-                              <FileText className="h-4 w-4 text-gray-500" />
+                              <FileText className="h-4 w-4 text-muted-foreground" />
                               <span className="font-medium text-sm">{file.name}</span>
                               <span className="text-xs text-muted-foreground">
                                 ({(file.size / 1024).toFixed(1)} KB)
@@ -202,14 +202,14 @@ export function DocumentAnalyzer({ onClose, className }: DocumentAnalyzerProps) 
 
                                 {/* Summary */}
                                 <div>
-                                  <h5 className="text-xs font-medium text-gray-700 mb-1">Summary:</h5>
-                                  <p className="text-sm text-gray-600">{analysis.summary}</p>
+                                  <h5 className="text-xs font-medium text-foreground mb-1">Summary:</h5>
+                                  <p className="text-sm text-muted-foreground">{analysis.summary}</p>
                                 </div>
 
                                 {/* Key Findings */}
                                 {analysis.keyFindings.length > 0 && (
                                   <div>
-                                    <h5 className="text-xs font-medium text-gray-700 mb-1">Key Findings:</h5>
+                                    <h5 className="text-xs font-medium text-foreground mb-1">Key Findings:</h5>
                                     <ul className="space-y-1">
                                       {analysis.keyFindings.map((finding, i) => (
                                         <li key={i} className="flex items-start gap-2 text-xs">
@@ -252,8 +252,8 @@ export function DocumentAnalyzer({ onClose, className }: DocumentAnalyzerProps) 
 
                                 {/* Extracted Data */}
                                 {analysis.extractedData && Object.keys(analysis.extractedData).length > 0 && (
-                                  <div className="bg-gray-50 p-3 rounded-md">
-                                    <h5 className="text-xs font-medium text-gray-700 mb-2">Extracted Data:</h5>
+                                  <div className="bg-muted p-3 rounded-md">
+                                    <h5 className="text-xs font-medium text-foreground mb-2">Extracted Data:</h5>
                                     <div className="grid grid-cols-2 gap-2 text-xs">
                                       {analysis.extractedData.revenue && (
                                         <div>

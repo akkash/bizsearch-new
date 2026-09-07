@@ -171,8 +171,8 @@ export function ProfileSetupPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
-            <Card className="w-full max-w-lg">
+        <div className="min-h-screen bg-background flex items-center justify-center p-4">
+            <Card className="w-full max-w-lg border-border bg-card">
                 <CardHeader className="text-center">
                     <CardTitle className="text-2xl">Complete Your Profile</CardTitle>
                     <CardDescription>
@@ -265,7 +265,7 @@ export function ProfileSetupPage() {
                             </div>
                             {formData.selectedRoles.length > 1 && (
                                 <p className="text-sm text-muted-foreground flex items-center gap-1">
-                                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                                    <CheckCircle2 className="h-4 w-4 text-growth-green" />
                                     {formData.selectedRoles.length} roles selected
                                 </p>
                             )}

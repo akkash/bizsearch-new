@@ -53,7 +53,7 @@ interface Deal {
 }
 
 const stageConfig: Record<string, { label: string; color: string; bgColor: string }> = {
-    lead: { label: 'Lead', color: 'text-gray-700', bgColor: 'bg-gray-100' },
+    lead: { label: 'Lead', color: 'text-foreground', bgColor: 'bg-secondary' },
     qualified: { label: 'Qualified', color: 'text-blue-700', bgColor: 'bg-blue-100' },
     proposal: { label: 'Proposal', color: 'text-yellow-700', bgColor: 'bg-yellow-100' },
     negotiation: { label: 'Negotiation', color: 'text-orange-700', bgColor: 'bg-orange-100' },

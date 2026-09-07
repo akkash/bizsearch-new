@@ -173,7 +173,7 @@ export function ListingOptimizerPage() {
                         <Wand2 className="h-6 w-6 text-primary" />
                         Listing Optimizer
                     </h1>
-                    <p className="text-muted-foreground">AI-powered suggestions to improve your listing</p>
+                    <p className="text-muted-foreground">Smart suggestions to improve your listing</p>
                 </div>
                 <Button onClick={handleRefreshAnalysis} disabled={loading}>
                     {loading ? (
@@ -189,11 +189,11 @@ export function ListingOptimizerPage() {
                 {/* Main Content */}
                 <div className="lg:col-span-2 space-y-6">
                     {/* Quick Win Generator */}
-                    <Card className="bg-gradient-to-r from-primary/5 to-purple-500/5">
+                    <Card className="border-border bg-muted/30">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
-                                <Lightbulb className="h-5 w-5 text-primary" />
-                                AI Title Generator
+                                <Lightbulb className="h-5 w-5 text-growth-green" />
+                                Title Generator
                             </CardTitle>
                             <CardDescription>Generate optimized titles based on your listing data</CardDescription>
                         </CardHeader>

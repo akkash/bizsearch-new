@@ -55,36 +55,33 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-red-50 flex items-center justify-center px-4">
+        <div className="min-h-screen bg-background flex items-center justify-center px-4">
           <div className="max-w-2xl w-full text-center">
-            {/* Error Icon */}
-            <div className="inline-flex items-center justify-center w-24 h-24 bg-red-100 rounded-full mb-6">
-              <AlertCircle className="h-12 w-12 text-red-600" />
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-destructive/10 border border-destructive/30 rounded-full mb-6">
+              <AlertCircle className="h-10 w-10 text-destructive" />
             </div>
 
-            {/* Error Message */}
             <h1 className="text-4xl font-bold text-foreground mb-4">
-              Oops! Something Went Wrong
+              Something Went Wrong
             </h1>
             <p className="text-lg text-muted-foreground mb-8">
-              We're sorry for the inconvenience. An unexpected error has occurred.
+              An unexpected error has occurred. Please try again.
             </p>
 
-            {/* Error Details (Development Only) */}
             {import.meta.env.DEV && this.state.error && (
-              <div className="mb-8 p-6 bg-red-50 border border-red-200 rounded-lg text-left overflow-auto max-h-64">
-                <h3 className="font-semibold text-red-900 mb-2">
+              <div className="mb-8 p-6 bg-card border border-border rounded-lg text-left overflow-auto max-h-64">
+                <h3 className="font-semibold text-foreground mb-2">
                   Error Details:
                 </h3>
-                <pre className="text-sm text-red-800 whitespace-pre-wrap break-words">
+                <pre className="text-sm text-muted-foreground whitespace-pre-wrap break-words font-mono">
                   {this.state.error.toString()}
                 </pre>
                 {this.state.errorInfo && (
                   <>
-                    <h3 className="font-semibold text-red-900 mb-2 mt-4">
+                    <h3 className="font-semibold text-foreground mb-2 mt-4">
                       Component Stack:
                     </h3>
-                    <pre className="text-xs text-red-700 whitespace-pre-wrap break-words">
+                    <pre className="text-xs text-muted-foreground whitespace-pre-wrap break-words font-mono">
                       {this.state.errorInfo.componentStack}
                     </pre>
                   </>
@@ -92,12 +89,11 @@ export class ErrorBoundary extends Component<Props, State> {
               </div>
             )}
 
-            {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
                 onClick={() => window.location.reload()}
-                className="gap-2"
+                className="gap-2 bg-growth-green hover:bg-growth-green/90 text-white"
               >
                 <RefreshCw className="h-5 w-5" />
                 Reload Page
@@ -114,13 +110,12 @@ export class ErrorBoundary extends Component<Props, State> {
               </Link>
             </div>
 
-            {/* Help Text */}
-            <div className="mt-12 pt-8 border-t">
+            <div className="mt-12 pt-8 border-t border-border">
               <p className="text-sm text-muted-foreground">
                 If this problem persists, please{" "}
                 <Link
                   to="/contact"
-                  className="text-primary hover:underline font-medium"
+                  className="text-growth-green hover:underline font-medium"
                 >
                   contact our support team
                 </Link>

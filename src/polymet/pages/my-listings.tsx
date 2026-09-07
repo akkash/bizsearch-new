@@ -38,7 +38,7 @@ const statusConfig = {
   draft: {
     label: "Draft",
     icon: Edit,
-    color: "text-gray-500 bg-gray-100",
+    color: "text-muted-foreground bg-secondary",
   },
   pending_review: {
     label: "Under Review",
@@ -53,7 +53,7 @@ const statusConfig = {
   inactive: {
     label: "Inactive",
     icon: AlertCircle,
-    color: "text-gray-600 bg-gray-100",
+    color: "text-muted-foreground bg-secondary",
   },
   rejected: {
     label: "Rejected",

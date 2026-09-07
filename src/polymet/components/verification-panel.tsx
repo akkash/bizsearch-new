@@ -221,7 +221,7 @@ export function VerificationPanel({
         return <XCircle className="w-4 h-4 text-red-600" />;
 
       default:
-        return <AlertCircle className="w-4 h-4 text-gray-400" />;
+        return <AlertCircle className="w-4 h-4 text-muted-foreground" />;
     }
   };
 
@@ -230,7 +230,7 @@ export function VerificationPanel({
       verified: "bg-green-100 text-green-800",
       uploaded: "bg-yellow-100 text-yellow-800",
       rejected: "bg-red-100 text-red-800",
-      not_uploaded: "bg-gray-100 text-gray-600",
+      not_uploaded: "bg-secondary text-muted-foreground",
     };
 
     const labels = {
@@ -252,7 +252,7 @@ export function VerificationPanel({
         return <Clock className="w-6 h-6 text-yellow-600" />;
 
       default:
-        return <Shield className="w-6 h-6 text-gray-400" />;
+        return <Shield className="w-6 h-6 text-muted-foreground" />;
     }
   };
 
@@ -262,16 +262,16 @@ export function VerificationPanel({
       <PhoneVerification />
 
       {/* Document Verification Panel */}
-      <div className="bg-white border rounded-lg p-6">
+      <div className="bg-card border rounded-lg p-6">
         {/* Verification Status Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             {getVerificationStatusIcon()}
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">
+              <h3 className="text-lg font-semibold text-foreground">
                 Verification Status
               </h3>
-              <p className="text-sm text-gray-600 capitalize">
+              <p className="text-sm text-muted-foreground capitalize">
                 {profile.verificationStatus === "verified" &&
                   "Your profile is fully verified"}
                 {profile.verificationStatus === "pending" &&
@@ -290,10 +290,10 @@ export function VerificationPanel({
         {/* Progress Bar */}
         <div className="mb-6">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium text-gray-700">
+            <span className="text-sm font-medium text-foreground">
               Progress ({completedRequired}/{totalRequired} required documents)
             </span>
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-muted-foreground">
               {Math.round(verificationProgress)}%
             </span>
           </div>
@@ -302,28 +302,28 @@ export function VerificationPanel({
 
         {/* Documents List */}
         <div className="space-y-4">
-          <h4 className="font-medium text-gray-900">Required Documents</h4>
+          <h4 className="font-medium text-foreground">Required Documents</h4>
 
           {documents.map((doc) => (
             <div
               key={doc.id}
-              className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+              className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted transition-colors"
             >
               <div className="flex items-start gap-3 flex-1">
                 {getStatusIcon(doc.status)}
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <h5 className="font-medium text-gray-900">{doc.name}</h5>
+                    <h5 className="font-medium text-foreground">{doc.name}</h5>
                     {doc.required && (
                       <Badge variant="outline" className="text-xs">
                         Required
                       </Badge>
                     )}
                   </div>
-                  <p className="text-sm text-gray-600 mb-2">{doc.description}</p>
+                  <p className="text-sm text-muted-foreground mb-2">{doc.description}</p>
 
                   {doc.uploadDate && (
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-muted-foreground">
                       Uploaded on {new Date(doc.uploadDate).toLocaleDateString()}
                     </p>
                   )}

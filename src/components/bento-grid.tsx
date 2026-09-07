@@ -82,10 +82,10 @@ export function BentoCard({
     };
 
     const variantClasses = {
-        default: 'bg-card border',
-        gradient: 'bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20',
-        glass: 'bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border border-white/20',
-        highlight: 'bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/20',
+        default: 'bg-card border-border',
+        gradient: 'bg-card border-border border-l-4 border-l-growth-green',
+        glass: 'bg-card border-border',
+        highlight: 'bg-growth-green/5 border-growth-green/30',
     };
 
     return (
@@ -133,15 +133,15 @@ export function InvestmentCard({ min, max, franchiseFee, royalty }: InvestmentCa
                 </div>
                 <div className="mt-4 grid grid-cols-2 gap-4">
                     {franchiseFee && (
-                        <div className="bg-white/50 dark:bg-slate-800/50 rounded-lg p-3">
+                        <div className="bg-muted/50 border border-border rounded-lg p-3">
                             <div className="text-xs text-muted-foreground">Franchise Fee</div>
-                            <div className="text-lg font-semibold">{formatCurrency(franchiseFee)}</div>
+                            <div className="text-lg font-semibold font-mono tabular-nums">{formatCurrency(franchiseFee)}</div>
                         </div>
                     )}
                     {royalty && (
-                        <div className="bg-white/50 dark:bg-slate-800/50 rounded-lg p-3">
+                        <div className="bg-muted/50 border border-border rounded-lg p-3">
                             <div className="text-xs text-muted-foreground">Royalty</div>
-                            <div className="text-lg font-semibold">{royalty}%</div>
+                            <div className="text-lg font-semibold font-mono tabular-nums">{royalty}%</div>
                         </div>
                     )}
                 </div>
@@ -173,10 +173,10 @@ export function ROICard({ projectedRoi, breakeven, roiData }: ROICardProps) {
         <BentoCard colSpan={2} title="ROI Projection" variant="highlight">
             <div className="flex items-start justify-between mb-4">
                 <div>
-                    <div className="text-3xl font-bold text-emerald-600">{projectedRoi}%</div>
+                    <div className="text-3xl font-bold font-mono tabular-nums text-growth-green">{projectedRoi}%</div>
                     <div className="text-xs text-muted-foreground">Expected 5-Year ROI</div>
                 </div>
-                <Badge variant="outline" className="bg-emerald-50 border-emerald-200 text-emerald-700">
+                <Badge variant="outline" className="bg-growth-green/10 border-growth-green/30 text-growth-green">
                     <Clock className="h-3 w-3 mr-1" />
                     Breakeven: {breakeven}
                 </Badge>
@@ -185,7 +185,7 @@ export function ROICard({ projectedRoi, breakeven, roiData }: ROICardProps) {
                 {data.map((item, i) => (
                     <div key={item.year} className="flex-1 flex flex-col items-center gap-1">
                         <div
-                            className="w-full bg-gradient-to-t from-emerald-500 to-teal-400 rounded-t-sm transition-all hover:from-emerald-600 hover:to-teal-500"
+                            className="w-full bg-growth-green rounded-t-sm transition-opacity hover:opacity-80"
                             style={{ height: `${(item.roi / maxRoi) * 100}%`, minHeight: '8px' }}
                         />
                         <span className="text-[10px] text-muted-foreground">{item.year}</span>
@@ -211,7 +211,7 @@ export function SupportCard({ features }: SupportCardProps) {
                         className={cn(
                             "flex items-center gap-2 p-2 rounded-md text-sm",
                             feature.included
-                                ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300"
+                                ? "bg-growth-green/10 text-growth-green"
                                 : "bg-muted/50 text-muted-foreground"
                         )}
                     >
@@ -282,20 +282,20 @@ interface VerificationCardProps {
 export function VerificationCard({ status, score, verifiedAt }: VerificationCardProps) {
     const statusConfig = {
         verified: {
-            bg: 'bg-emerald-50 dark:bg-emerald-950/30',
-            text: 'text-emerald-700 dark:text-emerald-300',
+            bg: 'bg-growth-green/10',
+            text: 'text-growth-green',
             icon: Shield,
             label: 'Verified Listing'
         },
         pending: {
-            bg: 'bg-amber-50 dark:bg-amber-950/30',
-            text: 'text-amber-700 dark:text-amber-300',
+            bg: 'bg-amber-500/10',
+            text: 'text-amber-600',
             icon: Clock,
             label: 'Pending Verification'
         },
         unverified: {
-            bg: 'bg-slate-50 dark:bg-slate-950/30',
-            text: 'text-slate-600 dark:text-slate-400',
+            bg: 'bg-muted',
+            text: 'text-muted-foreground',
             icon: Shield,
             label: 'Not Verified'
         },

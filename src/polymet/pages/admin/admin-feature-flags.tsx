@@ -27,11 +27,11 @@ import type { FeatureFlag } from '@/lib/feature-flags-service';
 
 const categoryConfig: Record<string, { label: string; icon: any; color: string }> = {
     core: { label: 'Core Features', icon: Zap, color: 'bg-blue-100 text-blue-700' },
-    ai_features: { label: 'AI Features', icon: Brain, color: 'bg-purple-100 text-purple-700' },
+    ai_features: { label: 'AI Features', icon: Brain, color: 'bg-growth-green/10 text-growth-green' },
     maps: { label: 'Maps & Location', icon: Map, color: 'bg-green-100 text-green-700' },
     security: { label: 'Security', icon: Shield, color: 'bg-red-100 text-red-700' },
     beta: { label: 'Beta Features', icon: FlaskConical, color: 'bg-orange-100 text-orange-700' },
-    system: { label: 'System', icon: Settings, color: 'bg-gray-100 text-gray-700' },
+    system: { label: 'System', icon: Settings, color: 'bg-secondary text-foreground' },
 };
 
 export function AdminFeatureFlags() {

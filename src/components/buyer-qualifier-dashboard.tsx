@@ -53,7 +53,7 @@ export function BuyerQualifierDashboard({ sellerId, onClose, className }: BuyerQ
       case 'Cold Lead':
         return <Snowflake className="h-5 w-5 text-blue-500" />;
       default:
-        return <AlertCircle className="h-5 w-5 text-gray-500" />;
+        return <AlertCircle className="h-5 w-5 text-muted-foreground" />;
     }
   };
 
@@ -66,7 +66,7 @@ export function BuyerQualifierDashboard({ sellerId, onClose, className }: BuyerQ
       case 'Cold Lead':
         return 'bg-blue-50 border-blue-200 dark:bg-blue-950/20';
       default:
-        return 'bg-gray-50 border-gray-200';
+        return 'bg-muted border-border';
     }
   };
 
@@ -98,7 +98,7 @@ export function BuyerQualifierDashboard({ sellerId, onClose, className }: BuyerQ
             AI Buyer Qualification Dashboard
           </CardTitle>
           <CardDescription>
-            AI-powered lead scoring and prioritization for your listings
+            Smart lead scoring and prioritization for your listings
           </CardDescription>
         </CardHeader>
 
@@ -236,7 +236,7 @@ export function BuyerQualifierDashboard({ sellerId, onClose, className }: BuyerQ
                               )}
 
                               {/* Recommendation */}
-                              <div className="bg-white dark:bg-gray-900 p-3 rounded-lg">
+                              <div className="bg-card border border-border p-3 rounded-lg">
                                 <div className="text-sm font-semibold mb-1">AI Recommendation</div>
                                 <p className="text-sm text-muted-foreground">{lead.recommendedAction}</p>
                               </div>

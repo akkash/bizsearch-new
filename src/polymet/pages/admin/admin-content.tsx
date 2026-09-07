@@ -53,12 +53,12 @@ export function AdminContentManagement() {
     const statusColors: Record<string, string> = {
         published: 'bg-green-100 text-green-800',
         draft: 'bg-yellow-100 text-yellow-800',
-        archived: 'bg-gray-100 text-gray-600',
+        archived: 'bg-secondary text-muted-foreground',
     };
 
     const announcementTypeColors: Record<string, string> = {
         feature: 'bg-blue-100 text-blue-800',
-        info: 'bg-purple-100 text-purple-800',
+        info: 'bg-growth-green/10 text-purple-800',
         maintenance: 'bg-orange-100 text-orange-800',
         alert: 'bg-red-100 text-red-800',
     };

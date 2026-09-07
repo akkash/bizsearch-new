@@ -31,18 +31,16 @@ import {
     HelpCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { formatINR } from '@/lib/format-currency';
 
 interface FranchiseBentoViewProps {
     franchise: any;
     className?: string;
 }
 
-// Format currency in Indian style
 function formatCurrency(amount: number | null | undefined): string {
-    if (amount === null || amount === undefined) return 'N/A';
-    if (amount >= 10000000) return `₹${(amount / 10000000).toFixed(1)}Cr`;
-    if (amount >= 100000) return `₹${(amount / 100000).toFixed(1)}L`;
-    return `₹${amount.toLocaleString()}`;
+    if (amount === null || amount === undefined) return '—';
+    return formatINR(amount);
 }
 
 // Display value or N/A
@@ -65,14 +63,35 @@ export function FranchiseBentoView({ franchise, className }: FranchiseBentoViewP
     const franchiseFee = franchise.franchiseFee || franchise.franchise_fee;
     const royalty = franchise.royaltyPercentage || franchise.royalty_percentage;
 
-    // Investment breakdown - only if data exists
-    const hasInvestmentData = franchiseFee || totalInvestmentMax;
-    const investmentBreakdown = hasInvestmentData ? [
-        { label: 'Franchise Fee', amount: franchiseFee, percent: 25, color: 'bg-trust-blue' },
-        { label: 'Interiors & Branding', amount: totalInvestmentMax ? totalInvestmentMax * 0.25 : null, percent: 25, color: 'bg-primary/70' },
-        { label: 'Equipment & Setup', amount: totalInvestmentMax ? totalInvestmentMax * 0.35 : null, percent: 35, color: 'bg-growth-green' },
-        { label: 'Working Capital', amount: totalInvestmentMax ? totalInvestmentMax * 0.15 : null, percent: 15, color: 'bg-growth-green/60' },
-    ] : null;
+    // Prefer explicit breakdown fields; do not invent fee splits from totals
+    const setupCost =
+        franchise.setup_cost ||
+        franchise.setupCost ||
+        (totalInvestmentMin && franchiseFee
+            ? Math.max(0, totalInvestmentMin - franchiseFee)
+            : null);
+    const spaceReq =
+        franchise.space_requirement ||
+        franchise.min_area_sqft ||
+        franchise.spaceRequirement;
+    const verificationStatus =
+        franchise.verificationStatus || franchise.verification_status;
+
+    const hasInvestmentData = franchiseFee || totalInvestmentMax || totalInvestmentMin;
+    const investmentBreakdown = hasInvestmentData
+        ? [
+              franchiseFee != null && {
+                  label: 'Franchise fee',
+                  amount: franchiseFee,
+                  color: 'bg-trust-blue',
+              },
+              setupCost != null && {
+                  label: 'Setup',
+                  amount: setupCost,
+                  color: 'bg-growth-green',
+              },
+          ].filter(Boolean) as { label: string; amount: number; color: string }[]
+        : null;
 
     // ROI data
     const breakeven = franchise.breakevenPeriod || franchise.breakeven_period;
@@ -163,59 +182,118 @@ export function FranchiseBentoView({ franchise, className }: FranchiseBentoViewP
     const totalOutlets = franchise.outlets || franchise.total_outlets;
     const availableTerritories = franchise.availableTerritories || franchise.available_territories_count;
 
+    const brandName = franchise.brandName || franchise.brand_name || 'Franchise';
+    const logoUrl = franchise.logo || franchise.logo_url;
+    const investmentLabel =
+        totalInvestmentMin || totalInvestmentMax
+            ? totalInvestmentMax && totalInvestmentMax !== totalInvestmentMin
+                ? `${formatCurrency(totalInvestmentMin)}–${formatCurrency(totalInvestmentMax)}`
+                : formatCurrency(totalInvestmentMin || totalInvestmentMax)
+            : '—';
+
     return (
         <div className={cn("space-y-6", className)}>
-            {/* Hero Section */}
-            <div className="relative aspect-[21/9] rounded-xl overflow-hidden bg-muted">
-                {(franchise.images?.[0] || franchise.logo || franchise.logo_url) ? (
-                    <img
-                        src={franchise.images?.[0] || franchise.logo || franchise.logo_url}
-                        alt={franchise.brandName || franchise.brand_name}
-                        className="w-full h-full object-cover"
-                    />
-                ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                        <Store className="h-24 w-24 text-muted-foreground/30" />
-                    </div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-[hsl(var(--trust-blue-dark))] via-black/20 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-6">
-                    <div className="flex items-center gap-4">
-                        {(franchise.logo || franchise.logo_url) ? (
-                            <img
-                                src={franchise.logo || franchise.logo_url}
-                                alt={franchise.brandName || franchise.brand_name}
-                                className="h-16 w-16 rounded-xl border-4 border-white shadow-lg object-cover"
-                            />
+            {/* Identity + investment economics */}
+            <div className="rounded-lg border border-border bg-card p-5 md:p-6">
+                <div className="flex flex-wrap items-start gap-4 mb-6">
+                    <div className="h-14 w-14 rounded-md border border-border bg-secondary flex items-center justify-center overflow-hidden shrink-0">
+                        {logoUrl ? (
+                            <img src={logoUrl} alt="" className="h-full w-full object-contain p-1" />
                         ) : (
-                            <div className="h-16 w-16 rounded-xl border-4 border-white shadow-lg bg-white flex items-center justify-center">
-                                <Store className="h-8 w-8 text-primary" />
-                            </div>
+                            <Store className="h-6 w-6 text-muted-foreground" />
                         )}
-                        <div>
-                            <h1 className="text-3xl font-bold text-white">{franchise.brandName || franchise.brand_name || 'Franchise Name'}</h1>
-                            <p className="text-white/80">
-                                {franchise.industry || 'Industry N/A'}
-                                {establishedYear && ` • Est. ${establishedYear}`}
-                            </p>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2 mb-2">
+                            <Badge variant="outline" className="border-electric-blue/30 text-electric-blue text-[10px]">
+                                Franchise
+                            </Badge>
+                            {verificationStatus === 'verified' && (
+                                <Badge className="bg-growth-green/15 text-growth-green border-0">
+                                    <Shield className="h-3 w-3 mr-1" />
+                                    Verified
+                                </Badge>
+                            )}
+                            {franchise.industry && (
+                                <Badge variant="secondary">{franchise.industry}</Badge>
+                            )}
+                        </div>
+                        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{brandName}</h1>
+                        <p className="text-sm text-muted-foreground mt-1">
+                            {establishedYear ? `Est. ${establishedYear}` : 'Established year not listed'}
+                            {totalOutlets ? ` · ${totalOutlets} outlets` : ''}
+                        </p>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6">
+                    <div className="col-span-2 md:col-span-1">
+                        <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
+                            Total investment
+                        </div>
+                        <div className="text-3xl md:text-4xl font-bold font-mono tabular-nums tracking-tight">
+                            {investmentLabel}
+                        </div>
+                    </div>
+                    <div>
+                        <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
+                            Franchise fee
+                        </div>
+                        <div className="text-xl md:text-2xl font-semibold font-mono tabular-nums">
+                            {formatCurrency(franchiseFee)}
+                        </div>
+                    </div>
+                    <div>
+                        <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
+                            Setup
+                        </div>
+                        <div className="text-xl md:text-2xl font-semibold font-mono tabular-nums">
+                            {formatCurrency(setupCost)}
+                        </div>
+                    </div>
+                    <div>
+                        <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
+                            Royalty
+                        </div>
+                        <div className="text-xl md:text-2xl font-semibold font-mono tabular-nums">
+                            {royalty != null ? `${royalty}%` : '—'}
+                        </div>
+                    </div>
+                    <div>
+                        <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
+                            Break-even
+                        </div>
+                        <div className="text-xl md:text-2xl font-semibold">
+                            {breakeven || '—'}
                         </div>
                     </div>
                 </div>
-                <div className="absolute top-4 right-4 flex gap-2">
-                    {franchise.featured && <Badge className="bg-amber-500 text-white">Featured</Badge>}
-                    {franchise.trending && <Badge className="bg-rose-500 text-white">Trending</Badge>}
-                    {(franchise.verificationStatus === 'verified' || franchise.verification_status === 'verified') && (
-                        <Badge className="bg-growth-green text-white"><Shield className="h-3 w-3 mr-1" />Verified</Badge>
-                    )}
-                </div>
+                {spaceReq && (
+                    <p className="text-sm text-muted-foreground mt-4">
+                        Space requirement:{' '}
+                        <span className="text-foreground font-medium">
+                            {typeof spaceReq === 'number' ? `${spaceReq} sq ft` : spaceReq}
+                        </span>
+                    </p>
+                )}
             </div>
+
+            {(franchise.images?.[0]) && (
+                <div className="relative aspect-[21/9] rounded-lg overflow-hidden bg-muted">
+                    <img
+                        src={franchise.images[0]}
+                        alt={brandName}
+                        className="w-full h-full object-cover"
+                    />
+                </div>
+            )}
 
             {/* ============ CARD A: FINANCIALS ============ */}
             <Card className="overflow-hidden border-border">
-                <CardHeader className="gradient-trust text-primary-foreground pb-2">
+                <CardHeader className="bg-secondary/50 pb-2">
                     <div className="flex items-center gap-2">
-                        <IndianRupee className="h-5 w-5" />
-                        <CardTitle className="text-lg">Can I Afford It?</CardTitle>
+                        <IndianRupee className="h-5 w-5 text-growth-green" />
+                        <CardTitle className="text-lg">Investment details</CardTitle>
                     </div>
                 </CardHeader>
                 <CardContent className="p-0">
@@ -224,40 +302,23 @@ export function FranchiseBentoView({ franchise, className }: FranchiseBentoViewP
                         <div className="p-6">
                             <div className="flex items-center gap-2 mb-1">
                                 <Wallet className="h-4 w-4 text-trust-blue" />
-                                <span className="text-sm font-medium text-muted-foreground">Total Investment</span>
+                                <span className="text-sm font-medium text-muted-foreground">Total investment</span>
                             </div>
-                            <div className="text-3xl font-bold text-foreground mb-4">
-                                {totalInvestmentMin || totalInvestmentMax
-                                    ? `${formatCurrency(totalInvestmentMin)} - ${formatCurrency(totalInvestmentMax)}`
-                                    : 'Investment details not available'
-                                }
+                            <div className="text-3xl font-bold font-mono tabular-nums text-foreground mb-4">
+                                {investmentLabel}
                             </div>
 
-                            {/* Color-coded breakdown bar */}
-                            {investmentBreakdown ? (
-                                <>
-                                    <div className="flex h-3 rounded-full overflow-hidden mb-3">
-                                        {investmentBreakdown.map((item, i) => (
-                                            <div
-                                                key={i}
-                                                className={cn(item.color, "transition-all hover:opacity-80")}
-                                                style={{ width: `${item.percent}%` }}
-                                                title={`${item.label}: ${formatCurrency(item.amount)}`}
-                                            />
-                                        ))}
-                                    </div>
-
-                                    {/* Legend */}
-                                    <div className="grid grid-cols-2 gap-2">
-                                        {investmentBreakdown.map((item) => (
-                                            <div key={item.label} className="flex items-center gap-2 text-sm">
-                                                <div className={cn("w-3 h-3 rounded", item.color)} />
-                                                <span className="text-muted-foreground truncate">{item.label}</span>
-                                                <span className="font-medium ml-auto">{formatCurrency(item.amount)}</span>
+                            {investmentBreakdown && investmentBreakdown.length > 0 ? (
+                                <div className="grid grid-cols-2 gap-3">
+                                    {investmentBreakdown.map((item) => (
+                                        <div key={item.label} className="rounded-md border border-border p-3">
+                                            <div className="text-[11px] text-muted-foreground">{item.label}</div>
+                                            <div className="text-sm font-semibold font-mono tabular-nums">
+                                                {formatCurrency(item.amount)}
                                             </div>
-                                        ))}
-                                    </div>
-                                </>
+                                        </div>
+                                    ))}
+                                </div>
                             ) : (
                                 <div className="flex items-center gap-2 text-muted-foreground text-sm">
                                     <HelpCircle className="h-4 w-4" />
@@ -266,7 +327,9 @@ export function FranchiseBentoView({ franchise, className }: FranchiseBentoViewP
                             )}
 
                             <div className="mt-4 pt-3 border-t border-border text-sm text-muted-foreground">
-                                {royalty ? `+ ${royalty}% monthly royalty on gross sales` : 'Royalty information not available'}
+                                {royalty != null
+                                    ? `${royalty}% royalty on gross sales`
+                                    : 'Royalty information not available'}
                             </div>
                         </div>
 

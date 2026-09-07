@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
-    Sparkles,
+    Search,
     ArrowRight,
     Building2,
     Store,
@@ -114,7 +114,7 @@ export function NaturalLanguageSearch() {
             <div className="relative">
                 <div className="relative flex items-center">
                     <div className="absolute left-4 flex items-center gap-2 text-muted-foreground">
-                        <Sparkles className="h-5 w-5 text-primary" />
+                        <Search className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <Input
                         ref={inputRef}
@@ -122,8 +122,8 @@ export function NaturalLanguageSearch() {
                         onChange={(e) => setQuery(e.target.value)}
                         onKeyDown={handleKeyDown}
                         onFocus={() => !result && setShowSuggestions(true)}
-                        placeholder="Try: 'Cafe franchise under 10L in Mumbai with training'"
-                        className="pl-12 pr-24 h-14 text-lg rounded-full border-2 focus:border-primary shadow-lg"
+                        placeholder="e.g. Cafe franchise under 10L in Mumbai with training"
+                        className="pl-12 pr-24 h-12 text-base rounded-md border border-border focus-visible:ring-growth-green"
                     />
                     <div className="absolute right-2 flex items-center gap-2">
                         {query && (
@@ -139,7 +139,7 @@ export function NaturalLanguageSearch() {
                         <Button
                             onClick={handleSearch}
                             disabled={isSearching || !query.trim()}
-                            className="rounded-full h-10 px-6"
+                            className="h-9 px-4 bg-growth-green hover:bg-growth-green-dark text-white"
                         >
                             {isSearching ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -155,11 +155,11 @@ export function NaturalLanguageSearch() {
 
                 {/* Example Queries Dropdown */}
                 {showSuggestions && !result && (
-                    <Card className="absolute top-full mt-2 w-full z-50 shadow-xl">
+                    <Card className="absolute top-full mt-2 w-full z-50 border border-border shadow-sm">
                         <CardContent className="p-4">
                             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
                                 <Lightbulb className="h-4 w-4" />
-                                Try these examples:
+                                Example queries:
                             </div>
                             <div className="flex flex-wrap gap-2">
                                 {EXAMPLE_QUERIES.map((example) => (
@@ -183,13 +183,13 @@ export function NaturalLanguageSearch() {
             {result && (
                 <div className="mt-8 space-y-6">
                     {/* Intent Understanding */}
-                    <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
+                    <Card className="border border-border bg-card">
                         <CardContent className="p-4">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-4">
+                            <div className="flex items-center justify-between flex-wrap gap-3">
+                                <div className="flex items-center gap-4 flex-wrap">
                                     <div className="flex items-center gap-2">
-                                        <Filter className="h-4 w-4 text-primary" />
-                                        <span className="text-sm font-medium">I understood:</span>
+                                        <Filter className="h-4 w-4 text-growth-green" />
+                                        <span className="text-sm font-medium">Parsed criteria:</span>
                                     </div>
                                     <div className="flex flex-wrap gap-2">
                                         {result.intent.listing_type !== 'both' && (
@@ -218,8 +218,8 @@ export function NaturalLanguageSearch() {
                                         ))}
                                     </div>
                                 </div>
-                                <Badge className={result.intent.confidence >= 0.5 ? 'bg-green-500' : 'bg-yellow-500'}>
-                                    {Math.round(result.intent.confidence * 100)}% confident
+                                <Badge variant="outline" className={result.intent.confidence >= 0.5 ? 'border-growth-green text-growth-green' : 'border-warning text-warning'}>
+                                    {Math.round(result.intent.confidence * 100)}% match confidence
                                 </Badge>
                             </div>
                         </CardContent>
@@ -236,7 +236,7 @@ export function NaturalLanguageSearch() {
                                 {result.results.businesses.map((business) => (
                                     <Card
                                         key={business.id}
-                                        className="cursor-pointer hover:shadow-lg transition-shadow"
+                                        className="cursor-pointer border border-border hover:border-growth-green/40 transition-colors"
                                         onClick={() => navigate(`/business/${business.slug || business.id}`)}
                                     >
                                         <CardContent className="p-4">
@@ -246,7 +246,7 @@ export function NaturalLanguageSearch() {
                                                 <MapPin className="h-3 w-3" />
                                                 {business.city}, {business.state}
                                             </div>
-                                            <div className="mt-3 font-bold text-lg text-primary">
+                                            <div className="mt-3 font-bold text-lg text-foreground">
                                                 {formatPrice(business.price)}
                                             </div>
                                         </CardContent>
@@ -267,20 +267,20 @@ export function NaturalLanguageSearch() {
                                 {result.results.franchises.map((franchise) => (
                                     <Card
                                         key={franchise.id}
-                                        className="cursor-pointer hover:shadow-lg transition-shadow"
+                                        className="cursor-pointer border border-border hover:border-growth-green/40 transition-colors"
                                         onClick={() => navigate(`/franchise/${franchise.slug || franchise.id}`)}
                                     >
                                         <CardContent className="p-4">
                                             <div className="flex items-center gap-3">
                                                 {franchise.logo_url && (
-                                                    <img src={franchise.logo_url} alt="" className="h-10 w-10 rounded-full object-cover" />
+                                                    <img src={franchise.logo_url} alt="" className="h-10 w-10 rounded-md object-cover border border-border" />
                                                 )}
                                                 <div>
                                                     <h4 className="font-semibold line-clamp-1">{franchise.brand_name}</h4>
                                                     <p className="text-sm text-muted-foreground">{franchise.industry}</p>
                                                 </div>
                                             </div>
-                                            <div className="mt-3 font-bold text-lg text-primary">
+                                            <div className="mt-3 font-bold text-lg text-foreground">
                                                 {formatPrice(franchise.total_investment_min)} - {formatPrice(franchise.total_investment_max)}
                                             </div>
                                         </CardContent>
@@ -292,8 +292,8 @@ export function NaturalLanguageSearch() {
 
                     {/* No Results */}
                     {result.results.businesses.length === 0 && result.results.franchises.length === 0 && (
-                        <Card className="p-8 text-center">
-                            <p className="text-muted-foreground">No results found. Try a different search.</p>
+                        <Card className="p-8 text-center border border-border">
+                            <p className="text-muted-foreground">No details found in the table.</p>
                         </Card>
                     )}
                 </div>

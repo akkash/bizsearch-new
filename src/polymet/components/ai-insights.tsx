@@ -82,8 +82,8 @@ export function AIInsights({
       <Card className={`${className}`}>
         <CardHeader className="pb-4">
           <CardTitle className="flex items-center gap-2">
-            <Brain className="h-5 w-5 text-gray-400" />
-            <span className="text-gray-400">AI Analysis</span>
+            <Brain className="h-5 w-5 text-muted-foreground" />
+            <span className="text-muted-foreground">Listing analysis</span>
             <Badge variant="secondary" className="ml-auto">
               Disabled
             </Badge>
@@ -91,11 +91,11 @@ export function AIInsights({
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex flex-col items-center justify-center py-8 text-center">
-            <div className="p-3 bg-muted rounded-full mb-3">
+            <div className="p-3 bg-muted rounded-md mb-3">
               <Lock className="h-6 w-6 text-muted-foreground" />
             </div>
             <p className="text-muted-foreground text-sm">
-              AI Analysis is currently disabled.
+              Listing analysis is currently disabled.
               <br />
               <span className="text-xs">Contact admin to enable this feature.</span>
             </p>
@@ -256,7 +256,7 @@ Provide at least 3 key insights, 3-5 risk factors, and 3-5 opportunities. Focus 
       // Title
       doc.setFontSize(20);
       doc.setFont("helvetica", "bold");
-      doc.text("AI Investment Analysis Report", pageWidth / 2, yPosition, {
+      doc.text("Investment Analysis Report", pageWidth / 2, yPosition, {
         align: "center",
       });
       yPosition += 15;
@@ -284,7 +284,7 @@ Provide at least 3 key insights, 3-5 risk factors, and 3-5 opportunities. Focus 
       // Overall Score
       doc.setFontSize(14);
       doc.setFont("helvetica", "bold");
-      doc.text(`AI Opportunity Score: ${insights.overallScore}/100`, margin, yPosition);
+      doc.text(`Opportunity Score: ${insights.overallScore}/100`, margin, yPosition);
       yPosition += 7;
       doc.setFontSize(12);
       doc.setFont("helvetica", "normal");
@@ -356,7 +356,7 @@ Provide at least 3 key insights, 3-5 risk factors, and 3-5 opportunities. Focus 
           yPosition = 20;
         }
         doc.setFont("helvetica", "bold");
-        doc.text("Detailed AI Analysis:", margin, yPosition);
+        doc.text("Detailed Analysis:", margin, yPosition);
         yPosition += 7;
         doc.setFont("helvetica", "normal");
         doc.setFontSize(10);
@@ -377,12 +377,12 @@ Provide at least 3 key insights, 3-5 risk factors, and 3-5 opportunities. Focus 
       // Footer
       doc.setFontSize(8);
       doc.setFont("helvetica", "italic");
-      const disclaimer = "Disclaimer: This AI-generated analysis is for informational purposes only. Please conduct thorough due diligence and consult with financial advisors before making investment decisions.";
+      const disclaimer = "Disclaimer: This analysis is for informational purposes only. Conduct thorough due diligence and consult financial advisors before making investment decisions.";
       const disclaimerLines = doc.splitTextToSize(disclaimer, pageWidth - 2 * margin);
       doc.text(disclaimerLines, margin, doc.internal.pageSize.getHeight() - 20);
 
       // Save PDF
-      doc.save(`AI-Analysis-${businessName.replace(/\s+/g, "-")}-${Date.now()}.pdf`);
+      doc.save(`Analysis-${businessName.replace(/\s+/g, "-")}-${Date.now()}.pdf`);
     } catch (error) {
       console.error("PDF Generation Error:", error);
       alert("Failed to generate PDF report. Please try again.");
@@ -395,7 +395,7 @@ Provide at least 3 key insights, 3-5 risk factors, and 3-5 opportunities. Focus 
     const context: AIInsightContext = {
       businessName,
       type,
-      initialMessage: `I'm interested in this ${type} opportunity: ${businessName}. Based on your AI analysis showing a score of ${insights?.overallScore}/100, can you provide more insights and help me evaluate this opportunity?`,
+      initialMessage: `I'm interested in this ${type} opportunity: ${businessName}. Based on the analysis score of ${insights?.overallScore}/100, can you provide more insights and help me evaluate this opportunity?`,
     };
 
     if (onOpenAIChat) {
@@ -406,7 +406,7 @@ Provide at least 3 key insights, 3-5 risk factors, and 3-5 opportunities. Focus 
       if (aiChatButton) {
         aiChatButton.click();
       } else {
-        alert("AI Chat feature is available. Please use the AI chat button in the navigation.");
+        alert("Advisor chat is available. Please use the chat button in the navigation.");
       }
     }
   };
@@ -425,23 +425,21 @@ Provide at least 3 key insights, 3-5 risk factors, and 3-5 opportunities. Focus 
 
   if (loading) {
     return (
-      <Card className={`${className}`}>
+      <Card className={`border border-border ${className}`}>
         <CardHeader className="pb-4">
           <CardTitle className="flex items-center gap-2">
-            <Brain className="h-5 w-5 text-purple-600" />
-            <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-              AI Analysis
-            </span>
+            <Brain className="h-5 w-5 text-growth-green" />
+            <span className="text-foreground">Listing analysis</span>
             <Badge variant="secondary" className="ml-auto">
-              Powered by AI
+              Analyst tools
             </Badge>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex flex-col items-center justify-center py-12">
-            <Loader2 className="h-12 w-12 text-purple-600 animate-spin mb-4" />
+            <Loader2 className="h-10 w-10 text-growth-green animate-spin mb-4" />
             <p className="text-muted-foreground text-center">
-              Generating AI insights...
+              Generating analysis...
               <br />
               <span className="text-xs">This may take a few moments</span>
             </p>
@@ -453,22 +451,20 @@ Provide at least 3 key insights, 3-5 risk factors, and 3-5 opportunities. Focus 
 
   if (error && !insights) {
     return (
-      <Card className={`${className}`}>
+      <Card className={`border border-border ${className}`}>
         <CardHeader className="pb-4">
           <CardTitle className="flex items-center gap-2">
-            <Brain className="h-5 w-5 text-purple-600" />
-            <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-              AI Analysis
-            </span>
+            <Brain className="h-5 w-5 text-growth-green" />
+            <span className="text-foreground">Listing analysis</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex flex-col items-center justify-center py-12">
-            <AlertTriangle className="h-12 w-12 text-yellow-600 mb-4" />
+            <AlertTriangle className="h-10 w-10 text-warning mb-4" />
             <p className="text-muted-foreground text-center mb-4">
-              Unable to generate AI insights
+              Unable to generate analysis
               <br />
-              <span className="text-xs text-red-600">{error}</span>
+              <span className="text-xs text-destructive">{error}</span>
             </p>
             <Button onClick={generateAIInsights} variant="outline" size="sm">
               <Brain className="h-4 w-4 mr-2" />
@@ -483,26 +479,23 @@ Provide at least 3 key insights, 3-5 risk factors, and 3-5 opportunities. Focus 
   if (!insights) return null;
 
   return (
-    <Card className={`${className}`}>
+    <Card className={`border border-border ${className}`}>
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center gap-2">
-          <Brain className="h-5 w-5 text-purple-600" />
-
-          <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-            AI Analysis
-          </span>
+          <Brain className="h-5 w-5 text-growth-green" />
+          <span className="text-foreground">Listing analysis</span>
           <Badge variant="secondary" className="ml-auto">
-            Powered by AI
+            Analyst tools
           </Badge>
         </CardTitle>
       </CardHeader>
 
       <CardContent className="space-y-6">
         {/* Overall Score */}
-        <div className="flex items-center justify-between p-4 rounded-lg border bg-muted/30">
+        <div className="flex items-center justify-between p-4 rounded-lg border border-border bg-muted/30">
           <div>
             <div className="text-sm text-muted-foreground">
-              AI Opportunity Score
+              Opportunity score
             </div>
             <div
               className={`text-2xl font-bold ${getScoreColor(insights.overallScore).split(" ")[0]}`}
@@ -588,23 +581,23 @@ Provide at least 3 key insights, 3-5 risk factors, and 3-5 opportunities. Focus 
             ) : (
               <Download className="h-4 w-4 mr-2" />
             )}
-            {downloadingPDF ? "Generating..." : "Download AI Report"}
+            {downloadingPDF ? "Generating..." : "Download report"}
           </Button>
           <Button
             size="sm"
-            className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+            className="flex-1 bg-growth-green hover:bg-growth-green-dark text-white"
             onClick={handleAskAIAdvisor}
           >
             <MessageCircle className="h-4 w-4 mr-2" />
-            Ask AI Advisor
+            Ask advisor
           </Button>
         </div>
 
         {/* Disclaimer */}
-        <div className="text-xs text-muted-foreground bg-muted/30 p-3 rounded-lg">
-          <strong>Disclaimer:</strong> AI analysis is based on available data
-          and market trends. Please conduct thorough due diligence and consult
-          with financial advisors before making investment decisions.
+        <div className="text-xs text-muted-foreground bg-muted/30 p-3 rounded-lg border border-border">
+          <strong>Disclaimer:</strong> Analysis is based on available data
+          and market trends. Conduct thorough due diligence and consult
+          financial advisors before making investment decisions.
         </div>
       </CardContent>
     </Card>

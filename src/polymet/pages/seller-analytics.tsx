@@ -191,8 +191,8 @@ export function SellerAnalyticsPage() {
                                     {((overview.totalInquiries / overview.totalViews) * 100).toFixed(1)}%
                                 </p>
                             </div>
-                            <div className="p-3 bg-purple-100 rounded-lg">
-                                <TrendingUp className="h-6 w-6 text-purple-600" />
+                            <div className="p-3 bg-growth-green/10 rounded-lg">
+                                <TrendingUp className="h-6 w-6 text-growth-green" />
                             </div>
                         </div>
                         <p className="text-sm text-muted-foreground mt-2">Views to inquiries</p>
@@ -318,7 +318,7 @@ export function SellerAnalyticsPage() {
                                             <span>10%</span>
                                         </div>
                                         <div className="h-2 bg-muted rounded-full overflow-hidden">
-                                            <div className="h-full bg-purple-500 rounded-full" style={{ width: '10%' }} />
+                                            <div className="h-full bg-growth-green rounded-full" style={{ width: '10%' }} />
                                         </div>
                                     </div>
                                 </div>

@@ -225,7 +225,7 @@ export function ROICalculator({
       case "optimistic":
         return "text-green-600 bg-green-50";
       default:
-        return "text-gray-600 bg-gray-50";
+        return "text-muted-foreground bg-muted";
     }
   };
 

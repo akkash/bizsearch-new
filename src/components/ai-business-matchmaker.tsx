@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2, Sparkles, TrendingUp, AlertCircle, CheckCircle, X } from 'lucide-react';
+import { Loader2, Target, TrendingUp, AlertCircle, CheckCircle, X } from 'lucide-react';
 import { AIMatchmakerService, type UserPreferences, type BusinessMatch } from '@/lib/ai-matchmaker-service';
 import { BusinessCard } from '@/polymet/components/business-card';
 import { cn } from '@/lib/utils';
@@ -111,11 +111,11 @@ export function AIBusinessMatchmaker({ onClose, className }: AIBusinessMatchmake
             <div className="flex items-start justify-between">
               <div>
                 <CardTitle className="flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-purple-500" />
-                  AI Business Matchmaker
+                  <Target className="h-5 w-5 text-growth-green" />
+                  Business matchmaker
                 </CardTitle>
                 <CardDescription>
-                  Tell us what you're looking for, and our AI will find perfect business matches
+                  Set budget, industry, and location preferences to rank matching listings
                 </CardDescription>
               </div>
               {onClose && (
@@ -235,18 +235,18 @@ export function AIBusinessMatchmaker({ onClose, className }: AIBusinessMatchmake
             <Button
               onClick={handleFindMatches}
               disabled={isLoading}
-              className="w-full"
+              className="w-full bg-growth-green hover:bg-growth-green-dark text-white"
               size="lg"
             >
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Finding Perfect Matches...
+                  Finding matches...
                 </>
               ) : (
                 <>
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  Find My Perfect Businesses
+                  <Target className="mr-2 h-4 w-4" />
+                  Find matching businesses
                 </>
               )}
             </Button>
@@ -260,11 +260,11 @@ export function AIBusinessMatchmaker({ onClose, className }: AIBusinessMatchmake
               <div className="flex items-start justify-between">
                 <div>
                   <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-green-500" />
-                    {matches.length} Perfect Matches Found
+                    <TrendingUp className="h-5 w-5 text-growth-green" />
+                    {matches.length} matches found
                   </CardTitle>
                   <CardDescription>
-                    Ranked by AI compatibility with your preferences
+                    Ranked by preference compatibility score
                   </CardDescription>
                 </div>
                 <Button variant="outline" onClick={() => setStep('preferences')}>
@@ -290,11 +290,11 @@ export function AIBusinessMatchmaker({ onClose, className }: AIBusinessMatchmake
             </Card>
           ) : (
             matches.map((match, index) => (
-              <Card key={match.businessId} className="overflow-hidden">
-                <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20 p-4 border-b">
+              <Card key={match.businessId} className="overflow-hidden border border-border">
+                <div className="bg-muted/40 p-4 border-b border-border">
                   <div className="flex items-center justify-between mb-3">
-                    <Badge variant="secondary" className="text-base px-3 py-1">
-                      #{index + 1} Match Score: {match.matchScore}%
+                    <Badge variant="secondary" className="text-sm px-3 py-1">
+                      #{index + 1} · Match score {match.matchScore}%
                     </Badge>
                     <div className="flex gap-1">
                       {Array.from({ length: 5 }).map((_, i) => (
@@ -303,8 +303,8 @@ export function AIBusinessMatchmaker({ onClose, className }: AIBusinessMatchmake
                           className={cn(
                             'h-2 w-8 rounded-full',
                             i < Math.round(match.matchScore / 20)
-                              ? 'bg-green-500'
-                              : 'bg-gray-200 dark:bg-gray-700'
+                              ? 'bg-growth-green'
+                              : 'bg-border'
                           )}
                         />
                       ))}
@@ -314,9 +314,9 @@ export function AIBusinessMatchmaker({ onClose, className }: AIBusinessMatchmake
                   {/* Match Reasons */}
                   <div className="space-y-2">
                     <div className="flex items-start gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                      <CheckCircle className="h-4 w-4 text-growth-green mt-0.5 flex-shrink-0" />
                       <div>
-                        <p className="text-sm font-medium">Why this matches:</p>
+                        <p className="text-sm font-medium">Why this matches</p>
                         <ul className="text-xs text-muted-foreground space-y-1 mt-1">
                           {match.matchReasons.map((reason, i) => (
                             <li key={i}>• {reason}</li>
@@ -327,9 +327,9 @@ export function AIBusinessMatchmaker({ onClose, className }: AIBusinessMatchmake
 
                     {match.concerns.length > 0 && (
                       <div className="flex items-start gap-2">
-                        <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                        <AlertCircle className="h-4 w-4 text-warning mt-0.5 flex-shrink-0" />
                         <div>
-                          <p className="text-sm font-medium">Points to consider:</p>
+                          <p className="text-sm font-medium">Points to consider</p>
                           <ul className="text-xs text-muted-foreground space-y-1 mt-1">
                             {match.concerns.map((concern, i) => (
                               <li key={i}>• {concern}</li>
@@ -339,15 +339,15 @@ export function AIBusinessMatchmaker({ onClose, className }: AIBusinessMatchmake
                       </div>
                     )}
 
-                    {/* AI Recommendation */}
-                    <div className="bg-white/50 dark:bg-black/20 rounded-lg p-3 mt-3">
+                    {/* Recommendation */}
+                    <div className="bg-card border border-border rounded-lg p-3 mt-3">
                       <div className="flex items-start gap-2">
-                        <Sparkles className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                        <Target className="h-4 w-4 text-growth-green mt-0.5 flex-shrink-0" />
                         <div>
-                          <p className="text-xs font-medium text-purple-900 dark:text-purple-100">
-                            AI Recommendation:
+                          <p className="text-xs font-medium text-foreground">
+                            Analyst note
                           </p>
-                          <p className="text-xs text-purple-800 dark:text-purple-200 mt-1">
+                          <p className="text-xs text-muted-foreground mt-1">
                             {match.aiRecommendation}
                           </p>
                         </div>

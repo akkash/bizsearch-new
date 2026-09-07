@@ -67,7 +67,7 @@ export function TerritoryAnalyzer({ franchiseBrand, franchiseIndustry, onClose, 
             AI Territory Analyzer
           </CardTitle>
           <CardDescription>
-            Analyze franchise viability with AI-powered demographic and market insights
+            Analyze franchise viability with Smart demographic and market insights
           </CardDescription>
         </CardHeader>
 

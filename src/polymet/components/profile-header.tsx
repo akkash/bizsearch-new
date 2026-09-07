@@ -40,7 +40,7 @@ export function ProfileHeader({
         return <Clock className="w-4 h-4 text-yellow-600" />;
 
       default:
-        return <Shield className="w-4 h-4 text-gray-400" />;
+        return <Shield className="w-4 h-4 text-muted-foreground" />;
     }
   };
 
@@ -48,7 +48,7 @@ export function ProfileHeader({
     const variants = {
       verified: "bg-green-100 text-green-800 border-green-200",
       pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
-      unverified: "bg-gray-100 text-gray-600 border-gray-200",
+      unverified: "bg-secondary text-muted-foreground border-border",
     };
 
     return (
@@ -79,12 +79,12 @@ export function ProfileHeader({
       franchisee: {
         label: "Franchisee",
         icon: Award,
-        color: "bg-purple-100 text-purple-800 border-purple-200",
+        color: "bg-growth-green/10 text-purple-800 border-growth-green/30",
       },
       advisor: {
         label: "Advisor/Broker",
         icon: Globe,
-        color: "bg-gray-100 text-gray-800 border-gray-200",
+        color: "bg-secondary text-foreground border-border",
       },
     };
 
@@ -150,7 +150,7 @@ export function ProfileHeader({
   const companyInfo = getCompanyInfo();
 
   return (
-    <div className={`bg-white border rounded-lg p-6 ${className}`}>
+    <div className={`bg-card border rounded-lg p-6 ${className}`}>
       <div className="flex flex-col md:flex-row gap-6">
         {/* Avatar and Basic Info */}
         <div className="flex flex-col md:flex-row gap-4 flex-1">
@@ -158,29 +158,29 @@ export function ProfileHeader({
             <img
               src={profile.avatar || "https://github.com/polymet-ai.png"}
               alt={profile.displayName}
-              className="w-20 h-20 rounded-full object-cover border-2 border-gray-200"
+              className="w-20 h-20 rounded-full object-cover border-2 border-border"
             />
 
             {companyInfo.logo && (
               <img
                 src={companyInfo.logo}
                 alt={companyInfo.name}
-                className="w-16 h-16 rounded-lg object-cover border border-gray-200"
+                className="w-16 h-16 rounded-lg object-cover border border-border"
               />
             )}
           </div>
 
           <div className="flex-1 space-y-3">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-2xl font-bold text-foreground">
                 {profile.displayName}
               </h1>
               {companyInfo.name && (
-                <p className="text-lg text-gray-600 font-medium">
+                <p className="text-lg text-muted-foreground font-medium">
                   {companyInfo.name}
                 </p>
               )}
-              <p className="text-sm text-gray-500">{companyInfo.subtitle}</p>
+              <p className="text-sm text-muted-foreground">{companyInfo.subtitle}</p>
             </div>
 
             <div className="flex flex-wrap gap-2">
@@ -197,7 +197,7 @@ export function ProfileHeader({
               )}
             </div>
 
-            <div className="flex items-center gap-4 text-sm text-gray-500">
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
               <div className="flex items-center gap-1">
                 <MapPin className="w-4 h-4" />
 
@@ -245,7 +245,7 @@ export function ProfileHeader({
       {/* Bio */}
       {profile.bio && (
         <div className="mt-6 pt-6 border-t">
-          <p className="text-gray-700 leading-relaxed">{profile.bio}</p>
+          <p className="text-foreground leading-relaxed">{profile.bio}</p>
         </div>
       )}
 
@@ -255,28 +255,28 @@ export function ProfileHeader({
           {profile.role === "seller" && (
             <>
               <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-2xl font-bold text-foreground">
                   {(profile as any).listings?.length || 0}
                 </div>
-                <div className="text-sm text-gray-500">Active Listings</div>
+                <div className="text-sm text-muted-foreground">Active Listings</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-2xl font-bold text-foreground">
                   {(profile as any).inquiries || 0}
                 </div>
-                <div className="text-sm text-gray-500">Inquiries</div>
+                <div className="text-sm text-muted-foreground">Inquiries</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-2xl font-bold text-foreground">
                   {(profile as any).offers || 0}
                 </div>
-                <div className="text-sm text-gray-500">Offers</div>
+                <div className="text-sm text-muted-foreground">Offers</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-2xl font-bold text-foreground">
                   {(profile as any).employees || 0}
                 </div>
-                <div className="text-sm text-gray-500">Employees</div>
+                <div className="text-sm text-muted-foreground">Employees</div>
               </div>
             </>
           )}
@@ -284,32 +284,32 @@ export function ProfileHeader({
           {profile.role === "buyer" && (
             <>
               <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-2xl font-bold text-foreground">
                   {(profile as any).savedBusinesses?.length || 0}
                 </div>
-                <div className="text-sm text-gray-500">Saved</div>
+                <div className="text-sm text-muted-foreground">Saved</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-2xl font-bold text-foreground">
                   {(profile as any).ndaRequests?.length || 0}
                 </div>
-                <div className="text-sm text-gray-500">NDAs</div>
+                <div className="text-sm text-muted-foreground">NDAs</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-2xl font-bold text-foreground">
                   {(profile as any).preferredIndustries?.length || 0}
                 </div>
-                <div className="text-sm text-gray-500">Industries</div>
+                <div className="text-sm text-muted-foreground">Industries</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-2xl font-bold text-foreground">
                   ₹
                   {((profile as any).investmentRange?.max / 10000000).toFixed(
                     0
                   )}
                   Cr
                 </div>
-                <div className="text-sm text-gray-500">Max Budget</div>
+                <div className="text-sm text-muted-foreground">Max Budget</div>
               </div>
             </>
           )}
@@ -317,36 +317,36 @@ export function ProfileHeader({
           {profile.role === "franchisor" && (
             <>
               <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-2xl font-bold text-foreground">
                   {(profile as any).totalOutlets || 0}
                 </div>
-                <div className="text-sm text-gray-500">Outlets</div>
+                <div className="text-sm text-muted-foreground">Outlets</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-2xl font-bold text-foreground">
                   {(profile as any).leads || 0}
                 </div>
-                <div className="text-sm text-gray-500">Leads</div>
+                <div className="text-sm text-muted-foreground">Leads</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-2xl font-bold text-foreground">
                   {(profile as any).royaltyPercentage || 0}%
                 </div>
-                <div className="text-sm text-gray-500">Royalty</div>
+                <div className="text-sm text-muted-foreground">Royalty</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-2xl font-bold text-foreground">
                   {(profile as any).yearFounded
                     ? new Date().getFullYear() - (profile as any).yearFounded
                     : 0}
                 </div>
-                <div className="text-sm text-gray-500">Years</div>
+                <div className="text-sm text-muted-foreground">Years</div>
               </div>
             </>
           )}
 
           {(profile.role === "franchisee" || profile.role === "advisor") && (
-            <div className="col-span-2 md:col-span-4 text-center text-gray-500">
+            <div className="col-span-2 md:col-span-4 text-center text-muted-foreground">
               <p>Profile statistics will appear here based on activity</p>
             </div>
           )}

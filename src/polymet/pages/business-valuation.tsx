@@ -117,10 +117,10 @@ export function BusinessValuationPage() {
     };
 
     return (
-        <div className="container max-w-5xl mx-auto py-8 px-4">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold flex items-center gap-3">
-                    <Calculator className="h-8 w-8 text-primary" />
+        <div className="container max-w-5xl mx-auto py-8 px-4 bg-background">
+            <div className="mb-8 border-b border-border pb-6">
+                <h1 className="text-3xl font-bold flex items-center gap-3 text-foreground">
+                    <Calculator className="h-8 w-8 text-growth-green" />
                     Business Valuation Calculator
                 </h1>
                 <p className="text-muted-foreground mt-2">

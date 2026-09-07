@@ -63,12 +63,12 @@ interface Client {
 
 const statusColors: Record<string, string> = {
     active: 'bg-green-100 text-green-800',
-    inactive: 'bg-gray-100 text-gray-600',
+    inactive: 'bg-secondary text-muted-foreground',
     prospect: 'bg-blue-100 text-blue-800',
 };
 
 const typeColors: Record<string, string> = {
-    buyer: 'bg-purple-100 text-purple-800',
+    buyer: 'bg-growth-green/10 text-purple-800',
     seller: 'bg-orange-100 text-orange-800',
     both: 'bg-pink-100 text-pink-800',
 };
@@ -279,7 +279,7 @@ export function ClientManagementPage() {
                 </Card>
                 <Card>
                     <CardContent className="p-4 text-center">
-                        <p className="text-2xl font-bold text-purple-600">{stats.buyers}</p>
+                        <p className="text-2xl font-bold text-growth-green">{stats.buyers}</p>
                         <p className="text-sm text-muted-foreground">Buyers</p>
                     </CardContent>
                 </Card>

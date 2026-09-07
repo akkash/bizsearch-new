@@ -124,12 +124,12 @@ export function OnboardingStepVerification({
         <div className="space-y-6">
             {/* Header */}
             <div className="text-center">
-                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Shield className="w-8 h-8 text-purple-600" />
+                <div className="w-16 h-16 bg-growth-green/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Shield className="w-8 h-8 text-growth-green" />
                 </div>
                 <h2 className="text-2xl font-bold">Verify Your Identity</h2>
                 <p className="text-muted-foreground mt-2">
-                    Verified users get <span className="font-semibold text-purple-600">3x more responses</span> and a trust badge on their profile
+                    Verified users get <span className="font-semibold text-growth-green">3x more responses</span> and a trust badge on their profile
                 </p>
             </div>
 
@@ -178,7 +178,7 @@ export function OnboardingStepVerification({
                             </CardHeader>
                             <CardContent>
                                 {uploadedDoc ? (
-                                    <div className="flex items-center justify-between p-3 bg-white rounded-lg border">
+                                    <div className="flex items-center justify-between p-3 bg-card rounded-lg border">
                                         <div className="flex items-center gap-2 min-w-0">
                                             <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
                                             <span className="text-sm truncate">{uploadedDoc.file.name}</span>

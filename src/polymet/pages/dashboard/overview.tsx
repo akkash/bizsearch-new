@@ -101,7 +101,7 @@ export function DashboardPage() {
                         <Card>
                             <CardContent className="pt-6">
                                 <div className="flex items-center gap-4">
-                                    <div className="p-3 bg-indigo-100 text-indigo-600 rounded-lg">
+                                    <div className="p-3 bg-secondary text-trust-blue rounded-lg">
                                         <FileText className="w-6 h-6" />
                                     </div>
                                     <div>
@@ -128,7 +128,7 @@ export function DashboardPage() {
                             <Card>
                                 <CardContent className="pt-6">
                                     <div className="flex items-center gap-4">
-                                        <div className="p-3 bg-purple-100 text-purple-600 rounded-lg">
+                                        <div className="p-3 bg-growth-green/10 text-growth-green rounded-lg">
                                             <TrendingUp className="w-6 h-6" />
                                         </div>
                                         <div>
@@ -144,7 +144,7 @@ export function DashboardPage() {
                 <Card>
                     <CardContent className="pt-6">
                         <div className="flex items-center gap-4">
-                            <div className="p-3 bg-purple-100 text-purple-600 rounded-lg">
+                            <div className="p-3 bg-growth-green/10 text-growth-green rounded-lg">
                                 <TrendingUp className="w-6 h-6" />
                             </div>
                             <div>

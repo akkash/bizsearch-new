@@ -476,12 +476,12 @@ export function FranchisePreview({
                   className="w-full h-48 object-cover"
                 />
 
-                <div className="p-4 bg-gray-50">
-                  <div className="text-xs text-gray-500 uppercase mb-1">
+                <div className="p-4 bg-muted">
+                  <div className="text-xs text-muted-foreground uppercase mb-1">
                     bizsearch.com
                   </div>
                   <h3 className="font-semibold text-sm mb-1">{meta.title}</h3>
-                  <p className="text-xs text-gray-600">{meta.description}</p>
+                  <p className="text-xs text-muted-foreground">{meta.description}</p>
                 </div>
               </div>
             </CardContent>
@@ -502,10 +502,10 @@ export function FranchisePreview({
 
                 <div className="p-3">
                   <h3 className="font-semibold text-sm mb-1">{meta.title}</h3>
-                  <p className="text-xs text-gray-600 mb-2">
+                  <p className="text-xs text-muted-foreground mb-2">
                     {meta.description}
                   </p>
-                  <div className="text-xs text-gray-500">bizsearch.com</div>
+                  <div className="text-xs text-muted-foreground">bizsearch.com</div>
                 </div>
               </div>
             </CardContent>
@@ -526,10 +526,10 @@ export function FranchisePreview({
 
                 <div className="p-4">
                   <h3 className="font-semibold mb-1">{meta.title}</h3>
-                  <p className="text-sm text-gray-600 mb-2">
+                  <p className="text-sm text-muted-foreground mb-2">
                     {meta.description}
                   </p>
-                  <div className="text-xs text-gray-500">bizsearch.com</div>
+                  <div className="text-xs text-muted-foreground">bizsearch.com</div>
                 </div>
               </div>
             </CardContent>
@@ -539,7 +539,7 @@ export function FranchisePreview({
         {/* Mobile Preview */}
         <TabsContent value="mobile">
           <div className="max-w-sm mx-auto">
-            <div className="border rounded-lg overflow-hidden bg-white shadow-lg">
+            <div className="border rounded-lg overflow-hidden bg-card shadow-lg">
               {/* Mobile Header */}
               <div className="bg-primary text-primary-foreground p-4">
                 <h2 className="font-semibold text-lg">

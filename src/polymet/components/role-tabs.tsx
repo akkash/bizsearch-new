@@ -82,12 +82,12 @@ export function RoleTabs({
         inactive: "text-orange-600 hover:bg-orange-50 border-transparent",
       },
       purple: {
-        active: "bg-purple-100 text-purple-900 border-purple-300",
-        inactive: "text-purple-600 hover:bg-purple-50 border-transparent",
+        active: "bg-growth-green/10 text-purple-900 border-purple-300",
+        inactive: "text-growth-green hover:bg-accent border-transparent",
       },
       gray: {
-        active: "bg-gray-100 text-gray-900 border-gray-300",
-        inactive: "text-gray-600 hover:bg-gray-50 border-transparent",
+        active: "bg-secondary text-foreground border-gray-300",
+        inactive: "text-muted-foreground hover:bg-muted border-transparent",
       },
     };
 
@@ -99,9 +99,9 @@ export function RoleTabs({
   };
 
   return (
-    <div className={`bg-white border rounded-lg p-4 ${className}`}>
+    <div className={`bg-card border rounded-lg p-4 ${className}`}>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">Your Roles</h3>
+        <h3 className="text-lg font-semibold text-foreground">Your Roles</h3>
         {showAddRole && (
           <Button
             variant="outline"
@@ -149,7 +149,7 @@ export function RoleTabs({
         <select
           value={activeRole}
           onChange={(e) => onRoleChange(e.target.value as UserProfile["role"])}
-          className="w-full p-3 border rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full p-3 border rounded-lg bg-card text-foreground focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         >
           {roles.map((role) => (
             <option key={role.id} value={role.id}>
@@ -160,7 +160,7 @@ export function RoleTabs({
       </div>
 
       {/* Role Description */}
-      <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+      <div className="mt-4 p-3 bg-muted rounded-lg">
         <div className="flex items-center gap-2 mb-2">
           {(() => {
             const currentRole = roles.find((r) => r.id === activeRole);
@@ -168,16 +168,16 @@ export function RoleTabs({
             const IconComponent = currentRole.icon;
             return (
               <>
-                <IconComponent className="w-5 h-5 text-gray-600" />
+                <IconComponent className="w-5 h-5 text-muted-foreground" />
 
-                <span className="font-medium text-gray-900">
+                <span className="font-medium text-foreground">
                   {currentRole.label}
                 </span>
               </>
             );
           })()}
         </div>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-muted-foreground">
           {roles.find((r) => r.id === activeRole)?.description}
         </p>
       </div>

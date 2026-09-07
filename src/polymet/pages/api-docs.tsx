@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { PageHero } from '@/components/page-hero';
 import { Copy, Check, ExternalLink, Zap, Database, Shield, Search } from 'lucide-react';
 
 export function ApiDocsPage() {
@@ -69,55 +70,44 @@ export function ApiDocsPage() {
     ];
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
-            {/* Hero Section */}
-            <div className="container mx-auto px-4 py-16">
-                <div className="text-center mb-12">
-                    <Badge className="mb-4 bg-green-500/20 text-green-400 border-green-500/30">
-                        API v1.0
-                    </Badge>
-                    <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-                        BizSearch API
-                    </h1>
-                    <p className="text-xl text-slate-400 max-w-2xl mx-auto">
-                        Access business and franchise data programmatically. Build integrations,
-                        power AI agents, and create custom applications.
-                    </p>
-                </div>
+        <div className="min-h-screen bg-background">
+            <PageHero
+                eyebrow="API v1.0"
+                title="BizSearch API"
+                description="Access business and franchise data programmatically. Build integrations and custom applications."
+            />
 
-                {/* Features */}
-                <div className="grid md:grid-cols-4 gap-6 mb-12">
+            <div className="container mx-auto px-4 py-10">
+                <div className="grid md:grid-cols-4 gap-4 mb-10">
                     {[
                         { icon: Zap, title: 'Fast', desc: 'Edge-deployed globally' },
                         { icon: Database, title: 'Rich Data', desc: 'Complete listing details' },
                         { icon: Shield, title: 'Verified', desc: 'Trust scores included' },
                         { icon: Search, title: 'Searchable', desc: 'Powerful filtering' },
                     ].map((feature) => (
-                        <Card key={feature.title} className="bg-slate-800/50 border-slate-700">
+                        <Card key={feature.title} className="border-border bg-card">
                             <CardContent className="pt-6 text-center">
-                                <feature.icon className="h-8 w-8 text-blue-400 mx-auto mb-3" />
-                                <h3 className="font-semibold text-white">{feature.title}</h3>
-                                <p className="text-sm text-slate-400">{feature.desc}</p>
+                                <feature.icon className="h-8 w-8 text-growth-green mx-auto mb-3" />
+                                <h3 className="font-semibold text-foreground">{feature.title}</h3>
+                                <p className="text-sm text-muted-foreground">{feature.desc}</p>
                             </CardContent>
                         </Card>
                     ))}
                 </div>
 
-                {/* Base URL */}
-                <Card className="bg-slate-800/50 border-slate-700 mb-8">
+                <Card className="border-border bg-card mb-8">
                     <CardHeader>
-                        <CardTitle className="text-white">Base URL</CardTitle>
+                        <CardTitle>Base URL</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="flex items-center gap-2">
-                            <code className="flex-1 p-3 bg-slate-900 rounded-lg text-green-400 font-mono text-sm">
+                            <code className="flex-1 p-3 bg-muted rounded-lg text-growth-green font-mono text-sm overflow-x-auto">
                                 {baseUrl}
                             </code>
                             <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => copyToClipboard(baseUrl, 'base')}
-                                className="text-slate-300 border-slate-600"
                             >
                                 {copied === 'base' ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                             </Button>
@@ -125,33 +115,37 @@ export function ApiDocsPage() {
                     </CardContent>
                 </Card>
 
-                {/* Endpoints */}
-                <h2 className="text-2xl font-bold text-white mb-6">Endpoints</h2>
+                <h2 className="text-2xl font-bold text-foreground mb-6">Endpoints</h2>
 
                 <div className="space-y-6">
                     {endpoints.map((endpoint) => (
-                        <Card key={endpoint.path} className="bg-slate-800/50 border-slate-700">
+                        <Card key={endpoint.path} className="border-border bg-card">
                             <CardHeader>
                                 <div className="flex items-center gap-3">
                                     <Badge
-                                        className={`${endpoint.method === 'GET' ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'}`}
+                                        className={
+                                            endpoint.method === 'GET'
+                                                ? 'bg-growth-green/15 text-growth-green border-growth-green/30'
+                                                : 'bg-primary/10 text-primary border-primary/30'
+                                        }
+                                        variant="outline"
                                     >
                                         {endpoint.method}
                                     </Badge>
-                                    <code className="text-lg text-white font-mono">{endpoint.path}</code>
+                                    <code className="text-lg text-foreground font-mono">{endpoint.path}</code>
                                 </div>
-                                <CardDescription className="text-slate-400">
+                                <CardDescription>
                                     {endpoint.description}
                                 </CardDescription>
                             </CardHeader>
 
                             {endpoint.params.length > 0 && (
                                 <CardContent>
-                                    <div className="text-sm text-slate-400 mb-2">Query Parameters:</div>
-                                    <div className="bg-slate-900 rounded-lg p-4">
+                                    <div className="text-sm text-muted-foreground mb-2">Query Parameters:</div>
+                                    <div className="bg-muted/50 border border-border rounded-lg p-4 overflow-x-auto">
                                         <table className="w-full text-sm">
                                             <thead>
-                                                <tr className="text-slate-500 text-left">
+                                                <tr className="text-muted-foreground text-left">
                                                     <th className="pb-2">Name</th>
                                                     <th className="pb-2">Type</th>
                                                     <th className="pb-2">Description</th>
@@ -159,16 +153,16 @@ export function ApiDocsPage() {
                                             </thead>
                                             <tbody>
                                                 {endpoint.params.map((param: any) => (
-                                                    <tr key={param.name} className="border-t border-slate-800">
+                                                    <tr key={param.name} className="border-t border-border">
                                                         <td className="py-2">
-                                                            <code className="text-blue-400">{param.name}</code>
-                                                            {param.required && <span className="text-red-400 ml-1">*</span>}
+                                                            <code className="text-primary">{param.name}</code>
+                                                            {param.required && <span className="text-destructive ml-1">*</span>}
                                                         </td>
-                                                        <td className="py-2 text-slate-400">{param.type}</td>
-                                                        <td className="py-2 text-slate-400">
+                                                        <td className="py-2 text-muted-foreground">{param.type}</td>
+                                                        <td className="py-2 text-muted-foreground">
                                                             {param.description}
                                                             {param.default && (
-                                                                <span className="text-slate-500"> (default: {param.default})</span>
+                                                                <span className="text-muted-foreground/80"> (default: {param.default})</span>
                                                             )}
                                                         </td>
                                                     </tr>
@@ -182,11 +176,10 @@ export function ApiDocsPage() {
                     ))}
                 </div>
 
-                {/* Example Response */}
-                <h2 className="text-2xl font-bold text-white mt-12 mb-6">Example Response</h2>
-                <Card className="bg-slate-800/50 border-slate-700">
+                <h2 className="text-2xl font-bold text-foreground mt-12 mb-6">Example Response</h2>
+                <Card className="border-border bg-card">
                     <CardContent className="pt-6">
-                        <pre className="bg-slate-900 rounded-lg p-4 overflow-x-auto text-sm text-slate-300">
+                        <pre className="bg-muted border border-border rounded-lg p-4 overflow-x-auto text-sm text-foreground font-mono">
                             {`{
   "data": [
     {
@@ -215,9 +208,8 @@ export function ApiDocsPage() {
                     </CardContent>
                 </Card>
 
-                {/* OpenAPI Link */}
                 <div className="mt-12 text-center">
-                    <Button asChild className="gap-2">
+                    <Button asChild className="gap-2 bg-growth-green hover:bg-growth-green/90 text-white">
                         <a href="/api/openapi.json" target="_blank">
                             <ExternalLink className="h-4 w-4" />
                             Download OpenAPI Spec

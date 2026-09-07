@@ -48,8 +48,8 @@ const trustBadges = [
         icon: FileCheck,
         title: "Legal Compliance",
         description: "All deals comply with SEBI & RBI guidelines",
-        color: "text-purple-600 dark:text-purple-400",
-        bgColor: "bg-purple-50 dark:bg-purple-900/20",
+        color: "text-growth-green dark:text-purple-400",
+        bgColor: "bg-accent dark:bg-purple-900/20",
     },
     {
         icon: BadgeCheck,

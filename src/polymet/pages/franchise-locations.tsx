@@ -102,8 +102,8 @@ export function FranchiseLocationsPage() {
 
   const getStatusColor = (status: string) => {
     return status === 'operating'
-      ? 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400'
-      : 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400';
+      ? 'bg-growth-green/10 text-growth-green border-growth-green/30'
+      : 'bg-primary/10 text-primary border-primary/30';
   };
 
   const getStatusLabel = (status: string) => {
@@ -133,7 +133,7 @@ export function FranchiseLocationsPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Sticky Header */}
-      <div className="bg-white dark:bg-gray-900 border-b sticky top-0 z-10">
+      <div className="bg-card border-b border-border sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -186,39 +186,39 @@ export function FranchiseLocationsPage() {
       <div className="container mx-auto px-4 py-6">
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <Card className="bg-gradient-to-br from-blue-50 to-white dark:from-blue-900/20 dark:to-gray-900">
+          <Card className="border-border bg-card">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Total Locations</CardTitle>
-              <Building2 className="h-5 w-5 text-blue-600" />
+              <Building2 className="h-5 w-5 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-blue-600">{locationStats?.total_locations || 0}</div>
+              <div className="text-3xl font-bold font-mono tabular-nums">{locationStats?.total_locations || 0}</div>
               <p className="text-xs text-muted-foreground mt-1">
                 Across {locationStats?.states_covered || 0} states
               </p>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-red-50 to-white dark:from-red-900/20 dark:to-gray-900">
+          <Card className="border-border bg-card">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Operating</CardTitle>
-              <CheckCircleIcon className="h-5 w-5 text-red-600" />
+              <CheckCircleIcon className="h-5 w-5 text-growth-green" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-red-600">
+              <div className="text-3xl font-bold font-mono tabular-nums text-growth-green">
                 {locationStats?.operating_count || 0}
               </div>
               <p className="text-xs text-muted-foreground mt-1">Currently running franchises</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-800/40 dark:to-gray-900 border-gray-200">
+          <Card className="border-border bg-card">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Available Territories</CardTitle>
-              <TrendingUpIcon className="h-5 w-5 text-gray-600" />
+              <TrendingUpIcon className="h-5 w-5 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-gray-700 dark:text-gray-300">
+              <div className="text-3xl font-bold font-mono tabular-nums">
                 {locationStats?.looking_for_franchise_count || 0}
               </div>
               <p className="text-xs text-muted-foreground mt-1">Open for new franchisees</p>
@@ -314,7 +314,7 @@ export function FranchiseLocationsPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="text-sm text-muted-foreground dark:text-muted-foreground">
                     <p>{location.address_line1}</p>
                     {location.address_line2 && (
                       <p>{location.address_line2}</p>

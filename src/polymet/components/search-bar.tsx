@@ -201,7 +201,7 @@ export function SearchBar({
           >
             <div
               className={`p-2 rounded-full ${searchType === "franchise"
-                ? "bg-white/20"
+                ? "bg-primary-foreground/20"
                 : "bg-muted-foreground/10"
                 }`}
             >
@@ -221,7 +221,7 @@ export function SearchBar({
           >
             <div
               className={`p-2 rounded-full ${searchType === "business"
-                ? "bg-white/20"
+                ? "bg-primary-foreground/20"
                 : "bg-muted-foreground/10"
                 }`}
             >
@@ -262,7 +262,7 @@ export function SearchBar({
 
           {/* Autocomplete Suggestions Dropdown */}
           {showSuggestions && (
-            <div className="absolute top-full mt-2 left-0 right-0 bg-white rounded-xl shadow-2xl border-2 border-muted z-[100] max-h-96 overflow-y-auto">
+            <div className="absolute top-full mt-2 left-0 right-0 bg-popover text-popover-foreground rounded-xl shadow-2xl border border-border z-[100] max-h-96 overflow-y-auto">
               {query.length === 0 ? (
                 <>
                   {/* Popular Searches */}
@@ -537,7 +537,7 @@ export function SearchBar({
               setShowSuggestions(false);
             }}
             size="lg"
-            className="px-10 h-14 shadow-lg bg-gradient-to-r from-growth-green to-emerald-600 hover:from-emerald-600 hover:to-growth-green transition-all duration-200 font-bold text-base rounded-xl"
+            className="px-10 h-14 shadow-lg bg-growth-green hover:bg-growth-green/90 text-white transition-colors duration-200 font-bold text-base rounded-xl"
           >
             <Search className="h-5 w-5 mr-2" />
             Search

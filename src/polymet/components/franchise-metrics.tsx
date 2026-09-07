@@ -194,7 +194,7 @@ const statusConfig = {
     color: "bg-red-100 text-red-800",
     label: "Underperforming",
   },
-  new: { color: "bg-purple-100 text-purple-800", label: "New" },
+  new: { color: "bg-growth-green/10 text-purple-800", label: "New" },
 };
 
 const COLORS = [
@@ -340,7 +340,7 @@ export function FranchiseMetrics({
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-2">
-              <MapPinIcon className="h-5 w-5 text-purple-500" />
+              <MapPinIcon className="h-5 w-5 text-growth-green" />
 
               <div>
                 <p className="text-sm text-muted-foreground">
@@ -543,7 +543,7 @@ export function FranchiseMetrics({
                   {selectedMetrics.brandCompliance}%
                 </p>
               </div>
-              <div className="p-3 bg-purple-50 rounded-lg">
+              <div className="p-3 bg-accent rounded-lg">
                 <p className="text-sm text-muted-foreground">
                   Training Completion
                 </p>

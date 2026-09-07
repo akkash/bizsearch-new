@@ -190,7 +190,7 @@ export function FranchiseMap({ locations, onLocationClick }: FranchiseMapProps) 
               className={
                 selectedLocation.status === 'operating'
                   ? 'bg-red-500 text-white'
-                  : 'bg-white text-gray-800 border border-gray-300'
+                  : 'bg-card text-foreground border border-gray-300'
               }
             >
               {selectedLocation.status === 'operating' ? 'Operating' : 'Available Territory'}

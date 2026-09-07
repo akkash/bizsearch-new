@@ -78,7 +78,7 @@ export function FranchiseeMatcher({ onClose, className }: FranchiseeMatcherProps
     if (score >= 80) return 'text-green-600 bg-green-50 border-green-200';
     if (score >= 65) return 'text-blue-600 bg-blue-50 border-blue-200';
     if (score >= 45) return 'text-orange-600 bg-orange-50 border-orange-200';
-    return 'text-gray-600 bg-gray-50 border-gray-200';
+    return 'text-muted-foreground bg-muted border-border';
   };
 
   if (!user) {

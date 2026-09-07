@@ -171,7 +171,7 @@ export function ProfileDocumentsPage({
         return <AlertTriangle className="w-4 h-4 text-red-600" />;
 
       default:
-        return <FileText className="w-4 h-4 text-gray-600" />;
+        return <FileText className="w-4 h-4 text-muted-foreground" />;
     }
   };
 
@@ -184,7 +184,7 @@ export function ProfileDocumentsPage({
       case "rejected":
         return "bg-red-100 text-red-800";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-secondary text-foreground";
     }
   };
 
@@ -242,7 +242,7 @@ export function ProfileDocumentsPage({
                       ? "bg-green-100 text-green-800"
                       : profile.verificationStatus === "pending"
                         ? "bg-yellow-100 text-yellow-800"
-                        : "bg-gray-100 text-gray-800"
+                        : "bg-secondary text-foreground"
                   }
                 >
                   {profile.verificationStatus}

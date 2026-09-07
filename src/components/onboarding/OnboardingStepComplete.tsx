@@ -1,18 +1,15 @@
-
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
     CheckCircle2,
-    PartyPopper,
     ArrowRight,
     User,
     Briefcase,
     Store,
     Building2,
     Search,
-    Sparkles
 } from 'lucide-react';
 import { useProfileCompleteness } from '@/hooks/use-profile-completeness';
 import type { Profile } from '@/types/auth.types';
@@ -72,33 +69,22 @@ export function OnboardingStepComplete({
     return (
         <div className="relative">
             <div className="space-y-8 text-center">
-                {/* Success Icon with animation */}
                 <div className="flex justify-center">
-                    <div className="relative animate-bounce">
-                        <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center shadow-lg">
-                            <CheckCircle2 className="w-12 h-12 text-green-600" />
-                        </div>
-                        <div className="absolute -right-2 -top-2 animate-pulse">
-                            <PartyPopper className="w-8 h-8 text-yellow-500" />
-                        </div>
-                        <div className="absolute -left-3 top-4 animate-pulse delay-75">
-                            <Sparkles className="w-6 h-6 text-primary" />
-                        </div>
+                    <div className="w-20 h-20 bg-growth-green/15 rounded-full flex items-center justify-center border border-growth-green/30">
+                        <CheckCircle2 className="w-10 h-10 text-growth-green" />
                     </div>
                 </div>
 
-                {/* Title */}
                 <div>
                     <h2 className="text-3xl font-bold text-foreground">
-                        You're all set! 🎉
+                        You're all set
                     </h2>
                     <p className="text-muted-foreground mt-2 text-lg">
-                        Your profile is ready. Welcome to BizSearch!
+                        Your profile is ready. Welcome to BizSearch.
                     </p>
                 </div>
 
-                {/* Profile Completeness */}
-                <Card className="max-w-sm mx-auto">
+                <Card className="max-w-sm mx-auto border-border bg-card">
                     <CardContent className="pt-6">
                         <div className="space-y-3">
                             <div className="flex justify-between items-center">
@@ -109,20 +95,19 @@ export function OnboardingStepComplete({
                             </div>
                             <div className="w-full bg-muted rounded-full h-2">
                                 <div
-                                    className="bg-primary h-2 rounded-full transition-all duration-500"
+                                    className="bg-growth-green h-2 rounded-full transition-all duration-500"
                                     style={{ width: `${completeness.score}%` }}
                                 />
                             </div>
                             {completeness.missingFields.length > 0 && (
                                 <p className="text-xs text-muted-foreground">
-                                    Complete {completeness.missingFields.length} more field{completeness.missingFields.length > 1 ? 's' : ''} to boost your visibility
+                                    Complete {completeness.missingFields.length} more field{completeness.missingFields.length > 1 ? 's' : ''} to improve visibility
                                 </p>
                             )}
                         </div>
                     </CardContent>
                 </Card>
 
-                {/* Next Steps */}
                 <div className="space-y-4">
                     <h3 className="text-lg font-semibold">What would you like to do next?</h3>
                     <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -134,7 +119,7 @@ export function OnboardingStepComplete({
                                     variant={index === 0 ? 'default' : 'outline'}
                                     size="lg"
                                     onClick={() => navigate(step.path)}
-                                    className="min-w-[180px]"
+                                    className={index === 0 ? 'min-w-[180px] bg-growth-green hover:bg-growth-green/90 text-white' : 'min-w-[180px]'}
                                 >
                                     <Icon className="mr-2 h-5 w-5" />
                                     {step.label}
@@ -144,7 +129,6 @@ export function OnboardingStepComplete({
                     </div>
                 </div>
 
-                {/* Home Link */}
                 <Button
                     variant="link"
                     onClick={onFinish}

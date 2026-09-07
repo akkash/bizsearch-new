@@ -1,61 +1,56 @@
-import { MainLayout } from '@/polymet/layouts/main-layout';
 import { NaturalLanguageSearch } from '@/components/natural-language-search';
+import { MessageSquare, Search, ListChecks } from 'lucide-react';
 
 export function SmartSearchPage() {
     return (
-        <MainLayout>
-            <div className="min-h-[80vh] bg-gradient-to-b from-slate-50 to-white">
-                <div className="container mx-auto px-4 py-16">
-                    {/* Hero */}
-                    <div className="text-center mb-12">
-                        <h1 className="text-4xl md:text-5xl font-bold mb-4">
-                            <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-600">
-                                Smart Search
-                            </span>
-                        </h1>
-                        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                            Just describe what you're looking for in plain English. Our AI understands your intent.
-                        </p>
-                    </div>
+        <div className="min-h-[80vh] bg-background">
+            <div className="border-b border-border bg-card">
+                <div className="container mx-auto px-4 py-8 md:py-10">
+                    <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">
+                        Search by description
+                    </h1>
+                    <p className="mt-2 text-sm md:text-base text-muted-foreground max-w-2xl">
+                        Describe the business or franchise you want — location, industry, budget, revenue.
+                    </p>
+                </div>
+            </div>
 
-                    {/* Search Component */}
-                    <NaturalLanguageSearch />
+            <div className="container mx-auto px-4 py-10 md:py-12">
+                <NaturalLanguageSearch />
 
-                    {/* How It Works */}
-                    <div className="mt-20 text-center">
-                        <h2 className="text-2xl font-semibold mb-8">How It Works</h2>
-                        <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-                            <div className="p-6">
-                                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                                    <span className="text-2xl">💬</span>
-                                </div>
-                                <h3 className="font-semibold mb-2">Describe Your Need</h3>
-                                <p className="text-sm text-muted-foreground">
-                                    Type naturally like "cafe franchise under 10L in Mumbai"
-                                </p>
+                <div className="mt-16">
+                    <h2 className="text-lg font-semibold text-foreground mb-6">How it works</h2>
+                    <div className="grid md:grid-cols-3 gap-6 max-w-4xl">
+                        <div className="rounded-lg border border-border bg-card p-5">
+                            <div className="w-10 h-10 rounded-md bg-growth-green/10 flex items-center justify-center mb-3">
+                                <MessageSquare className="h-5 w-5 text-growth-green" />
                             </div>
-                            <div className="p-6">
-                                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                                    <span className="text-2xl">🧠</span>
-                                </div>
-                                <h3 className="font-semibold mb-2">AI Understands</h3>
-                                <p className="text-sm text-muted-foreground">
-                                    Our system extracts industry, location, budget, and features
-                                </p>
+                            <h3 className="font-semibold text-foreground mb-1">Describe your need</h3>
+                            <p className="text-sm text-muted-foreground">
+                                Type naturally, e.g. &quot;cafe franchise under 10L in Mumbai&quot;
+                            </p>
+                        </div>
+                        <div className="rounded-lg border border-border bg-card p-5">
+                            <div className="w-10 h-10 rounded-md bg-growth-green/10 flex items-center justify-center mb-3">
+                                <Search className="h-5 w-5 text-growth-green" />
                             </div>
-                            <div className="p-6">
-                                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                                    <span className="text-2xl">🎯</span>
-                                </div>
-                                <h3 className="font-semibold mb-2">Get Matches</h3>
-                                <p className="text-sm text-muted-foreground">
-                                    See relevant businesses and franchises instantly
-                                </p>
+                            <h3 className="font-semibold text-foreground mb-1">Parse criteria</h3>
+                            <p className="text-sm text-muted-foreground">
+                                The search extracts industry, location, budget, and features from your text
+                            </p>
+                        </div>
+                        <div className="rounded-lg border border-border bg-card p-5">
+                            <div className="w-10 h-10 rounded-md bg-growth-green/10 flex items-center justify-center mb-3">
+                                <ListChecks className="h-5 w-5 text-growth-green" />
                             </div>
+                            <h3 className="font-semibold text-foreground mb-1">Review matches</h3>
+                            <p className="text-sm text-muted-foreground">
+                                Browse businesses and franchises that fit the parsed criteria
+                            </p>
                         </div>
                     </div>
                 </div>
             </div>
-        </MainLayout>
+        </div>
     );
 }

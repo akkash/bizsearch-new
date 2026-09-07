@@ -45,14 +45,14 @@ import { toast } from 'sonner';
 
 const statusColors = {
     active: 'bg-green-100 text-green-800',
-    inactive: 'bg-gray-100 text-gray-800',
+    inactive: 'bg-secondary text-foreground',
     prospect: 'bg-blue-100 text-blue-800',
 };
 
 const typeColors = {
-    buyer: 'bg-purple-100 text-purple-800',
+    buyer: 'bg-growth-green/10 text-purple-800',
     seller: 'bg-orange-100 text-orange-800',
-    both: 'bg-indigo-100 text-indigo-800',
+    both: 'bg-secondary text-indigo-800',
 };
 
 interface ClientFormData {

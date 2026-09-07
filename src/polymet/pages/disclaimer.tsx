@@ -17,6 +17,7 @@ import {
     ExternalLink,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { PageHero } from "@/components/page-hero";
 
 export function DisclaimerPage({ className }: { className?: string }) {
     const lastUpdated = "December 29, 2024";
@@ -112,7 +113,7 @@ export function DisclaimerPage({ className }: { className?: string }) {
                 {
                     subtitle: "Valuation Disclaimer",
                     items: [
-                        "AI-generated valuations are estimates based on available data and algorithms",
+                        "Automated valuations are estimates based on available data and algorithms",
                         "Valuations should be used as starting points, not definitive prices",
                         "Professional appraisers should be consulted for formal valuations",
                         "Actual transaction values may differ significantly from estimates",
@@ -147,25 +148,25 @@ export function DisclaimerPage({ className }: { className?: string }) {
         },
         {
             id: "ai-tools",
-            title: "5. AI Tools & Recommendations",
+            title: "5. Analysis tools & recommendations",
             icon: Info,
             content: [
                 {
-                    subtitle: "AI-Powered Features",
+                    subtitle: "Analysis tools",
                     items: [
-                        "Our AI matchmaker and valuation tools use algorithms and machine learning",
-                        "AI recommendations are based on available data and may not be perfect",
-                        "AI should be used as a tool to assist, not replace, human judgment",
-                        "Users should not rely solely on AI recommendations for major decisions",
+                        "Matchmaking and valuation tools use algorithms and available listing data",
+                        "Recommendations are based on available data and may be incomplete",
+                        "These tools assist research; they do not replace human judgment",
+                        "Do not rely solely on automated recommendations for major decisions",
                     ],
                 },
                 {
-                    subtitle: "Data Limitations",
+                    subtitle: "Data limitations",
                     items: [
-                        "AI accuracy depends on the quality and completeness of input data",
-                        "Market conditions may change faster than AI models can adapt",
-                        "AI cannot account for all factors that may affect business success",
-                        "Always validate AI insights with professional advisors",
+                        "Accuracy depends on the quality and completeness of input data",
+                        "Market conditions can change faster than models update",
+                        "Tools cannot account for every factor that may affect a business",
+                        "Validate insights with professional advisors before acting",
                     ],
                 },
             ],
@@ -249,38 +250,16 @@ export function DisclaimerPage({ className }: { className?: string }) {
 
     return (
         <div className={`min-h-screen ${className}`}>
-            {/* Hero Section with Gradient */}
-            <section className="relative overflow-hidden bg-gradient-to-br from-trust-blue/5 via-growth-green/5 to-trust-blue/10 dark:from-trust-blue/10 dark:via-growth-green/5 dark:to-trust-blue/5 py-16 md:py-24">
-                {/* Animated Background Elements */}
-                <div className="absolute inset-0 overflow-hidden">
-                    <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-primary/10 blur-3xl animate-pulse" />
-                    <div className="absolute top-20 -left-20 w-60 h-60 rounded-full bg-growth-green/10 blur-3xl animate-pulse delay-1000" />
+            <PageHero
+                eyebrow="Legal"
+                title="Disclaimer"
+                description="Important limits on liability, listings, and analysis tools on BizSearch."
+            >
+                <div className="flex items-center gap-2 text-muted-foreground">
+                    <Calendar className="w-4 h-4" />
+                    <span className="text-sm">Last updated: {lastUpdated}</span>
                 </div>
-
-                <div className="container mx-auto px-4 relative z-10">
-                    <div className="max-w-4xl mx-auto text-center">
-                        <Badge variant="secondary" className="mb-6 px-4 py-2">
-                            <AlertTriangle className="w-4 h-4 mr-2" />
-                            Important Notice
-                        </Badge>
-                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-                            Legal
-                            <span className="bg-gradient-to-r from-primary via-primary to-growth-green bg-clip-text text-transparent">
-                                {" "}Disclaimer
-                            </span>
-                        </h1>
-                        <p className="text-lg md:text-xl text-muted-foreground mb-6 leading-relaxed max-w-3xl mx-auto">
-                            Please read this disclaimer carefully before using BizSearch.
-                            This page explains the limitations of our platform and the
-                            responsibilities of users when using our services.
-                        </p>
-                        <div className="flex items-center justify-center gap-2 text-muted-foreground">
-                            <Calendar className="w-4 h-4" />
-                            <span className="text-sm">Last Updated: {lastUpdated}</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
+            </PageHero>
 
             {/* Disclaimer Highlights */}
             <section className="py-12 border-b">
@@ -382,7 +361,7 @@ export function DisclaimerPage({ className }: { className?: string }) {
             </section>
 
             {/* Contact Section */}
-            <section className="py-16 bg-gradient-to-br from-muted/30 via-muted/50 to-muted/30">
+            <section className="py-16 border-t border-border bg-muted/30">
                 <div className="container mx-auto px-4">
                     <div className="max-w-2xl mx-auto text-center">
                         <Badge variant="secondary" className="mb-4">

@@ -274,7 +274,7 @@ export function ReportGeneratorPage() {
                             <CardContent className="text-center">
                                 <Wand2 className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
                                 <p className="text-muted-foreground">
-                                    Configure your report settings and click generate to create an AI-powered report
+                                    Configure your report settings and click generate to create an Smart report
                                 </p>
                             </CardContent>
                         </Card>

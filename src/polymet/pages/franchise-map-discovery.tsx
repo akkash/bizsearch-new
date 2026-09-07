@@ -107,12 +107,12 @@ export function FranchiseMapDiscoveryPage({ className }: FranchiseMapDiscoveryPa
     return (
         <div className={cn('min-h-screen bg-background', className)}>
             {/* Header */}
-            <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-background border-b">
+            <div className="border-b border-border bg-card">
                 <div className="container mx-auto px-4 py-8">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
                             <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
-                                <MapPin className="h-8 w-8 text-primary" />
+                                <MapPin className="h-8 w-8 text-growth-green" />
                                 Franchise Location Explorer
                             </h1>
                             <p className="text-muted-foreground">
@@ -150,7 +150,7 @@ export function FranchiseMapDiscoveryPage({ className }: FranchiseMapDiscoveryPa
                     {/* Stats Bar */}
                     {stats && (
                         <div className="mt-6 flex flex-wrap gap-4">
-                            <Card className="px-4 py-2 bg-background/80 backdrop-blur">
+                            <Card className="px-4 py-2 border-border bg-background">
                                 <div className="flex items-center gap-2">
                                     <MapPin className="h-4 w-4 text-muted-foreground" />
                                     <span className="text-sm">
@@ -158,7 +158,7 @@ export function FranchiseMapDiscoveryPage({ className }: FranchiseMapDiscoveryPa
                                     </span>
                                 </div>
                             </Card>
-                            <Card className="px-4 py-2 bg-background/80 backdrop-blur">
+                            <Card className="px-4 py-2 border-border bg-background">
                                 <div className="flex items-center gap-2">
                                     <Building2 className="h-4 w-4 text-muted-foreground" />
                                     <span className="text-sm">
@@ -166,23 +166,23 @@ export function FranchiseMapDiscoveryPage({ className }: FranchiseMapDiscoveryPa
                                     </span>
                                 </div>
                             </Card>
-                            <Card className="px-4 py-2 bg-background/80 backdrop-blur">
+                            <Card className="px-4 py-2 border-border bg-background">
                                 <div className="flex items-center gap-2">
-                                    <div className="w-3 h-3 rounded-full bg-green-500" />
+                                    <div className="w-3 h-3 rounded-full bg-growth-green" />
                                     <span className="text-sm">
                                         <strong>{stats.operatingCount}</strong> operating
                                     </span>
                                 </div>
                             </Card>
-                            <Card className="px-4 py-2 bg-background/80 backdrop-blur">
+                            <Card className="px-4 py-2 border-border bg-background">
                                 <div className="flex items-center gap-2">
-                                    <div className="w-3 h-3 rounded-full bg-white border-2 border-gray-400" />
+                                    <div className="w-3 h-3 rounded-full bg-card border-2 border-border" />
                                     <span className="text-sm">
                                         <strong>{stats.availableCount}</strong> available
                                     </span>
                                 </div>
                             </Card>
-                            <Card className="px-4 py-2 bg-background/80 backdrop-blur">
+                            <Card className="px-4 py-2 border-border bg-background">
                                 <div className="flex items-center gap-2">
                                     <TrendingUp className="h-4 w-4 text-muted-foreground" />
                                     <span className="text-sm">

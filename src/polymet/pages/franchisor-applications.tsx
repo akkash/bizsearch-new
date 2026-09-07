@@ -82,10 +82,10 @@ interface Franchise {
 const statusConfig: Record<string, { color: string; icon: any; label: string }> = {
     submitted: { color: 'bg-blue-100 text-blue-800', icon: Clock, label: 'Submitted' },
     under_review: { color: 'bg-yellow-100 text-yellow-800', icon: Eye, label: 'Under Review' },
-    interview_scheduled: { color: 'bg-purple-100 text-purple-800', icon: Calendar, label: 'Interview Scheduled' },
+    interview_scheduled: { color: 'bg-growth-green/10 text-purple-800', icon: Calendar, label: 'Interview Scheduled' },
     approved: { color: 'bg-green-100 text-green-800', icon: CheckCircle, label: 'Approved' },
     rejected: { color: 'bg-red-100 text-red-800', icon: XCircle, label: 'Rejected' },
-    withdrawn: { color: 'bg-gray-100 text-gray-600', icon: XCircle, label: 'Withdrawn' },
+    withdrawn: { color: 'bg-secondary text-muted-foreground', icon: XCircle, label: 'Withdrawn' },
 };
 
 export function FranchisorApplicationsPage() {

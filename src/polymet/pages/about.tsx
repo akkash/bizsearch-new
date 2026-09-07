@@ -1,4 +1,3 @@
-import React from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -7,274 +6,151 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
-  Target,
-  Users,
+  Search,
+  Scale,
   Shield,
-  TrendingUp,
-  Award,
-  Globe,
-  CheckCircle,
-  Star,
-  Building,
-  Handshake,
-  Sparkles,
+  BarChart3,
+  Building2,
+  Users,
   ArrowRight,
   Mail,
   Phone,
   MapPin,
+  CheckCircle,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { PageHero } from "@/components/page-hero";
 
 export function AboutPage({ className }: { className?: string }) {
+  const howSteps = [
+    {
+      icon: Search,
+      title: "Search",
+      description:
+        "Browse businesses for sale and franchise opportunities by industry, location, and investment range.",
+    },
+    {
+      icon: Scale,
+      title: "Compare",
+      description:
+        "Put listings side by side on price, fees, revenue, and requirements.",
+    },
+    {
+      icon: Shield,
+      title: "Verify",
+      description:
+        "Review verification status and listing details before you inquire.",
+    },
+    {
+      icon: BarChart3,
+      title: "Analyze",
+      description:
+        "Use financials, investment ranges, and break-even figures where sellers provide them.",
+    },
+  ];
+
   const teamMembers = [
     {
       name: "Ajay Kumar",
       role: "Business Acquisition Specialist",
-      image: "https://github.com/yusufhilmi.png",
-      experience: "8+ years",
-      expertise: ["Business Valuation", "Due Diligence", "Market Analysis"],
+      focus: "Valuation, due diligence, and buyer–seller coordination",
     },
     {
       name: "Vijay Sharma",
-      role: "Franchise Development Expert",
-      image: "https://github.com/kdrnp.png",
-      experience: "10+ years",
-      expertise: ["Franchise Models", "ROI Analysis", "Territory Planning"],
+      role: "Franchise Development",
+      focus: "Franchise models, territory planning, and fee structures",
     },
     {
       name: "Priya Patel",
-      role: "Technology Lead",
-      image: "https://github.com/yahyabedirhan.png",
-      experience: "6+ years",
-      expertise: ["AI/ML", "Platform Development", "Data Analytics"],
+      role: "Product & Platform",
+      focus: "Search, listings, and analysis tools on BizSearch",
     },
     {
       name: "Rahul Singh",
-      role: "Market Research Director",
-      image: "https://github.com/denizbuyuktas.png",
-      experience: "12+ years",
-      expertise: [
-        "Market Intelligence",
-        "Industry Analysis",
-        "Trend Forecasting",
-      ],
-    },
-  ];
-
-  const achievements = [
-    { number: "15,000+", label: "Businesses Listed", icon: Building },
-    { number: "50,000+", label: "Registered Users", icon: Users },
-    { number: "1,00,000+", label: "Successful Matches", icon: Handshake },
-    { number: "500+", label: "Cities Covered", icon: MapPin },
-  ];
-
-  const features = [
-    {
-      icon: Shield,
-      title: "Verified Listings",
-      description:
-        "Every business and franchise opportunity is thoroughly verified by our expert team",
-    },
-    {
-      icon: Target,
-      title: "AI-Powered Matching",
-      description:
-        "Advanced algorithms match you with opportunities that fit your criteria perfectly",
-    },
-    {
-      icon: Users,
-      title: "Expert Guidance",
-      description:
-        "Get personalized advice from industry specialists throughout your journey",
-    },
-    {
-      icon: Globe,
-      title: "Pan-India Coverage",
-      description:
-        "Access opportunities across all major cities and emerging markets in India",
-    },
-  ];
-
-  const values = [
-    {
-      icon: Shield,
-      title: "Trust & Transparency",
-      description: "Every listing is verified. No hidden information.",
-    },
-    {
-      icon: Sparkles,
-      title: "Innovation",
-      description: "AI-powered tools for smarter business decisions.",
-    },
-    {
-      icon: Users,
-      title: "Customer First",
-      description: "Your success is our primary goal.",
-    },
-    {
-      icon: Award,
-      title: "Excellence",
-      description: "Industry-leading standards in every interaction.",
+      role: "Market Research",
+      focus: "Industry context and listing quality review",
     },
   ];
 
   return (
-    <div className={`min-h-screen ${className}`}>
-      {/* Hero Section with Gradient */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-trust-blue/5 via-growth-green/5 to-trust-blue/10 dark:from-trust-blue/10 dark:via-growth-green/5 dark:to-trust-blue/5 py-16 md:py-24">
-        {/* Animated Background Elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-primary/10 blur-3xl animate-pulse" />
-          <div className="absolute top-20 -left-20 w-60 h-60 rounded-full bg-growth-green/10 blur-3xl animate-pulse delay-1000" />
+    <div className={`min-h-screen bg-background ${className ?? ""}`}>
+      <PageHero
+        eyebrow="About BizSearch"
+        title="A marketplace for businesses and franchises"
+        description="BizSearch helps buyers and sellers find, compare, and evaluate private business and franchise opportunities in one place."
+      >
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Button asChild>
+            <Link to="/businesses">
+              Browse businesses
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link to="/franchises">Browse franchises</Link>
+          </Button>
         </div>
+      </PageHero>
 
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-4xl mx-auto text-center">
-            <Badge variant="secondary" className="mb-6 px-4 py-2">
-              <Sparkles className="w-4 h-4 mr-2" />
-              AI-Powered Business Discovery Platform
-            </Badge>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-              Transforming Business
-              <span className="bg-gradient-to-r from-primary via-primary to-growth-green bg-clip-text text-transparent">
-                {" "}Discovery
-              </span>
-            </h1>
-            <p className="text-lg md:text-xl text-muted-foreground mb-10 leading-relaxed max-w-3xl mx-auto">
-              BizSearch is India's most trusted platform for business
-              acquisitions and franchise opportunities. We leverage cutting-edge
-              AI technology to connect entrepreneurs with their perfect business
-              match.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild size="lg" className="bg-primary hover:bg-primary/90">
-                <Link to="/businesses">
-                  Explore Opportunities
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Link>
-              </Button>
-              <Button asChild size="lg" variant="outline">
-                <Link to="/add-business-listing">
-                  List Your Business
-                </Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Strip */}
-      <section className="py-8 border-y bg-background">
+      {/* What / Who / Why */}
+      <section className="py-12 md:py-16 border-b border-border">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {achievements.map((achievement, index) => (
-              <div key={index} className="text-center">
-                <div className="flex items-center justify-center gap-2 mb-1">
-                  <achievement.icon className="h-5 w-5 text-primary" />
-                  <span className="text-2xl md:text-3xl font-bold text-foreground">
-                    {achievement.number}
-                  </span>
-                </div>
-                <p className="text-sm text-muted-foreground">{achievement.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Mission Section */}
-      <section className="py-16 md:py-20">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="grid gap-8 md:grid-cols-3 max-w-5xl">
             <div>
-              <Badge variant="secondary" className="mb-4">
-                Our Mission
-              </Badge>
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
-                Democratizing Business Ownership
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-growth-green mb-2">
+                What
               </h2>
-              <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
-                We believe that with the right guidance and technology, anyone can build a
-                successful business. Our mission is to make quality business opportunities
-                accessible to every entrepreneur in India.
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                A marketplace for businesses for sale and franchise opportunities,
+                with listing details, comparison, and inquiry tools.
               </p>
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-growth-green/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <CheckCircle className="h-4 w-4 text-growth-green" />
-                  </div>
-                  <p className="text-muted-foreground">
-                    Transparent and verified business listings
-                  </p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-growth-green/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <CheckCircle className="h-4 w-4 text-growth-green" />
-                  </div>
-                  <p className="text-muted-foreground">
-                    Expert guidance throughout the acquisition process
-                  </p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-growth-green/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <CheckCircle className="h-4 w-4 text-growth-green" />
-                  </div>
-                  <p className="text-muted-foreground">
-                    AI-powered recommendations for better matches
-                  </p>
-                </div>
-              </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              {values.map((value, index) => (
-                <Card key={index} className="hover:shadow-lg transition-all hover:-translate-y-1">
-                  <CardContent className="pt-6">
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
-                      <value.icon className="h-5 w-5 text-primary" />
-                    </div>
-                    <h3 className="font-semibold mb-1">{value.title}</h3>
-                    <p className="text-sm text-muted-foreground">{value.description}</p>
-                  </CardContent>
-                </Card>
-              ))}
+            <div>
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-growth-green mb-2">
+                Who
+              </h2>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Buyers looking for an existing business or franchise, sellers
+                listing their company, and franchisors expanding territories.
+              </p>
+            </div>
+            <div>
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-growth-green mb-2">
+                Why
+              </h2>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Private business information is fragmented across brokers,
+                classifieds, and word of mouth. BizSearch brings listings and
+                key numbers into a single searchable product.
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Why Choose Section */}
-      <section className="py-16 bg-gradient-to-br from-muted/30 via-muted/50 to-muted/30">
+      {/* How */}
+      <section className="py-12 md:py-16">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <Badge variant="secondary" className="mb-4">
-              <Star className="w-3 h-3 mr-1" />
-              Why Choose Us
-            </Badge>
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Why Choose BizSearch?
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              We combine technology, expertise, and trust to deliver the best
-              business discovery experience
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {features.map((feature, index) => (
-              <Card
-                key={index}
-                className="text-center hover:shadow-xl transition-all hover:-translate-y-1 bg-background"
-              >
-                <CardHeader>
-                  <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                    <feature.icon className="h-7 w-7 text-primary" />
+          <h2 className="text-xl md:text-2xl font-bold tracking-tight mb-2">
+            How it works
+          </h2>
+          <p className="text-sm text-muted-foreground mb-8 max-w-2xl">
+            Search listings, compare economics, check verification, and dig into
+            the numbers sellers share.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {howSteps.map((step) => (
+              <Card key={step.title} className="border-border">
+                <CardHeader className="pb-2">
+                  <div className="w-9 h-9 rounded-md bg-primary/10 flex items-center justify-center mb-2">
+                    <step.icon className="h-4 w-4 text-primary" />
                   </div>
-                  <CardTitle className="text-lg">{feature.title}</CardTitle>
+                  <CardTitle className="text-base">{step.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <CardDescription className="text-sm leading-relaxed">
-                    {feature.description}
+                    {step.description}
                   </CardDescription>
                 </CardContent>
               </Card>
@@ -283,57 +159,53 @@ export function AboutPage({ className }: { className?: string }) {
         </div>
       </section>
 
-      {/* Team Section */}
-      <section className="py-16 md:py-20">
+      {/* Capabilities */}
+      <section className="py-12 md:py-16 bg-muted/30 border-y border-border">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <Badge variant="secondary" className="mb-4">
-              Our Team
-            </Badge>
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Meet Our Expert Team
+          <h2 className="text-xl md:text-2xl font-bold tracking-tight mb-6">
+            What you can do on BizSearch
+          </h2>
+          <ul className="grid gap-3 sm:grid-cols-2 max-w-3xl">
+            {[
+              "List a business for sale or publish a franchise opportunity",
+              "Filter by industry, city, and investment range",
+              "Compare up to three opportunities side by side",
+              "Contact sellers and franchisors through the platform",
+            ].map((item) => (
+              <li key={item} className="flex items-start gap-2 text-sm text-muted-foreground">
+                <CheckCircle className="h-4 w-4 text-growth-green mt-0.5 shrink-0" />
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* Team */}
+      <section className="py-12 md:py-16">
+        <div className="container mx-auto px-4">
+          <div className="mb-8">
+            <h2 className="text-xl md:text-2xl font-bold tracking-tight mb-2">
+              Team
             </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Industry veterans with decades of combined experience in business
-              acquisitions and franchise development
+            <p className="text-sm text-muted-foreground max-w-2xl">
+              People working on listings, franchise coverage, and the product.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {teamMembers.map((member, index) => (
-              <Card
-                key={index}
-                className="text-center hover:shadow-xl transition-all hover:-translate-y-1 group"
-              >
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {teamMembers.map((member) => (
+              <Card key={member.name} className="border-border">
                 <CardHeader className="pb-2">
-                  <div className="relative mx-auto mb-4">
-                    <img
-                      src={member.image}
-                      alt={member.name}
-                      className="w-24 h-24 rounded-full mx-auto object-cover border-4 border-primary/20 group-hover:border-primary/40 transition-colors"
-                    />
-                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2">
-                      <Badge variant="secondary" className="text-xs whitespace-nowrap">
-                        {member.experience}
-                      </Badge>
-                    </div>
+                  <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center mb-2">
+                    <Users className="h-4 w-4 text-muted-foreground" />
                   </div>
-                  <CardTitle className="text-lg">{member.name}</CardTitle>
-                  <CardDescription className="text-sm font-medium text-primary">
+                  <CardTitle className="text-base">{member.name}</CardTitle>
+                  <CardDescription className="text-primary font-medium">
                     {member.role}
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="pt-2">
-                  <div className="flex flex-wrap gap-1 justify-center">
-                    {member.expertise.map((skill, skillIndex) => (
-                      <Badge
-                        key={skillIndex}
-                        variant="outline"
-                        className="text-xs"
-                      >
-                        {skill}
-                      </Badge>
-                    ))}
-                  </div>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">{member.focus}</p>
                 </CardContent>
               </Card>
             ))}
@@ -341,91 +213,47 @@ export function AboutPage({ className }: { className?: string }) {
         </div>
       </section>
 
-      {/* Trust Badges */}
-      <section className="py-12 bg-muted/30">
+      {/* CTA */}
+      <section className="py-12 md:py-16 border-t border-border bg-card">
         <div className="container mx-auto px-4">
-          <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <CheckCircle className="h-5 w-5 text-growth-green" />
-              <span className="text-sm font-medium">Verified Listings</span>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 max-w-4xl">
+            <div>
+              <h2 className="text-xl font-bold tracking-tight mb-1">
+                Looking for a business or franchise?
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Start with search, or list what you have for sale.
+              </p>
             </div>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Shield className="h-5 w-5 text-growth-green" />
-              <span className="text-sm font-medium">Secure Transactions</span>
-            </div>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Award className="h-5 w-5 text-growth-green" />
-              <span className="text-sm font-medium">Safe Payments</span>
-            </div>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Star className="h-5 w-5 text-growth-green" />
-              <span className="text-sm font-medium">Trusted Platform</span>
-            </div>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Globe className="h-5 w-5 text-growth-green" />
-              <span className="text-sm font-medium">Made with ❤️ in India</span>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button asChild>
+                <Link to="/businesses">
+                  <Building2 className="mr-2 h-4 w-4" />
+                  Start searching
+                </Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link to="/contact">Contact us</Link>
+              </Button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-16 md:py-20 bg-gradient-to-r from-primary via-primary to-growth-green relative overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-10 left-10 w-32 h-32 rounded-full bg-white blur-2xl" />
-          <div className="absolute bottom-10 right-10 w-40 h-40 rounded-full bg-white blur-2xl" />
-        </div>
-
-        <div className="container mx-auto px-4 text-center relative z-10">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Ready to Find Your Perfect Business Opportunity?
-          </h2>
-          <p className="text-xl text-white/80 mb-8 max-w-2xl mx-auto">
-            Join thousands of successful entrepreneurs who found their ideal
-            business through BizSearch
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              asChild
-              size="lg"
-              variant="secondary"
-              className="bg-white text-primary hover:bg-white/90"
-            >
-              <Link to="/businesses">
-                Start Your Search
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="border-white text-white hover:bg-white hover:text-primary"
-            >
-              <Link to="/contact">
-                Talk to an Expert
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* Contact Info */}
-      <section className="py-12 bg-background border-t">
+      <section className="py-8 border-t border-border">
         <div className="container mx-auto px-4">
-          <div className="flex flex-wrap items-center justify-center gap-8 text-muted-foreground">
-            <a href="tel:+919876543210" className="flex items-center gap-2 hover:text-primary transition-colors">
+          <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
+            <a href="tel:+919876543210" className="flex items-center gap-2 hover:text-foreground">
               <Phone className="h-4 w-4" />
-              <span className="text-sm">+91 98765 43210</span>
+              +91 98765 43210
             </a>
-            <a href="mailto:contact@bizsearch.in" className="flex items-center gap-2 hover:text-primary transition-colors">
+            <a href="mailto:contact@bizsearch.in" className="flex items-center gap-2 hover:text-foreground">
               <Mail className="h-4 w-4" />
-              <span className="text-sm">contact@bizsearch.in</span>
+              contact@bizsearch.in
             </a>
             <div className="flex items-center gap-2">
               <MapPin className="h-4 w-4" />
-              <span className="text-sm">Mumbai, Maharashtra, India</span>
+              Mumbai, Maharashtra, India
             </div>
           </div>
         </div>

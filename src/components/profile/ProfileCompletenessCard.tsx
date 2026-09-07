@@ -10,7 +10,6 @@ import {
     CheckCircle2,
     AlertCircle,
     ChevronRight,
-    Sparkles
 } from 'lucide-react';
 
 interface ProfileCompletenessCardProps {
@@ -41,15 +40,15 @@ export function ProfileCompletenessCard({
         .slice(0, 3);
 
     const getStatusColor = () => {
-        if (completeness.score >= 80) return 'text-green-600';
-        if (completeness.score >= 50) return 'text-yellow-600';
-        return 'text-red-600';
+        if (completeness.score >= 80) return 'text-growth-green';
+        if (completeness.score >= 50) return 'text-amber-600';
+        return 'text-destructive';
     };
 
 
 
     return (
-        <Card className={`border-dashed ${className}`}>
+        <Card className={`border-dashed border-border bg-card ${className}`}>
             <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                     <CardTitle className="text-base font-medium flex items-center gap-2">
@@ -73,13 +72,13 @@ export function ProfileCompletenessCard({
                     />
                     <p className="text-xs text-muted-foreground">
                         {completeness.score >= 80 ? (
-                            <span className="flex items-center gap-1 text-green-600">
+                            <span className="flex items-center gap-1 text-growth-green">
                                 <CheckCircle2 className="h-3 w-3" />
                                 Great job! Your profile is well optimized
                             </span>
                         ) : completeness.score >= 50 ? (
-                            <span className="flex items-center gap-1 text-yellow-600">
-                                <Sparkles className="h-3 w-3" />
+                            <span className="flex items-center gap-1 text-amber-600">
+                                <AlertCircle className="h-3 w-3" />
                                 Almost there! Complete a few more fields
                             </span>
                         ) : (

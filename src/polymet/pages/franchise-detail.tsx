@@ -180,7 +180,7 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
 
   return (
     <div className={cn("min-h-screen bg-background", className)}>
-      <div className="bg-white dark:bg-card border-b sticky top-0 z-10">
+      <div className="bg-background/95 backdrop-blur-md border-b border-border sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div className="flex items-center gap-4 min-w-0">
@@ -243,7 +243,11 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
               <Button variant="outline" size="sm" onClick={() => setShowContactForm(true)}>
                 Request Information
               </Button>
-              <Button size="sm" className="bg-growth-green hover:bg-growth-green/90" onClick={handleApply}>
+              <Button
+                size="sm"
+                className="bg-growth-green hover:bg-growth-green/90 text-white"
+                onClick={handleApply}
+              >
                 <FileTextIcon className="h-4 w-4 mr-2" />
                 Apply Now
               </Button>
@@ -252,13 +256,23 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6">
+      {/* Mobile sticky Contact CTA */}
+      <div className="fixed bottom-16 left-0 right-0 z-20 p-3 md:hidden border-t border-border bg-background/95 backdrop-blur-md">
+        <Button
+          className="w-full bg-growth-green hover:bg-growth-green/90 text-white"
+          onClick={() => setShowContactForm(true)}
+        >
+          Contact
+        </Button>
+      </div>
+
+      <div className="container mx-auto px-4 py-6 pb-24 md:pb-6">
         <FranchiseBentoView franchise={franchise} />
 
         <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center pb-8">
           <Button
             size="lg"
-            className="bg-growth-green hover:bg-growth-green/90"
+            className="bg-growth-green hover:bg-growth-green/90 text-white"
             onClick={() => setShowContactForm(true)}
           >
             Request Franchise Information

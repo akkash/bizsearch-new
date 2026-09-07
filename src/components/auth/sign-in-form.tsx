@@ -190,7 +190,7 @@ export function SignInForm() {
   }
 
   return (
-    <Card className="w-full max-w-md mx-auto shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
+    <Card className="w-full max-w-md mx-auto bg-card border border-border shadow-sm">
       <CardHeader className="text-center pb-2">
         {/* Brand Logo */}
         <div className="flex justify-center mb-4">
@@ -200,9 +200,9 @@ export function SignInForm() {
             className="h-12 w-auto"
           />
         </div>
-        <CardTitle className="text-2xl font-bold text-gray-900">Welcome Back</CardTitle>
+        <CardTitle className="text-2xl font-bold text-foreground">Welcome Back</CardTitle>
         <CardDescription className="text-base">
-          Sign in to continue to <span className="font-semibold text-primary">BizSearch</span>
+          Sign in to continue to <span className="font-semibold text-foreground">BizSearch</span>
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -310,7 +310,7 @@ export function SignInForm() {
           {/* Sign In Button */}
           <Button
             type="submit"
-            className="w-full h-11 text-base font-semibold shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-200"
+            className="w-full h-11 text-base font-semibold bg-growth-green hover:bg-growth-green-dark text-white"
             disabled={loading}
           >
             {loading ? (
@@ -329,10 +329,10 @@ export function SignInForm() {
           {/* Divider */}
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
+              <span className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-muted-foreground">New to BizSearch?</span>
+              <span className="bg-card px-2 text-muted-foreground">New to BizSearch?</span>
             </div>
           </div>
 

@@ -183,49 +183,62 @@ export function BusinessDetail({ className }: BusinessDetailProps) {
   return (
     <div className={cn("min-h-screen bg-background", className)}>
       {/* Header */}
-      <div className="bg-white border-b sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+      <div className="bg-background/95 backdrop-blur-md border-b border-border sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate('/businesses')}
+                className="shrink-0"
               >
                 <ArrowLeftIcon className="h-4 w-4 mr-2" />
-                Back to Listings
+                <span className="hidden sm:inline">Back</span>
               </Button>
-              <Separator orientation="vertical" className="h-6" />
-
-              <div>
-                <h1 className="text-xl font-bold">{business.name}</h1>
-                <p className="text-sm text-muted-foreground">
-                  {business.industry} • {business.location}
+              <Separator orientation="vertical" className="h-6 hidden sm:block" />
+              <div className="min-w-0 hidden sm:block">
+                <h1 className="text-base font-semibold truncate">{business.name}</h1>
+                <p className="text-xs text-muted-foreground truncate">
+                  {business.industry} · {business.location}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={handleSave}>
+            <div className="flex items-center gap-2 shrink-0">
+              <Button variant="outline" size="sm" onClick={handleSave} className="hidden sm:inline-flex">
                 <HeartIcon
                   className={cn(
                     "h-4 w-4 mr-2",
                     isSaved && "fill-current text-red-500"
                   )}
                 />
-
                 {isSaved ? "Saved" : "Save"}
               </Button>
-              <Button variant="outline" size="sm" onClick={handleShare}>
+              <Button variant="outline" size="sm" onClick={handleShare} className="hidden md:inline-flex">
                 <ShareIcon className="h-4 w-4 mr-2" />
                 Share
               </Button>
-              <Button onClick={handleContact}>
+              <Button
+                size="sm"
+                onClick={handleContact}
+                className="bg-growth-green hover:bg-growth-green/90 text-white"
+              >
                 <PhoneIcon className="h-4 w-4 mr-2" />
                 Contact Seller
               </Button>
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Mobile sticky CTA */}
+      <div className="fixed bottom-16 left-0 right-0 z-20 p-3 md:hidden border-t border-border bg-background/95 backdrop-blur-md">
+        <Button
+          className="w-full bg-growth-green hover:bg-growth-green/90 text-white"
+          onClick={handleContact}
+        >
+          Contact Seller
+        </Button>
       </div>
 
       <div className="container mx-auto px-4 py-6">

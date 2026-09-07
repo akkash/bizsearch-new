@@ -358,47 +358,45 @@ export function BusinessListings({ className }: BusinessListingsProps) {
   if (!loading && filteredBusinesses.length === 0 && businesses.length === 0) {
     return (
       <div className={cn("min-h-screen bg-background", className)}>
-        {/* Header with breadcrumbs and category chips */}
-        <div className="relative bg-gradient-to-br from-trust-blue via-[hsl(213,55%,18%)] to-[hsl(213,60%,12%)] dark:from-[hsl(213,40%,8%)] dark:via-[hsl(213,45%,6%)] dark:to-[hsl(213,50%,4%)]">
-          <div className="container mx-auto px-4 py-8 md:py-12">
-            {/* Breadcrumb Navigation */}
+        <div className="border-b border-border bg-card">
+          <div className="container mx-auto px-4 py-6 md:py-8">
             {currentCategory && (
-              <nav className="flex items-center gap-2 text-sm mb-6">
-                <Link to="/" className="text-white/70 hover:text-white flex items-center gap-1 transition-colors">
+              <nav className="flex items-center gap-2 text-sm mb-4">
+                <Link to="/" className="text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors">
                   <HomeIcon className="h-4 w-4" />
                   Home
                 </Link>
-                <ChevronRightIcon className="h-4 w-4 text-white/50" />
-                <Link to="/businesses" className="text-white/70 hover:text-white transition-colors">
+                <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
+                <Link to="/businesses" className="text-muted-foreground hover:text-foreground transition-colors">
                   Businesses
                 </Link>
-                <ChevronRightIcon className="h-4 w-4 text-white/50" />
-                <span className="font-medium text-white">{currentCategory.name}</span>
+                <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
+                <span className="font-medium text-foreground">{currentCategory.name}</span>
               </nav>
             )}
 
-            <div className="text-center mb-8">
-              <h1 className="text-3xl md:text-4xl font-bold mb-3 text-white">
-                {currentCategory?.name || 'Businesses for Sale'}
+            <div className="mb-6">
+              <h1 className="text-2xl md:text-3xl font-bold mb-2 text-foreground">
+                {currentCategory?.name || "Businesses for sale"}
               </h1>
-              <p className="text-blue-100/80 mb-8 max-w-2xl mx-auto">
+              <p className="text-sm text-muted-foreground max-w-2xl">
                 {currentCategory
-                  ? `Find ${currentCategory.name.toLowerCase()} businesses for sale`
-                  : 'Discover verified businesses ready for acquisition'
-                }
+                  ? `${currentCategory.name} businesses listed for sale`
+                  : "Browse businesses listed for sale across industries and locations"}
               </p>
             </div>
 
-            {/* Quick Filter Category Chips */}
-            <div className="flex flex-wrap justify-center gap-2">
+            <div className="flex flex-wrap gap-2">
               {SMERGERS_BUSINESS_CATEGORIES.slice(0, 8).map((cat) => (
                 <Link
                   key={cat.id}
                   to={`/businesses?category=${cat.slug}`}
-                  className={`px-4 py-2 text-sm rounded-full border transition-all backdrop-blur-sm ${currentCategory?.id === cat.id
-                    ? 'bg-growth-green text-white border-growth-green'
-                    : 'bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/40'
-                    }`}
+                  className={cn(
+                    "px-3 py-1.5 text-sm rounded-md border transition-colors",
+                    currentCategory?.id === cat.id
+                      ? "bg-growth-green text-white border-growth-green"
+                      : "bg-secondary border-border text-foreground hover:bg-secondary/80"
+                  )}
                 >
                   {cat.name}
                 </Link>
@@ -411,7 +409,7 @@ export function BusinessListings({ className }: BusinessListingsProps) {
           <EmptyState
             type="no-data"
             title={currentCategory ? `No ${currentCategory.name} Businesses Yet` : "No Businesses Available Yet"}
-            description="We're constantly adding new business opportunities. Check back soon or get notified when new listings are added."
+            description="No businesses are listed in this category yet. Check back later or list your business."
             actionText="List Your Business"
             actionLink="/add-business-listing"
           />
@@ -422,26 +420,24 @@ export function BusinessListings({ className }: BusinessListingsProps) {
 
   return (
     <div className={cn("min-h-screen bg-background", className)}>
-      {/* Hero Header - Matching Homepage Design */}
-      <div className="relative bg-gradient-to-br from-trust-blue via-[hsl(213,55%,18%)] to-[hsl(213,60%,12%)] dark:from-[hsl(213,40%,8%)] dark:via-[hsl(213,45%,6%)] dark:to-[hsl(213,50%,4%)]">
-        <div className="container mx-auto px-4 py-8 md:py-12">
-          {/* Breadcrumb Navigation */}
+      <div className="border-b border-border bg-card">
+        <div className="container mx-auto px-4 py-6 md:py-8">
           {(currentCategory || currentSubcategory) && (
-            <nav className="flex items-center gap-2 text-sm mb-6">
-              <Link to="/" className="text-white/70 hover:text-white flex items-center gap-1 transition-colors">
+            <nav className="flex items-center gap-2 text-sm mb-4">
+              <Link to="/" className="text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors">
                 <HomeIcon className="h-4 w-4" />
                 Home
               </Link>
-              <ChevronRightIcon className="h-4 w-4 text-white/50" />
-              <Link to="/businesses" className="text-white/70 hover:text-white transition-colors">
+              <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
+              <Link to="/businesses" className="text-muted-foreground hover:text-foreground transition-colors">
                 Businesses
               </Link>
               {currentCategory && (
                 <>
-                  <ChevronRightIcon className="h-4 w-4 text-white/50" />
+                  <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
                   <Link
                     to={`/businesses?category=${currentCategory.slug}`}
-                    className={currentSubcategory ? "text-white/70 hover:text-white transition-colors" : "font-medium text-white"}
+                    className={currentSubcategory ? "text-muted-foreground hover:text-foreground transition-colors" : "font-medium text-foreground"}
                   >
                     {currentCategory.name}
                   </Link>
@@ -449,27 +445,31 @@ export function BusinessListings({ className }: BusinessListingsProps) {
               )}
               {currentSubcategory && (
                 <>
-                  <ChevronRightIcon className="h-4 w-4 text-white/50" />
-                  <span className="font-medium text-white">{currentSubcategory.name}</span>
+                  <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
+                  <span className="font-medium text-foreground">{currentSubcategory.name}</span>
                 </>
               )}
             </nav>
           )}
 
-          <div className="text-center mb-8">
-            <h1 className="text-3xl md:text-4xl font-bold mb-3 text-white">
-              {currentSubcategory?.name || currentCategory?.name || 'Businesses for Sale'}
+          <div className="mb-6">
+            <h1 className="text-2xl md:text-3xl font-bold mb-2 text-foreground">
+              {currentSubcategory?.name || currentCategory?.name || "Businesses for sale"}
             </h1>
+            <p className="text-sm text-muted-foreground max-w-2xl">
+              {currentCategory
+                ? `Filter and compare ${currentCategory.name.toLowerCase()} listings by price, location, and revenue`
+                : "Filter and compare businesses listed for sale by price, location, and industry"}
+            </p>
           </div>
 
-          {/* Quick Filter Category Chips */}
           {!currentCategory && (
-            <div className="flex flex-wrap justify-center gap-2 mt-6">
+            <div className="flex flex-wrap gap-2">
               {SMERGERS_BUSINESS_CATEGORIES.slice(0, 8).map((cat) => (
                 <Link
                   key={cat.id}
                   to={`/businesses?category=${cat.slug}`}
-                  className="px-4 py-2 text-sm rounded-full bg-white/10 border border-white/20 text-white hover:bg-white/20 hover:border-white/40 transition-all backdrop-blur-sm"
+                  className="px-3 py-1.5 text-sm rounded-md bg-secondary border border-border text-foreground hover:bg-secondary/80 transition-colors"
                 >
                   {cat.name}
                 </Link>
@@ -477,15 +477,16 @@ export function BusinessListings({ className }: BusinessListingsProps) {
             </div>
           )}
 
-          {/* Subcategory Chips when category is selected */}
           {currentCategory && currentCategory.subcategories.length > 0 && (
-            <div className="flex flex-wrap justify-center gap-2 mt-6">
+            <div className="flex flex-wrap gap-2">
               <Link
                 to={`/businesses?category=${currentCategory.slug}`}
-                className={`px-4 py-2 text-sm rounded-full border transition-all backdrop-blur-sm ${!currentSubcategory
-                  ? 'bg-growth-green text-white border-growth-green'
-                  : 'bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/40'
-                  }`}
+                className={cn(
+                  "px-3 py-1.5 text-sm rounded-md border transition-colors",
+                  !currentSubcategory
+                    ? "bg-growth-green text-white border-growth-green"
+                    : "bg-secondary border-border text-foreground hover:bg-secondary/80"
+                )}
               >
                 All {currentCategory.name}
               </Link>
@@ -493,16 +494,18 @@ export function BusinessListings({ className }: BusinessListingsProps) {
                 <Link
                   key={sub.id}
                   to={`/businesses?category=${currentCategory.slug}&subcategory=${sub.slug}`}
-                  className={`px-4 py-2 text-sm rounded-full border transition-all backdrop-blur-sm ${currentSubcategory?.id === sub.id
-                    ? 'bg-growth-green text-white border-growth-green'
-                    : 'bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/40'
-                    }`}
+                  className={cn(
+                    "px-3 py-1.5 text-sm rounded-md border transition-colors",
+                    currentSubcategory?.id === sub.id
+                      ? "bg-growth-green text-white border-growth-green"
+                      : "bg-secondary border-border text-foreground hover:bg-secondary/80"
+                  )}
                 >
                   {sub.name}
                 </Link>
               ))}
               {currentCategory.subcategories.length > 10 && (
-                <span className="px-4 py-2 text-sm text-white/60">
+                <span className="px-3 py-1.5 text-sm text-muted-foreground">
                   +{currentCategory.subcategories.length - 10} more
                 </span>
               )}
@@ -561,15 +564,15 @@ export function BusinessListings({ className }: BusinessListingsProps) {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="relevance">Relevance</SelectItem>
+                          <SelectItem value="relevance">Best Match</SelectItem>
                           <SelectItem value="price-low">
-                            Price: Low to High
+                            Lowest Price
                           </SelectItem>
                           <SelectItem value="price-high">
-                            Price: High to Low
+                            Highest Price
                           </SelectItem>
                           <SelectItem value="revenue-high">
-                            Revenue: High to Low
+                            Highest Revenue
                           </SelectItem>
                           <SelectItem value="newest">Newest First</SelectItem>
                           <SelectItem value="oldest">Oldest First</SelectItem>
