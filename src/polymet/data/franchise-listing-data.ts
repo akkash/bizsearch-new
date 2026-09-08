@@ -149,8 +149,9 @@ export const franchiseListingSchema = z.object({
         name: z.string().min(1, "Format name is required"),
         minSqft: z.number().min(0, "Minimum sqft cannot be negative"),
         maxSqft: z.number().min(0, "Maximum sqft cannot be negative"),
-        investmentMin: z.number().min(0).optional(),
-        investmentMax: z.number().min(0).optional(),
+        investmentMin: z.number().min(1, "Format investment min is required"),
+        investmentMax: z.number().min(1, "Format investment max is required"),
+        franchiseFee: z.number().min(0).optional(),
         description: z.string().optional(),
       })
     ).min(1, "At least one store format is required"),

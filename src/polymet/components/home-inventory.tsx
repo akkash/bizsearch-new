@@ -5,6 +5,11 @@ import { Button } from "@/components/ui/button";
 import { BusinessService } from "@/lib/business-service";
 import { FranchiseService } from "@/lib/franchise-service";
 import { formatINR } from "@/lib/format-currency";
+import {
+  formatInvestmentRange,
+  getFranchiseInvestmentRange,
+  getStoreFormatsFromFranchise,
+} from "@/lib/store-formats";
 import type { Business, Franchise } from "@/types/listings";
 import { cn } from "@/lib/utils";
 
@@ -421,22 +426,20 @@ export function HomeFranchiseInventory({ className }: { className?: string }) {
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-0">
-              {items.map((f) => {
-                const brand = f.brand_name || f.brandName || "Franchise";
-                const investMin = f.total_investment_min ?? f.investmentMin;
-                const investMax = f.total_investment_max ?? f.investmentMax;
-                const fee = f.franchise_fee ?? f.franchiseFee;
-                const breakEven =
-                  (f as any).expected_break_even ||
-                  (f as any).breakeven_period ||
-                  (f as any).breakevenPeriod;
-                const territories = f.territories || [];
-                const id = f.slug || f.id;
-                const hasInvest = investMin != null || investMax != null;
-                const investLabel = hasInvest
-                  ? investMax && investMax !== investMin
-                    ? `${formatINR(investMin)}–${formatINR(investMax)}`
-                    : formatINR(investMin || investMax)
+            {items.map((f) => {
+              const brand = f.brand_name || f.brandName || "Franchise";
+              const formats = getStoreFormatsFromFranchise(f);
+              const range = getFranchiseInvestmentRange(f);
+              const fee = f.franchise_fee ?? f.franchiseFee;
+              const breakEven =
+                (f as any).expected_break_even ||
+                (f as any).breakeven_period ||
+                (f as any).breakevenPeriod;
+              const territories = f.territories || [];
+              const id = f.slug || f.id;
+              const investLabel =
+                range.min != null || range.max != null
+                  ? formatInvestmentRange(range.min, range.max)
                   : null;
 
                 return (
@@ -466,8 +469,15 @@ export function HomeFranchiseInventory({ className }: { className?: string }) {
                         </div>
                       )}
                       <div className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground mt-1 font-medium">
-                        Investment range
+                        {formats.length > 1
+                          ? `Investment · ${formats.length} formats`
+                          : "Investment range"}
                       </div>
+                      {formats.length > 1 && (
+                        <p className="text-[11px] text-muted-foreground mt-1 line-clamp-1">
+                          {formats.map((fmt) => fmt.name).join(" · ")}
+                        </p>
+                      )}
                     </div>
 
                     <div className="grid grid-cols-2 gap-x-4 text-sm mb-2.5">

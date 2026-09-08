@@ -863,6 +863,17 @@ export function FranchiseListingWizard({
                           </div>
 
                           <div className="space-y-2">
+                            <Label>Format franchise fee (₹, optional)</Label>
+                            <Input
+                              type="number"
+                              placeholder="Override brand fee for this format"
+                              {...form.register(`investment.storeFormats.${index}.franchiseFee`, {
+                                valueAsNumber: true,
+                              })}
+                            />
+                          </div>
+
+                          <div className="space-y-2">
                             <Label htmlFor={`format-desc-${index}`}>Description</Label>
                             <Input
                               id={`format-desc-${index}`}

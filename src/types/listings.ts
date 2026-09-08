@@ -137,6 +137,11 @@ export interface Franchise {
     status?: string;
     createdAt?: string;
     created_at?: string;
+    // Store / outlet formats (Kiosk, Express, Standard, etc.)
+    storeFormats?: import('@/lib/store-formats').StoreFormat[];
+    store_formats?: import('@/lib/store-formats').StoreFormat[];
+    spaceRequiredSqft?: number;
+    space_required_sqft?: number;
     // New verification system fields
     verified_at?: string;
     verification_status?: 'verified' | 'pending' | 'unverified' | 'rejected';

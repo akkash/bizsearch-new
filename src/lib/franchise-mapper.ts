@@ -1,4 +1,5 @@
 import type { Franchise } from '@/types/listings';
+import { normalizeStoreFormats } from '@/lib/store-formats';
 
 /** Raw row shape from Supabase `franchises` table */
 export type FranchiseDbRow = Record<string, unknown>;
@@ -140,8 +141,8 @@ export function mapFranchiseFromDb(raw: FranchiseDbRow): Franchise {
     created_at: str(raw.created_at),
     publishedAt: str(raw.published_at),
     published_at: str(raw.published_at),
-    storeFormats: raw.store_formats as Franchise['storeFormats'],
-    store_formats: raw.store_formats as Franchise['storeFormats'],
+    storeFormats: normalizeStoreFormats(raw.store_formats ?? raw.storeFormats),
+    store_formats: normalizeStoreFormats(raw.store_formats ?? raw.storeFormats),
     contactEmail: str(raw.contact_email),
     contact_email: str(raw.contact_email),
     contactPhone: str(raw.contact_phone),

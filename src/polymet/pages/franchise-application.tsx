@@ -21,6 +21,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { InquiryService } from '@/lib/inquiry-service';
 import { formatINR } from '@/lib/format-currency';
+import { StoreFormatPicker } from '@/components/store-format-picker';
+import {
+    findStoreFormat,
+    getStoreFormatsFromFranchise,
+    type StoreFormat,
+} from '@/lib/store-formats';
 
 interface FranchiseInfo {
     id: string;
@@ -28,6 +34,7 @@ interface FranchiseInfo {
     logo_url: string | null;
     total_investment_min: number | null;
     total_investment_max: number | null;
+    store_formats?: unknown;
 }
 
 const steps = [
@@ -42,10 +49,13 @@ export function FranchiseApplicationPage() {
     const { franchiseId } = useParams<{ franchiseId: string }>();
     const [searchParams] = useSearchParams();
     const inquiryId = searchParams.get('inquiryId');
+    const formatIdParam = searchParams.get('formatId');
     const navigate = useNavigate();
     const { user, profile } = useAuth();
     const [currentStep, setCurrentStep] = useState(1);
     const [franchise, setFranchise] = useState<FranchiseInfo | null>(null);
+    const [formats, setFormats] = useState<StoreFormat[]>([]);
+    const [selectedFormatId, setSelectedFormatId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
 
@@ -90,12 +100,15 @@ export function FranchiseApplicationPage() {
             if (!franchiseId) return;
             const { data } = await supabase
                 .from('franchises')
-                .select('id, brand_name, logo_url, total_investment_min, total_investment_max')
+                .select('id, brand_name, logo_url, total_investment_min, total_investment_max, store_formats')
                 .eq('id', franchiseId)
                 .single();
 
             if (data) {
                 setFranchise(data);
+                const fmt = getStoreFormatsFromFranchise(data);
+                setFormats(fmt);
+                setSelectedFormatId(formatIdParam || fmt[0]?.id || null);
             }
             setLoading(false);
         };
@@ -137,6 +150,14 @@ export function FranchiseApplicationPage() {
 
         setSubmitting(true);
         try {
+            if (formats.length > 1 && !selectedFormatId) {
+                toast.error('Please select an outlet format');
+                setSubmitting(false);
+                return;
+            }
+
+            const selectedFormat = findStoreFormat(formats, selectedFormatId);
+
             const payload: Record<string, unknown> = {
                 franchise_id: franchiseId,
                 user_id: user.id,
@@ -156,6 +177,8 @@ export function FranchiseApplicationPage() {
                     investmentTimeline: formData.investmentTimeline,
                     financingNeeded: formData.financingNeeded,
                     creditScore: formData.creditScore,
+                    selectedStoreFormatId: selectedFormat?.id,
+                    selectedStoreFormatName: selectedFormat?.name,
                 },
                 location_preferences: {
                     preferredStates: formData.preferredStates,
@@ -176,12 +199,25 @@ export function FranchiseApplicationPage() {
             if (inquiryId) {
                 payload.inquiry_id = inquiryId;
             }
+            if (selectedFormat) {
+                payload.selected_store_format_id = selectedFormat.id;
+                payload.selected_store_format_name = selectedFormat.name;
+                payload.selected_store_format_snapshot = { ...selectedFormat };
+            }
 
             let { error } = await supabase.from('franchise_applications').insert(payload);
 
-            // Fallback if inquiry_id column not yet migrated
-            if (error && inquiryId && (error.message?.includes('inquiry_id') || error.code === 'PGRST204')) {
+            // Fallback if new columns not yet migrated
+            if (
+                error &&
+                (error.message?.includes('inquiry_id') ||
+                    error.message?.includes('selected_store_format') ||
+                    error.code === 'PGRST204')
+            ) {
                 delete payload.inquiry_id;
+                delete payload.selected_store_format_id;
+                delete payload.selected_store_format_name;
+                delete payload.selected_store_format_snapshot;
                 const retry = await supabase.from('franchise_applications').insert(payload);
                 error = retry.error;
             }
@@ -248,13 +284,34 @@ export function FranchiseApplicationPage() {
                         <h1 className="text-2xl font-bold">Apply for {franchise.brand_name}</h1>
                         <p className="text-muted-foreground">
                             Investment:{' '}
-                            {franchise.total_investment_min != null ||
-                            franchise.total_investment_max != null
-                              ? `${formatINR(franchise.total_investment_min)} – ${formatINR(franchise.total_investment_max)}`
-                              : 'Not provided'}
+                            {(() => {
+                              const fmt = findStoreFormat(formats, selectedFormatId);
+                              if (fmt?.investmentMin != null || fmt?.investmentMax != null) {
+                                return `${formatINR(fmt.investmentMin)} – ${formatINR(fmt.investmentMax)}`;
+                              }
+                              if (
+                                franchise.total_investment_min != null ||
+                                franchise.total_investment_max != null
+                              ) {
+                                return `${formatINR(franchise.total_investment_min)} – ${formatINR(franchise.total_investment_max)}`;
+                              }
+                              return 'Not provided';
+                            })()}
                         </p>
                     </div>
                 </div>
+
+                {formats.length > 0 && (
+                    <div className="mb-6">
+                        <StoreFormatPicker
+                            formats={formats}
+                            value={selectedFormatId}
+                            onChange={setSelectedFormatId}
+                            label="Outlet format for this application"
+                            required={formats.length > 1}
+                        />
+                    </div>
+                )}
 
                 {/* Progress */}
                 <div className="space-y-2">

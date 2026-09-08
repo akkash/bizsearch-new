@@ -38,6 +38,11 @@ import {
   INVESTMENT_CAPACITY_OPTIONS,
   OPENING_TIMELINE_OPTIONS,
 } from '@/types/franchise-domain';
+import { StoreFormatPicker } from '@/components/store-format-picker';
+import {
+  findStoreFormat,
+  type StoreFormat,
+} from '@/lib/store-formats';
 import { toast } from 'sonner';
 
 interface InquiryDialogProps {
@@ -48,6 +53,8 @@ interface InquiryDialogProps {
   listingName: string;
   ownerId: string;
   askingPrice?: number;
+  storeFormats?: StoreFormat[];
+  initialFormatId?: string | null;
 }
 
 export function InquiryDialog({
@@ -58,10 +65,13 @@ export function InquiryDialog({
   listingName,
   ownerId,
   askingPrice,
+  storeFormats = [],
+  initialFormatId = null,
 }: InquiryDialogProps) {
   const { user, profile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [selectedFormatId, setSelectedFormatId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -83,8 +93,11 @@ export function InquiryDialog({
         email: user?.email || profile?.email || prev.email,
         phone: profile?.phone || prev.phone,
       }));
+      setSelectedFormatId(
+        initialFormatId || storeFormats[0]?.id || null
+      );
     }
-  }, [open, user, profile]);
+  }, [open, user, profile, initialFormatId, storeFormats]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,16 +123,23 @@ export function InquiryDialog({
         toast.error('Please complete all qualification questions');
         return;
       }
+      if (storeFormats.length > 1 && !selectedFormatId) {
+        toast.error('Please select an outlet format');
+        return;
+      }
     }
 
     setLoading(true);
     try {
+      const format = findStoreFormat(storeFormats, selectedFormatId);
       await InquiryService.createInquiry({
         senderId: user.id,
         recipientId: ownerId,
         listingId,
         listingType,
-        subject: `Inquiry about ${listingName}`,
+        subject: format
+          ? `Inquiry about ${listingName} (${format.name})`
+          : `Inquiry about ${listingName}`,
         message: formData.message,
         contactEmail: formData.email,
         contactPhone: formData.phone,
@@ -136,6 +156,13 @@ export function InquiryDialog({
                 investmentCapacity: formData.investmentCapacity || undefined,
                 openingTimeline: formData.openingTimeline || undefined,
               },
+        selectedStoreFormat: format
+          ? {
+              id: format.id,
+              name: format.name,
+              snapshot: { ...format },
+            }
+          : undefined,
         metadata: {
           sender_name: formData.name,
           nda_accepted: formData.acceptNDA,
@@ -333,6 +360,16 @@ export function InquiryDialog({
               required
             />
           </div>
+
+          {listingType === 'franchise' && storeFormats.length > 0 && (
+            <StoreFormatPicker
+              formats={storeFormats}
+              value={selectedFormatId}
+              onChange={setSelectedFormatId}
+              label="Which outlet format are you interested in?"
+              required={storeFormats.length > 1}
+            />
+          )}
 
           {listingType === 'franchise' && (
             <div className="space-y-3 rounded-md border border-border p-3 bg-secondary/20">

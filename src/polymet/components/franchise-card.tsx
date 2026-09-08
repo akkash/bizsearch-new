@@ -11,6 +11,11 @@ import { cn } from "@/lib/utils";
 import { Franchise } from "@/types/listings";
 import { VerificationBadge, type VerificationStatus } from "@/components/verification-badge";
 import { formatINR } from "@/lib/format-currency";
+import {
+  formatInvestmentRange,
+  getFranchiseInvestmentRange,
+  getStoreFormatsFromFranchise,
+} from "@/lib/store-formats";
 
 interface FranchiseCardProps {
   franchise: Franchise;
@@ -36,10 +41,10 @@ export function FranchiseCard({
 }: FranchiseCardProps) {
   const brandName = franchise.brand_name || franchise.brandName || "Franchise";
   const logoUrl = franchise.logo_url || franchise.logo;
-  const investMin =
-    franchise.total_investment_min ?? franchise.investmentMin ?? 0;
-  const investMax =
-    franchise.total_investment_max ?? franchise.investmentMax;
+  const formats = getStoreFormatsFromFranchise(franchise);
+  const investRange = getFranchiseInvestmentRange(franchise);
+  const investMin = investRange.min ?? 0;
+  const investMax = investRange.max;
   const franchiseFee = franchise.franchise_fee ?? franchise.franchiseFee;
   const royalty = franchise.royalty_percentage ?? franchise.royaltyPercentage;
   const setupCost =
@@ -51,14 +56,13 @@ export function FranchiseCard({
     (franchise as any).break_even_months ||
     (franchise as any).payback_period;
   const spaceReq =
-    (franchise as any).space_requirement ||
-    (franchise as any).min_area_sqft;
+    formats[0]
+      ? undefined
+      : (franchise as any).space_requirement ||
+        (franchise as any).min_area_sqft;
   const territories = franchise.territories || [];
 
-  const investmentLabel =
-    investMax && investMax !== investMin
-      ? `${formatINR(investMin)}–${formatINR(investMax)}`
-      : formatINR(investMin);
+  const investmentLabel = formatInvestmentRange(investRange.min, investRange.max);
 
   return (
     <Card
@@ -130,11 +134,16 @@ export function FranchiseCard({
           {/* Total investment — primary metric for franchise */}
           <div>
             <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
-              Total investment
+              {formats.length > 1 ? 'Investment range' : 'Total investment'}
             </div>
             <div className="text-2xl font-bold font-mono tabular-nums tracking-tight">
               {investmentLabel}
             </div>
+            {formats.length > 1 && (
+              <p className="text-[11px] text-muted-foreground mt-1">
+                {formats.length} formats: {formats.map((f) => f.name).join(' · ')}
+              </p>
+            )}
           </div>
 
           {/* Franchise-specific metrics — not identical to business cards */}

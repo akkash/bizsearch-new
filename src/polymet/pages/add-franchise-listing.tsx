@@ -21,6 +21,10 @@ import {
 } from "@/polymet/data/franchise-listing-data";
 import { useAuth } from "@/contexts/AuthContext";
 import { FranchiseService, type FranchiseCreateInput } from "@/lib/franchise-service";
+import {
+  aggregateInvestmentFromFormats,
+  normalizeStoreFormats,
+} from "@/lib/store-formats";
 
 interface AddFranchiseListingPageProps {
   className?: string;
@@ -138,6 +142,19 @@ export function AddFranchiseListingPage({
       return;
     }
 
+    const formats = normalizeStoreFormats(data.investment?.storeFormats || []);
+    if (!formats.length) {
+      alert("Add at least one outlet format (size/investment option).");
+      return;
+    }
+    for (const f of formats) {
+      if (!f.investmentMin || f.investmentMin <= 0) {
+        alert(`Set investment for format "${f.name}".`);
+        return;
+      }
+    }
+    const fromFormats = aggregateInvestmentFromFormats(formats);
+
     try {
       console.log("Submitting franchise listing:", data);
 
@@ -147,8 +164,8 @@ export function AddFranchiseListingPage({
         industry,
         description,
         franchise_fee: fee,
-        total_investment_min: investMin,
-        total_investment_max: investMax,
+        total_investment_min: fromFormats.total_investment_min ?? investMin,
+        total_investment_max: fromFormats.total_investment_max ?? investMax,
         royalty_percentage: data.investment?.royaltyStructure?.baseTiers?.[0]?.percentage || 0,
         marketing_fee_percentage: data.investment?.marketingFee?.value || 0,
         established_year: data.brandOverview?.yearEstablished,
@@ -180,9 +197,9 @@ export function AddFranchiseListingPage({
         payback_period_months: data.investment?.breakEvenPeriod,
         expected_roi_percentage: data.investment?.averageROI,
         // Store formats for multiple outlet types
-        store_formats: data.investment?.storeFormats || [],
-        // Legacy field - use first format's minSqft if available
-        space_required_sqft: data.investment?.storeFormats?.[0]?.minSqft,
+        store_formats: formats,
+        // Derived from smallest format when formats exist
+        space_required_sqft: fromFormats.space_required_sqft,
         // Media
         images: data.media?.outletPhotos?.map(p => p.url) || [],
         videos: data.media?.videos || [],

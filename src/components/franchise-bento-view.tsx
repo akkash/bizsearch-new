@@ -32,10 +32,20 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatINR } from '@/lib/format-currency';
+import { StoreFormatPicker } from '@/components/store-format-picker';
+import {
+    findStoreFormat,
+    formatInvestmentRange,
+    formatStoreFormatSpace,
+    getFranchiseInvestmentRange,
+    getStoreFormatsFromFranchise,
+} from '@/lib/store-formats';
 
 interface FranchiseBentoViewProps {
     franchise: any;
     className?: string;
+    selectedFormatId?: string | null;
+    onFormatChange?: (formatId: string) => void;
 }
 
 function formatCurrency(amount: number | null | undefined): string {
@@ -49,31 +59,52 @@ function displayValue(value: any, suffix: string = ''): string {
     return `${value}${suffix}`;
 }
 
-export function FranchiseBentoView({ franchise, className }: FranchiseBentoViewProps) {
+export function FranchiseBentoView({
+    franchise,
+    className,
+    selectedFormatId,
+    onFormatChange,
+}: FranchiseBentoViewProps) {
     const [brandSlideIndex, setBrandSlideIndex] = useState(0);
     const [territorySearch, setTerritorySearch] = useState('');
 
-    // Calculate values - no fallbacks
+    const formats = getStoreFormatsFromFranchise(franchise);
+    const selectedFormat = findStoreFormat(formats, selectedFormatId);
+    const aggregate = getFranchiseInvestmentRange(franchise);
+
     const currentYear = new Date().getFullYear();
     const establishedYear = franchise.establishedYear || franchise.established_year;
     const yearsExperience = establishedYear ? currentYear - establishedYear : null;
 
-    const totalInvestmentMin = franchise.investmentMin || franchise.total_investment_min;
-    const totalInvestmentMax = franchise.investmentMax || franchise.total_investment_max;
-    const franchiseFee = franchise.franchiseFee || franchise.franchise_fee;
+    const totalInvestmentMin =
+        selectedFormat?.investmentMin ??
+        aggregate.min ??
+        franchise.investmentMin ??
+        franchise.total_investment_min;
+    const totalInvestmentMax =
+        selectedFormat?.investmentMax ??
+        selectedFormat?.investmentMin ??
+        aggregate.max ??
+        franchise.investmentMax ??
+        franchise.total_investment_max;
+    const franchiseFee =
+        selectedFormat?.franchiseFee ??
+        franchise.franchiseFee ??
+        franchise.franchise_fee;
     const royalty = franchise.royaltyPercentage || franchise.royalty_percentage;
 
-    // Prefer explicit breakdown fields; do not invent fee splits from totals
     const setupCost =
         franchise.setup_cost ||
         franchise.setupCost ||
         (totalInvestmentMin && franchiseFee
-            ? Math.max(0, totalInvestmentMin - franchiseFee)
+            ? Math.max(0, Number(totalInvestmentMin) - Number(franchiseFee))
             : null);
-    const spaceReq =
-        franchise.space_requirement ||
-        franchise.min_area_sqft ||
-        franchise.spaceRequirement;
+    const spaceReq = selectedFormat
+        ? formatStoreFormatSpace(selectedFormat)
+        : franchise.space_requirement ||
+          franchise.min_area_sqft ||
+          franchise.spaceRequirement ||
+          franchise.space_required_sqft;
     const verificationStatus =
         franchise.verificationStatus || franchise.verification_status;
 
@@ -184,12 +215,10 @@ export function FranchiseBentoView({ franchise, className }: FranchiseBentoViewP
 
     const brandName = franchise.brandName || franchise.brand_name || 'Franchise';
     const logoUrl = franchise.logo || franchise.logo_url;
-    const investmentLabel =
-        totalInvestmentMin || totalInvestmentMax
-            ? totalInvestmentMax && totalInvestmentMax !== totalInvestmentMin
-                ? `${formatCurrency(totalInvestmentMin)}–${formatCurrency(totalInvestmentMax)}`
-                : formatCurrency(totalInvestmentMin || totalInvestmentMax)
-            : '—';
+    const investmentLabel = formatInvestmentRange(
+        totalInvestmentMin != null ? Number(totalInvestmentMin) : null,
+        totalInvestmentMax != null ? Number(totalInvestmentMax) : null
+    );
 
     return (
         <div className={cn("space-y-6", className)}>
@@ -217,19 +246,37 @@ export function FranchiseBentoView({ franchise, className }: FranchiseBentoViewP
                             {franchise.industry && (
                                 <Badge variant="secondary">{franchise.industry}</Badge>
                             )}
+                            {formats.length > 1 && (
+                                <Badge variant="outline" className="text-[10px]">
+                                    {formats.length} formats
+                                </Badge>
+                            )}
                         </div>
                         <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{brandName}</h1>
                         <p className="text-sm text-muted-foreground mt-1">
                             {establishedYear ? `Est. ${establishedYear}` : 'Established year not listed'}
                             {totalOutlets ? ` · ${totalOutlets} outlets` : ''}
+                            {selectedFormat ? ` · ${selectedFormat.name}` : ''}
                         </p>
                     </div>
                 </div>
 
+                {formats.length > 0 && onFormatChange && (
+                    <div className="mb-6">
+                        <StoreFormatPicker
+                            formats={formats}
+                            value={selectedFormatId || formats[0]?.id || null}
+                            onChange={onFormatChange}
+                            label="Outlet formats"
+                            required={formats.length > 1}
+                        />
+                    </div>
+                )}
+
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6">
                     <div className="col-span-2 md:col-span-1">
                         <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
-                            Total investment
+                            {selectedFormat ? `${selectedFormat.name} investment` : 'Total investment'}
                         </div>
                         <div className="text-3xl md:text-4xl font-bold font-mono tabular-nums tracking-tight">
                             {investmentLabel}

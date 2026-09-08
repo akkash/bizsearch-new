@@ -17,6 +17,10 @@ import {
   Shield,
 } from "lucide-react";
 import { Business, Franchise } from "@/types/listings";
+import {
+  getFranchiseInvestmentRange,
+  getStoreFormatsFromFranchise,
+} from "@/lib/store-formats";
 
 interface ComparisonItem {
   id: string;
@@ -79,7 +83,28 @@ export function ComparisonFeature({
       return (item.data as Business).price ?? null;
     }
     const franchise = item.data as Franchise;
-    return franchise.investmentMin ?? franchise.total_investment_min ?? franchise.franchiseFee ?? franchise.franchise_fee ?? null;
+    const range = getFranchiseInvestmentRange(franchise);
+    return range.min ?? franchise.investmentMin ?? franchise.total_investment_min ?? null;
+  };
+
+  const getFranchiseFormatsLabel = (item: ComparisonItem): string => {
+    if (item.type !== "franchise") return "—";
+    const formats = getStoreFormatsFromFranchise(item.data as Franchise);
+    if (!formats.length) return "Single format";
+    return formats.map((f) => f.name).join(", ");
+  };
+
+  const getFranchiseInvestmentLabel = (item: ComparisonItem): string => {
+    if (item.type !== "franchise") {
+      const price = getPrice(item);
+      return price != null ? formatCurrency(price) : "—";
+    }
+    const range = getFranchiseInvestmentRange(item.data as Franchise);
+    if (range.min == null && range.max == null) return "—";
+    if (range.min != null && range.max != null && range.max !== range.min) {
+      return `${formatCurrency(range.min)}–${formatCurrency(range.max)}`;
+    }
+    return formatCurrency(range.min ?? range.max!);
   };
 
   const getFranchiseFee = (item: ComparisonItem): number | null => {
@@ -318,9 +343,22 @@ export function ComparisonFeature({
                             : "Investment Required"}
                         </div>
                         <div className="font-semibold text-lg text-primary">
-                          {formatOptionalCurrency(getPrice(item))}
+                          {item.type === "franchise"
+                            ? getFranchiseInvestmentLabel(item)
+                            : formatOptionalCurrency(getPrice(item))}
                         </div>
                       </div>
+
+                      {item.type === "franchise" && (
+                        <div>
+                          <div className="text-muted-foreground text-sm">
+                            Outlet formats
+                          </div>
+                          <div className="font-medium text-sm">
+                            {getFranchiseFormatsLabel(item)}
+                          </div>
+                        </div>
+                      )}
 
                       <div>
                         <div className="text-muted-foreground text-sm">

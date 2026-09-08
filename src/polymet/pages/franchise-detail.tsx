@@ -20,6 +20,11 @@ import { cn } from "@/lib/utils";
 import { InquiryDialog } from "@/components/inquiry-dialog";
 import { FranchiseBentoView } from "@/components/franchise-bento-view";
 import { ComparisonFeature } from "@/polymet/components/comparison-feature";
+import {
+  findStoreFormat,
+  getFranchiseInvestmentRange,
+  getStoreFormatsFromFranchise,
+} from "@/lib/store-formats";
 
 interface FranchiseDetailProps {
   className?: string;
@@ -37,6 +42,7 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
   const [showContactForm, setShowContactForm] = useState(false);
   const [showComparePanel, setShowComparePanel] = useState(false);
   const [compareFranchises, setCompareFranchises] = useState<Franchise[]>([]);
+  const [selectedFormatId, setSelectedFormatId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchFranchise = async () => {
@@ -46,9 +52,12 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
         const result = await FranchiseService.getPublicFranchiseByIdOrSlug(id, user?.id);
         if (result) {
           setFranchise(result);
+          const formats = getStoreFormatsFromFranchise(result);
+          setSelectedFormatId(formats[0]?.id ?? null);
           FranchiseService.incrementViews(result.id).catch(console.error);
         } else {
           setFranchise(null);
+          setSelectedFormatId(null);
         }
       } catch (error) {
         console.error("Error fetching franchise:", error);
@@ -143,8 +152,22 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
       navigate(`/login?redirect=/franchise/${identifier}/apply`);
       return;
     }
-    navigate(`/franchise/${identifier}/apply`);
+    const params = new URLSearchParams();
+    if (selectedFormatId) params.set('formatId', selectedFormatId);
+    const qs = params.toString();
+    navigate(`/franchise/${identifier}/apply${qs ? `?${qs}` : ''}`);
   };
+
+  const formats = franchise ? getStoreFormatsFromFranchise(franchise) : [];
+  const selectedFormat = findStoreFormat(formats, selectedFormatId);
+  const investRange = franchise
+    ? getFranchiseInvestmentRange(franchise)
+    : { min: null, max: null };
+  const enquireAskingPrice =
+    selectedFormat?.investmentMin ??
+    investRange.min ??
+    franchise?.investmentMin ??
+    franchise?.total_investment_min;
 
   const compareItems = [
     ...(franchise && compared ? [{ id: franchise.id, type: "franchise" as const, data: franchise }] : []),
@@ -267,7 +290,11 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
       </div>
 
       <div className="container mx-auto px-4 py-6 pb-24 md:pb-6">
-        <FranchiseBentoView franchise={franchise} />
+        <FranchiseBentoView
+          franchise={franchise}
+          selectedFormatId={selectedFormatId}
+          onFormatChange={setSelectedFormatId}
+        />
 
         <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center pb-8">
           <Button
@@ -293,7 +320,9 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
         listingType="franchise"
         listingName={brandName}
         ownerId={franchise.franchisorId || franchise.franchisor_id || franchise.owner_id || ""}
-        askingPrice={franchise.investmentMin || franchise.total_investment_min}
+        askingPrice={enquireAskingPrice ?? undefined}
+        storeFormats={formats}
+        initialFormatId={selectedFormatId}
       />
 
       {showComparePanel && (

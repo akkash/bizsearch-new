@@ -345,6 +345,14 @@ export function LeadManagementPage() {
                             )}
                           </span>
                         </span>
+                        {lead.selectedStoreFormatName && (
+                          <span>
+                            Format:{' '}
+                            <span className="text-foreground">
+                              {lead.selectedStoreFormatName}
+                            </span>
+                          </span>
+                        )}
                       </div>
                     </div>
                     <Select
@@ -440,6 +448,12 @@ export function LeadManagementPage() {
                       )}
                     </p>
                   </div>
+                  {selectedLead.selectedStoreFormatName && (
+                    <div className="col-span-2">
+                      <p className="text-[11px] text-muted-foreground">Outlet format</p>
+                      <p className="font-medium">{selectedLead.selectedStoreFormatName}</p>
+                    </div>
+                  )}
                   {selectedLead.matchScore != null && (
                     <div>
                       <p className="text-[11px] text-muted-foreground">Match score</p>
@@ -529,7 +543,13 @@ export function LeadManagementPage() {
                       className="bg-growth-green hover:bg-growth-green/90 text-white"
                       onClick={async () => {
                         await updateLeadStatus(selectedLead.id, 'application');
-                        const url = `${window.location.origin}/franchise/${selectedLead.listingId}/apply?inquiryId=${selectedLead.id}`;
+                        const params = new URLSearchParams({
+                          inquiryId: selectedLead.id,
+                        });
+                        if (selectedLead.selectedStoreFormatId) {
+                          params.set('formatId', selectedLead.selectedStoreFormatId);
+                        }
+                        const url = `${window.location.origin}/franchise/${selectedLead.listingId}/apply?${params}`;
                         try {
                           await navigator.clipboard.writeText(url);
                           toast.success('Application link copied — send it to the candidate');

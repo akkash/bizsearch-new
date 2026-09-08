@@ -152,6 +152,8 @@ export function FranchisorApplicationsPage() {
                 reviewed_at,
                 created_at,
                 updated_at,
+                selected_store_format_id,
+                selected_store_format_name,
                 applicant:profiles!user_id (
                     id,
                     display_name,
@@ -396,6 +398,10 @@ export function FranchisorApplicationsPage() {
                                                     </h3>
                                                     <p className="text-sm text-muted-foreground">
                                                         Applied for {app.franchise?.brand_name}
+                                                        {(app as any).selected_store_format_name ||
+                                                        app.financial_info?.selectedStoreFormatName
+                                                          ? ` · ${(app as any).selected_store_format_name || app.financial_info?.selectedStoreFormatName}`
+                                                          : ''}
                                                     </p>
                                                 </div>
                                                 <Badge className={`${status.color} flex items-center gap-1`}>

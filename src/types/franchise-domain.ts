@@ -46,6 +46,9 @@ export interface FranchiseInquiry {
   relevantExperience?: string | null;
   matchScore?: number | null;
   linkedApplicationId?: string | null;
+  selectedStoreFormatId?: string | null;
+  selectedStoreFormatName?: string | null;
+  selectedStoreFormatSnapshot?: Record<string, unknown> | null;
   sender?: {
     displayName: string;
     email: string;

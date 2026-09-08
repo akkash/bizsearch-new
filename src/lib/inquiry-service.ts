@@ -60,6 +60,18 @@ function mapInquiry(
           ? Number(meta.match_score)
           : null,
     linkedApplicationId: linkedApplicationId ?? null,
+    selectedStoreFormatId:
+      (row.selected_store_format_id as string) ||
+      (meta.selected_store_format_id as string) ||
+      null,
+    selectedStoreFormatName:
+      (row.selected_store_format_name as string) ||
+      (meta.selected_store_format_name as string) ||
+      null,
+    selectedStoreFormatSnapshot:
+      (row.selected_store_format_snapshot as Record<string, unknown>) ||
+      (meta.selected_store_format_snapshot as Record<string, unknown>) ||
+      null,
     sender: sender
       ? {
           displayName: String(sender.display_name || ''),
@@ -80,6 +92,11 @@ export type CreateInquiryInput = {
   contactEmail: string;
   contactPhone?: string;
   qualification?: Partial<LeadQualification>;
+  selectedStoreFormat?: {
+    id: string;
+    name: string;
+    snapshot?: Record<string, unknown>;
+  };
   metadata?: Record<string, unknown>;
 };
 
@@ -123,6 +140,7 @@ export class InquiryService {
 
   static async createInquiry(input: CreateInquiryInput): Promise<string> {
     const q = input.qualification;
+    const fmt = input.selectedStoreFormat;
     const metadata = {
       ...(input.metadata || {}),
       investment_capacity: q?.investmentCapacity,
@@ -130,6 +148,9 @@ export class InquiryService {
       opening_timeline: q?.openingTimeline,
       funds_available: q?.fundsAvailable,
       relevant_experience: q?.relevantExperience,
+      selected_store_format_id: fmt?.id,
+      selected_store_format_name: fmt?.name,
+      selected_store_format_snapshot: fmt?.snapshot,
     };
 
     const row: Record<string, unknown> = {
@@ -146,12 +167,16 @@ export class InquiryService {
       metadata,
     };
 
-    // Prefer structured columns when migration 029 is applied
     if (q?.investmentCapacity) row.investment_capacity = q.investmentCapacity;
     if (q?.preferredLocation) row.preferred_location = q.preferredLocation;
     if (q?.openingTimeline) row.opening_timeline = q.openingTimeline;
     if (q?.fundsAvailable) row.funds_available = q.fundsAvailable;
     if (q?.relevantExperience) row.relevant_experience = q.relevantExperience;
+    if (fmt?.id) {
+      row.selected_store_format_id = fmt.id;
+      row.selected_store_format_name = fmt.name;
+      row.selected_store_format_snapshot = fmt.snapshot || null;
+    }
 
     const { data, error } = await supabase
       .from('inquiries')
@@ -161,7 +186,11 @@ export class InquiryService {
 
     if (error) {
       // Fallback without new columns if migration not yet applied
-      if (error.message?.includes('investment_capacity') || error.code === 'PGRST204') {
+      if (
+        error.message?.includes('investment_capacity') ||
+        error.message?.includes('selected_store_format') ||
+        error.code === 'PGRST204'
+      ) {
         const { data: fallback, error: err2 } = await supabase
           .from('inquiries')
           .insert({
