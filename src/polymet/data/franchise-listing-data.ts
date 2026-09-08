@@ -51,11 +51,15 @@ export const franchiseListingSchema = z.object({
 
   // Investment & Financials
   investment: z.object({
-    franchiseFee: z.number().min(0, "Franchise fee cannot be negative"),
-    totalInvestment: z.object({
-      min: z.number().min(0, "Minimum investment cannot be negative"),
-      max: z.number().min(0, "Maximum investment cannot be negative"),
-    }),
+    franchiseFee: z.number().min(1, "Franchise fee is required"),
+    totalInvestment: z
+      .object({
+        min: z.number().min(1, "Minimum investment is required"),
+        max: z.number().min(1, "Maximum investment is required"),
+      })
+      .refine((v) => v.max >= v.min, {
+        message: "Maximum investment must be ≥ minimum",
+      }),
     liquidCapitalRequired: z
       .number()
       .min(0, "Liquid capital cannot be negative"),

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,13 +19,15 @@ import { ArrowLeft, ArrowRight, CheckCircle, Loader2, Building2 } from 'lucide-r
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
+import { InquiryService } from '@/lib/inquiry-service';
+import { formatINR } from '@/lib/format-currency';
 
 interface FranchiseInfo {
     id: string;
     brand_name: string;
     logo_url: string | null;
-    investment_range_min: number;
-    investment_range_max: number;
+    total_investment_min: number | null;
+    total_investment_max: number | null;
 }
 
 const steps = [
@@ -38,6 +40,8 @@ const steps = [
 
 export function FranchiseApplicationPage() {
     const { franchiseId } = useParams<{ franchiseId: string }>();
+    const [searchParams] = useSearchParams();
+    const inquiryId = searchParams.get('inquiryId');
     const navigate = useNavigate();
     const { user, profile } = useAuth();
     const [currentStep, setCurrentStep] = useState(1);
@@ -86,7 +90,7 @@ export function FranchiseApplicationPage() {
             if (!franchiseId) return;
             const { data } = await supabase
                 .from('franchises')
-                .select('id, brand_name, logo_url, investment_range_min, investment_range_max')
+                .select('id, brand_name, logo_url, total_investment_min, total_investment_max')
                 .eq('id', franchiseId)
                 .single();
 
@@ -133,7 +137,7 @@ export function FranchiseApplicationPage() {
 
         setSubmitting(true);
         try {
-            const { error } = await supabase.from('franchise_applications').insert({
+            const payload: Record<string, unknown> = {
                 franchise_id: franchiseId,
                 user_id: user.id,
                 status: 'submitted',
@@ -167,9 +171,30 @@ export function FranchiseApplicationPage() {
                     goals: formData.goals,
                     availability: formData.availability,
                 },
-            });
+            };
+
+            if (inquiryId) {
+                payload.inquiry_id = inquiryId;
+            }
+
+            let { error } = await supabase.from('franchise_applications').insert(payload);
+
+            // Fallback if inquiry_id column not yet migrated
+            if (error && inquiryId && (error.message?.includes('inquiry_id') || error.code === 'PGRST204')) {
+                delete payload.inquiry_id;
+                const retry = await supabase.from('franchise_applications').insert(payload);
+                error = retry.error;
+            }
 
             if (error) throw error;
+
+            if (inquiryId) {
+                try {
+                    await InquiryService.markApplicationStarted(inquiryId);
+                } catch (linkErr) {
+                    console.warn('Could not update inquiry stage:', linkErr);
+                }
+            }
 
             toast.success('Application submitted successfully!');
             navigate('/my-applications');
@@ -222,7 +247,11 @@ export function FranchiseApplicationPage() {
                     <div>
                         <h1 className="text-2xl font-bold">Apply for {franchise.brand_name}</h1>
                         <p className="text-muted-foreground">
-                            Investment: ₹{(franchise.investment_range_min / 100000).toFixed(0)}L - ₹{(franchise.investment_range_max / 100000).toFixed(0)}L
+                            Investment:{' '}
+                            {franchise.total_investment_min != null ||
+                            franchise.total_investment_max != null
+                              ? `${formatINR(franchise.total_investment_min)} – ${formatINR(franchise.total_investment_max)}`
+                              : 'Not provided'}
                         </p>
                     </div>
                 </div>

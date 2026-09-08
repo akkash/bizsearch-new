@@ -21,6 +21,7 @@ import {
   DownloadIcon,
   RefreshCwIcon,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export interface FranchiseMetrics {
   franchiseId: string;
@@ -205,7 +206,7 @@ const COLORS = [
 ];
 
 export function FranchiseMetrics({
-  metrics = mockMetrics,
+  metrics = [],
   onExportData,
   onRefreshData,
   className = "",
@@ -213,6 +214,14 @@ export function FranchiseMetrics({
   const [selectedFranchise, setSelectedFranchise] = useState<string>(
     metrics[0]?.franchiseId || ""
   );
+
+  if (!metrics.length) {
+    return (
+      <div className={cn("border border-border rounded-md p-8 text-center text-sm text-muted-foreground", className)}>
+        No franchise performance metrics available yet.
+      </div>
+    );
+  }
 
   const selectedMetrics =
     metrics.find((m) => m.franchiseId === selectedFranchise) || metrics[0];

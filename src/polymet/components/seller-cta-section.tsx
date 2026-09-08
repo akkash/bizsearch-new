@@ -3,53 +3,46 @@ import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-interface SellerCtaSectionProps {
-  className?: string;
-}
-
 const STEPS = [
-  { step: "1", title: "Create listing", desc: "Add business details and financials" },
-  { step: "2", title: "Verify business", desc: "Complete identity and document checks" },
-  { step: "3", title: "Receive qualified interest", desc: "Buyers who match your criteria" },
-  { step: "4", title: "Connect with buyers", desc: "Negotiate and move toward close" },
+  { n: "1", title: "List brand" },
+  { n: "2", title: "Get leads" },
+  { n: "3", title: "Qualify & convert" },
 ];
 
-export function SellerCtaSection({ className }: SellerCtaSectionProps) {
+export function SellerCtaSection({ className }: { className?: string }) {
   return (
-    <section className={cn("py-14 md:py-16 border-t border-border", className)}>
+    <section className={cn("py-7 md:py-9", className)}>
       <div className="container mx-auto px-4">
-        <div className="rounded-lg border border-border bg-card p-6 md:p-10">
-          <div className="grid lg:grid-cols-[1.2fr_1fr] gap-10 items-start">
-            <div>
-              <h2 className="text-2xl md:text-3xl font-bold tracking-tight mb-3">
-                Sell your business
-              </h2>
-              <p className="text-muted-foreground mb-6 max-w-lg leading-relaxed">
-                Find qualified buyers and present your business with the
-                information serious buyers need.
-              </p>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5 border-t border-border pt-7">
+          <div className="max-w-lg">
+            <h2 className="text-xl md:text-[1.75rem] font-bold tracking-tight mb-1.5 leading-tight">
+              Expanding your franchise brand?
+            </h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              List your franchise and reach prospective franchisees ready to invest.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Link to="/add-franchise-listing">
+                <Button size="sm" className="h-9 bg-growth-green hover:bg-growth-green/90 text-white">
+                  List Your Franchise
+                  <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                </Button>
+              </Link>
               <Link to="/add-business-listing">
-                <Button size="lg" className="bg-growth-green hover:bg-growth-green/90 text-white">
-                  List Your Business
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                <Button size="sm" variant="outline" className="h-9">
+                  Sell a business
                 </Button>
               </Link>
             </div>
-
-            <ol className="grid sm:grid-cols-2 gap-4">
-              {STEPS.map((item) => (
-                <li key={item.step} className="flex gap-3">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-secondary text-xs font-semibold font-mono">
-                    {item.step}
-                  </span>
-                  <div>
-                    <div className="text-sm font-semibold">{item.title}</div>
-                    <div className="text-xs text-muted-foreground mt-0.5">{item.desc}</div>
-                  </div>
-                </li>
-              ))}
-            </ol>
           </div>
+          <ol className="flex gap-6 md:gap-8">
+            {STEPS.map((s) => (
+              <li key={s.n} className="flex items-center gap-2">
+                <span className="font-mono text-xs text-muted-foreground">{s.n}</span>
+                <span className="text-sm font-medium">{s.title}</span>
+              </li>
+            ))}
+          </ol>
         </div>
       </div>
     </section>

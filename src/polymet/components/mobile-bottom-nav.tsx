@@ -29,13 +29,14 @@ export function MobileBottomNav({
     },
     {
       name: "Search",
-      href: "/businesses",
+      href: "/franchises",
       icon: Search,
       isActive:
         location.pathname.startsWith("/businesses") ||
         location.pathname.startsWith("/franchises") ||
         location.pathname.startsWith("/search") ||
-        location.pathname.startsWith("/smart-search"),
+        location.pathname.startsWith("/smart-search") ||
+        location.pathname.startsWith("/franchise-map"),
     },
     {
       name: "Saved",

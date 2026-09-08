@@ -18,6 +18,7 @@ import {
   LayoutDashboard,
   Calculator,
   Search,
+  Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -40,16 +41,16 @@ interface MainLayoutProps {
 }
 
 const NAV_LINKS = [
-  { name: "Businesses", href: "/businesses" },
   { name: "Franchises", href: "/franchises" },
-  { name: "Buy a Business", href: "/smart-search" },
-  { name: "Sell a Business", href: "/add-business-listing" },
+  { name: "Businesses", href: "/businesses" },
+  { name: "Franchise Map", href: "/franchise-map" },
 ];
 
 const TOOLS_LINKS = [
+  { name: "Franchise Pipeline", href: "/pipeline", icon: Users },
   { name: "Smart Search", href: "/smart-search", icon: Search },
-  { name: "Business Valuation", href: "/business-valuation", icon: Calculator },
   { name: "Franchise Map", href: "/franchise-map", icon: Store },
+  { name: "Business Valuation", href: "/business-valuation", icon: Calculator },
 ];
 
 export function MainLayout({ children }: MainLayoutProps) {
@@ -278,12 +279,12 @@ export function MainLayout({ children }: MainLayoutProps) {
                 </div>
               )}
 
-              <Link to="/add-business-listing" className="hidden sm:block ml-1">
+              <Link to="/add-franchise-listing" className="hidden sm:block ml-1">
                 <Button
                   size="sm"
                   className="bg-growth-green hover:bg-growth-green/90 text-white font-medium"
                 >
-                  List Your Business
+                  List Your Franchise
                 </Button>
               </Link>
 
@@ -329,11 +330,11 @@ export function MainLayout({ children }: MainLayoutProps) {
 
                       <div className="mt-6 px-4 space-y-3">
                         <Link
-                          to="/add-business-listing"
+                          to="/add-franchise-listing"
                           onClick={() => setIsMobileMenuOpen(false)}
                         >
                           <Button className="w-full bg-growth-green hover:bg-growth-green/90 text-white">
-                            List Your Business
+                            List Your Franchise
                           </Button>
                         </Link>
                         {user ? (

@@ -242,7 +242,7 @@ export function DashboardPage() {
                                     View and manage franchise and business enquiries from entrepreneurs and buyers.
                                 </p>
                                 <Button onClick={() => navigate('/leads')}>
-                                    Open Lead Management
+                                    Open Franchise Pipeline
                                 </Button>
                             </div>
                         </CardContent>

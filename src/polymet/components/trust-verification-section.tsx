@@ -1,57 +1,51 @@
-import { Link } from "react-router-dom";
-import { CheckCircle2, FileCheck, BadgeCheck, Shield, ClipboardCheck } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface TrustVerificationSectionProps {
-  className?: string;
-}
-
-const VERIFICATION_CHECKS = [
-  { icon: BadgeCheck, label: "Owner identity verified" },
-  { icon: FileCheck, label: "Business registration verified" },
-  { icon: ClipboardCheck, label: "GST details verified" },
-  { icon: FileCheck, label: "Financial documents uploaded" },
-  { icon: Shield, label: "Listing reviewed" },
+const CHECKS = [
+  "Owner identity",
+  "Business registration",
+  "GST information",
+  "Financial documents",
+  "Listing information",
 ];
 
-export function TrustVerificationSection({ className }: TrustVerificationSectionProps) {
+export function TrustVerificationSection({ className }: { className?: string }) {
   return (
-    <section className={cn("py-14 md:py-16 border-t border-border", className)}>
+    <section className={cn("py-7 md:py-9 border-b border-border", className)}>
       <div className="container mx-auto px-4">
-        <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-start">
+        <div className="grid lg:grid-cols-[1fr_1.1fr] gap-6 lg:gap-12 items-start">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-growth-green mb-3">
-              Verification
-            </p>
-            <h2 className="text-2xl md:text-3xl font-bold tracking-tight mb-3">
-              Trust comes from evidence
+            <h2 className="text-xl md:text-[1.75rem] font-bold tracking-tight mb-2 leading-tight">
+              Know what you&apos;re looking at.
             </h2>
-            <p className="text-muted-foreground text-base max-w-md leading-relaxed">
-              Serious buyers need more than a listing. Verification status shows
-              what has been checked — not marketing claims.
+            <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
+              Verification is listing-specific. Status badges appear only when
+              checks are completed for that business.
             </p>
           </div>
 
-          <div className="rounded-lg border border-border bg-card p-5 md:p-6">
-            <div className="flex items-center gap-2 mb-5 pb-4 border-b border-border">
-              <CheckCircle2 className="h-5 w-5 text-growth-green" />
-              <span className="font-semibold text-sm tracking-wide uppercase text-foreground">
-                Verified Business
-              </span>
+          <div>
+            <div className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground font-medium mb-3">
+              What we verify
             </div>
-            <ul className="space-y-3">
-              {VERIFICATION_CHECKS.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <li key={item.label} className="flex items-center gap-3 text-sm">
-                    <Icon className="h-4 w-4 text-growth-green shrink-0" aria-hidden="true" />
-                    <span>{item.label}</span>
-                  </li>
-                );
-              })}
+            <ul className="space-y-0 border-t border-border">
+              {CHECKS.map((label) => (
+                <li
+                  key={label}
+                  className="flex items-center gap-3 text-sm py-2.5 border-b border-border"
+                >
+                  <CheckCircle2
+                    className="h-3.5 w-3.5 text-growth-green shrink-0"
+                    aria-hidden="true"
+                  />
+                  <span>{label}</span>
+                </li>
+              ))}
             </ul>
-            <p className="mt-5 pt-4 border-t border-border text-xs text-muted-foreground">
-              Badges appear only when checks are completed for that listing.
+            <p className="text-[11px] text-muted-foreground mt-3">
+              Default status is{" "}
+              <span className="text-foreground">Verification available</span>
+              {" "}— not every listing has completed every check.
             </p>
           </div>
         </div>

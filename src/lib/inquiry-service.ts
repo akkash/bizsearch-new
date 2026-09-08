@@ -1,8 +1,19 @@
 import { supabase } from './supabase';
-import type { FranchiseInquiry, InquiryPriority, InquiryStatus } from '@/types/franchise-domain';
+import type {
+  FranchiseInquiry,
+  InquiryPriority,
+  InquiryStatus,
+  LeadQualification,
+} from '@/types/franchise-domain';
 
-function mapInquiry(row: Record<string, unknown>, listingName?: string): FranchiseInquiry {
+function mapInquiry(
+  row: Record<string, unknown>,
+  listingName?: string,
+  linkedApplicationId?: string | null
+): FranchiseInquiry {
   const sender = row.sender as Record<string, unknown> | null | undefined;
+  const meta = (row.metadata as Record<string, unknown>) || {};
+
   return {
     id: String(row.id),
     senderId: row.sender_id ? String(row.sender_id) : null,
@@ -16,10 +27,39 @@ function mapInquiry(row: Record<string, unknown>, listingName?: string): Franchi
     status: (row.status as InquiryStatus) || 'new',
     priority: (row.priority as InquiryPriority) || 'medium',
     notes: row.notes ? String(row.notes) : null,
-    metadata: (row.metadata as Record<string, unknown>) || null,
+    metadata: meta,
     createdAt: String(row.created_at),
     updatedAt: row.updated_at ? String(row.updated_at) : undefined,
     listingName,
+    investmentCapacity:
+      (row.investment_capacity as string) ||
+      (meta.investment_capacity as string) ||
+      (meta.budget_range as string) ||
+      null,
+    preferredLocation:
+      (row.preferred_location as string) ||
+      (meta.preferred_location as string) ||
+      null,
+    openingTimeline:
+      (row.opening_timeline as string) ||
+      (meta.opening_timeline as string) ||
+      (meta.timeline as string) ||
+      null,
+    fundsAvailable:
+      (row.funds_available as string) ||
+      (meta.funds_available as string) ||
+      null,
+    relevantExperience:
+      (row.relevant_experience as string) ||
+      (meta.relevant_experience as string) ||
+      null,
+    matchScore:
+      row.match_score != null
+        ? Number(row.match_score)
+        : meta.match_score != null
+          ? Number(meta.match_score)
+          : null,
+    linkedApplicationId: linkedApplicationId ?? null,
     sender: sender
       ? {
           displayName: String(sender.display_name || ''),
@@ -30,8 +70,20 @@ function mapInquiry(row: Record<string, unknown>, listingName?: string): Franchi
   };
 }
 
+export type CreateInquiryInput = {
+  senderId: string;
+  recipientId: string;
+  listingId: string;
+  listingType: 'business' | 'franchise';
+  subject: string;
+  message: string;
+  contactEmail: string;
+  contactPhone?: string;
+  qualification?: Partial<LeadQualification>;
+  metadata?: Record<string, unknown>;
+};
+
 export class InquiryService {
-  /** Listing IDs owned by the user (franchises + businesses) */
   private static async getOwnedListingIds(userId: string): Promise<{
     franchiseIds: string[];
     businessIds: string[];
@@ -47,11 +99,11 @@ export class InquiryService {
     };
   }
 
-  /** Build OR filter: recipient match OR listing ownership (aligns with migration 028 RLS) */
   private static buildReceivedInquiriesFilter(
     userId: string,
     franchiseIds: string[],
-    businessIds: string[]
+    businessIds: string[],
+    franchiseOnly = false
   ): string {
     const parts = [`recipient_id.eq.${userId}`];
 
@@ -60,7 +112,7 @@ export class InquiryService {
         `and(listing_type.eq.franchise,listing_id.in.(${franchiseIds.join(',')}))`
       );
     }
-    if (businessIds.length) {
+    if (!franchiseOnly && businessIds.length) {
       parts.push(
         `and(listing_type.eq.business,listing_id.in.(${businessIds.join(',')}))`
       );
@@ -69,7 +121,105 @@ export class InquiryService {
     return parts.join(',');
   }
 
-  /** Leads received by the current user (franchisor/seller as recipient or listing owner) */
+  static async createInquiry(input: CreateInquiryInput): Promise<string> {
+    const q = input.qualification;
+    const metadata = {
+      ...(input.metadata || {}),
+      investment_capacity: q?.investmentCapacity,
+      preferred_location: q?.preferredLocation,
+      opening_timeline: q?.openingTimeline,
+      funds_available: q?.fundsAvailable,
+      relevant_experience: q?.relevantExperience,
+    };
+
+    const row: Record<string, unknown> = {
+      sender_id: input.senderId,
+      recipient_id: input.recipientId,
+      listing_id: input.listingId,
+      listing_type: input.listingType,
+      subject: input.subject,
+      message: input.message,
+      contact_email: input.contactEmail,
+      contact_phone: input.contactPhone || null,
+      status: 'new',
+      priority: 'medium',
+      metadata,
+    };
+
+    // Prefer structured columns when migration 029 is applied
+    if (q?.investmentCapacity) row.investment_capacity = q.investmentCapacity;
+    if (q?.preferredLocation) row.preferred_location = q.preferredLocation;
+    if (q?.openingTimeline) row.opening_timeline = q.openingTimeline;
+    if (q?.fundsAvailable) row.funds_available = q.fundsAvailable;
+    if (q?.relevantExperience) row.relevant_experience = q.relevantExperience;
+
+    const { data, error } = await supabase
+      .from('inquiries')
+      .insert(row)
+      .select('id')
+      .single();
+
+    if (error) {
+      // Fallback without new columns if migration not yet applied
+      if (error.message?.includes('investment_capacity') || error.code === 'PGRST204') {
+        const { data: fallback, error: err2 } = await supabase
+          .from('inquiries')
+          .insert({
+            sender_id: input.senderId,
+            recipient_id: input.recipientId,
+            listing_id: input.listingId,
+            listing_type: input.listingType,
+            subject: input.subject,
+            message: input.message,
+            contact_email: input.contactEmail,
+            contact_phone: input.contactPhone || null,
+            status: 'new',
+            priority: 'medium',
+            metadata,
+          })
+          .select('id')
+          .single();
+        if (err2) throw err2;
+        return String(fallback.id);
+      }
+      throw error;
+    }
+
+    return String(data.id);
+  }
+
+  /** Franchise pipeline leads for franchisor */
+  static async getFranchisePipeline(userId: string): Promise<FranchiseInquiry[]> {
+    const { franchiseIds } = await this.getOwnedListingIds(userId);
+    if (!franchiseIds.length) {
+      // Still return recipient-matched franchise inquiries
+    }
+
+    const { data, error } = await supabase
+      .from('inquiries')
+      .select(`
+        *,
+        sender:profiles!inquiries_sender_id_fkey(display_name, email, avatar_url)
+      `)
+      .or(this.buildReceivedInquiriesFilter(userId, franchiseIds, [], true))
+      .eq('listing_type', 'franchise')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    const rows = data || [];
+    const listingNames = await this.resolveListingNames(rows);
+    const appMap = await this.resolveLinkedApplications(rows.map((r) => String(r.id)));
+
+    return rows.map((row) =>
+      mapInquiry(
+        row as Record<string, unknown>,
+        listingNames.get(String(row.listing_id)),
+        appMap.get(String(row.id)) || null
+      )
+    );
+  }
+
   static async getReceivedInquiries(userId: string): Promise<FranchiseInquiry[]> {
     const { franchiseIds, businessIds } = await this.getOwnedListingIds(userId);
 
@@ -86,13 +236,17 @@ export class InquiryService {
 
     const rows = data || [];
     const listingNames = await this.resolveListingNames(rows);
+    const appMap = await this.resolveLinkedApplications(rows.map((r) => String(r.id)));
 
     return rows.map((row) =>
-      mapInquiry(row as Record<string, unknown>, listingNames.get(String(row.listing_id)))
+      mapInquiry(
+        row as Record<string, unknown>,
+        listingNames.get(String(row.listing_id)),
+        appMap.get(String(row.id)) || null
+      )
     );
   }
 
-  /** Inquiries sent by the current user */
   static async getSentInquiries(userId: string): Promise<FranchiseInquiry[]> {
     const { data, error } = await supabase
       .from('inquiries')
@@ -127,7 +281,12 @@ export class InquiryService {
 
   static async updateInquiry(
     inquiryId: string,
-    updates: Partial<{ status: InquiryStatus; priority: InquiryPriority; notes: string }>
+    updates: Partial<{
+      status: InquiryStatus;
+      priority: InquiryPriority;
+      notes: string;
+      match_score: number;
+    }>
   ): Promise<void> {
     const { error } = await supabase
       .from('inquiries')
@@ -135,6 +294,34 @@ export class InquiryService {
       .eq('id', inquiryId);
 
     if (error) throw error;
+  }
+
+  /** Mark inquiry as application stage when linked app is created */
+  static async markApplicationStarted(inquiryId: string): Promise<void> {
+    await this.updateInquiry(inquiryId, { status: 'application' });
+  }
+
+  private static async resolveLinkedApplications(
+    inquiryIds: string[]
+  ): Promise<Map<string, string>> {
+    const map = new Map<string, string>();
+    if (!inquiryIds.length) return map;
+
+    const { data, error } = await supabase
+      .from('franchise_applications')
+      .select('id, inquiry_id')
+      .in('inquiry_id', inquiryIds);
+
+    if (error) {
+      // Column may not exist until migration 029
+      console.warn('Linked applications lookup skipped:', error.message);
+      return map;
+    }
+
+    data?.forEach((row) => {
+      if (row.inquiry_id) map.set(String(row.inquiry_id), String(row.id));
+    });
+    return map;
   }
 
   private static async resolveListingNames(

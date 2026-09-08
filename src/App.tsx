@@ -696,6 +696,16 @@ export default function BizSearchApp() {
                         </ProtectedRoute>
                       }
                     />
+                    <Route
+                      path="/pipeline"
+                      element={
+                        <ProtectedRoute>
+                          <MainLayout>
+                            <LeadManagementPage />
+                          </MainLayout>
+                        </ProtectedRoute>
+                      }
+                    />
 
                     {/* Advisor Dashboard - Protected */}
                     <Route

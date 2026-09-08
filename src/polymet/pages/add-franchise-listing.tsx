@@ -104,25 +104,59 @@ export function AddFranchiseListingPage({
       return;
     }
 
+    const brandName = data.brandOverview?.brandName?.trim();
+    const industry = data.brandOverview?.industry?.[0];
+    const description = data.description?.brandDescription?.trim();
+    const fee = data.investment?.franchiseFee;
+    const investMin = data.investment?.totalInvestment?.min;
+    const investMax = data.investment?.totalInvestment?.max;
+    const hqCity = data.contact?.companyAddress?.city?.trim();
+    const hqState = data.contact?.companyAddress?.state?.trim();
+
+    if (!brandName || brandName.length < 2) {
+      alert("Brand name is required.");
+      return;
+    }
+    if (!industry) {
+      alert("Industry is required.");
+      return;
+    }
+    if (!description || description.length < 40) {
+      alert("Please provide a brand description (at least 40 characters).");
+      return;
+    }
+    if (fee == null || fee < 0) {
+      alert("Franchise fee is required.");
+      return;
+    }
+    if (investMin == null || investMax == null || investMin <= 0 || investMax < investMin) {
+      alert("Valid investment range (min and max) is required.");
+      return;
+    }
+    if (!hqCity || !hqState) {
+      alert("Headquarters city and state are required.");
+      return;
+    }
+
     try {
       console.log("Submitting franchise listing:", data);
 
       // Transform form data to database format
       const franchiseInput: FranchiseCreateInput = {
-        brand_name: data.brandOverview?.brandName || '',
-        industry: data.brandOverview?.industry?.[0] || '',
-        description: data.description?.brandDescription || '',
-        franchise_fee: data.investment?.franchiseFee || 0,
-        total_investment_min: data.investment?.totalInvestment?.min,
-        total_investment_max: data.investment?.totalInvestment?.max,
+        brand_name: brandName,
+        industry,
+        description,
+        franchise_fee: fee,
+        total_investment_min: investMin,
+        total_investment_max: investMax,
         royalty_percentage: data.investment?.royaltyStructure?.baseTiers?.[0]?.percentage || 0,
         marketing_fee_percentage: data.investment?.marketingFee?.value || 0,
         established_year: data.brandOverview?.yearEstablished,
         total_outlets: data.brandOverview?.totalOutlets,
         company_owned_outlets: data.brandOverview?.companyOutlets,
         franchise_outlets: data.brandOverview?.franchiseOutlets,
-        headquarters_state: data.contact?.companyAddress?.state,
-        headquarters_city: data.contact?.companyAddress?.city,
+        headquarters_state: hqState,
+        headquarters_city: hqCity,
         headquarters_country: data.contact?.companyAddress?.country || 'India',
         tagline: data.brandOverview?.tagline,
         brand_story: data.description?.brandDescription,

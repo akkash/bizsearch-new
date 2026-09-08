@@ -22,6 +22,7 @@ import {
   XCircleIcon,
   AlertTriangleIcon,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export interface Territory {
   id: string;
@@ -161,7 +162,7 @@ const statusConfig = {
 };
 
 export function TerritoryAvailability({
-  territories = mockTerritories,
+  territories = [],
   onTerritoryUpdate,
   onTerritoryAdd,
   onTerritoryDelete,
@@ -175,6 +176,25 @@ export function TerritoryAvailability({
   const [editingTerritory, setEditingTerritory] = useState<Territory | null>(
     null
   );
+
+  if (!territories.length && !showAddForm) {
+    return (
+      <div className={cn("border border-border rounded-md p-8 text-center", className)}>
+        <p className="text-sm text-muted-foreground mb-3">
+          No territories listed yet.
+        </p>
+        {canManage && onTerritoryAdd && (
+          <button
+            type="button"
+            className="text-sm text-electric-blue hover:underline"
+            onClick={() => setShowAddForm(true)}
+          >
+            Add territory
+          </button>
+        )}
+      </div>
+    );
+  }
 
   const filteredTerritories = territories
     .filter((territory) => {

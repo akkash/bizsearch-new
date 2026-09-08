@@ -115,7 +115,11 @@ export function mapFranchiseFromDb(raw: FranchiseDbRow): Franchise {
     established_year: establishedYear,
     highlights,
     competitiveEdge: highlights,
-    badges: strArray(raw.badges),
+    badges: strArray(
+      Array.isArray(raw.badges) && (raw.badges as unknown[]).length
+        ? raw.badges
+        : raw.awards
+    ),
     featured: raw.featured === true,
     trending: raw.trending === true,
     verified: raw.verified === true,
