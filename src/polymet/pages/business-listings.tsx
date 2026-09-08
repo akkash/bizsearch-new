@@ -7,6 +7,8 @@ import { SkeletonLoader } from "@/polymet/components/skeleton-loader";
 import { EmptyState } from "@/polymet/components/empty-state";
 import type { Business } from "@/types/listings";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { useSavedListings } from "@/contexts/SavedListingsContext";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -46,17 +48,18 @@ type SortOption =
 
 export function BusinessListings({ className }: BusinessListingsProps) {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { isListingSaved, toggleSave } = useSavedListings();
   const [searchParams] = useSearchParams();
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [totalCount, setTotalCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState<FilterState | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [sortBy, setSortBy] = useState<SortOption>("relevance");
   const [showFilters, setShowFilters] = useState(true);
-  const [savedBusinesses, setSavedBusinesses] = useState<Set<string>>(
-    new Set()
-  );
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 
@@ -74,228 +77,141 @@ export function BusinessListings({ className }: BusinessListingsProps) {
     }
   }, [urlSearchQuery]);
 
-  // Fetch businesses from Supabase
+  // Fetch businesses from Supabase (server-side pagination + filters)
   useEffect(() => {
     const fetchBusinesses = async () => {
-      console.log('📥 BusinessListings: Starting fetch...');
       setLoading(true);
+      setFetchError(null);
       try {
-        const result = await BusinessService.getBusinesses({});
-        console.log('📦 BusinessListings: Received result:', result);
-        if (result && Array.isArray(result)) {
-          setBusinesses(result as Business[]);
-          console.log('✅ BusinessListings: Set', result.length, 'businesses from database');
-        } else {
-          setBusinesses([]);
-          console.log('ℹ️ BusinessListings: No businesses in database');
-        }
+        const industryFilter = currentCategory?.name
+          ? [currentCategory.name]
+          : filters?.industries;
+
+        const result = await BusinessService.getBusinesses(
+          {
+            search: searchQuery || undefined,
+            industry: industryFilter,
+            city: filters?.city,
+            state: filters?.state,
+            priceMin: filters?.priceRange?.[0],
+            priceMax: filters?.priceRange?.[1],
+          },
+          { page: currentPage, pageSize: itemsPerPage }
+        );
+
+        setBusinesses(result.data as Business[]);
+        setTotalCount(result.total);
       } catch (error) {
-        console.error('❌ BusinessListings: Error fetching businesses:', error);
+        console.error('Error fetching businesses:', error);
         setBusinesses([]);
+        setTotalCount(0);
+        setFetchError('Unable to load businesses. Please try again.');
       } finally {
         setLoading(false);
-        console.log('🏁 BusinessListings: Loading complete');
       }
     };
     fetchBusinesses();
-  }, []);
+  }, [currentPage, searchQuery, filters, currentCategory?.name]);
 
-  // Filter and search logic
+  // Client-side refinement for filters not yet pushed to the server query
   const filteredBusinesses = useMemo(() => {
     let filtered = [...businesses];
 
-    // Apply search query
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (business) =>
-          business.name.toLowerCase().includes(query) ||
-          business.industry.toLowerCase().includes(query) ||
-          business.location.toLowerCase().includes(query) ||
-          business.description.toLowerCase().includes(query)
-      );
-    }
-
-    // Apply category filter from URL
-    if (currentCategory) {
+    if (currentSubcategory) {
+      const subcategoryName = currentSubcategory.name.toLowerCase();
       filtered = filtered.filter((business) => {
         const businessIndustry = business.industry?.toLowerCase() || '';
-        const categoryName = currentCategory.name.toLowerCase();
-        // Match by category name or any of its subcategories
-        if (currentSubcategory) {
-          // Filter by specific subcategory
-          const subcategoryName = currentSubcategory.name.toLowerCase();
-          return businessIndustry.includes(subcategoryName) ||
-            businessIndustry.includes(categoryName);
-        }
-        // Match any business in this category
-        return businessIndustry.includes(categoryName) ||
-          currentCategory.subcategories.some(sub =>
-            businessIndustry.includes(sub.name.toLowerCase())
-          );
+        return businessIndustry.includes(subcategoryName);
       });
     }
 
-    // Apply filters
     if (filters) {
-      // Industry filter
-      if (filters.industry.length > 0) {
-        filtered = filtered.filter((business) => {
-          const businessIndustry = business.industry?.toLowerCase() || '';
-          return filters.industry.some(f => businessIndustry.includes(f.toLowerCase()));
-        });
-      }
-
-      // Subcategory filter
       if (filters.subcategory && filters.subcategory.length > 0) {
         filtered = filtered.filter((business) => {
-          // Check explicit subcategory field or tags/highlights
-          const sub = (business as any).subcategory;
+          const sub = (business as Business & { subcategory?: string | string[] }).subcategory;
           const tags = business.highlights || [];
-
-          // Helper to check if any selected subcategory matches
-          return filters.subcategory.some(filterSub => {
+          return filters.subcategory.some((filterSub) => {
             const fs = filterSub.toLowerCase();
-            // Check single string subcategory
             if (typeof sub === 'string' && sub.toLowerCase().includes(fs)) return true;
-            // Check array subcategory
-            if (Array.isArray(sub) && sub.some(s => s.toLowerCase().includes(fs))) return true;
-            // Check highlights/tags as fallback
-            if (Array.isArray(tags) && tags.some((t: any) => typeof t === 'string' && t.toLowerCase().includes(fs))) return true;
+            if (Array.isArray(sub) && sub.some((s) => s.toLowerCase().includes(fs))) return true;
+            if (Array.isArray(tags) && tags.some((t) => typeof t === 'string' && t.toLowerCase().includes(fs))) return true;
             return false;
           });
         });
       }
 
-      // State filter
       if (filters.state && filters.state.length > 0) {
         filtered = filtered.filter((business) => {
           const bLocation = (business.location || '').toLowerCase();
           const bState = (business.state || '').toLowerCase();
-          return filters.state.some(s =>
+          return filters.state.some((s) =>
             bState.includes(s.toLowerCase()) || bLocation.includes(s.toLowerCase())
           );
         });
       }
 
-      // City filter
-      if (filters.city && filters.city.length > 0) {
-        filtered = filtered.filter((business) => {
-          const bLocation = (business.location || '').toLowerCase();
-          const bCity = (business.city || '').toLowerCase();
-          return filters.city.some(c =>
-            bCity.includes(c.toLowerCase()) || bLocation.includes(c.toLowerCase())
-          );
-        });
-      }
-
-      // Business Type filter
       if (filters.businessType && filters.businessType.length > 0) {
         filtered = filtered.filter((business) => {
           const bType = (business.businessType || business.business_type || '').toLowerCase();
-          return filters.businessType.some(t => bType.includes(t.toLowerCase()));
+          return filters.businessType.some((t) => bType.includes(t.toLowerCase()));
         });
       }
 
-      // Price range filter
-      if (filters.priceRange[0] > 0 || filters.priceRange[1] < 10000000) {
-        filtered = filtered.filter((business) => {
-          const price = business.price || 0;
-          return price >= filters.priceRange[0] && price <= filters.priceRange[1];
-        });
-      }
-
-      // Revenue range filter
-      if (filters.revenueRange[0] > 0 || filters.revenueRange[1] < 50000000) {
-        filtered = filtered.filter((business) => {
-          // Some businesses might just show profit or cash flow, handle properly
-          const revenue = business.revenue || 0;
-          // If revenue is 0/undefined, do we show it? Maybe strict filtering is better.
-          return revenue >= filters.revenueRange[0] && revenue <= filters.revenueRange[1];
-        });
-      }
-
-      // Business age filter
       if (filters.businessAge && filters.businessAge !== 'any') {
         filtered = filtered.filter((business) => {
           const estYear = business.establishedYear || business.established_year;
           if (!estYear) return false;
-
           const age = new Date().getFullYear() - estYear;
           switch (filters.businessAge) {
-            case "0-2": return age <= 2;
-            case "3-5": return age >= 3 && age <= 5;
-            case "6-10": return age >= 6 && age <= 10;
-            case "10+": return age > 10;
+            case '0-2': return age <= 2;
+            case '3-5': return age >= 3 && age <= 5;
+            case '6-10': return age >= 6 && age <= 10;
+            case '10+': return age > 10;
             default: return true;
           }
         });
       }
 
-      // Employees filter
       if (filters.employees && filters.employees !== 'any') {
         filtered = filtered.filter((business) => {
           const employees = business.employees || business.employee_count;
           if (employees === undefined || employees === null) return false;
-
           switch (filters.employees) {
-            case "1-10": return employees <= 10;
-            case "11-50": return employees >= 11 && employees <= 50;
-            case "51-200": return employees >= 51 && employees <= 200;
-            case "200+": return employees > 200;
+            case '1-10': return employees <= 10;
+            case '11-50': return employees >= 11 && employees <= 50;
+            case '51-200': return employees >= 51 && employees <= 200;
+            case '200+': return employees > 200;
             default: return true;
           }
         });
       }
-
-      // Verification filter
-      if (filters.verification.length > 0) {
-        filtered = filtered.filter((business) => {
-          const badges = business.badges || [];
-          return filters.verification.some((v) => badges.includes(v));
-        });
-      }
-
-      // Financing filter
-      if (filters.financing) {
-        filtered = filtered.filter((business) => {
-          const badges = business.badges || [];
-          return badges.includes("Financing Available");
-        });
-      }
     }
 
-    // Apply sorting
     switch (sortBy) {
-      case "price-low":
+      case 'price-low':
         filtered.sort((a, b) => a.price - b.price);
         break;
-      case "price-high":
+      case 'price-high':
         filtered.sort((a, b) => b.price - a.price);
         break;
-      case "revenue-high":
+      case 'revenue-high':
         filtered.sort((a, b) => (b.revenue || 0) - (a.revenue || 0));
         break;
-      case "newest":
-        filtered.sort((a, b) => b.establishedYear - a.establishedYear);
+      case 'newest':
+        filtered.sort((a, b) => (b.establishedYear || 0) - (a.establishedYear || 0));
         break;
-      case "oldest":
-        filtered.sort((a, b) => a.establishedYear - b.establishedYear);
+      case 'oldest':
+        filtered.sort((a, b) => (a.establishedYear || 0) - (b.establishedYear || 0));
         break;
       default:
-        // Keep original order for relevance
         break;
     }
 
     return filtered;
-  }, [searchQuery, filters, sortBy, businesses, currentCategory, currentSubcategory]);
+  }, [filters, sortBy, businesses, currentSubcategory]);
 
-  // Pagination
-  const totalPages = Math.ceil(filteredBusinesses.length / itemsPerPage);
-  const paginatedBusinesses = filteredBusinesses.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
+  const paginatedBusinesses = filteredBusinesses;
 
 
 
@@ -304,16 +220,16 @@ export function BusinessListings({ className }: BusinessListingsProps) {
     setCurrentPage(1);
   };
 
-  const handleSave = (businessId: string) => {
-    setSavedBusinesses((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(businessId)) {
-        newSet.delete(businessId);
-      } else {
-        newSet.add(businessId);
-      }
-      return newSet;
-    });
+  const handleSave = async (businessId: string) => {
+    if (!user) {
+      toast.info('Sign in to save businesses');
+      navigate('/login');
+      return;
+    }
+
+    const wasSaved = isListingSaved('business', businessId);
+    await toggleSave('business', businessId);
+    toast.success(wasSaved ? 'Removed from saved list' : 'Business saved');
   };
 
   const handleShare = (businessId: string) => {
@@ -349,6 +265,22 @@ export function BusinessListings({ className }: BusinessListingsProps) {
         <div className="container mx-auto px-4 py-8">
           <h1 className="text-3xl font-bold mb-6">Businesses for Sale</h1>
           <SkeletonLoader type="card" count={6} />
+        </div>
+      </div>
+    );
+  }
+
+  if (fetchError) {
+    return (
+      <div className={cn("min-h-screen bg-background", className)}>
+        <div className="container mx-auto px-4 py-8">
+          <EmptyState
+            type="error"
+            title="Unable to load businesses"
+            description={fetchError}
+            actionText="Try again"
+            onAction={() => setCurrentPage(1)}
+          />
         </div>
       </div>
     );
@@ -547,7 +479,7 @@ export function BusinessListings({ className }: BusinessListingsProps) {
                     <Separator orientation="vertical" className="h-6" />
 
                     <div className="text-sm text-muted-foreground">
-                      {filteredBusinesses.length} businesses found
+                      {totalCount} businesses found
                     </div>
                   </div>
 
@@ -666,7 +598,7 @@ export function BusinessListings({ className }: BusinessListingsProps) {
                           onShare={handleShare}
                           onContact={handleContact}
                           onViewDetails={handleViewDetails}
-                          isSaved={savedBusinesses.has(business.id)}
+                          isSaved={isListingSaved('business', business.id)}
                         />
                       </div>
                     ))}
@@ -707,7 +639,7 @@ export function BusinessListings({ className }: BusinessListingsProps) {
                       onShare={handleShare}
                       onContact={handleContact}
                       onViewDetails={handleViewDetails}
-                      isSaved={savedBusinesses.has(business.id)}
+                      isSaved={isListingSaved('business', business.id)}
                     />
                   ))}
                 </div>
@@ -724,7 +656,7 @@ export function BusinessListings({ className }: BusinessListingsProps) {
                     onShare={handleShare}
                     onContact={handleContact}
                     onViewDetails={handleViewDetails}
-                    isSaved={savedBusinesses.has(business.id)}
+                    isSaved={isListingSaved('business', business.id)}
                     className="flex flex-row items-center p-4 h-auto"
                   />
                 ))}

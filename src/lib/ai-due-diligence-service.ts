@@ -1,7 +1,6 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { generateGeminiContent } from './gemini-proxy-client';
 import { GeminiService } from './gemini-service';
 
-const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GOOGLE_AI_API_KEY || '');
 
 export interface DueDiligenceReport {
   overallRiskScore: number; // 0-100, higher = more risky
@@ -41,7 +40,6 @@ export interface DueDiligenceChecklistItem {
 }
 
 export class AIDueDiligenceService {
-  private static model = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
   /**
    * Generate comprehensive due diligence report
@@ -106,9 +104,7 @@ Provide a detailed due diligence report in this EXACT JSON format (no markdown):
 }`;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      const text = (await generateGeminiContent(prompt)).replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
       
       const analysis = JSON.parse(text);
       
@@ -258,9 +254,7 @@ Provide analysis in this JSON format:
 }`;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      const text = (await generateGeminiContent(prompt)).replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
       return JSON.parse(text);
     } catch (error) {
       return {
@@ -296,9 +290,7 @@ Provide risk assessment in JSON:
 }`;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      const text = (await generateGeminiContent(prompt)).replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
       return JSON.parse(text);
     } catch (error) {
       return {

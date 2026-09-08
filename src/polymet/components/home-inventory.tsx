@@ -131,14 +131,15 @@ export function HomeBusinessInventory({ className }: { className?: string }) {
       try {
         let data = await BusinessService.getFeaturedBusinesses(2);
         if (!Array.isArray(data) || data.length === 0) {
-          data = await BusinessService.getBusinesses({});
+          const result = await BusinessService.getBusinesses({}, { page: 1, pageSize: 2 });
+          data = result.data;
         }
         if (!cancelled) setItems((Array.isArray(data) ? data : []).slice(0, 2));
       } catch (err) {
         console.error("Home business inventory failed:", err);
         try {
-          const fallback = await BusinessService.getBusinesses({});
-          if (!cancelled) setItems((Array.isArray(fallback) ? fallback : []).slice(0, 2));
+          const fallback = await BusinessService.getBusinesses({}, { page: 1, pageSize: 2 });
+          if (!cancelled) setItems(fallback.data.slice(0, 2));
         } catch (err2) {
           console.error("Home business fallback failed:", err2);
           if (!cancelled) setItems([]);

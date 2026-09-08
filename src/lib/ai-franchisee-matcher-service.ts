@@ -1,7 +1,6 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { generateGeminiContent } from './gemini-proxy-client';
 import { supabase } from './supabase';
 
-const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GOOGLE_AI_API_KEY || '');
 
 export interface FranchiseeProfile {
   userId: string;
@@ -61,7 +60,6 @@ export interface FranchiseeMatch {
 }
 
 export class AIFranchiseeMatcherService {
-  private static model = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
   /**
    * Match a franchisee with franchise opportunities
@@ -400,9 +398,7 @@ Provide analysis in EXACT JSON format (no markdown):
 }`;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      const text = (await generateGeminiContent(prompt)).replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
       return JSON.parse(text);
     } catch (error) {
       console.error('AI analysis error:', error);

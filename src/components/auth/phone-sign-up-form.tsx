@@ -207,7 +207,6 @@ export function PhoneSignUpForm() {
                 <SelectItem value="franchisor">Franchisor - Offering franchise opportunities</SelectItem>
                 <SelectItem value="advisor">Advisor - Business consultant</SelectItem>
                 <SelectItem value="broker">Broker - Business broker</SelectItem>
-                <SelectItem value="admin">Admin - Platform administrator</SelectItem>
               </SelectContent>
             </Select>
           </div>

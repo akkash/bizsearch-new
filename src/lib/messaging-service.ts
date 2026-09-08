@@ -61,7 +61,7 @@ export class MessagingService {
                 const otherUserId = conv.participant_1 === userId ? conv.participant_2 : conv.participant_1;
 
                 const { data: participant } = await supabase
-                    .from('profiles')
+                    .from('public_profiles')
                     .select('id, display_name, avatar_url, role')
                     .eq('id', otherUserId)
                     .single();

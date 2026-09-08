@@ -1,6 +1,5 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { generateGeminiContent } from './gemini-proxy-client';
 
-const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GOOGLE_AI_API_KEY || '');
 
 export interface DocumentAnalysis {
   documentType: 'financial' | 'legal' | 'operational' | 'other';
@@ -45,7 +44,6 @@ export interface RedactionResult {
 }
 
 export class AIDocumentAnalyzerService {
-  private static model = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
   /**
    * Analyze document text extracted from file
@@ -82,9 +80,7 @@ Provide analysis in this EXACT JSON format (no markdown):
 }`;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      const text = (await generateGeminiContent(prompt)).replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
       
       return JSON.parse(text);
     } catch (error) {
@@ -237,9 +233,7 @@ Provide comparison in JSON:
 }`;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      const text = (await generateGeminiContent(prompt)).replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
       return JSON.parse(text);
     } catch (error) {
       return {
@@ -267,9 +261,7 @@ ${text.substring(0, 5000)}
 Return JSON object with field names as keys and extracted values.`;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      const text = (await generateGeminiContent(prompt)).replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
       return JSON.parse(text);
     } catch (error) {
       const extracted: Record<string, any> = {};
@@ -317,9 +309,7 @@ Provide analysis in EXACT JSON format (no markdown):
 }`;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      const text = (await generateGeminiContent(prompt)).replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
       return JSON.parse(text);
     } catch (error) {
       console.error('Document verification error:', error);
@@ -504,9 +494,7 @@ Return JSON array of names found:
 ["Name 1", "Name 2", ...]`;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const responseText = response.text().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      const responseText = (await generateGeminiContent(prompt)).replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
       const names: string[] = JSON.parse(responseText);
 
       let redactedText = text;
@@ -563,9 +551,7 @@ Return EXACT JSON format (no markdown):
 Only include fields where you found relevant data. Leave out fields with no data.`;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      const text = (await generateGeminiContent(prompt)).replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
       return JSON.parse(text);
     } catch (error) {
       console.error('Auto-fill extraction error:', error);

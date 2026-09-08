@@ -1,7 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
-
-// Initialize Gemini AI
-const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GOOGLE_AI_API_KEY || '');
+import { generateGeminiContent, sendGeminiChat, type GeminiChatMessage } from './gemini-proxy-client';
 
 // Agent personas and system prompts
 const AGENT_PERSONAS = {
@@ -43,14 +40,12 @@ export interface ChatMessage {
 }
 
 export interface ChatContext {
-  businessData?: any;
-  franchiseData?: any;
-  userProfile?: any;
+  businessData?: Record<string, unknown>;
+  franchiseData?: Record<string, unknown>;
+  userProfile?: Record<string, unknown>;
 }
 
 export class GeminiService {
-  private static model = genAI.getGenerativeModel({ model: 'gemini-pro' });
-
   /**
    * Send a message to Gemini AI with agent persona and context
    */
@@ -62,8 +57,7 @@ export class GeminiService {
   ): Promise<string> {
     try {
       const persona = AGENT_PERSONAS[agent];
-      
-      // Build context information
+
       let contextInfo = '';
       if (context?.businessData) {
         contextInfo += `\n\nBusiness Context:\n${JSON.stringify(context.businessData, null, 2)}`;
@@ -72,22 +66,19 @@ export class GeminiService {
         contextInfo += `\n\nFranchise Context:\n${JSON.stringify(context.franchiseData, null, 2)}`;
       }
 
-      // Filter and convert chat history - ensure it starts with user message
-      const history = chatHistory
-        .filter(msg => msg.role === 'user' || msg.role === 'model')
-        .map(msg => ({
-          role: msg.role,
-          parts: [{ text: msg.parts }],
-        }));
+      const history: GeminiChatMessage[] = chatHistory
+        .filter((msg) => msg.role === 'user' || msg.role === 'model')
+        .map((msg) => ({ role: msg.role, parts: msg.parts }));
 
-      // If first message is not from user, remove it or start fresh
       if (history.length > 0 && history[0].role !== 'user') {
         history.shift();
       }
 
-      // Create chat session with history
-      const chat = this.model.startChat({
-        history: history,
+      const systemPrompt = `${persona.systemPrompt}${contextInfo}`;
+
+      return await sendGeminiChat(message, {
+        systemPrompt: history.length === 0 ? systemPrompt : undefined,
+        history,
         generationConfig: {
           temperature: 0.7,
           topK: 40,
@@ -95,29 +86,18 @@ export class GeminiService {
           maxOutputTokens: 1024,
         },
       });
-
-      // Send message with system prompt and context only on first message
-      const fullPrompt = history.length === 0 
-        ? `${persona.systemPrompt}${contextInfo}\n\nUser: ${message}`
-        : message;
-
-      const result = await chat.sendMessage(fullPrompt);
-      const response = await result.response;
-      return response.text();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Gemini API Error:', error);
-      
-      if (error.message?.includes('API key')) {
-        throw new Error('Invalid API key. Please check your Google AI API key in environment variables.');
+      const messageText = error instanceof Error ? error.message : 'Unknown error';
+
+      if (messageText.includes('API key')) {
+        throw new Error('AI service is not configured. Please contact support.');
       }
-      
-      throw new Error(`AI service error: ${error.message || 'Unknown error'}`);
+
+      throw new Error(`AI service error: ${messageText}`);
     }
   }
 
-  /**
-   * Generate business valuation analysis
-   */
   static async generateValuation(businessData: {
     revenue?: number;
     profit?: number;
@@ -145,18 +125,13 @@ Provide:
 Format the response clearly with specific numbers in Indian Rupees (₹).`;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      return response.text();
-    } catch (error: any) {
+      return await generateGeminiContent(prompt);
+    } catch (error) {
       console.error('Valuation generation error:', error);
       throw new Error('Failed to generate valuation analysis');
     }
   }
 
-  /**
-   * Generate franchise ROI analysis
-   */
   static async generateFranchiseROI(franchiseData: {
     franchiseFee?: number;
     totalInvestment?: number;
@@ -183,18 +158,13 @@ Provide:
 Format the response with specific numbers in Indian Rupees (₹) and realistic timelines.`;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      return response.text();
-    } catch (error: any) {
+      return await generateGeminiContent(prompt);
+    } catch (error) {
       console.error('ROI generation error:', error);
       throw new Error('Failed to generate ROI analysis');
     }
   }
 
-  /**
-   * Generate market analysis
-   */
   static async generateMarketAnalysis(data: {
     industry?: string;
     location?: string;
@@ -218,18 +188,13 @@ Include:
 Provide specific insights relevant to the Indian market with data-driven recommendations.`;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      return response.text();
-    } catch (error: any) {
+      return await generateGeminiContent(prompt);
+    } catch (error) {
       console.error('Market analysis error:', error);
       throw new Error('Failed to generate market analysis');
     }
   }
 
-  /**
-   * Analyze uploaded business documents (placeholder for future file upload)
-   */
   static async analyzeDocument(documentText: string, analysisType: 'financial' | 'legal' | 'operational'): Promise<string> {
     const prompts = {
       financial: 'Analyze this financial document and provide key insights, red flags, and recommendations:',
@@ -240,18 +205,13 @@ Provide specific insights relevant to the Indian market with data-driven recomme
     const prompt = `${prompts[analysisType]}\n\n${documentText.substring(0, 5000)}`;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      return response.text();
-    } catch (error: any) {
+      return await generateGeminiContent(prompt);
+    } catch (error) {
       console.error('Document analysis error:', error);
       throw new Error('Failed to analyze document');
     }
   }
 
-  /**
-   * Generate due diligence checklist
-   */
   static async generateDueDiligenceChecklist(businessData: {
     industry?: string;
     businessType?: string;
@@ -275,10 +235,8 @@ Provide a detailed checklist covering:
 Format as a structured checklist with priorities (Critical, Important, Recommended).`;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      return response.text();
-    } catch (error: any) {
+      return await generateGeminiContent(prompt);
+    } catch (error) {
       console.error('Checklist generation error:', error);
       throw new Error('Failed to generate checklist');
     }

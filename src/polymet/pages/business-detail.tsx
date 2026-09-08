@@ -2,7 +2,9 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { BusinessService } from "@/lib/business-service";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSavedListings } from "@/contexts/SavedListingsContext";
 import type { Business } from "@/types/listings";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -37,11 +39,13 @@ export function BusinessDetail({ className }: BusinessDetailProps) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
+  const { isListingSaved, toggleSave } = useSavedListings();
   const [business, setBusiness] = useState<Business | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isSaved, setIsSaved] = useState(false);
   const [showContactForm, setShowContactForm] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
+
+  const isSaved = business ? isListingSaved('business', business.id) : false;
 
   // Fetch business from Supabase (supports both UUID and slug)
   useEffect(() => {
@@ -96,59 +100,6 @@ export function BusinessDetail({ className }: BusinessDetailProps) {
     return `₹${amount.toLocaleString()}`;
   };
 
-  const financialData = business.financials || [
-    {
-      year: 2023,
-      revenue: business.revenue ?? 0,
-      profit: (business.revenue ?? 0) * 0.15,
-      expenses: (business.revenue ?? 0) * 0.85,
-    },
-    {
-      year: 2022,
-      revenue: (business.revenue ?? 0) * 0.9,
-      profit: (business.revenue ?? 0) * 0.9 * 0.12,
-      expenses: (business.revenue ?? 0) * 0.9 * 0.88,
-    },
-    {
-      year: 2021,
-      revenue: (business.revenue ?? 0) * 0.8,
-      profit: (business.revenue ?? 0) * 0.8 * 0.1,
-      expenses: (business.revenue ?? 0) * 0.8 * 0.9,
-    },
-  ];
-
-  const assets = [
-    {
-      type: "Equipment & Machinery",
-      value: business.price * 0.4,
-      description: "Manufacturing equipment, computers, furniture",
-    },
-    {
-      type: "Inventory",
-      value: business.price * 0.2,
-      description: "Raw materials, finished goods, supplies",
-    },
-    {
-      type: "Real Estate",
-      value: business.price * 0.3,
-      description: "Office space, warehouse, retail locations",
-    },
-    {
-      type: "Intangible Assets",
-      value: business.price * 0.1,
-      description: "Brand value, patents, customer database",
-    },
-  ];
-
-  const documents = [
-    { name: "Financial Statements (3 years)", type: "PDF", protected: false },
-    { name: "Tax Returns", type: "PDF", protected: true },
-    { name: "Asset Inventory", type: "Excel", protected: false },
-    { name: "Customer Contracts", type: "PDF", protected: true },
-    { name: "Employee Records", type: "PDF", protected: true },
-    { name: "Legal Documents", type: "PDF", protected: true },
-  ];
-
   const images =
     business.images && business.images.length > 0
       ? business.images
@@ -160,8 +111,16 @@ export function BusinessDetail({ className }: BusinessDetailProps) {
         "https://images.unsplash.com/photo-1556761175-b413da4baf72?w=800&h=600&fit=crop",
       ];
 
-  const handleSave = () => {
-    setIsSaved(!isSaved);
+  const handleSave = async () => {
+    if (!business) return;
+    if (!user) {
+      toast.info('Sign in to save businesses');
+      navigate('/login');
+      return;
+    }
+    const wasSaved = isSaved;
+    await toggleSave('business', business.id);
+    toast.success(wasSaved ? 'Removed from saved list' : 'Business saved');
   };
 
   const handleShare = () => {

@@ -1,8 +1,7 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+
 import { supabase } from './supabase';
 import { AIMatchmakerService, type UserPreferences } from './ai-matchmaker-service';
 
-const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GOOGLE_AI_API_KEY || '');
 
 export interface UserBehaviorData {
   userId: string;
@@ -40,7 +39,6 @@ export interface SmartNotification {
 }
 
 export class AIPersonalizationService {
-  private static model = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
   /**
    * Generate personalized homepage content

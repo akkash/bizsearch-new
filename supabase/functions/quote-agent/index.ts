@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-edge-function-secret",
     "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
 };
 
@@ -62,8 +62,13 @@ serve(async (req: Request) => {
             return await listQuoteRequests(supabase, user.id);
         }
 
-        // Process pending quotes (called by cron job)
+        // Process pending quotes (called by cron job) — internal secret required
         if (req.method === "POST" && path === "/process") {
+            const cronSecret = Deno.env.get("EDGE_FUNCTION_SECRET");
+            const headerSecret = req.headers.get("x-edge-function-secret");
+            if (!cronSecret || headerSecret !== cronSecret) {
+                return jsonResponse({ error: "Unauthorized" }, 401);
+            }
             return await processQuotes(supabase);
         }
 

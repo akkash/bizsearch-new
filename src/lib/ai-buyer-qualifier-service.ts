@@ -1,7 +1,6 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { generateGeminiContent } from './gemini-proxy-client';
 import { supabase } from './supabase';
 
-const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GOOGLE_AI_API_KEY || '');
 
 export interface BuyerQualification {
   leadId: string;
@@ -38,7 +37,6 @@ export interface BuyerProfile {
 }
 
 export class AIBuyerQualifierService {
-  private static model = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
   /**
    * Qualify and score a buyer lead
@@ -273,9 +271,7 @@ Provide analysis in this EXACT JSON format (no markdown):
 }`;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      const text = (await generateGeminiContent(prompt)).replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
       return JSON.parse(text);
     } catch (error) {
       // Fallback analysis

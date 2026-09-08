@@ -532,16 +532,27 @@ export class AdminService {
      * Check if current user is admin
      */
     static async isAdmin(userId: string): Promise<boolean> {
-        const { data, error } = await supabase
+        const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .select('role')
             .eq('id', userId)
             .single();
 
-        if (error || !data) {
+        if (!profileError && profile?.role === 'admin') {
+            return true;
+        }
+
+        const { data: roles, error: rolesError } = await supabase
+            .from('profile_roles')
+            .select('role')
+            .eq('profile_id', userId)
+            .eq('role', 'admin');
+
+        if (rolesError) {
+            console.error('Admin role check failed:', rolesError);
             return false;
         }
 
-        return data.role === 'admin';
+        return (roles?.length ?? 0) > 0;
     }
 }

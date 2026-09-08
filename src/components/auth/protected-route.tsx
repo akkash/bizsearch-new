@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Loader2, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import type { UserRole } from '@/types/auth.types';
+import type { ExtendedProfile, UserRole } from '@/types/auth.types';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -12,36 +12,32 @@ interface ProtectedRouteProps {
   requiredRoles?: UserRole[];
 }
 
+function getUserRoles(profile: ExtendedProfile | null): UserRole[] {
+  if (!profile) return [];
+
+  const roleSet = new Set<UserRole>();
+  if (profile.role) {
+    roleSet.add(profile.role);
+  }
+  profile.roles?.forEach((entry) => {
+    if (entry.role) {
+      roleSet.add(entry.role);
+    }
+  });
+
+  return Array.from(roleSet);
+}
+
 /**
  * ProtectedRoute Component
- * 
+ *
  * Protects routes that require authentication and/or specific roles.
- * Features:
- * - Redirects unauthenticated users to login with return URL
- * - Shows loading state during auth check
- * - Validates user roles if required
- * - Shows user-friendly access denied message
- * 
- * @example
- * ```tsx
- * <ProtectedRoute>
- *   <ProfilePage />
- * </ProtectedRoute>
- * 
- * <ProtectedRoute requiredRole="seller">
- *   <AddBusinessListing />
- * </ProtectedRoute>
- * 
- * <ProtectedRoute requiredRoles={["seller", "broker"]}>
- *   <ManageListings />
- * </ProtectedRoute>
- * ```
  */
 export function ProtectedRoute({ children, requiredRole, requiredRoles }: ProtectedRouteProps) {
   const { user, profile, loading, profileMissing } = useAuth();
   const location = useLocation();
+  const extendedProfile = profile as ExtendedProfile | null;
 
-  // Safety timeout for loading state
   const [showTimeoutError, setShowTimeoutError] = React.useState(false);
 
   React.useEffect(() => {
@@ -49,12 +45,11 @@ export function ProtectedRoute({ children, requiredRole, requiredRoles }: Protec
     if (loading) {
       timeoutId = setTimeout(() => {
         setShowTimeoutError(true);
-      }, 8000); // 8 seconds timeout
+      }, 8000);
     }
     return () => clearTimeout(timeoutId);
   }, [loading]);
 
-  // Show loading state while checking authentication
   if (loading) {
     if (showTimeoutError) {
       return (
@@ -89,33 +84,35 @@ export function ProtectedRoute({ children, requiredRole, requiredRoles }: Protec
     );
   }
 
-  // Redirect to login if not authenticated, preserving the intended destination
   if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Redirect to profile setup if profile is missing (but allow access to the setup page itself)
   if (profileMissing && location.pathname !== '/profile/setup') {
     return <Navigate to="/profile/setup" state={{ from: location }} replace />;
   }
 
-  // Check role requirements
+  const userRoles = getUserRoles(extendedProfile);
+
   const hasRequiredRole = () => {
-    if (!profile) return false;
+    if (!extendedProfile) return false;
 
     if (requiredRole) {
-      return profile.role === requiredRole;
+      return userRoles.includes(requiredRole);
     }
 
     if (requiredRoles && requiredRoles.length > 0) {
-      return requiredRoles.includes(profile.role);
+      return requiredRoles.some((role) => userRoles.includes(role));
     }
 
     return true;
   };
 
-  // Show access denied if user doesn't have required role
   if ((requiredRole || requiredRoles) && !hasRequiredRole()) {
+    const requiredLabel = requiredRole
+      ? requiredRole
+      : requiredRoles?.join(', ');
+
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="w-full max-w-md">
@@ -130,13 +127,10 @@ export function ProtectedRoute({ children, requiredRole, requiredRoles }: Protec
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-center text-muted-foreground">
-              This page requires {requiredRole ? `${requiredRole}` : 'specific'} role access.
-              Your current role is <strong>{profile?.role}</strong>.
+              This page requires <strong>{requiredLabel}</strong> role access.
+              Your current roles are <strong>{userRoles.join(', ') || 'none'}</strong>.
             </p>
-            <Button
-              onClick={() => window.history.back()}
-              className="w-full"
-            >
+            <Button onClick={() => window.history.back()} className="w-full">
               Go Back
             </Button>
           </CardContent>

@@ -235,14 +235,17 @@ serve(async (req: Request) => {
 
     try {
         const supabaseUrl = Deno.env.get("SUPABASE_URL");
-        const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+        const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY");
 
         if (!supabaseUrl || !supabaseKey) {
             console.error("Missing environment variables");
             return jsonResponse({ error: "Server configuration error" }, 500);
         }
 
-        const supabase = createClient(supabaseUrl, supabaseKey);
+        const authHeader = req.headers.get("Authorization");
+        const supabase = createClient(supabaseUrl, supabaseKey, {
+            global: authHeader ? { headers: { Authorization: authHeader } } : {},
+        });
 
         let body: any;
         try {

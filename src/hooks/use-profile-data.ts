@@ -42,9 +42,12 @@ export function useProfileData(userId: string | undefined) {
             // but for now we essentially replicate fetchProfile or use a lighter version since we are likely already auth'd.
             // However, this hook might be used for PUBLIC profiles where we aren't the auth'd user).
 
-            // We'll reuse the logic similar to AuthContext's fetchProfile but purely for reading data.
+            const { data: { user: currentUser } } = await supabase.auth.getUser();
+            const isOwnProfile = currentUser?.id === userId;
+            const profileTable = isOwnProfile ? 'profiles' : 'public_profiles';
+
             const { data: profileData, error: profileError } = await supabase
-                .from('profiles')
+                .from(profileTable)
                 .select('*')
                 .eq('id', userId)
                 .single();

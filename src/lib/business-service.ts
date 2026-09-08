@@ -50,43 +50,100 @@ export interface BusinessUpdateInput extends Partial<BusinessCreateInput> {
   status?: 'draft' | 'pending_review' | 'active' | 'sold' | 'inactive' | 'rejected';
 }
 
+export interface BusinessListOptions {
+  page?: number;
+  pageSize?: number;
+}
+
+export interface BusinessListResult {
+  data: any[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
 export class BusinessService {
   /**
-   * Get all active businesses with optional filters
+   * Get active businesses with server-side filters and pagination
    */
-  static async getBusinesses(filters?: BusinessFilters) {
-    console.log('🏪 Fetching businesses with filters:', filters);
+  static async getBusinesses(
+    filters?: BusinessFilters,
+    options?: BusinessListOptions
+  ): Promise<BusinessListResult> {
+    const page = options?.page ?? 1;
+    const pageSize = options?.pageSize ?? 50;
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
 
-    try {
-      // Try direct fetch as fallback
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    let query = supabase
+      .from('businesses')
+      .select('*', { count: 'exact' })
+      .eq('status', 'active');
 
-      console.log('🌐 Using direct fetch to:', `${supabaseUrl}/rest/v1/businesses?select=*&order=created_at.desc`);
-
-      const response = await fetch(
-        `${supabaseUrl}/rest/v1/businesses?select=*&order=created_at.desc`,
-        {
-          headers: {
-            'apikey': supabaseKey,
-            'Authorization': `Bearer ${supabaseKey}`,
-            'Content-Type': 'application/json',
-            'Prefer': 'return=representation'
-          }
-        }
+    if (filters?.search?.trim()) {
+      const search = filters.search.trim();
+      query = query.or(
+        `name.ilike.%${search}%,description.ilike.%${search}%,industry.ilike.%${search}%`
       );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('✅ Businesses fetched via direct fetch:', data?.length || 0, 'businesses');
-      return data;
-    } catch (err) {
-      console.error('❌ Exception in getBusinesses:', err);
-      throw err;
     }
+
+    if (filters?.industry?.length) {
+      const industryFilter = filters.industry
+        .map((industry) => `industry.ilike.%${industry}%`)
+        .join(',');
+      query = query.or(industryFilter);
+    }
+
+    if (filters?.city?.length) {
+      const cityFilter = filters.city
+        .map((city) => `city.ilike.%${city}%`)
+        .join(',');
+      query = query.or(cityFilter);
+    }
+
+    if (filters?.state?.length) {
+      const stateFilter = filters.state
+        .map((state) => `state.ilike.%${state}%`)
+        .join(',');
+      query = query.or(stateFilter);
+    }
+
+    if (filters?.priceMin != null) {
+      query = query.gte('price', filters.priceMin);
+    }
+    if (filters?.priceMax != null) {
+      query = query.lte('price', filters.priceMax);
+    }
+    if (filters?.revenueMin != null) {
+      query = query.gte('revenue', filters.revenueMin);
+    }
+    if (filters?.revenueMax != null) {
+      query = query.lte('revenue', filters.revenueMax);
+    }
+    if (filters?.featured) {
+      query = query.eq('featured', true);
+    }
+    if (filters?.trending) {
+      query = query.eq('trending', true);
+    }
+    if (filters?.verified) {
+      query = query.eq('verification_status', 'verified');
+    }
+
+    query = query.order('created_at', { ascending: false }).range(from, to);
+
+    const { data, error, count } = await query;
+    if (error) {
+      console.error('Failed to fetch businesses:', error);
+      throw error;
+    }
+
+    return {
+      data: data || [],
+      total: count || 0,
+      page,
+      pageSize,
+    };
   }
 
   /**

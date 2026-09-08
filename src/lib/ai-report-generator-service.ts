@@ -1,6 +1,5 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { generateGeminiContent } from './gemini-proxy-client';
 
-const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GOOGLE_AI_API_KEY || '');
 
 export interface ReportSection {
   title: string;
@@ -28,7 +27,6 @@ export interface Report {
 }
 
 export class AIReportGeneratorService {
-  private static model = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
   /**
    * Generate comprehensive business valuation report
@@ -433,9 +431,7 @@ Each method provides a different perspective on business value.`;
     const prompt = `Generate a professional 2-3 sentence executive summary for a ${reportType} report on ${businessData.name}, a ${businessData.industry} business with ₹${(businessData.revenue || 0).toLocaleString()} in revenue.`;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      return response.text().trim();
+      return (await generateGeminiContent(prompt)).trim();
     } catch {
       return `This ${reportType} report analyzes ${businessData.name}, providing comprehensive insights into its financial performance, market position, and growth potential.`;
     }

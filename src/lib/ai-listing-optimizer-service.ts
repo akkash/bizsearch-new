@@ -1,6 +1,5 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { generateGeminiContent } from './gemini-proxy-client';
 
-const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GOOGLE_AI_API_KEY || '');
 
 export interface ListingOptimization {
   optimizedTitle?: string;
@@ -16,7 +15,6 @@ export interface ListingOptimization {
 }
 
 export class AIListingOptimizerService {
-  private static model = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
   /**
    * Generate an optimized business listing description
@@ -60,9 +58,7 @@ Create a compelling business description that:
 Write ONLY the optimized description without any introduction or labels:`;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      return response.text().trim();
+      return (await generateGeminiContent(prompt)).trim();
     } catch (error) {
       console.error('Description optimization error:', error);
       throw new Error('Failed to optimize description');
@@ -95,9 +91,7 @@ Requirements:
 Provide ONLY the 5 taglines, one per line, without numbering:`;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text().trim();
+      const text = (await generateGeminiContent(prompt)).trim();
       return text.split('\n').filter(line => line.trim().length > 0).map(line => 
         line.replace(/^\d+\.\s*/, '').replace(/^-\s*/, '').trim()
       );
@@ -152,9 +146,7 @@ Provide analysis in this EXACT JSON format (no markdown, no code blocks):
 }`;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
+      const text = await generateGeminiContent(prompt);
       
       // Remove markdown code blocks if present
       const cleanText = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
@@ -200,9 +192,7 @@ Include:
 Provide ONLY the keywords, comma-separated:`;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text().trim();
+      const text = (await generateGeminiContent(prompt)).trim();
       return text.split(',').map(k => k.trim()).filter(k => k.length > 0);
     } catch (error) {
       console.error('Keyword generation error:', error);
@@ -242,9 +232,7 @@ Create 5-7 improved highlights that:
 Provide ONLY the highlights, one per line:`;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text().trim();
+      const text = (await generateGeminiContent(prompt)).trim();
       return text.split('\n').filter(line => line.trim().length > 0).map(line =>
         line.replace(/^\d+\.\s*/, '').replace(/^-\s*/, '').replace(/^•\s*/, '').trim()
       );
@@ -291,9 +279,7 @@ Provide pricing recommendation in this EXACT JSON format:
 }`;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      const text = (await generateGeminiContent(prompt)).replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
       
       return JSON.parse(text);
     } catch (error) {

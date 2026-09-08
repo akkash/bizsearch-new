@@ -87,7 +87,7 @@ export const signUpSchema = z
     password: strongPasswordSchema,
     confirmPassword: z.string().min(1, 'Please confirm your password'),
     displayName: z.string().min(2, 'Name must be at least 2 characters').max(100),
-    role: z.enum(['seller', 'buyer', 'franchisor', 'franchisee', 'advisor', 'broker', 'admin']),
+    role: z.enum(['seller', 'buyer', 'franchisor', 'franchisee', 'advisor', 'broker']),
     acceptTerms: z.boolean().refine((val) => val === true, {
       message: 'You must accept the terms and conditions',
     }),

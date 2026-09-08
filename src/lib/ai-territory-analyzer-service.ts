@@ -1,6 +1,5 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { generateGeminiContent } from './gemini-proxy-client';
 
-const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GOOGLE_AI_API_KEY || '');
 
 export interface TerritoryAnalysis {
   location: string;
@@ -54,7 +53,6 @@ export interface TerritoryComparison {
 }
 
 export class AITerritoryAnalyzerService {
-  private static model = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
   /**
    * Analyze a territory for franchise viability
@@ -161,9 +159,7 @@ Analyze the following aspects and provide data in EXACT JSON format (no markdown
 Focus on Indian market data and conditions. Be realistic and data-driven.`;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      const text = (await generateGeminiContent(prompt)).replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
       return JSON.parse(text);
     } catch (error) {
       console.error('AI territory analysis error:', error);
@@ -394,9 +390,7 @@ ${i + 1}. ${t.location}: ${t.viabilityScore}/100 viability score
 Provide ONLY the summary text (no JSON, no markdown):`;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      return response.text().trim();
+      return (await generateGeminiContent(prompt)).trim();
     } catch (error) {
       return `Analyzed ${territories.length} territories for ${industry} franchise. ${territories[0].location} shows the strongest potential with a ${territories[0].viabilityScore}/100 viability score.`;
     }

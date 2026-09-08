@@ -1,17 +1,53 @@
-import { ReactNode } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Loader2 } from 'lucide-react';
+import { AdminService } from '@/lib/admin-service';
+import { Loader2, ShieldAlert } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import type { ExtendedProfile } from '@/types/auth.types';
 
 interface AdminRouteGuardProps {
     children: ReactNode;
 }
 
+function hasAdminRole(profile: ExtendedProfile | null): boolean {
+    if (!profile) return false;
+    if (profile.role === 'admin') return true;
+    return profile.roles?.some((entry) => entry.role === 'admin') ?? false;
+}
+
 export function AdminRouteGuard({ children }: AdminRouteGuardProps) {
     const { user, profile, loading } = useAuth();
+    const extendedProfile = profile as ExtendedProfile | null;
+    const [serverVerified, setServerVerified] = useState<boolean | null>(null);
 
-    // Show loading while checking auth
-    if (loading) {
+    useEffect(() => {
+        if (!user) {
+            setServerVerified(false);
+            return;
+        }
+
+        let cancelled = false;
+        AdminService.isAdmin(user.id)
+            .then((isAdmin) => {
+                if (!cancelled) {
+                    setServerVerified(isAdmin);
+                }
+            })
+            .catch((error) => {
+                console.error('Admin verification failed:', error);
+                if (!cancelled) {
+                    setServerVerified(false);
+                }
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [user]);
+
+    if (loading || (user && serverVerified === null)) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-background">
                 <div className="text-center">
@@ -22,35 +58,36 @@ export function AdminRouteGuard({ children }: AdminRouteGuardProps) {
         );
     }
 
-    // Not logged in - redirect to login
     if (!user) {
         return <Navigate to="/login" replace />;
     }
 
-    // Not an admin - redirect to 403
-    if (!profile || profile.role !== 'admin') {
+    const clientAdmin = hasAdminRole(extendedProfile);
+    const isAuthorized = clientAdmin && serverVerified === true;
+
+    if (!isAuthorized) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-background">
-                <div className="text-center max-w-md mx-auto px-4">
-                    <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <span className="text-4xl">🚫</span>
-                    </div>
-                    <h1 className="text-3xl font-bold mb-4">Access Denied</h1>
-                    <p className="text-muted-foreground mb-6">
-                        You don't have permission to access the admin dashboard.
-                        This area is restricted to administrators only.
-                    </p>
-                    <a
-                        href="/"
-                        className="inline-flex items-center justify-center px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
-                    >
-                        Go to Homepage
-                    </a>
-                </div>
+            <div className="min-h-screen flex items-center justify-center bg-background p-4">
+                <Card className="w-full max-w-md">
+                    <CardHeader>
+                        <div className="flex items-center justify-center w-12 h-12 bg-destructive/10 rounded-full mx-auto mb-4">
+                            <ShieldAlert className="h-6 w-6 text-destructive" />
+                        </div>
+                        <CardTitle className="text-center">Access Denied</CardTitle>
+                        <CardDescription className="text-center">
+                            You don't have permission to access the admin dashboard.
+                            This area is restricted to administrators only.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Button asChild className="w-full">
+                            <a href="/">Go to Homepage</a>
+                        </Button>
+                    </CardContent>
+                </Card>
             </div>
         );
     }
 
-    // User is admin - render children
     return <>{children}</>;
 }

@@ -386,7 +386,7 @@ export default function BizSearchApp() {
                     <Route
                       path="/my-listings"
                       element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredRoles={['seller', 'franchisor', 'broker']}>
                           <MainLayout>
                             <MyListingsPage />
                           </MainLayout>
@@ -432,7 +432,7 @@ export default function BizSearchApp() {
                     <Route
                       path="/add-business-listing"
                       element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredRoles={['seller', 'broker']}>
                           <MainLayout>
                             <AddBusinessListingPage />
                           </MainLayout>
@@ -443,19 +443,7 @@ export default function BizSearchApp() {
                     <Route
                       path="/business/edit/:businessId"
                       element={
-                        <ProtectedRoute>
-                          <MainLayout>
-                            <EditBusinessListingPage />
-                          </MainLayout>
-                        </ProtectedRoute>
-                      }
-                    />
-
-                    {/* Edit Business Listing - Protected */}
-                    <Route
-                      path="/business/edit/:businessId"
-                      element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredRoles={['seller', 'broker']}>
                           <MainLayout>
                             <EditBusinessListingPage />
                           </MainLayout>
@@ -467,7 +455,7 @@ export default function BizSearchApp() {
                     <Route
                       path="/add-franchise-listing"
                       element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredRole="franchisor">
                           <MainLayout>
                             <AddFranchiseListingPage />
                           </MainLayout>
@@ -513,7 +501,7 @@ export default function BizSearchApp() {
                     <Route
                       path="/my-applications"
                       element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredRoles={['buyer', 'franchisee']}>
                           <MainLayout>
                             <MyApplicationsPage />
                           </MainLayout>
@@ -525,7 +513,7 @@ export default function BizSearchApp() {
                     <Route
                       path="/franchisor/applications"
                       element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredRole="franchisor">
                           <MainLayout>
                             <FranchisorApplicationsPage />
                           </MainLayout>
@@ -577,7 +565,7 @@ export default function BizSearchApp() {
                     <Route
                       path="/buyer-inquiries"
                       element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredRoles={['buyer', 'franchisee']}>
                           <MainLayout>
                             <BuyerInquiriesPage />
                           </MainLayout>
@@ -587,7 +575,7 @@ export default function BizSearchApp() {
                     <Route
                       path="/nda-management"
                       element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredRoles={['seller', 'buyer', 'broker']}>
                           <MainLayout>
                             <NDAManagementPage />
                           </MainLayout>
@@ -597,7 +585,7 @@ export default function BizSearchApp() {
                     <Route
                       path="/deal-room/:businessId"
                       element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredRoles={['seller', 'buyer', 'broker', 'advisor']}>
                           <MainLayout>
                             <DealRoomPage />
                           </MainLayout>
@@ -607,7 +595,7 @@ export default function BizSearchApp() {
                     <Route
                       path="/seller-analytics"
                       element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredRole="seller">
                           <MainLayout>
                             <SellerAnalyticsPage />
                           </MainLayout>
@@ -617,7 +605,7 @@ export default function BizSearchApp() {
                     <Route
                       path="/listing-optimizer/:businessId"
                       element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredRole="seller">
                           <MainLayout>
                             <ListingOptimizerPage />
                           </MainLayout>
@@ -629,7 +617,7 @@ export default function BizSearchApp() {
                     <Route
                       path="/buyer/mandate"
                       element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredRoles={['buyer', 'franchisee']}>
                           <MainLayout>
                             <BuyerMandatePage />
                           </MainLayout>
@@ -641,7 +629,7 @@ export default function BizSearchApp() {
                     <Route
                       path="/clients"
                       element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredRoles={['advisor', 'broker']}>
                           <MainLayout>
                             <ClientManagementPage />
                           </MainLayout>
@@ -651,7 +639,7 @@ export default function BizSearchApp() {
                     <Route
                       path="/deal-pipeline"
                       element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredRoles={['advisor', 'broker']}>
                           <MainLayout>
                             <DealPipelinePage />
                           </MainLayout>
@@ -661,7 +649,7 @@ export default function BizSearchApp() {
                     <Route
                       path="/commissions"
                       element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredRoles={['advisor', 'broker']}>
                           <MainLayout>
                             <CommissionTrackingPage />
                           </MainLayout>
@@ -679,7 +667,7 @@ export default function BizSearchApp() {
                     <Route
                       path="/report-generator"
                       element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredRoles={['advisor', 'broker']}>
                           <MainLayout>
                             <ReportGeneratorPage />
                           </MainLayout>
@@ -689,7 +677,7 @@ export default function BizSearchApp() {
                     <Route
                       path="/leads"
                       element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredRoles={['franchisor', 'seller']}>
                           <MainLayout>
                             <LeadManagementPage />
                           </MainLayout>
@@ -699,7 +687,7 @@ export default function BizSearchApp() {
                     <Route
                       path="/pipeline"
                       element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredRoles={['franchisor', 'seller']}>
                           <MainLayout>
                             <LeadManagementPage />
                           </MainLayout>
@@ -711,7 +699,7 @@ export default function BizSearchApp() {
                     <Route
                       path="/advisor"
                       element={
-                        <ProtectedRoute>
+                        <ProtectedRoute requiredRoles={['advisor', 'broker']}>
                           <AdvisorLayout />
                         </ProtectedRoute>
                       }

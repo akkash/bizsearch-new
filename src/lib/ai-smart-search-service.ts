@@ -1,8 +1,7 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { generateGeminiContent } from './gemini-proxy-client';
 import { supabase } from './supabase';
 import { mapFranchisesFromDb } from './franchise-mapper';
 
-const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GOOGLE_AI_API_KEY || '');
 
 export interface SearchIntent {
   industries?: string[];
@@ -23,7 +22,6 @@ export interface SmartSearchResult {
 }
 
 export class AISmartSearchService {
-  private static model = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
   /**
    * Parse natural language query into structured search parameters
@@ -53,9 +51,7 @@ Convert lakhs/crores to numbers (1 lakh = 100000, 1 crore = 10000000).
 Return ONLY the JSON:`;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
+      const text = await generateGeminiContent(prompt);
       
       // Remove markdown code blocks if present
       const cleanText = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
@@ -245,9 +241,7 @@ Suggestions should:
 Provide ONLY the suggestions, one per line:`;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text().trim();
+      const text = (await generateGeminiContent(prompt)).trim();
       
       return text.split('\n')
         .filter(line => line.trim().length > 0)
@@ -347,9 +341,7 @@ Examples:
 Write ONLY the explanation:`;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      return response.text().trim();
+      return (await generateGeminiContent(prompt)).trim();
     } catch (error) {
       return `Found ${resultCount} businesses matching "${query}"`;
     }

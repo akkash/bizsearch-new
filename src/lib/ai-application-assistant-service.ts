@@ -1,6 +1,5 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { generateGeminiContent } from './gemini-proxy-client';
 
-const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GOOGLE_AI_API_KEY || '');
 
 export interface ApplicationField {
   fieldName: string;
@@ -40,7 +39,6 @@ export interface DocumentDataExtraction {
 }
 
 export class AIApplicationAssistantService {
-  private static model = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
   /**
    * Auto-fill franchise application from profile and documents
@@ -228,9 +226,7 @@ If you cannot infer a reasonable value, return:
 }`;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      const text = (await generateGeminiContent(prompt)).replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
       const parsed = JSON.parse(text);
 
       if (parsed.value && parsed.confidence >= 50) {
@@ -284,9 +280,7 @@ Return data in EXACT JSON format (no markdown):
 }`;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      const text = (await generateGeminiContent(prompt)).replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
       const parsed = JSON.parse(text);
 
       return {

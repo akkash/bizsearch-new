@@ -1,7 +1,6 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { generateGeminiContent } from './gemini-proxy-client';
 import { supabase } from './supabase';
 
-const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GOOGLE_AI_API_KEY || '');
 
 export interface UserPreferences {
   budget?: { min: number; max: number };
@@ -24,7 +23,6 @@ export interface BusinessMatch {
 }
 
 export class AIMatchmakerService {
-  private static model = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
   /**
    * Find and rank businesses that match user preferences using AI
@@ -141,9 +139,7 @@ Provide your analysis in this EXACT JSON format (no markdown, no code blocks):
 }`;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
+      const text = await generateGeminiContent(prompt);
       
       // Remove markdown code blocks if present
       const cleanText = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();

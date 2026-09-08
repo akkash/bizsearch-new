@@ -488,6 +488,7 @@ export function ProfilePage({ className = "" }: ProfilePageProps) {
         <TabsContent value="documents">
           <DocumentsVault
             profile={profile}
+            profileId={profile.id}
             isOwnVault={isOwnProfile}
             hasSignedNDA={false}
             onUploadDocument={() => console.log("Upload document")}

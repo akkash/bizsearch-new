@@ -1,9 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient, type SupabaseClient, type User } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-edge-function-secret",
     "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
 };
 
@@ -12,10 +12,10 @@ const QUALIFICATION_WEIGHTS = {
     has_email: 15,
     has_phone: 20,
     has_name: 10,
-    message_length: 15, // longer messages indicate more serious interest
-    specific_questions: 20, // asks about price, terms, timeline
-    urgency_signals: 10, // mentions "asap", "urgent", "soon"
-    experience_mentioned: 10, // mentions relevant experience
+    message_length: 15,
+    specific_questions: 20,
+    urgency_signals: 10,
+    experience_mentioned: 10,
 };
 
 serve(async (req: Request) => {
@@ -25,34 +25,50 @@ serve(async (req: Request) => {
 
     try {
         const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-        const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-        const supabase = createClient(supabaseUrl, supabaseKey);
+        const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+        const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+        const serviceClient = createClient(supabaseUrl, serviceRoleKey);
 
         const url = new URL(req.url);
         const path = url.pathname.replace("/lead-agent", "");
 
-        // Process new inquiry and auto-respond
+        // Internal/cron endpoints — require shared secret
+        if (req.method === "POST" && (path === "/process-all" || path === "/process-all/")) {
+            if (!isInternalCaller(req)) {
+                return jsonResponse({ error: "Unauthorized" }, 401);
+            }
+            return await processAllPendingLeads(serviceClient);
+        }
+
         if (req.method === "POST" && (path === "/process" || path === "/process/")) {
+            if (!isInternalCaller(req)) {
+                return jsonResponse({ error: "Unauthorized" }, 401);
+            }
             const { inquiry_id } = await req.json();
-            return await processInquiry(supabase, inquiry_id);
+            return await processInquiry(serviceClient, inquiry_id);
         }
 
-        // Get lead queue for a seller
+        // User-facing endpoints — require authenticated JWT
+        const user = await getAuthenticatedUser(req, supabaseUrl, anonKey);
+        if (!user) {
+            return jsonResponse({ error: "Unauthorized" }, 401);
+        }
+
         if (req.method === "GET" && path.startsWith("/seller/")) {
-            const sellerId = path.replace("/seller/", "");
-            return await getSellerLeads(supabase, sellerId);
+            const sellerId = path.replace("/seller/", "").replace(/\/$/, "");
+            if (!sellerId) {
+                return jsonResponse({ error: "Seller ID required" }, 400);
+            }
+            if (user.id !== sellerId && !(await isAdminUser(serviceClient, user.id))) {
+                return jsonResponse({ error: "Forbidden" }, 403);
+            }
+            return await getSellerLeads(serviceClient, sellerId);
         }
 
-        // Update lead status
         if (req.method === "POST" && path.startsWith("/update/")) {
-            const leadId = path.replace("/update/", "");
+            const leadId = path.replace("/update/", "").replace(/\/$/, "");
             const { status } = await req.json();
-            return await updateLeadStatus(supabase, leadId, status);
-        }
-
-        // Process all pending leads (cron job)
-        if (req.method === "POST" && path === "/process-all") {
-            return await processAllPendingLeads(supabase);
+            return await updateLeadStatus(serviceClient, leadId, status, user.id);
         }
 
         return jsonResponse({ error: "Not found" }, 404);
@@ -63,8 +79,48 @@ serve(async (req: Request) => {
     }
 });
 
-async function processInquiry(supabase: any, inquiryId: string) {
-    // Get inquiry details
+async function getAuthenticatedUser(
+    req: Request,
+    supabaseUrl: string,
+    anonKey: string
+): Promise<User | null> {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+        return null;
+    }
+
+    const supabase = createClient(supabaseUrl, anonKey, {
+        global: { headers: { Authorization: authHeader } },
+    });
+
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error || !user) {
+        return null;
+    }
+
+    return user;
+}
+
+function isInternalCaller(req: Request): boolean {
+    const secret = Deno.env.get("EDGE_FUNCTION_SECRET");
+    if (!secret) {
+        console.error("EDGE_FUNCTION_SECRET is not configured");
+        return false;
+    }
+    return req.headers.get("x-edge-function-secret") === secret;
+}
+
+async function isAdminUser(supabase: SupabaseClient, userId: string): Promise<boolean> {
+    const { data } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", userId)
+        .single();
+
+    return data?.role === "admin";
+}
+
+async function processInquiry(supabase: SupabaseClient, inquiryId: string) {
     const { data: inquiry, error } = await supabase
         .from("inquiries")
         .select("*, listing:listing_id(*)")
@@ -75,7 +131,6 @@ async function processInquiry(supabase: any, inquiryId: string) {
         return jsonResponse({ error: "Inquiry not found" }, 404);
     }
 
-    // Check if already in lead queue
     const { data: existingLead } = await supabase
         .from("lead_queue")
         .select("id")
@@ -86,13 +141,9 @@ async function processInquiry(supabase: any, inquiryId: string) {
         return jsonResponse({ message: "Lead already processed" });
     }
 
-    // Calculate qualification score
     const qualificationResult = qualifyLead(inquiry);
-
-    // Get listing owner
     const listingOwnerId = inquiry.listing?.owner_id || inquiry.listing?.seller_id;
 
-    // Create lead queue entry
     const { data: lead, error: leadError } = await supabase
         .from("lead_queue")
         .insert({
@@ -115,10 +166,8 @@ async function processInquiry(supabase: any, inquiryId: string) {
         return jsonResponse({ error: leadError.message }, 400);
     }
 
-    // Generate and send auto-response
     const autoResponse = generateAutoResponse(inquiry, qualificationResult.score);
 
-    // Update lead with auto-response info
     await supabase
         .from("lead_queue")
         .update({
@@ -128,7 +177,6 @@ async function processInquiry(supabase: any, inquiryId: string) {
         })
         .eq("id", lead.id);
 
-    // Create agent task
     await supabase.from("agent_tasks").insert({
         type: "lead_response",
         status: "completed",
@@ -146,7 +194,6 @@ async function processInquiry(supabase: any, inquiryId: string) {
         completed_at: new Date().toISOString(),
     });
 
-    // Notify seller about high-quality lead
     if (qualificationResult.score >= 70) {
         await supabase
             .from("lead_queue")
@@ -155,8 +202,6 @@ async function processInquiry(supabase: any, inquiryId: string) {
                 seller_notified_at: new Date().toISOString(),
             })
             .eq("id", lead.id);
-
-        // Could trigger email/notification here
     }
 
     return jsonResponse({
@@ -168,30 +213,30 @@ async function processInquiry(supabase: any, inquiryId: string) {
     });
 }
 
-function qualifyLead(inquiry: any): { score: number; notes: any } {
+function qualifyLead(inquiry: Record<string, unknown>): { score: number; notes: Record<string, boolean> } {
     let score = 0;
-    const notes: any = {};
+    const notes: Record<string, boolean> = {};
 
-    // Has email
-    if (inquiry.email && inquiry.email.includes("@")) {
+    const email = typeof inquiry.email === "string" ? inquiry.email : "";
+    const phone = typeof inquiry.phone === "string" ? inquiry.phone : "";
+    const name = typeof inquiry.name === "string" ? inquiry.name : "";
+    const message = typeof inquiry.message === "string" ? inquiry.message : "";
+
+    if (email.includes("@")) {
         score += QUALIFICATION_WEIGHTS.has_email;
         notes.has_email = true;
     }
 
-    // Has phone
-    if (inquiry.phone && inquiry.phone.length >= 10) {
+    if (phone.length >= 10) {
         score += QUALIFICATION_WEIGHTS.has_phone;
         notes.has_phone = true;
     }
 
-    // Has name
-    if (inquiry.name && inquiry.name.length > 2) {
+    if (name.length > 2) {
         score += QUALIFICATION_WEIGHTS.has_name;
         notes.has_name = true;
     }
 
-    // Message length (indicates seriousness)
-    const message = inquiry.message || "";
     if (message.length > 100) {
         score += QUALIFICATION_WEIGHTS.message_length;
         notes.detailed_message = true;
@@ -200,27 +245,21 @@ function qualifyLead(inquiry: any): { score: number; notes: any } {
         notes.moderate_message = true;
     }
 
-    // Specific questions about business
     const lowerMessage = message.toLowerCase();
     const specificKeywords = ["price", "cost", "revenue", "profit", "terms", "timeline", "financing", "training", "support", "roi", "investment"];
-    const hasSpecificQuestions = specificKeywords.some(kw => lowerMessage.includes(kw));
-    if (hasSpecificQuestions) {
+    if (specificKeywords.some((kw) => lowerMessage.includes(kw))) {
         score += QUALIFICATION_WEIGHTS.specific_questions;
         notes.asks_specifics = true;
     }
 
-    // Urgency signals
     const urgencyKeywords = ["asap", "urgent", "immediately", "soon", "quickly", "this week", "this month"];
-    const hasUrgency = urgencyKeywords.some(kw => lowerMessage.includes(kw));
-    if (hasUrgency) {
+    if (urgencyKeywords.some((kw) => lowerMessage.includes(kw))) {
         score += QUALIFICATION_WEIGHTS.urgency_signals;
         notes.shows_urgency = true;
     }
 
-    // Experience mentioned
     const experienceKeywords = ["experience", "background", "years", "currently", "business owner", "entrepreneur"];
-    const mentionsExperience = experienceKeywords.some(kw => lowerMessage.includes(kw));
-    if (mentionsExperience) {
+    if (experienceKeywords.some((kw) => lowerMessage.includes(kw))) {
         score += QUALIFICATION_WEIGHTS.experience_mentioned;
         notes.mentions_experience = true;
     }
@@ -228,9 +267,13 @@ function qualifyLead(inquiry: any): { score: number; notes: any } {
     return { score: Math.min(score, 100), notes };
 }
 
-function generateAutoResponse(inquiry: any, qualificationScore: number): string {
-    const buyerName = inquiry.name || "there";
-    const listingName = inquiry.listing?.name || inquiry.listing?.brand_name || "this listing";
+function generateAutoResponse(inquiry: Record<string, unknown>, qualificationScore: number): string {
+    const listing = inquiry.listing as Record<string, unknown> | undefined;
+    const buyerName = typeof inquiry.name === "string" ? inquiry.name : "there";
+    const listingName =
+        (typeof listing?.name === "string" ? listing.name : null) ||
+        (typeof listing?.brand_name === "string" ? listing.brand_name : null) ||
+        "this listing";
 
     let response = `Hi ${buyerName},\n\n`;
     response += `Thank you for your interest in ${listingName}!\n\n`;
@@ -245,14 +288,13 @@ function generateAutoResponse(inquiry: any, qualificationScore: number): string 
     response += `• Review the complete listing details on BizSearch\n`;
     response += `• Prepare any questions you'd like to ask\n`;
     response += `• Check out similar opportunities in your area\n\n`;
-
     response += `Best regards,\nBizSearch Concierge\n\n`;
     response += `---\nThis is an automated message from BizSearch Lead Agent.`;
 
     return response;
 }
 
-async function getSellerLeads(supabase: any, sellerId: string) {
+async function getSellerLeads(supabase: SupabaseClient, sellerId: string) {
     const { data, error } = await supabase
         .from("lead_queue")
         .select("*")
@@ -264,11 +306,14 @@ async function getSellerLeads(supabase: any, sellerId: string) {
         return jsonResponse({ error: error.message }, 400);
     }
 
-    // Group by status
-    const byStatus = (data || []).reduce((acc: any, lead: any) => {
-        acc[lead.status] = (acc[lead.status] || []).concat(lead);
-        return acc;
-    }, {});
+    const byStatus: Record<string, unknown[]> = {};
+    for (const lead of data || []) {
+        const status = lead.status as string;
+        if (!byStatus[status]) {
+            byStatus[status] = [];
+        }
+        byStatus[status].push(lead);
+    }
 
     return jsonResponse({
         leads: data || [],
@@ -283,10 +328,29 @@ async function getSellerLeads(supabase: any, sellerId: string) {
     });
 }
 
-async function updateLeadStatus(supabase: any, leadId: string, status: string) {
+async function updateLeadStatus(
+    supabase: SupabaseClient,
+    leadId: string,
+    status: string,
+    userId: string
+) {
     const validStatuses = ["new", "auto_responded", "qualified", "contacted", "converted", "lost"];
     if (!validStatuses.includes(status)) {
         return jsonResponse({ error: "Invalid status" }, 400);
+    }
+
+    const { data: lead, error: leadError } = await supabase
+        .from("lead_queue")
+        .select("seller_id")
+        .eq("id", leadId)
+        .single();
+
+    if (leadError || !lead) {
+        return jsonResponse({ error: "Lead not found" }, 404);
+    }
+
+    if (lead.seller_id !== userId && !(await isAdminUser(supabase, userId))) {
+        return jsonResponse({ error: "Forbidden" }, 403);
     }
 
     const { error } = await supabase
@@ -301,8 +365,7 @@ async function updateLeadStatus(supabase: any, leadId: string, status: string) {
     return jsonResponse({ message: "Lead status updated" });
 }
 
-async function processAllPendingLeads(supabase: any) {
-    // Get all new inquiries not yet in lead queue
+async function processAllPendingLeads(supabase: SupabaseClient) {
     const { data: pendingInquiries } = await supabase
         .from("inquiries")
         .select("id")
@@ -324,7 +387,7 @@ async function processAllPendingLeads(supabase: any) {
     });
 }
 
-function jsonResponse(data: any, status = 200) {
+function jsonResponse(data: Record<string, unknown>, status = 200) {
     return new Response(JSON.stringify(data, null, 2), {
         status,
         headers: {

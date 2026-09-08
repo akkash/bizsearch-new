@@ -1,7 +1,6 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { generateGeminiContent } from './gemini-proxy-client';
 import { supabase } from './supabase';
 
-const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GOOGLE_AI_API_KEY || '');
 
 export interface FraudAnalysis {
   fraudRiskScore: number; // 0-100, higher = more suspicious
@@ -17,7 +16,6 @@ export interface FraudAnalysis {
 }
 
 export class AIFraudDetectionService {
-  private static model = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
   /**
    * Analyze business listing for potential fraud
@@ -74,9 +72,7 @@ Provide analysis in JSON format (no markdown):
 }`;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      const text = (await generateGeminiContent(prompt)).replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
       
       const aiAnalysis = JSON.parse(text);
 
@@ -335,9 +331,7 @@ Return JSON:
 }`;
 
         try {
-          const result = await this.model.generateContent(prompt);
-          const response = await result.response;
-          const text = response.text().replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+          const text = (await generateGeminiContent(prompt)).replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
           const analysis = JSON.parse(text);
 
           return {

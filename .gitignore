@@ -1,1 +1,16 @@
+# Dependencies
 node_modules
+
+# Environment (never commit secrets)
+.env
+.env.*
+!.env.example
+
+# Build output
+dist
+
+# Editor / OS
+.DS_Store
+*.log
+.vscode/
+.idea/

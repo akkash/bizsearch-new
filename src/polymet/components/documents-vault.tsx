@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -21,8 +21,10 @@ import {
   User,
   Shield,
   AlertTriangle,
+  Loader2,
 } from "lucide-react";
 import { type UserProfile } from "@/polymet/data/profile-data";
+import { ProfileService } from "@/lib/profile-service";
 
 interface Document {
   id: string;
@@ -39,6 +41,7 @@ interface Document {
 
 interface DocumentsVaultProps {
   profile: UserProfile;
+  profileId?: string;
   documents?: Document[];
   isOwnVault?: boolean;
   hasSignedNDA?: boolean;
@@ -50,6 +53,7 @@ interface DocumentsVaultProps {
 
 export function DocumentsVault({
   profile,
+  profileId,
   documents = [],
   isOwnVault = false,
   hasSignedNDA = false,
@@ -63,195 +67,60 @@ export function DocumentsVault({
   const [selectedDocumentType, setSelectedDocumentType] =
     useState<string>("all");
 
-  // Mock documents based on role
-  const getMockDocuments = (): Document[] => {
-    const baseDocuments: Document[] = [
-      {
-        id: "doc1",
-        name: "Company Profile.pdf",
-        type: "marketing",
-        size: "2.4 MB",
-        uploadDate: "2024-01-15",
-        uploadedBy: profile.displayName,
-        isPrivate: false,
-        requiresNDA: false,
-        description: "Company overview and capabilities",
-        downloadCount: 12,
-      },
-      {
-        id: "doc2",
-        name: "Business License.pdf",
-        type: "legal",
-        size: "1.2 MB",
-        uploadDate: "2024-01-10",
-        uploadedBy: profile.displayName,
-        isPrivate: true,
-        requiresNDA: true,
-        description: "Official business registration documents",
-        downloadCount: 3,
-      },
-    ];
+  const [vaultDocuments, setVaultDocuments] = useState<Document[]>(documents);
+  const [loadingDocuments, setLoadingDocuments] = useState(true);
 
-    const roleSpecificDocs: Record<UserProfile["role"], Document[]> = {
-      seller: [
-        ...baseDocuments,
-        {
-          id: "doc3",
-          name: "Financial_Statements_2023.xlsx",
-          type: "financial",
-          size: "5.8 MB",
-          uploadDate: "2024-01-12",
-          uploadedBy: profile.displayName,
-          isPrivate: true,
-          requiresNDA: true,
-          description: "Detailed P&L and balance sheet for 2023",
-          downloadCount: 8,
-        },
-        {
-          id: "doc4",
-          name: "Asset_Inventory.pdf",
-          type: "operational",
-          size: "3.1 MB",
-          uploadDate: "2024-01-08",
-          uploadedBy: profile.displayName,
-          isPrivate: true,
-          requiresNDA: true,
-          description: "Complete inventory of business assets",
-          downloadCount: 5,
-        },
-        {
-          id: "doc5",
-          name: "Customer_Contracts.zip",
-          type: "legal",
-          size: "12.4 MB",
-          uploadDate: "2024-01-05",
-          uploadedBy: profile.displayName,
-          isPrivate: true,
-          requiresNDA: true,
-          description: "Key customer contracts and agreements",
-          downloadCount: 2,
-        },
-      ],
-
-      buyer: [
-        ...baseDocuments,
-        {
-          id: "doc3",
-          name: "Investment_Criteria.pdf",
-          type: "other",
-          size: "1.8 MB",
-          uploadDate: "2024-01-14",
-          uploadedBy: profile.displayName,
-          isPrivate: false,
-          requiresNDA: false,
-          description: "Investment preferences and criteria",
-          downloadCount: 15,
-        },
-        {
-          id: "doc4",
-          name: "Proof_of_Funds.pdf",
-          type: "financial",
-          size: "2.2 MB",
-          uploadDate: "2024-01-11",
-          uploadedBy: profile.displayName,
-          isPrivate: true,
-          requiresNDA: true,
-          description: "Bank statements and financial capacity proof",
-          downloadCount: 0,
-        },
-      ],
-
-      franchisor: [
-        ...baseDocuments,
-        {
-          id: "doc3",
-          name: "Franchise_Disclosure_Document.pdf",
-          type: "legal",
-          size: "8.7 MB",
-          uploadDate: "2024-01-13",
-          uploadedBy: profile.displayName,
-          isPrivate: true,
-          requiresNDA: true,
-          description: "Complete FDD with financial performance data",
-          downloadCount: 18,
-        },
-        {
-          id: "doc4",
-          name: "Operations_Manual.pdf",
-          type: "operational",
-          size: "15.2 MB",
-          uploadDate: "2024-01-09",
-          uploadedBy: profile.displayName,
-          isPrivate: true,
-          requiresNDA: true,
-          description: "Comprehensive franchise operations guide",
-          downloadCount: 7,
-        },
-        {
-          id: "doc5",
-          name: "Marketing_Kit.zip",
-          type: "marketing",
-          size: "25.6 MB",
-          uploadDate: "2024-01-07",
-          uploadedBy: profile.displayName,
-          isPrivate: false,
-          requiresNDA: false,
-          description: "Brand assets and marketing materials",
-          downloadCount: 34,
-        },
-      ],
-
-      franchisee: [
-        ...baseDocuments,
-        {
-          id: "doc3",
-          name: "Business_Plan_Draft.pdf",
-          type: "other",
-          size: "4.3 MB",
-          uploadDate: "2024-01-12",
-          uploadedBy: profile.displayName,
-          isPrivate: true,
-          requiresNDA: false,
-          description: "Franchise business plan and projections",
-          downloadCount: 1,
-        },
-      ],
-
-      advisor: [
-        ...baseDocuments,
-        {
-          id: "doc3",
-          name: "Client_Success_Stories.pdf",
-          type: "marketing",
-          size: "6.1 MB",
-          uploadDate: "2024-01-11",
-          uploadedBy: profile.displayName,
-          isPrivate: false,
-          requiresNDA: false,
-          description: "Case studies and client testimonials",
-          downloadCount: 22,
-        },
-        {
-          id: "doc4",
-          name: "Professional_Credentials.pdf",
-          type: "legal",
-          size: "2.8 MB",
-          uploadDate: "2024-01-06",
-          uploadedBy: profile.displayName,
-          isPrivate: false,
-          requiresNDA: false,
-          description: "Licenses and professional certifications",
-          downloadCount: 9,
-        },
-      ],
+  useEffect(() => {
+    const mapDocumentType = (documentType: string): Document["type"] => {
+      if (documentType === "financial" || documentType === "legal" || documentType === "operational" || documentType === "marketing") {
+        return documentType;
+      }
+      if (documentType === "business") {
+        return "operational";
+      }
+      return "other";
     };
 
-    return documents.length > 0
-      ? documents
-      : roleSpecificDocs[profile.role] || baseDocuments;
-  };
+    const loadDocuments = async () => {
+      if (!profileId) {
+        setVaultDocuments([]);
+        setLoadingDocuments(false);
+        return;
+      }
 
-  const vaultDocuments = getMockDocuments();
+      setLoadingDocuments(true);
+      try {
+        const rows = await ProfileService.getVerificationDocuments(profileId);
+        if (!rows?.length) {
+          setVaultDocuments([]);
+          return;
+        }
+
+        setVaultDocuments(
+          rows.map((row) => ({
+            id: row.id,
+            name: row.file_name,
+            type: mapDocumentType(row.document_type),
+            size: "—",
+            uploadDate: row.created_at?.split("T")[0] ?? "",
+            uploadedBy: profile.displayName,
+            isPrivate: row.document_type !== "identity",
+            requiresNDA: row.document_type === "financial" || row.document_type === "legal",
+            description: row.status,
+            downloadCount: 0,
+          }))
+        );
+      } catch (error) {
+        console.error("Failed to load verification documents:", error);
+        setVaultDocuments([]);
+      } finally {
+        setLoadingDocuments(false);
+      }
+    };
+
+    loadDocuments();
+  }, [profileId, profile.displayName]);
+
   const documentTypes = [
     "all",
     "financial",
@@ -540,7 +409,7 @@ export function DocumentsVault({
           </h4>
           <p className="text-muted-foreground mb-4">
             {selectedDocumentType === "all"
-              ? "No documents have been uploaded yet."
+              ? "No details found in the table."
               : `No ${selectedDocumentType} documents found.`}
           </p>
           {isOwnVault && (
