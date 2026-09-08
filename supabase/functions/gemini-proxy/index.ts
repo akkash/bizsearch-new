@@ -28,9 +28,9 @@ serve(async (req: Request) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
-    const googleApiKey = Deno.env.get("GOOGLE_AI_API_KEY");
+    const cmdApiKey = Deno.env.get("CMD_API_KEY");
 
-    if (!supabaseUrl || !supabaseAnonKey || !googleApiKey) {
+    if (!supabaseUrl || !supabaseAnonKey || !cmdApiKey) {
       return jsonResponse({ error: "Server configuration error" }, 500);
     }
 
@@ -58,7 +58,7 @@ serve(async (req: Request) => {
       maxOutputTokens: 2048,
     };
 
-    const genAI = new GoogleGenerativeAI(googleApiKey);
+    const genAI = new GoogleGenerativeAI(cmdApiKey);
     const model = genAI.getGenerativeModel({ model: modelName });
 
     if (action === "generateContent") {

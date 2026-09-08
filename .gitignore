@@ -9,6 +9,9 @@ node_modules
 # Build output
 dist
 
+# Supabase CLI temp
+supabase/.temp
+
 # Editor / OS
 .DS_Store
 *.log
