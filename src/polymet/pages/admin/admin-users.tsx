@@ -25,6 +25,15 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
     Search,
@@ -38,6 +47,7 @@ import {
 } from 'lucide-react';
 import { AdminService, type AdminUser, type UserFilters } from '@/lib/admin-service';
 import { formatDistanceToNow } from 'date-fns';
+import { toast } from 'sonner';
 
 const roleColors: Record<string, string> = {
     admin: 'bg-red-100 text-red-800',
@@ -49,11 +59,16 @@ const roleColors: Record<string, string> = {
     broker: 'bg-secondary text-indigo-800',
 };
 
+const ASSIGNABLE_ROLES = ['seller', 'buyer', 'franchisor', 'franchisee', 'advisor', 'broker', 'admin'] as const;
+
 export function AdminUsers() {
     const [users, setUsers] = useState<AdminUser[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [roleFilter, setRoleFilter] = useState<string>('all');
+    const [roleDialogUser, setRoleDialogUser] = useState<AdminUser | null>(null);
+    const [newRole, setNewRole] = useState<string>('');
+    const [actionLoading, setActionLoading] = useState(false);
 
     useEffect(() => {
         loadUsers();
@@ -99,6 +114,49 @@ export function AdminUsers() {
                 u.email.toLowerCase().includes(search.toLowerCase())
         )
         : users;
+
+    const handleBanUser = async (target: AdminUser) => {
+        const banning = !target.is_banned;
+        const confirmed = window.confirm(
+            banning
+                ? `Ban ${target.display_name || target.email}? They will be flagged as banned.`
+                : `Unban ${target.display_name || target.email}?`
+        );
+        if (!confirmed) return;
+
+        setActionLoading(true);
+        try {
+            await AdminService.setUserBanned(target.id, banning);
+            toast.success(banning ? 'User banned' : 'User unbanned');
+            await loadUsers();
+        } catch (error) {
+            console.error('Ban action failed:', error);
+            toast.error('Failed to update ban status');
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const openRoleDialog = (target: AdminUser) => {
+        setRoleDialogUser(target);
+        setNewRole(target.role);
+    };
+
+    const handleChangeRole = async () => {
+        if (!roleDialogUser || !newRole) return;
+        setActionLoading(true);
+        try {
+            await AdminService.changeUserRole(roleDialogUser.id, newRole);
+            toast.success(`Role updated to ${newRole}`);
+            setRoleDialogUser(null);
+            await loadUsers();
+        } catch (error) {
+            console.error('Role change failed:', error);
+            toast.error('Failed to change role');
+        } finally {
+            setActionLoading(false);
+        }
+    };
 
     return (
         <div className="space-y-6">
@@ -179,9 +237,14 @@ export function AdminUsers() {
                                                 </div>
                                             </TableCell>
                                             <TableCell>
-                                                <Badge className={roleColors[user.role] || 'bg-secondary text-foreground'}>
-                                                    {user.role}
-                                                </Badge>
+                                                <div className="flex items-center gap-2">
+                                                    <Badge className={roleColors[user.role] || 'bg-secondary text-foreground'}>
+                                                        {user.role}
+                                                    </Badge>
+                                                    {user.is_banned && (
+                                                        <Badge variant="destructive">Banned</Badge>
+                                                    )}
+                                                </div>
                                             </TableCell>
                                             <TableCell>
                                                 {user.city && user.state ? (
@@ -218,13 +281,17 @@ export function AdminUsers() {
                                                                 View Details
                                                             </Link>
                                                         </DropdownMenuItem>
-                                                        <DropdownMenuItem>
+                                                        <DropdownMenuItem onClick={() => openRoleDialog(user)}>
                                                             <Shield className="h-4 w-4 mr-2" />
                                                             Change Role
                                                         </DropdownMenuItem>
-                                                        <DropdownMenuItem className="text-red-600">
+                                                        <DropdownMenuItem
+                                                            className={user.is_banned ? '' : 'text-red-600'}
+                                                            onClick={() => handleBanUser(user)}
+                                                            disabled={actionLoading}
+                                                        >
                                                             <UserX className="h-4 w-4 mr-2" />
-                                                            Ban User
+                                                            {user.is_banned ? 'Unban User' : 'Ban User'}
                                                         </DropdownMenuItem>
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
@@ -237,6 +304,40 @@ export function AdminUsers() {
                     )}
                 </CardContent>
             </Card>
+
+            <Dialog open={!!roleDialogUser} onOpenChange={(open) => !open && setRoleDialogUser(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Change role</DialogTitle>
+                        <DialogDescription>
+                            Update role for {roleDialogUser?.display_name || roleDialogUser?.email}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-2 py-2">
+                        <Label>Role</Label>
+                        <Select value={newRole} onValueChange={setNewRole}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select role" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {ASSIGNABLE_ROLES.map((role) => (
+                                    <SelectItem key={role} value={role}>
+                                        {role}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setRoleDialogUser(null)}>
+                            Cancel
+                        </Button>
+                        <Button onClick={handleChangeRole} disabled={actionLoading || !newRole}>
+                            {actionLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

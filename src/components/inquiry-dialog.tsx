@@ -102,6 +102,8 @@ export function InquiryDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (loading) return;
+
     if (!user) {
       toast.error('Please sign in to send an enquiry');
       return;
@@ -134,7 +136,6 @@ export function InquiryDialog({
       const format = findStoreFormat(storeFormats, selectedFormatId);
       await InquiryService.createInquiry({
         senderId: user.id,
-        recipientId: ownerId,
         listingId,
         listingType,
         subject: format
@@ -205,7 +206,11 @@ export function InquiryDialog({
       }, 2000);
     } catch (error) {
       console.error('Error sending inquiry:', error);
-      toast.error('Failed to send inquiry. Please try again.');
+      const message =
+        error instanceof Error && error.message.includes('open enquiry')
+          ? error.message
+          : 'Failed to send inquiry. Please try again.';
+      toast.error(message);
     } finally {
       setLoading(false);
     }

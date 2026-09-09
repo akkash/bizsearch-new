@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,59 +7,121 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
 import {
-    Settings,
     Building2,
     Mail,
     DollarSign,
     Bell,
     Shield,
-    Palette,
     Save,
+    Loader2,
+    Flag,
+    ArrowRight,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { AdminService } from '@/lib/admin-service';
 
-export function AdminSettings() {
-    const [settings, setSettings] = useState({
-        // General Settings
+type GeneralSettings = {
+    platformName: string;
+    supportEmail: string;
+    contactPhone: string;
+};
+
+type ListingSettings = {
+    listingApprovalRequired: boolean;
+    maxImagesPerListing: number;
+    listingFee: number;
+    featuredListingFee: number;
+};
+
+type NotificationSettings = {
+    emailNotifications: boolean;
+    smsNotifications: boolean;
+    newListingAlerts: boolean;
+    newUserAlerts: boolean;
+};
+
+type SecuritySettings = {
+    requireEmailVerification: boolean;
+    requirePhoneVerification: boolean;
+    maxLoginAttempts: number;
+    sessionTimeout: number;
+};
+
+const DEFAULTS = {
+    general: {
         platformName: 'BizSearch',
         supportEmail: 'support@bizsearch.com',
-        contactPhone: '+91 98765 43210',
-
-        // Listing Settings  
+        contactPhone: '',
+    } as GeneralSettings,
+    listings: {
         listingApprovalRequired: true,
         maxImagesPerListing: 10,
         listingFee: 0,
         featuredListingFee: 999,
-
-        // Notification Settings
+    } as ListingSettings,
+    notifications: {
         emailNotifications: true,
         smsNotifications: false,
         newListingAlerts: true,
         newUserAlerts: true,
-
-        // Security Settings
+    } as NotificationSettings,
+    security: {
         requireEmailVerification: true,
         requirePhoneVerification: false,
         maxLoginAttempts: 5,
         sessionTimeout: 30,
+    } as SecuritySettings,
+};
 
-        // Feature Flags
-        enableFranchiseMap: true,
-        enableAIMatching: true,
-        enableFraudDetection: true,
-        maintenanceMode: false,
-    });
+export function AdminSettings() {
+    const [general, setGeneral] = useState<GeneralSettings>(DEFAULTS.general);
+    const [listings, setListings] = useState<ListingSettings>(DEFAULTS.listings);
+    const [notifications, setNotifications] = useState<NotificationSettings>(DEFAULTS.notifications);
+    const [security, setSecurity] = useState<SecuritySettings>(DEFAULTS.security);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
 
-    const handleChange = (key: string, value: any) => {
-        setSettings(prev => ({ ...prev, [key]: value }));
+    useEffect(() => {
+        AdminService.getSettings()
+            .then((map) => {
+                if (map.general) setGeneral({ ...DEFAULTS.general, ...map.general } as GeneralSettings);
+                if (map.listings) setListings({ ...DEFAULTS.listings, ...map.listings } as ListingSettings);
+                if (map.notifications) setNotifications({ ...DEFAULTS.notifications, ...map.notifications } as NotificationSettings);
+                if (map.security) setSecurity({ ...DEFAULTS.security, ...map.security } as SecuritySettings);
+            })
+            .catch((err) => {
+                console.error('Failed to load settings:', err);
+                toast.error('Failed to load settings');
+            })
+            .finally(() => setLoading(false));
+    }, []);
+
+    const handleSave = async () => {
+        setSaving(true);
+        try {
+            await Promise.all([
+                AdminService.updateSettings('general', general),
+                AdminService.updateSettings('listings', listings),
+                AdminService.updateSettings('notifications', notifications),
+                AdminService.updateSettings('security', security),
+            ]);
+            toast.success('Settings saved successfully');
+        } catch (err) {
+            console.error('Failed to save settings:', err);
+            toast.error('Failed to save settings');
+        } finally {
+            setSaving(false);
+        }
     };
 
-    const handleSave = () => {
-        // In production, save to database
-        toast.success('Settings saved successfully');
-    };
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">
@@ -67,22 +130,20 @@ export function AdminSettings() {
                     <h1 className="text-2xl font-bold">Platform Settings</h1>
                     <p className="text-muted-foreground">Configure platform behavior and features</p>
                 </div>
-                <Button onClick={handleSave}>
-                    <Save className="h-4 w-4 mr-2" />
+                <Button onClick={handleSave} disabled={saving}>
+                    {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
                     Save Changes
                 </Button>
             </div>
 
             <Tabs defaultValue="general">
-                <TabsList className="grid w-full grid-cols-5">
+                <TabsList className="grid w-full grid-cols-4">
                     <TabsTrigger value="general">General</TabsTrigger>
                     <TabsTrigger value="listings">Listings</TabsTrigger>
                     <TabsTrigger value="notifications">Notifications</TabsTrigger>
                     <TabsTrigger value="security">Security</TabsTrigger>
-                    <TabsTrigger value="features">Features</TabsTrigger>
                 </TabsList>
 
-                {/* General Settings */}
                 <TabsContent value="general" className="mt-4 space-y-4">
                     <Card>
                         <CardHeader>
@@ -97,23 +158,23 @@ export function AdminSettings() {
                                 <div className="space-y-2">
                                     <Label>Platform Name</Label>
                                     <Input
-                                        value={settings.platformName}
-                                        onChange={(e) => handleChange('platformName', e.target.value)}
+                                        value={general.platformName}
+                                        onChange={(e) => setGeneral((p) => ({ ...p, platformName: e.target.value }))}
                                     />
                                 </div>
                                 <div className="space-y-2">
                                     <Label>Support Email</Label>
                                     <Input
                                         type="email"
-                                        value={settings.supportEmail}
-                                        onChange={(e) => handleChange('supportEmail', e.target.value)}
+                                        value={general.supportEmail}
+                                        onChange={(e) => setGeneral((p) => ({ ...p, supportEmail: e.target.value }))}
                                     />
                                 </div>
                                 <div className="space-y-2">
                                     <Label>Contact Phone</Label>
                                     <Input
-                                        value={settings.contactPhone}
-                                        onChange={(e) => handleChange('contactPhone', e.target.value)}
+                                        value={general.contactPhone}
+                                        onChange={(e) => setGeneral((p) => ({ ...p, contactPhone: e.target.value }))}
                                     />
                                 </div>
                             </div>
@@ -121,7 +182,6 @@ export function AdminSettings() {
                     </Card>
                 </TabsContent>
 
-                {/* Listing Settings */}
                 <TabsContent value="listings" className="mt-4 space-y-4">
                     <Card>
                         <CardHeader>
@@ -140,8 +200,8 @@ export function AdminSettings() {
                                     </p>
                                 </div>
                                 <Switch
-                                    checked={settings.listingApprovalRequired}
-                                    onCheckedChange={(v) => handleChange('listingApprovalRequired', v)}
+                                    checked={listings.listingApprovalRequired}
+                                    onCheckedChange={(v) => setListings((p) => ({ ...p, listingApprovalRequired: v }))}
                                 />
                             </div>
                             <Separator />
@@ -150,24 +210,24 @@ export function AdminSettings() {
                                     <Label>Max Images Per Listing</Label>
                                     <Input
                                         type="number"
-                                        value={settings.maxImagesPerListing}
-                                        onChange={(e) => handleChange('maxImagesPerListing', parseInt(e.target.value))}
+                                        value={listings.maxImagesPerListing}
+                                        onChange={(e) => setListings((p) => ({ ...p, maxImagesPerListing: parseInt(e.target.value, 10) || 0 }))}
                                     />
                                 </div>
                                 <div className="space-y-2">
                                     <Label>Basic Listing Fee (₹)</Label>
                                     <Input
                                         type="number"
-                                        value={settings.listingFee}
-                                        onChange={(e) => handleChange('listingFee', parseInt(e.target.value))}
+                                        value={listings.listingFee}
+                                        onChange={(e) => setListings((p) => ({ ...p, listingFee: parseInt(e.target.value, 10) || 0 }))}
                                     />
                                 </div>
                                 <div className="space-y-2">
                                     <Label>Featured Listing Fee (₹)</Label>
                                     <Input
                                         type="number"
-                                        value={settings.featuredListingFee}
-                                        onChange={(e) => handleChange('featuredListingFee', parseInt(e.target.value))}
+                                        value={listings.featuredListingFee}
+                                        onChange={(e) => setListings((p) => ({ ...p, featuredListingFee: parseInt(e.target.value, 10) || 0 }))}
                                     />
                                 </div>
                             </div>
@@ -175,7 +235,6 @@ export function AdminSettings() {
                     </Card>
                 </TabsContent>
 
-                {/* Notification Settings */}
                 <TabsContent value="notifications" className="mt-4 space-y-4">
                     <Card>
                         <CardHeader>
@@ -186,30 +245,27 @@ export function AdminSettings() {
                             <CardDescription>Configure admin notifications</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="space-y-4">
-                                {[
-                                    { key: 'emailNotifications', label: 'Email Notifications', desc: 'Receive notifications via email' },
-                                    { key: 'smsNotifications', label: 'SMS Notifications', desc: 'Receive notifications via SMS' },
-                                    { key: 'newListingAlerts', label: 'New Listing Alerts', desc: 'Alert when new listings are submitted' },
-                                    { key: 'newUserAlerts', label: 'New User Alerts', desc: 'Alert when new users sign up' },
-                                ].map((item) => (
-                                    <div key={item.key} className="flex items-center justify-between">
-                                        <div className="space-y-0.5">
-                                            <Label>{item.label}</Label>
-                                            <p className="text-sm text-muted-foreground">{item.desc}</p>
-                                        </div>
-                                        <Switch
-                                            checked={settings[item.key as keyof typeof settings] as boolean}
-                                            onCheckedChange={(v) => handleChange(item.key, v)}
-                                        />
+                            {[
+                                { key: 'emailNotifications' as const, label: 'Email Notifications', desc: 'Receive notifications via email' },
+                                { key: 'smsNotifications' as const, label: 'SMS Notifications', desc: 'Receive notifications via SMS' },
+                                { key: 'newListingAlerts' as const, label: 'New Listing Alerts', desc: 'Alert when new listings are submitted' },
+                                { key: 'newUserAlerts' as const, label: 'New User Alerts', desc: 'Alert when new users sign up' },
+                            ].map((item) => (
+                                <div key={item.key} className="flex items-center justify-between">
+                                    <div className="space-y-0.5">
+                                        <Label>{item.label}</Label>
+                                        <p className="text-sm text-muted-foreground">{item.desc}</p>
                                     </div>
-                                ))}
-                            </div>
+                                    <Switch
+                                        checked={notifications[item.key]}
+                                        onCheckedChange={(v) => setNotifications((p) => ({ ...p, [item.key]: v }))}
+                                    />
+                                </div>
+                            ))}
                         </CardContent>
                     </Card>
                 </TabsContent>
 
-                {/* Security Settings */}
                 <TabsContent value="security" className="mt-4 space-y-4">
                     <Card>
                         <CardHeader>
@@ -227,8 +283,8 @@ export function AdminSettings() {
                                         <p className="text-sm text-muted-foreground">Users must verify email to use platform</p>
                                     </div>
                                     <Switch
-                                        checked={settings.requireEmailVerification}
-                                        onCheckedChange={(v) => handleChange('requireEmailVerification', v)}
+                                        checked={security.requireEmailVerification}
+                                        onCheckedChange={(v) => setSecurity((p) => ({ ...p, requireEmailVerification: v }))}
                                     />
                                 </div>
                                 <div className="flex items-center justify-between">
@@ -237,8 +293,8 @@ export function AdminSettings() {
                                         <p className="text-sm text-muted-foreground">Users must verify phone number</p>
                                     </div>
                                     <Switch
-                                        checked={settings.requirePhoneVerification}
-                                        onCheckedChange={(v) => handleChange('requirePhoneVerification', v)}
+                                        checked={security.requirePhoneVerification}
+                                        onCheckedChange={(v) => setSecurity((p) => ({ ...p, requirePhoneVerification: v }))}
                                     />
                                 </div>
                             </div>
@@ -248,54 +304,38 @@ export function AdminSettings() {
                                     <Label>Max Login Attempts</Label>
                                     <Input
                                         type="number"
-                                        value={settings.maxLoginAttempts}
-                                        onChange={(e) => handleChange('maxLoginAttempts', parseInt(e.target.value))}
+                                        value={security.maxLoginAttempts}
+                                        onChange={(e) => setSecurity((p) => ({ ...p, maxLoginAttempts: parseInt(e.target.value, 10) || 0 }))}
                                     />
                                 </div>
                                 <div className="space-y-2">
                                     <Label>Session Timeout (days)</Label>
                                     <Input
                                         type="number"
-                                        value={settings.sessionTimeout}
-                                        onChange={(e) => handleChange('sessionTimeout', parseInt(e.target.value))}
+                                        value={security.sessionTimeout}
+                                        onChange={(e) => setSecurity((p) => ({ ...p, sessionTimeout: parseInt(e.target.value, 10) || 0 }))}
                                     />
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
-                </TabsContent>
 
-                {/* Feature Flags */}
-                <TabsContent value="features" className="mt-4 space-y-4">
                     <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Palette className="h-5 w-5" />
-                                Feature Flags
-                            </CardTitle>
-                            <CardDescription>Enable or disable platform features</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            {[
-                                { key: 'enableFranchiseMap', label: 'Franchise Map', desc: 'Enable the interactive franchise map discovery', active: true },
-                                { key: 'enableAIMatching', label: 'AI Matching', desc: 'Enable Smart business/franchise matching', active: true },
-                                { key: 'enableFraudDetection', label: 'Fraud Detection', desc: 'Enable AI fraud detection system', active: true },
-                                { key: 'maintenanceMode', label: 'Maintenance Mode', desc: 'Put platform in maintenance mode', active: false, danger: true },
-                            ].map((item) => (
-                                <div key={item.key} className="flex items-center justify-between">
-                                    <div className="space-y-0.5">
-                                        <div className="flex items-center gap-2">
-                                            <Label>{item.label}</Label>
-                                            {item.danger && <Badge variant="destructive" className="text-xs">Caution</Badge>}
-                                        </div>
-                                        <p className="text-sm text-muted-foreground">{item.desc}</p>
-                                    </div>
-                                    <Switch
-                                        checked={settings[item.key as keyof typeof settings] as boolean}
-                                        onCheckedChange={(v) => handleChange(item.key, v)}
-                                    />
+                        <CardContent className="p-6 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <Flag className="h-5 w-5 text-muted-foreground" />
+                                <div>
+                                    <p className="font-medium">Feature Flags</p>
+                                    <p className="text-sm text-muted-foreground">
+                                        Toggle platform features in the dedicated feature flags panel
+                                    </p>
                                 </div>
-                            ))}
+                            </div>
+                            <Button variant="outline" asChild>
+                                <Link to="/admin/feature-flags">
+                                    Manage Flags <ArrowRight className="h-4 w-4 ml-2" />
+                                </Link>
+                            </Button>
                         </CardContent>
                     </Card>
                 </TabsContent>

@@ -31,7 +31,7 @@ function loadEnv() {
 loadEnv();
 
 const url = process.env.VITE_SUPABASE_URL;
-const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE;
 const testPassword = process.env.TEST_ACCOUNT_PASSWORD || 'TestPass123!';
 
 if (!url || !serviceKey) {
@@ -120,8 +120,8 @@ async function ensureFranchise(franchisorId, brandName, slug) {
       status: 'active',
       verification_status: 'verified',
       contact_email: `contact+${slug}@test.example`,
-      city: 'Chennai',
-      state: 'Tamil Nadu',
+      headquarters_city: 'Chennai',
+      headquarters_state: 'Tamil Nadu',
     })
     .select('id')
     .single();

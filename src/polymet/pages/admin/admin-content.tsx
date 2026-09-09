@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
     Table,
@@ -19,49 +20,189 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
+    DialogFooter,
 } from '@/components/ui/dialog';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import {
     FileText,
     Plus,
     Edit,
     Trash2,
-    Eye,
     Globe,
     Megaphone,
+    Loader2,
 } from 'lucide-react';
+import { AdminService, type CmsPage, type PlatformAnnouncement } from '@/lib/admin-service';
+import { toast } from 'sonner';
+import { format } from 'date-fns';
 
-// Mock content data - in production, fetch from database
-const mockPages = [
-    { id: '1', title: 'About Us', slug: '/about', status: 'published', updatedAt: '2024-12-18' },
-    { id: '2', title: 'Contact', slug: '/contact', status: 'published', updatedAt: '2024-12-17' },
-    { id: '3', title: 'Terms of Service', slug: '/terms', status: 'draft', updatedAt: '2024-12-15' },
-    { id: '4', title: 'Privacy Policy', slug: '/privacy', status: 'published', updatedAt: '2024-12-10' },
-];
+const statusColors: Record<string, string> = {
+    published: 'bg-green-100 text-green-800',
+    draft: 'bg-yellow-100 text-yellow-800',
+    archived: 'bg-secondary text-muted-foreground',
+};
 
-const mockAnnouncements = [
-    { id: '1', title: 'New Franchise Map Feature', type: 'feature', active: true, createdAt: '2024-12-18' },
-    { id: '2', title: 'Holiday Hours Notice', type: 'info', active: true, createdAt: '2024-12-15' },
-    { id: '3', title: 'System Maintenance', type: 'maintenance', active: false, createdAt: '2024-12-01' },
-];
+const announcementTypeColors: Record<string, string> = {
+    feature: 'bg-blue-100 text-blue-800',
+    info: 'bg-growth-green/10 text-purple-800',
+    maintenance: 'bg-orange-100 text-orange-800',
+    alert: 'bg-red-100 text-red-800',
+};
+
+const emptyPage = (): Partial<CmsPage> & { title: string; slug: string; body: string; status: CmsPage['status'] } => ({
+    title: '',
+    slug: '',
+    body: '',
+    status: 'draft',
+});
+
+const emptyAnnouncement = (): Partial<PlatformAnnouncement> & { title: string; body: string; type: PlatformAnnouncement['type']; active: boolean } => ({
+    title: '',
+    body: '',
+    type: 'info',
+    active: false,
+});
 
 export function AdminContentManagement() {
-    const [pages] = useState(mockPages);
-    const [announcements] = useState(mockAnnouncements);
-    const [editingPage, setEditingPage] = useState<any>(null);
+    const [pages, setPages] = useState<CmsPage[]>([]);
+    const [announcements, setAnnouncements] = useState<PlatformAnnouncement[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [pageDialogOpen, setPageDialogOpen] = useState(false);
+    const [announcementDialogOpen, setAnnouncementDialogOpen] = useState(false);
+    const [editingPage, setEditingPage] = useState(emptyPage());
+    const [editingAnnouncement, setEditingAnnouncement] = useState(emptyAnnouncement());
 
-    const statusColors: Record<string, string> = {
-        published: 'bg-green-100 text-green-800',
-        draft: 'bg-yellow-100 text-yellow-800',
-        archived: 'bg-secondary text-muted-foreground',
+    const loadData = useCallback(async () => {
+        setLoading(true);
+        try {
+            const [pagesData, announcementsData] = await Promise.all([
+                AdminService.getCmsPages(),
+                AdminService.getAnnouncements(),
+            ]);
+            setPages(pagesData);
+            setAnnouncements(announcementsData);
+        } catch (error) {
+            console.error('Error loading CMS data:', error);
+            toast.error('Failed to load content');
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        loadData();
+    }, [loadData]);
+
+    const openNewPage = () => {
+        setEditingPage(emptyPage());
+        setPageDialogOpen(true);
     };
 
-    const announcementTypeColors: Record<string, string> = {
-        feature: 'bg-blue-100 text-blue-800',
-        info: 'bg-growth-green/10 text-purple-800',
-        maintenance: 'bg-orange-100 text-orange-800',
-        alert: 'bg-red-100 text-red-800',
+    const openEditPage = (page: CmsPage) => {
+        setEditingPage({ ...page });
+        setPageDialogOpen(true);
     };
+
+    const savePage = async () => {
+        if (!editingPage.title || !editingPage.slug) {
+            toast.error('Title and slug are required');
+            return;
+        }
+        setSaving(true);
+        try {
+            await AdminService.upsertCmsPage({
+                id: editingPage.id,
+                title: editingPage.title,
+                slug: editingPage.slug.replace(/^\//, ''),
+                body: editingPage.body || '',
+                status: editingPage.status || 'draft',
+            });
+            toast.success('Page saved');
+            setPageDialogOpen(false);
+            await loadData();
+        } catch (error) {
+            console.error('Failed to save page:', error);
+            toast.error('Failed to save page');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const deletePage = async (id: string) => {
+        if (!window.confirm('Delete this page?')) return;
+        try {
+            await AdminService.deleteCmsPage(id);
+            toast.success('Page deleted');
+            await loadData();
+        } catch (error) {
+            console.error('Failed to delete page:', error);
+            toast.error('Failed to delete page');
+        }
+    };
+
+    const openNewAnnouncement = () => {
+        setEditingAnnouncement(emptyAnnouncement());
+        setAnnouncementDialogOpen(true);
+    };
+
+    const openEditAnnouncement = (ann: PlatformAnnouncement) => {
+        setEditingAnnouncement({ ...ann });
+        setAnnouncementDialogOpen(true);
+    };
+
+    const saveAnnouncement = async () => {
+        if (!editingAnnouncement.title) {
+            toast.error('Title is required');
+            return;
+        }
+        setSaving(true);
+        try {
+            await AdminService.upsertAnnouncement({
+                id: editingAnnouncement.id,
+                title: editingAnnouncement.title,
+                body: editingAnnouncement.body || '',
+                type: editingAnnouncement.type || 'info',
+                active: editingAnnouncement.active ?? false,
+                starts_at: editingAnnouncement.starts_at || null,
+                ends_at: editingAnnouncement.ends_at || null,
+            });
+            toast.success('Announcement saved');
+            setAnnouncementDialogOpen(false);
+            await loadData();
+        } catch (error) {
+            console.error('Failed to save announcement:', error);
+            toast.error('Failed to save announcement');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const deleteAnnouncement = async (id: string) => {
+        if (!window.confirm('Delete this announcement?')) return;
+        try {
+            await AdminService.deleteAnnouncement(id);
+            toast.success('Announcement deleted');
+            await loadData();
+        } catch (error) {
+            console.error('Failed to delete announcement:', error);
+            toast.error('Failed to delete announcement');
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">
@@ -82,7 +223,6 @@ export function AdminContentManagement() {
                     </TabsTrigger>
                 </TabsList>
 
-                {/* Pages Tab */}
                 <TabsContent value="pages" className="mt-4">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between">
@@ -90,77 +230,57 @@ export function AdminContentManagement() {
                                 <Globe className="h-5 w-5" />
                                 Static Pages
                             </CardTitle>
-                            <Dialog>
-                                <DialogTrigger asChild>
-                                    <Button>
-                                        <Plus className="h-4 w-4 mr-2" />
-                                        Add Page
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                    <DialogHeader>
-                                        <DialogTitle>Create New Page</DialogTitle>
-                                    </DialogHeader>
-                                    <div className="space-y-4 py-4">
-                                        <div className="space-y-2">
-                                            <Label>Page Title</Label>
-                                            <Input placeholder="e.g., FAQ" />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label>Slug</Label>
-                                            <Input placeholder="e.g., /faq" />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label>Content</Label>
-                                            <Textarea placeholder="Page content (supports markdown)" rows={6} />
-                                        </div>
-                                        <Button className="w-full">Create Page</Button>
-                                    </div>
-                                </DialogContent>
-                            </Dialog>
+                            <Button onClick={openNewPage}>
+                                <Plus className="h-4 w-4 mr-2" />
+                                Add Page
+                            </Button>
                         </CardHeader>
                         <CardContent>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Title</TableHead>
-                                        <TableHead>Slug</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead>Last Updated</TableHead>
-                                        <TableHead className="text-right">Actions</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {pages.map((page) => (
-                                        <TableRow key={page.id}>
-                                            <TableCell className="font-medium">{page.title}</TableCell>
-                                            <TableCell className="text-muted-foreground">{page.slug}</TableCell>
-                                            <TableCell>
-                                                <Badge className={statusColors[page.status]}>{page.status}</Badge>
-                                            </TableCell>
-                                            <TableCell className="text-sm text-muted-foreground">{page.updatedAt}</TableCell>
-                                            <TableCell className="text-right">
-                                                <div className="flex justify-end gap-2">
-                                                    <Button size="sm" variant="ghost">
-                                                        <Eye className="h-4 w-4" />
-                                                    </Button>
-                                                    <Button size="sm" variant="ghost">
-                                                        <Edit className="h-4 w-4" />
-                                                    </Button>
-                                                    <Button size="sm" variant="ghost" className="text-red-600">
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </Button>
-                                                </div>
-                                            </TableCell>
+                            {pages.length === 0 ? (
+                                <div className="text-center py-12 text-muted-foreground">
+                                    <p>No details found in the table.</p>
+                                </div>
+                            ) : (
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Title</TableHead>
+                                            <TableHead>Slug</TableHead>
+                                            <TableHead>Status</TableHead>
+                                            <TableHead>Last Updated</TableHead>
+                                            <TableHead className="text-right">Actions</TableHead>
                                         </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {pages.map((page) => (
+                                            <TableRow key={page.id}>
+                                                <TableCell className="font-medium">{page.title}</TableCell>
+                                                <TableCell className="text-muted-foreground">/{page.slug}</TableCell>
+                                                <TableCell>
+                                                    <Badge className={statusColors[page.status]}>{page.status}</Badge>
+                                                </TableCell>
+                                                <TableCell className="text-sm text-muted-foreground">
+                                                    {format(new Date(page.updated_at), 'MMM d, yyyy')}
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    <div className="flex justify-end gap-2">
+                                                        <Button size="sm" variant="ghost" onClick={() => openEditPage(page)}>
+                                                            <Edit className="h-4 w-4" />
+                                                        </Button>
+                                                        <Button size="sm" variant="ghost" className="text-red-600" onClick={() => deletePage(page.id)}>
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            )}
                         </CardContent>
                     </Card>
                 </TabsContent>
 
-                {/* Announcements Tab */}
                 <TabsContent value="announcements" className="mt-4">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between">
@@ -168,105 +288,171 @@ export function AdminContentManagement() {
                                 <Megaphone className="h-5 w-5" />
                                 Announcements
                             </CardTitle>
-                            <Dialog>
-                                <DialogTrigger asChild>
-                                    <Button>
-                                        <Plus className="h-4 w-4 mr-2" />
-                                        New Announcement
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                    <DialogHeader>
-                                        <DialogTitle>Create Announcement</DialogTitle>
-                                    </DialogHeader>
-                                    <div className="space-y-4 py-4">
-                                        <div className="space-y-2">
-                                            <Label>Title</Label>
-                                            <Input placeholder="Announcement title" />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label>Message</Label>
-                                            <Textarea placeholder="Announcement message" rows={4} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label>Type</Label>
-                                            <select className="w-full p-2 border rounded-md">
-                                                <option value="feature">Feature</option>
-                                                <option value="info">Info</option>
-                                                <option value="maintenance">Maintenance</option>
-                                                <option value="alert">Alert</option>
-                                            </select>
-                                        </div>
-                                        <Button className="w-full">Create Announcement</Button>
-                                    </div>
-                                </DialogContent>
-                            </Dialog>
+                            <Button onClick={openNewAnnouncement}>
+                                <Plus className="h-4 w-4 mr-2" />
+                                New Announcement
+                            </Button>
                         </CardHeader>
                         <CardContent>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Title</TableHead>
-                                        <TableHead>Type</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead>Created</TableHead>
-                                        <TableHead className="text-right">Actions</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {announcements.map((ann) => (
-                                        <TableRow key={ann.id}>
-                                            <TableCell className="font-medium">{ann.title}</TableCell>
-                                            <TableCell>
-                                                <Badge className={announcementTypeColors[ann.type]}>{ann.type}</Badge>
-                                            </TableCell>
-                                            <TableCell>
-                                                <Badge variant={ann.active ? 'default' : 'secondary'}>
-                                                    {ann.active ? 'Active' : 'Inactive'}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell className="text-sm text-muted-foreground">{ann.createdAt}</TableCell>
-                                            <TableCell className="text-right">
-                                                <div className="flex justify-end gap-2">
-                                                    <Button size="sm" variant="ghost">
-                                                        <Edit className="h-4 w-4" />
-                                                    </Button>
-                                                    <Button size="sm" variant="ghost" className="text-red-600">
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </Button>
-                                                </div>
-                                            </TableCell>
+                            {announcements.length === 0 ? (
+                                <div className="text-center py-12 text-muted-foreground">
+                                    <p>No details found in the table.</p>
+                                </div>
+                            ) : (
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Title</TableHead>
+                                            <TableHead>Type</TableHead>
+                                            <TableHead>Status</TableHead>
+                                            <TableHead>Created</TableHead>
+                                            <TableHead className="text-right">Actions</TableHead>
                                         </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {announcements.map((ann) => (
+                                            <TableRow key={ann.id}>
+                                                <TableCell className="font-medium">{ann.title}</TableCell>
+                                                <TableCell>
+                                                    <Badge className={announcementTypeColors[ann.type]}>{ann.type}</Badge>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Badge variant={ann.active ? 'default' : 'secondary'}>
+                                                        {ann.active ? 'Active' : 'Inactive'}
+                                                    </Badge>
+                                                </TableCell>
+                                                <TableCell className="text-sm text-muted-foreground">
+                                                    {format(new Date(ann.created_at), 'MMM d, yyyy')}
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    <div className="flex justify-end gap-2">
+                                                        <Button size="sm" variant="ghost" onClick={() => openEditAnnouncement(ann)}>
+                                                            <Edit className="h-4 w-4" />
+                                                        </Button>
+                                                        <Button size="sm" variant="ghost" className="text-red-600" onClick={() => deleteAnnouncement(ann.id)}>
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            )}
                         </CardContent>
                     </Card>
                 </TabsContent>
             </Tabs>
 
-            {/* Info Card */}
-            <Card className="bg-blue-50 border-blue-200">
-                <CardContent className="p-6">
-                    <div className="flex items-start gap-4">
-                        <div className="p-2 bg-blue-100 rounded-lg">
-                            <FileText className="h-6 w-6 text-blue-600" />
+            <Dialog open={pageDialogOpen} onOpenChange={setPageDialogOpen}>
+                <DialogContent className="max-w-lg">
+                    <DialogHeader>
+                        <DialogTitle>{editingPage.id ? 'Edit Page' : 'Create New Page'}</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-2">
+                        <div className="space-y-2">
+                            <Label>Page Title</Label>
+                            <Input
+                                value={editingPage.title}
+                                onChange={(e) => setEditingPage((p) => ({ ...p, title: e.target.value }))}
+                                placeholder="e.g., FAQ"
+                            />
                         </div>
-                        <div>
-                            <h3 className="font-semibold text-blue-900">Content Management Info</h3>
-                            <p className="text-sm text-blue-700 mt-1">
-                                This is a basic CMS interface. For production use, consider integrating with:
-                            </p>
-                            <ul className="text-sm text-blue-700 mt-2 list-disc list-inside space-y-1">
-                                <li>A rich text editor (e.g., TipTap, Lexical)</li>
-                                <li>Media library for images</li>
-                                <li>Version history for pages</li>
-                                <li>SEO metadata fields</li>
-                            </ul>
+                        <div className="space-y-2">
+                            <Label>Slug</Label>
+                            <Input
+                                value={editingPage.slug}
+                                onChange={(e) => setEditingPage((p) => ({ ...p, slug: e.target.value }))}
+                                placeholder="e.g., faq"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Status</Label>
+                            <Select
+                                value={editingPage.status}
+                                onValueChange={(v) => setEditingPage((p) => ({ ...p, status: v as CmsPage['status'] }))}
+                            >
+                                <SelectTrigger><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="draft">Draft</SelectItem>
+                                    <SelectItem value="published">Published</SelectItem>
+                                    <SelectItem value="archived">Archived</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Content</Label>
+                            <Textarea
+                                value={editingPage.body}
+                                onChange={(e) => setEditingPage((p) => ({ ...p, body: e.target.value }))}
+                                placeholder="Page content (supports markdown)"
+                                rows={6}
+                            />
                         </div>
                     </div>
-                </CardContent>
-            </Card>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setPageDialogOpen(false)}>Cancel</Button>
+                        <Button onClick={savePage} disabled={saving}>
+                            {saving ? 'Saving…' : 'Save Page'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={announcementDialogOpen} onOpenChange={setAnnouncementDialogOpen}>
+                <DialogContent className="max-w-lg">
+                    <DialogHeader>
+                        <DialogTitle>{editingAnnouncement.id ? 'Edit Announcement' : 'Create Announcement'}</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-2">
+                        <div className="space-y-2">
+                            <Label>Title</Label>
+                            <Input
+                                value={editingAnnouncement.title}
+                                onChange={(e) => setEditingAnnouncement((p) => ({ ...p, title: e.target.value }))}
+                                placeholder="Announcement title"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Message</Label>
+                            <Textarea
+                                value={editingAnnouncement.body}
+                                onChange={(e) => setEditingAnnouncement((p) => ({ ...p, body: e.target.value }))}
+                                placeholder="Announcement message"
+                                rows={4}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Type</Label>
+                            <Select
+                                value={editingAnnouncement.type}
+                                onValueChange={(v) => setEditingAnnouncement((p) => ({ ...p, type: v as PlatformAnnouncement['type'] }))}
+                            >
+                                <SelectTrigger><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="feature">Feature</SelectItem>
+                                    <SelectItem value="info">Info</SelectItem>
+                                    <SelectItem value="maintenance">Maintenance</SelectItem>
+                                    <SelectItem value="alert">Alert</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <Label>Active</Label>
+                            <Switch
+                                checked={editingAnnouncement.active}
+                                onCheckedChange={(v) => setEditingAnnouncement((p) => ({ ...p, active: v }))}
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setAnnouncementDialogOpen(false)}>Cancel</Button>
+                        <Button onClick={saveAnnouncement} disabled={saving}>
+                            {saving ? 'Saving…' : 'Save Announcement'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

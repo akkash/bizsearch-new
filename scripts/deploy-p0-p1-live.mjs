@@ -41,7 +41,7 @@ function loadEnv() {
 loadEnv();
 
 const accessToken = process.env.SUPABASE_ACCESS_TOKEN;
-const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE;
 const url = process.env.VITE_SUPABASE_URL;
 const anonKey = process.env.VITE_SUPABASE_ANON_KEY;
 const cmdApiKey = process.env.CMD_API_KEY;
@@ -143,8 +143,24 @@ async function main() {
     console.log('Link may already exist; continuing…');
   }
 
-  // 3. Push migrations 031 + 032 (and any pending)
-  run('npx supabase db push --linked --yes');
+  // 3. Push migrations (CLI first; Management API fallback)
+  try {
+    run('npx supabase db push --linked --yes');
+  } catch {
+    console.log('db push failed — applying 031/032 via Management API…');
+    const token = accessToken;
+    const ref = 'suiexvkyakjvexnldvmr';
+    for (const file of ['031_p0_security_hardening.sql', '032_p1_security_hardening.sql', '033_inquiry_pipeline_hardening.sql', '034_inquiry_recipient_rls_and_application_dedupe.sql', '035_admin_user_management.sql', '036_admin_cms_and_settings.sql']) {
+      const sql = readFileSync(`supabase/migrations/${file}`, 'utf8');
+      const res = await fetch(`https://api.supabase.com/v1/projects/${ref}/database/query`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: sql }),
+      });
+      if (!res.ok) throw new Error(`${file}: ${await res.text()}`);
+      console.log(`✅ Applied ${file}`);
+    }
+  }
 
   // 4. Set edge function secrets
   const secretArgs = [`EDGE_FUNCTION_SECRET=${edgeSecret}`];

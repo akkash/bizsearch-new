@@ -32,10 +32,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<AuthError | null>(null);
   const [profileMissing, setProfileMissing] = useState(false);
+  const [accountBanned, setAccountBanned] = useState(false);
 
   // Guard to prevent duplicate profile fetches
   const fetchingProfileRef = React.useRef<string | null>(null);
   const lastFetchedUserRef = React.useRef<string | null>(null);
+
+  const handleBannedAccount = useCallback(async (): Promise<void> => {
+    console.warn('Account is banned — signing out');
+    setAccountBanned(true);
+    setProfile(null);
+    setUser(null);
+    setSession(null);
+    lastFetchedUserRef.current = null;
+    fetchingProfileRef.current = null;
+    setLoading(false);
+    await supabase.auth.signOut();
+  }, []);
 
   /**
    * Fetches user profile from database including roles and role-specific details
@@ -131,6 +144,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
+      if ((profileData as { is_banned?: boolean }).is_banned) {
+        await handleBannedAccount();
+        return;
+      }
+
       // Fetch additional data - these are optional and may not exist
       let rolesData: any[] = [];
       let sellerData = null;
@@ -216,7 +234,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       await createMinimalProfile(userId);
     }
-  }, [profile]);
+  }, [profile, handleBannedAccount]);
 
   /**
    * Creates a minimal profile for users who don't have one
@@ -357,6 +375,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       } else {
         setProfile(null);
+        setAccountBanned(false);
         setLoading(false);
       }
     });
@@ -506,6 +525,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null);
       setProfile(null);
       setSession(null);
+      setAccountBanned(false);
 
       // Clear profile fetch guards
       lastFetchedUserRef.current = null;
@@ -1034,6 +1054,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loading,
     error,
     profileMissing,
+    accountBanned,
     signUp,
     signIn,
     signOut,

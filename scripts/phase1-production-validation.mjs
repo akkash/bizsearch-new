@@ -30,7 +30,7 @@ loadEnv();
 
 const url = process.env.VITE_SUPABASE_URL;
 const anonKey = process.env.VITE_SUPABASE_ANON_KEY;
-const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE;
 
 if (!url || !anonKey) {
   console.error('Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY in .env');
@@ -324,11 +324,12 @@ async function runSecurityTests() {
     // Franchisor A cannot edit Franchise B
     const franchiseBId = franchisesB?.[0]?.id;
     if (franchiseBId) {
-      const { error: editErr } = await sessions.franchisorA
+      const { data: updated, error: editErr } = await sessions.franchisorA
         .from('franchises')
         .update({ description: 'RLS probe — should fail' })
-        .eq('id', franchiseBId);
-      if (!editErr) {
+        .eq('id', franchiseBId)
+        .select('id');
+      if (!editErr && (updated?.length ?? 0) > 0) {
         fail('security/franchisorA_edit', 'Was able to update Franchise B listing');
         report.security.franchisorA_edit_other = 'FAIL';
       } else {

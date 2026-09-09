@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,34 +13,55 @@ import {
     AlertTriangle,
     ArrowRight,
     Loader2,
+    RefreshCw,
+    Activity,
 } from 'lucide-react';
-import { AdminService, type PlatformStats, type AdminListing, type AdminDocument } from '@/lib/admin-service';
+import {
+    AdminService,
+    type PlatformStats,
+    type AdminListing,
+    type AdminDocument,
+    type ActivityLog,
+} from '@/lib/admin-service';
+import { formatDistanceToNow } from 'date-fns';
+import { toast } from 'sonner';
 
 export function AdminDashboard() {
     const [stats, setStats] = useState<PlatformStats | null>(null);
     const [pendingListings, setPendingListings] = useState<AdminListing[]>([]);
     const [pendingDocs, setPendingDocs] = useState<AdminDocument[]>([]);
+    const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+
+    const loadData = useCallback(async (silent = false) => {
+        if (!silent) setLoading(true);
+        else setRefreshing(true);
+        try {
+            const [statsData, listingsData, docsData, logsData] = await Promise.all([
+                AdminService.getPlatformStats(),
+                AdminService.getPendingListings({ status: 'pending_review', limit: 5 }),
+                AdminService.getPendingDocuments(),
+                AdminService.getActivityLogs(20),
+            ]);
+            setStats(statsData);
+            setPendingListings(listingsData.slice(0, 5));
+            setPendingDocs(docsData.slice(0, 5));
+            setActivityLogs(logsData);
+        } catch (error) {
+            console.error('Error loading dashboard:', error);
+            toast.error('Failed to load dashboard data');
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
+        }
+    }, []);
 
     useEffect(() => {
-        const loadData = async () => {
-            try {
-                const [statsData, listingsData, docsData] = await Promise.all([
-                    AdminService.getPlatformStats(),
-                    AdminService.getPendingListings({ status: 'pending_review', limit: 5 }),
-                    AdminService.getPendingDocuments(),
-                ]);
-                setStats(statsData);
-                setPendingListings(listingsData.slice(0, 5));
-                setPendingDocs(docsData.slice(0, 5));
-            } catch (error) {
-                console.error('Error loading dashboard:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
         loadData();
-    }, []);
+        const interval = setInterval(() => loadData(true), 60000);
+        return () => clearInterval(interval);
+    }, [loadData]);
 
     if (loading) {
         return (
@@ -85,15 +106,19 @@ export function AdminDashboard() {
 
     return (
         <div className="space-y-6">
-            {/* Welcome Banner */}
-            <div className="bg-card rounded-lg p-6 border border-border">
-                <h1 className="text-2xl font-bold mb-2">Welcome to Admin Dashboard</h1>
-                <p className="text-muted-foreground">
-                    Monitor platform activity, moderate content, and manage users.
-                </p>
+            <div className="flex items-center justify-between bg-card rounded-lg p-6 border border-border">
+                <div>
+                    <h1 className="text-2xl font-bold mb-2">Welcome to Admin Dashboard</h1>
+                    <p className="text-muted-foreground">
+                        Monitor platform activity, moderate content, and manage users.
+                    </p>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => loadData(true)} disabled={refreshing}>
+                    <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+                    Refresh
+                </Button>
             </div>
 
-            {/* Stats Grid */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 {statCards.map((stat) => (
                     <Card key={stat.title} className={stat.urgent ? 'border-yellow-400' : ''}>
@@ -113,9 +138,7 @@ export function AdminDashboard() {
                 ))}
             </div>
 
-            {/* Quick Actions */}
             <div className="grid gap-6 lg:grid-cols-2">
-                {/* Pending Listings */}
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle className="flex items-center gap-2">
@@ -131,8 +154,7 @@ export function AdminDashboard() {
                     <CardContent>
                         {pendingListings.length === 0 ? (
                             <div className="text-center py-8 text-muted-foreground">
-                                <Clock className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                                <p>No pending listings</p>
+                                <p>No details found in the table.</p>
                             </div>
                         ) : (
                             <ScrollArea className="h-64">
@@ -166,7 +188,6 @@ export function AdminDashboard() {
                     </CardContent>
                 </Card>
 
-                {/* Pending Documents */}
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle className="flex items-center gap-2">
@@ -182,8 +203,7 @@ export function AdminDashboard() {
                     <CardContent>
                         {pendingDocs.length === 0 ? (
                             <div className="text-center py-8 text-muted-foreground">
-                                <FileCheck className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                                <p>No pending documents</p>
+                                <p>No details found in the table.</p>
                             </div>
                         ) : (
                             <ScrollArea className="h-64">
@@ -209,8 +229,7 @@ export function AdminDashboard() {
                 </Card>
             </div>
 
-            {/* Quick Stats */}
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-6 lg:grid-cols-3">
                 <Card>
                     <CardContent className="p-6">
                         <div className="flex items-center gap-4">
@@ -237,20 +256,70 @@ export function AdminDashboard() {
                         </div>
                     </CardContent>
                 </Card>
-                <Card>
+                <Card className={(stats?.pendingFraudAlerts || 0) > 0 ? 'border-red-400' : ''}>
                     <CardContent className="p-6">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 rounded-lg bg-yellow-100 text-yellow-600">
-                                <AlertTriangle className="h-6 w-6" />
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 rounded-lg bg-yellow-100 text-yellow-600">
+                                    <AlertTriangle className="h-6 w-6" />
+                                </div>
+                                <div>
+                                    <p className="text-2xl font-bold">{stats?.pendingFraudAlerts || 0}</p>
+                                    <p className="text-sm text-muted-foreground">Fraud Alerts</p>
+                                </div>
                             </div>
-                            <div>
-                                <p className="text-2xl font-bold">0</p>
-                                <p className="text-sm text-muted-foreground">Fraud Alerts</p>
-                            </div>
+                            <Button variant="ghost" size="sm" asChild>
+                                <Link to="/admin/fraud">View</Link>
+                            </Button>
                         </div>
                     </CardContent>
                 </Card>
             </div>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Activity className="h-5 w-5" />
+                        Recent Admin Activity
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    {activityLogs.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                            <p>No details found in the table.</p>
+                        </div>
+                    ) : (
+                        <ScrollArea className="h-72">
+                            <div className="space-y-3">
+                                {activityLogs.map((log) => (
+                                    <div
+                                        key={log.id}
+                                        className="flex items-start justify-between p-3 bg-muted/50 rounded-lg gap-4"
+                                    >
+                                        <div>
+                                            <p className="font-medium text-sm">
+                                                {log.profile?.display_name || 'System'}{' '}
+                                                <span className="text-muted-foreground font-normal">
+                                                    — {log.action.replace(/_/g, ' ')}
+                                                </span>
+                                            </p>
+                                            {log.entity_type && (
+                                                <p className="text-xs text-muted-foreground mt-0.5">
+                                                    {log.entity_type}
+                                                    {log.entity_id ? ` · ${log.entity_id.slice(0, 8)}…` : ''}
+                                                </p>
+                                            )}
+                                        </div>
+                                        <span className="text-xs text-muted-foreground shrink-0">
+                                            {formatDistanceToNow(new Date(log.created_at), { addSuffix: true })}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        </ScrollArea>
+                    )}
+                </CardContent>
+            </Card>
         </div>
     );
 }

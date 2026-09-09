@@ -50,7 +50,15 @@ interface Application {
     franchise_id: string;
     user_id: string;
     status: string;
-    personal_info: any;
+    personal_info: {
+        fullName?: string;
+        email?: string;
+        phone?: string;
+        city?: string;
+        state?: string;
+        address?: string;
+        pincode?: string;
+    } | null;
     financial_info: any;
     location_preferences: any;
     experience_info: any;
@@ -127,6 +135,28 @@ export function FranchisorApplicationsPage() {
         }
     };
 
+    const mapApplicationRow = (
+        row: Record<string, unknown>,
+        profileMap: Map<string, { display_name: string | null; avatar_url: string | null }>
+    ): Application => {
+        const personal = (row.personal_info as Application['personal_info']) || {};
+        const franchise = row.franchise as Application['franchise'];
+        const userId = String(row.user_id);
+        const profile = profileMap.get(userId);
+
+        return {
+            ...(row as Omit<Application, 'applicant'>),
+            applicant: {
+                id: userId,
+                display_name: personal.fullName || profile?.display_name || 'Unknown Applicant',
+                email: personal.email || '',
+                phone: personal.phone || null,
+                avatar_url: profile?.avatar_url || null,
+            },
+            franchise,
+        };
+    };
+
     const loadApplications = async () => {
         if (!user || franchises.length === 0) {
             setLoading(false);
@@ -154,13 +184,6 @@ export function FranchisorApplicationsPage() {
                 updated_at,
                 selected_store_format_id,
                 selected_store_format_name,
-                applicant:profiles!user_id (
-                    id,
-                    display_name,
-                    email,
-                    phone,
-                    avatar_url
-                ),
                 franchise:franchises!franchise_id (
                     id,
                     brand_name,
@@ -181,7 +204,26 @@ export function FranchisorApplicationsPage() {
         const { data, error } = await query;
 
         if (!error && data) {
-            setApplications(data as unknown as Application[]);
+            const userIds = [...new Set(data.map((row) => String(row.user_id)))];
+            const profileMap = new Map<string, { display_name: string | null; avatar_url: string | null }>();
+
+            if (userIds.length) {
+                const { data: profiles } = await supabase
+                    .from('public_profiles')
+                    .select('id, display_name, avatar_url')
+                    .in('id', userIds);
+
+                profiles?.forEach((p) => {
+                    profileMap.set(p.id, {
+                        display_name: p.display_name,
+                        avatar_url: p.avatar_url,
+                    });
+                });
+            }
+
+            setApplications(
+                data.map((row) => mapApplicationRow(row as Record<string, unknown>, profileMap))
+            );
         }
         setLoading(false);
     };
@@ -386,7 +428,7 @@ export function FranchisorApplicationsPage() {
                                         <Avatar className="h-12 w-12">
                                             <AvatarImage src={app.applicant?.avatar_url || ''} />
                                             <AvatarFallback>
-                                                {app.applicant?.display_name?.charAt(0) || app.personal_info?.fullName?.charAt(0) || 'A'}
+                                                {app.applicant.display_name?.charAt(0) || 'A'}
                                             </AvatarFallback>
                                         </Avatar>
 
@@ -394,7 +436,7 @@ export function FranchisorApplicationsPage() {
                                             <div className="flex items-start justify-between">
                                                 <div>
                                                     <h3 className="font-semibold">
-                                                        {app.applicant?.display_name || app.personal_info?.fullName || 'Unknown Applicant'}
+                                                        {app.applicant.display_name}
                                                     </h3>
                                                     <p className="text-sm text-muted-foreground">
                                                         Applied for {app.franchise?.brand_name}
@@ -411,16 +453,16 @@ export function FranchisorApplicationsPage() {
                                             </div>
 
                                             <div className="flex flex-wrap gap-4 mt-3 text-sm text-muted-foreground">
-                                                {(app.applicant?.email || app.personal_info?.email) && (
+                                                {app.applicant.email && (
                                                     <span className="flex items-center gap-1">
                                                         <Mail className="h-4 w-4" />
-                                                        {app.applicant?.email || app.personal_info?.email}
+                                                        {app.applicant.email}
                                                     </span>
                                                 )}
-                                                {(app.applicant?.phone || app.personal_info?.phone) && (
+                                                {app.applicant.phone && (
                                                     <span className="flex items-center gap-1">
                                                         <Phone className="h-4 w-4" />
-                                                        {app.applicant?.phone || app.personal_info?.phone}
+                                                        {app.applicant.phone}
                                                     </span>
                                                 )}
                                                 {app.location_preferences?.preferredCity && (
@@ -522,15 +564,15 @@ export function FranchisorApplicationsPage() {
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
                                             <span className="text-muted-foreground">Name:</span>
-                                            <p className="font-medium">{selectedApp.personal_info?.fullName || selectedApp.applicant?.display_name}</p>
+                                            <p className="font-medium">{selectedApp.applicant.display_name}</p>
                                         </div>
                                         <div>
                                             <span className="text-muted-foreground">Email:</span>
-                                            <p className="font-medium">{selectedApp.personal_info?.email || selectedApp.applicant?.email}</p>
+                                            <p className="font-medium">{selectedApp.applicant.email || 'N/A'}</p>
                                         </div>
                                         <div>
                                             <span className="text-muted-foreground">Phone:</span>
-                                            <p className="font-medium">{selectedApp.personal_info?.phone || selectedApp.applicant?.phone || 'N/A'}</p>
+                                            <p className="font-medium">{selectedApp.applicant.phone || 'N/A'}</p>
                                         </div>
                                         <div>
                                             <span className="text-muted-foreground">City:</span>

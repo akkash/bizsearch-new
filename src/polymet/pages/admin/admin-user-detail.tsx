@@ -7,6 +7,23 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { toast } from 'sonner';
+import {
     ArrowLeft,
     Mail,
     Phone,
@@ -33,6 +50,8 @@ const roleColors: Record<string, string> = {
     broker: 'bg-secondary text-indigo-800',
 };
 
+const ASSIGNABLE_ROLES = ['seller', 'buyer', 'franchisor', 'franchisee', 'advisor', 'broker', 'admin'] as const;
+
 export function AdminUserDetail() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
@@ -40,27 +59,75 @@ export function AdminUserDetail() {
     const [businesses, setBusinesses] = useState<any[]>([]);
     const [franchises, setFranchises] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [roleDialogOpen, setRoleDialogOpen] = useState(false);
+    const [newRole, setNewRole] = useState('');
+    const [actionLoading, setActionLoading] = useState(false);
+
+    const loadUser = async () => {
+        if (!id) return;
+        try {
+            const [userData, bizData, franData] = await Promise.all([
+                AdminService.getUserById(id),
+                AdminService.getUserBusinesses(id),
+                AdminService.getUserFranchises(id),
+            ]);
+            setUser(userData);
+            setBusinesses(bizData);
+            setFranchises(franData);
+            if (userData) setNewRole(userData.role);
+        } catch (error) {
+            console.error('Error loading user:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const loadUser = async () => {
-            if (!id) return;
-            try {
-                const [userData, bizData, franData] = await Promise.all([
-                    AdminService.getUserById(id),
-                    AdminService.getUserBusinesses(id),
-                    AdminService.getUserFranchises(id),
-                ]);
-                setUser(userData);
-                setBusinesses(bizData);
-                setFranchises(franData);
-            } catch (error) {
-                console.error('Error loading user:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
         loadUser();
     }, [id]);
+
+    const handleBanUser = async () => {
+        if (!user) return;
+        const banning = !user.is_banned;
+        const confirmed = window.confirm(
+            banning
+                ? `Ban ${user.display_name || user.email}? They will be signed out and blocked.`
+                : `Unban ${user.display_name || user.email}?`
+        );
+        if (!confirmed) return;
+
+        setActionLoading(true);
+        try {
+            await AdminService.setUserBanned(user.id, banning);
+            toast.success(banning ? 'User banned' : 'User unbanned');
+            await loadUser();
+        } catch (error) {
+            console.error('Ban action failed:', error);
+            toast.error('Failed to update ban status');
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleChangeRole = async () => {
+        if (!user || !newRole) return;
+        if (newRole === 'admin') {
+            const confirmed = window.confirm(`Grant admin role to ${user.display_name || user.email}?`);
+            if (!confirmed) return;
+        }
+        setActionLoading(true);
+        try {
+            await AdminService.changeUserRole(user.id, newRole);
+            toast.success(`Role updated to ${newRole}`);
+            setRoleDialogOpen(false);
+            await loadUser();
+        } catch (error) {
+            console.error('Role change failed:', error);
+            toast.error('Failed to change role');
+        } finally {
+            setActionLoading(false);
+        }
+    };
 
     if (loading) {
         return (
@@ -106,7 +173,12 @@ export function AdminUserDetail() {
                                 </AvatarFallback>
                             </Avatar>
                             <h2 className="text-xl font-semibold">{user.display_name || 'No name'}</h2>
-                            <Badge className={`mt-2 ${roleColors[user.role] || ''}`}>{user.role}</Badge>
+                            <div className="flex items-center justify-center gap-2 mt-2 flex-wrap">
+                                <Badge className={roleColors[user.role] || ''}>{user.role}</Badge>
+                                {user.is_banned && (
+                                    <Badge variant="destructive">Banned</Badge>
+                                )}
+                            </div>
                             {user.verified && (
                                 <div className="flex items-center justify-center gap-1 mt-2 text-green-600">
                                     <CheckCircle className="h-4 w-4" />
@@ -145,12 +217,22 @@ export function AdminUserDetail() {
                         <Separator className="my-6" />
 
                         <div className="space-y-2">
-                            <Button variant="outline" className="w-full">
+                            <Button
+                                variant="outline"
+                                className="w-full"
+                                onClick={() => setRoleDialogOpen(true)}
+                                disabled={actionLoading}
+                            >
                                 <Shield className="h-4 w-4 mr-2" />
                                 Change Role
                             </Button>
-                            <Button variant="outline" className="w-full text-red-600 hover:text-red-700">
-                                Ban User
+                            <Button
+                                variant="outline"
+                                className={`w-full ${user.is_banned ? '' : 'text-red-600 hover:text-red-700'}`}
+                                onClick={handleBanUser}
+                                disabled={actionLoading}
+                            >
+                                {user.is_banned ? 'Unban User' : 'Ban User'}
                             </Button>
                         </div>
                     </CardContent>
@@ -196,7 +278,12 @@ export function AdminUserDetail() {
                                                         {biz.status}
                                                     </Badge>
                                                     <Button size="sm" variant="ghost" asChild>
-                                                        <Link to={`/business/${biz.slug || biz.id}`}>
+                                                        <Link to={`/admin/listings/business/${biz.id}`}>
+                                                            <Eye className="h-4 w-4" />
+                                                        </Link>
+                                                    </Button>
+                                                    <Button size="sm" variant="ghost" asChild>
+                                                        <Link to={`/business/${biz.slug || biz.id}`} target="_blank">
                                                             <ExternalLink className="h-4 w-4" />
                                                         </Link>
                                                     </Button>
@@ -231,7 +318,12 @@ export function AdminUserDetail() {
                                                         {fran.status}
                                                     </Badge>
                                                     <Button size="sm" variant="ghost" asChild>
-                                                        <Link to={`/franchise/${fran.slug || fran.id}`}>
+                                                        <Link to={`/admin/listings/franchise/${fran.id}`}>
+                                                            <Eye className="h-4 w-4" />
+                                                        </Link>
+                                                    </Button>
+                                                    <Button size="sm" variant="ghost" asChild>
+                                                        <Link to={`/franchise/${fran.slug || fran.id}`} target="_blank">
                                                             <ExternalLink className="h-4 w-4" />
                                                         </Link>
                                                     </Button>
@@ -245,6 +337,36 @@ export function AdminUserDetail() {
                     </CardContent>
                 </Card>
             </div>
+
+            <Dialog open={roleDialogOpen} onOpenChange={setRoleDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Change User Role</DialogTitle>
+                        <DialogDescription>
+                            Update role for {user.display_name || user.email}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-2 py-4">
+                        <Label>Role</Label>
+                        <Select value={newRole} onValueChange={setNewRole}>
+                            <SelectTrigger>
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {ASSIGNABLE_ROLES.map((role) => (
+                                    <SelectItem key={role} value={role}>{role}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setRoleDialogOpen(false)}>Cancel</Button>
+                        <Button onClick={handleChangeRole} disabled={actionLoading}>
+                            {actionLoading ? 'Saving…' : 'Save Role'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

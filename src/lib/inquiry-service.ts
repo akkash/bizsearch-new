@@ -74,17 +74,22 @@ function mapInquiry(
       null,
     sender: sender
       ? {
-          displayName: String(sender.display_name || ''),
-          email: String(sender.email || ''),
+          displayName: String(
+            (meta.sender_name as string) || sender.display_name || ''
+          ),
+          email: String(row.contact_email || ''),
           avatarUrl: sender.avatar_url ? String(sender.avatar_url) : null,
         }
-      : undefined,
+      : {
+          displayName: String((meta.sender_name as string) || ''),
+          email: String(row.contact_email || ''),
+          avatarUrl: null,
+        },
   };
 }
 
 export type CreateInquiryInput = {
   senderId: string;
-  recipientId: string;
   listingId: string;
   listingType: 'business' | 'franchise';
   subject: string;
@@ -101,6 +106,31 @@ export type CreateInquiryInput = {
 };
 
 export class InquiryService {
+  private static async resolveListingOwnerId(
+    listingId: string,
+    listingType: 'business' | 'franchise'
+  ): Promise<string> {
+    if (listingType === 'franchise') {
+      const { data, error } = await supabase
+        .from('franchises')
+        .select('franchisor_id')
+        .eq('id', listingId)
+        .maybeSingle();
+      if (error) throw error;
+      if (!data?.franchisor_id) throw new Error('Franchise listing not found');
+      return data.franchisor_id;
+    }
+
+    const { data, error } = await supabase
+      .from('businesses')
+      .select('seller_id')
+      .eq('id', listingId)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data?.seller_id) throw new Error('Business listing not found');
+    return data.seller_id;
+  }
+
   private static async getOwnedListingIds(userId: string): Promise<{
     franchiseIds: string[];
     businessIds: string[];
@@ -139,6 +169,11 @@ export class InquiryService {
   }
 
   static async createInquiry(input: CreateInquiryInput): Promise<string> {
+    const recipientId = await this.resolveListingOwnerId(
+      input.listingId,
+      input.listingType
+    );
+
     const q = input.qualification;
     const fmt = input.selectedStoreFormat;
     const metadata = {
@@ -155,7 +190,7 @@ export class InquiryService {
 
     const row: Record<string, unknown> = {
       sender_id: input.senderId,
-      recipient_id: input.recipientId,
+      recipient_id: recipientId,
       listing_id: input.listingId,
       listing_type: input.listingType,
       subject: input.subject,
@@ -185,6 +220,9 @@ export class InquiryService {
       .single();
 
     if (error) {
+      if (error.code === '23505') {
+        throw new Error('You already have an open enquiry for this listing.');
+      }
       // Fallback without new columns if migration not yet applied
       if (
         error.message?.includes('investment_capacity') ||
@@ -195,7 +233,7 @@ export class InquiryService {
           .from('inquiries')
           .insert({
             sender_id: input.senderId,
-            recipient_id: input.recipientId,
+            recipient_id: recipientId,
             listing_id: input.listingId,
             listing_type: input.listingType,
             subject: input.subject,
@@ -228,7 +266,7 @@ export class InquiryService {
       .from('inquiries')
       .select(`
         *,
-        sender:profiles!inquiries_sender_id_fkey(display_name, email, avatar_url)
+        sender:public_profiles!inquiries_sender_id_fkey(display_name, avatar_url)
       `)
       .or(this.buildReceivedInquiriesFilter(userId, franchiseIds, [], true))
       .eq('listing_type', 'franchise')
@@ -256,7 +294,7 @@ export class InquiryService {
       .from('inquiries')
       .select(`
         *,
-        sender:profiles!inquiries_sender_id_fkey(display_name, email, avatar_url)
+        sender:public_profiles!inquiries_sender_id_fkey(display_name, avatar_url)
       `)
       .or(this.buildReceivedInquiriesFilter(userId, franchiseIds, businessIds))
       .order('created_at', { ascending: false });

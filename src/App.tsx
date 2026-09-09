@@ -32,11 +32,13 @@ import { ForgotPasswordPage } from "@/pages/auth/forgot-password";
 import { ResetPasswordPage } from "@/pages/auth/reset-password";
 import { ProtectedRoute } from "@/components/auth/protected-route";
 import { AdminRouteGuard } from "@/components/auth/admin-route-guard";
+import { BannedAccountGate } from "@/components/auth/banned-account-gate";
 import { AdminLayout } from "@/polymet/layouts/admin-layout";
 import { AdminDashboard } from "@/polymet/pages/admin/admin-dashboard";
 import { AdminUsers } from "@/polymet/pages/admin/admin-users";
 import { AdminUserDetail } from "@/polymet/pages/admin/admin-user-detail";
 import { AdminListings } from "@/polymet/pages/admin/admin-listings";
+import { AdminListingDetail } from "@/polymet/pages/admin/admin-listing-detail";
 import { AdminDocuments } from "@/polymet/pages/admin/admin-documents";
 import { AdminAnalytics } from "@/polymet/pages/admin/admin-analytics";
 import { AdminFraudAlerts } from "@/polymet/pages/admin/admin-fraud-alerts";
@@ -94,6 +96,7 @@ export default function BizSearchApp() {
         <FeatureFlagsProvider>
           <Router>
             <AuthProvider>
+              <BannedAccountGate>
               <SavedListingsProvider>
                 <NotificationsProvider>
                   <ScrollToTop />
@@ -476,6 +479,7 @@ export default function BizSearchApp() {
                       <Route path="users" element={<AdminUsers />} />
                       <Route path="users/:id" element={<AdminUserDetail />} />
                       <Route path="listings" element={<AdminListings />} />
+                      <Route path="listings/:type/:id" element={<AdminListingDetail />} />
                       <Route path="documents" element={<AdminDocuments />} />
                       <Route path="analytics" element={<AdminAnalytics />} />
                       <Route path="fraud" element={<AdminFraudAlerts />} />
@@ -717,6 +721,7 @@ export default function BizSearchApp() {
                   <Toaster />
                 </NotificationsProvider>
               </SavedListingsProvider>
+              </BannedAccountGate>
             </AuthProvider>
           </Router>
         </FeatureFlagsProvider>

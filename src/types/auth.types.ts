@@ -32,6 +32,7 @@ export interface AuthState {
   loading: boolean;
   error: AuthError | null;
   profileMissing: boolean;
+  accountBanned: boolean;
 }
 
 export interface SignUpData {

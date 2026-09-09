@@ -147,6 +147,7 @@ export function FranchiseApplicationPage() {
 
     const handleSubmit = async () => {
         if (!user || !franchiseId) return;
+        if (submitting) return;
 
         setSubmitting(true);
         try {
@@ -222,7 +223,14 @@ export function FranchiseApplicationPage() {
                 error = retry.error;
             }
 
-            if (error) throw error;
+            if (error) {
+                if (error.code === '23505') {
+                    toast.error('You have already applied to this franchise.');
+                    navigate('/my-applications');
+                    return;
+                }
+                throw error;
+            }
 
             if (inquiryId) {
                 try {

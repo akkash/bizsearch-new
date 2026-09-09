@@ -1,31 +1,65 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line } from 'recharts';
 import {
     Users,
     Building2,
     TrendingUp,
     Calendar,
     Loader2,
+    MessageSquare,
 } from 'lucide-react';
-import { AdminService, type PlatformStats } from '@/lib/admin-service';
+import { AdminService, type PlatformStats, type AnalyticsTrendPoint } from '@/lib/admin-service';
+
+const chartConfig = {
+    users: { label: 'Signups', color: 'hsl(var(--chart-1))' },
+    businesses: { label: 'Businesses', color: 'hsl(var(--chart-2))' },
+    franchises: { label: 'Franchises', color: 'hsl(var(--chart-3))' },
+    inquiries: { label: 'Inquiries', color: 'hsl(var(--chart-4))' },
+    listings: { label: 'Listings', color: 'hsl(var(--chart-2))' },
+};
 
 export function AdminAnalytics() {
     const [stats, setStats] = useState<PlatformStats | null>(null);
+    const [trends, setTrends] = useState<AnalyticsTrendPoint[]>([]);
+    const [days, setDays] = useState('14');
     const [loading, setLoading] = useState(true);
 
+    const loadData = useCallback(async () => {
+        setLoading(true);
+        try {
+            const dayCount = parseInt(days, 10);
+            const [statsData, trendsData] = await Promise.all([
+                AdminService.getPlatformStats(),
+                AdminService.getAnalyticsTrends(dayCount),
+            ]);
+            setStats(statsData);
+            setTrends(
+                trendsData.map((t) => ({
+                    ...t,
+                    listings: t.businesses + t.franchises,
+                    label: t.date.slice(5),
+                }))
+            );
+        } catch (error) {
+            console.error('Error loading analytics:', error);
+        } finally {
+            setLoading(false);
+        }
+    }, [days]);
+
     useEffect(() => {
-        const loadStats = async () => {
-            try {
-                const data = await AdminService.getPlatformStats();
-                setStats(data);
-            } catch (error) {
-                console.error('Error loading analytics:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        loadStats();
-    }, []);
+        loadData();
+    }, [loadData]);
 
     if (loading) {
         return (
@@ -68,12 +102,23 @@ export function AdminAnalytics() {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h1 className="text-2xl font-bold">Analytics</h1>
-                <p className="text-muted-foreground">Platform performance and metrics</p>
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold">Analytics</h1>
+                    <p className="text-muted-foreground">Platform performance and metrics</p>
+                </div>
+                <Select value={days} onValueChange={setDays}>
+                    <SelectTrigger className="w-36">
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="7">Last 7 days</SelectItem>
+                        <SelectItem value="14">Last 14 days</SelectItem>
+                        <SelectItem value="30">Last 30 days</SelectItem>
+                    </SelectContent>
+                </Select>
             </div>
 
-            {/* Metric Cards */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 {metrics.map((metric) => (
                     <Card key={metric.title}>
@@ -93,40 +138,81 @@ export function AdminAnalytics() {
                 ))}
             </div>
 
-            {/* Charts Placeholder */}
             <div className="grid gap-6 lg:grid-cols-2">
                 <Card>
                     <CardHeader>
-                        <CardTitle>User Signups Over Time</CardTitle>
+                        <CardTitle>User Signups</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="h-64 flex items-center justify-center bg-muted/20 rounded-lg">
-                            <div className="text-center text-muted-foreground">
-                                <TrendingUp className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                                <p>Chart visualization coming soon</p>
-                                <p className="text-sm">Connect to analytics service for detailed charts</p>
+                        {trends.length === 0 ? (
+                            <div className="h-64 flex items-center justify-center text-muted-foreground">
+                                <p>No details found in the table.</p>
                             </div>
-                        </div>
+                        ) : (
+                            <ChartContainer config={chartConfig} className="h-64 w-full">
+                                <LineChart data={trends}>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="label" tickLine={false} axisLine={false} />
+                                    <YAxis allowDecimals={false} tickLine={false} axisLine={false} />
+                                    <ChartTooltip content={<ChartTooltipContent />} />
+                                    <Line type="monotone" dataKey="users" stroke="var(--color-users)" strokeWidth={2} dot={false} />
+                                </LineChart>
+                            </ChartContainer>
+                        )}
                     </CardContent>
                 </Card>
 
                 <Card>
                     <CardHeader>
-                        <CardTitle>Listings Created Over Time</CardTitle>
+                        <CardTitle>Listings Created</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="h-64 flex items-center justify-center bg-muted/20 rounded-lg">
-                            <div className="text-center text-muted-foreground">
-                                <Building2 className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                                <p>Chart visualization coming soon</p>
-                                <p className="text-sm">Connect to analytics service for detailed charts</p>
+                        {trends.length === 0 ? (
+                            <div className="h-64 flex items-center justify-center text-muted-foreground">
+                                <p>No details found in the table.</p>
                             </div>
-                        </div>
+                        ) : (
+                            <ChartContainer config={chartConfig} className="h-64 w-full">
+                                <BarChart data={trends}>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="label" tickLine={false} axisLine={false} />
+                                    <YAxis allowDecimals={false} tickLine={false} axisLine={false} />
+                                    <ChartTooltip content={<ChartTooltipContent />} />
+                                    <Bar dataKey="businesses" fill="var(--color-businesses)" stackId="listings" radius={[0, 0, 0, 0]} />
+                                    <Bar dataKey="franchises" fill="var(--color-franchises)" stackId="listings" radius={[4, 4, 0, 0]} />
+                                </BarChart>
+                            </ChartContainer>
+                        )}
                     </CardContent>
                 </Card>
             </div>
 
-            {/* Quick Stats */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <MessageSquare className="h-5 w-5" />
+                        Inquiries Over Time
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    {trends.length === 0 ? (
+                        <div className="h-48 flex items-center justify-center text-muted-foreground">
+                            <p>No details found in the table.</p>
+                        </div>
+                    ) : (
+                        <ChartContainer config={chartConfig} className="h-48 w-full">
+                            <LineChart data={trends}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="label" tickLine={false} axisLine={false} />
+                                <YAxis allowDecimals={false} tickLine={false} axisLine={false} />
+                                <ChartTooltip content={<ChartTooltipContent />} />
+                                <Line type="monotone" dataKey="inquiries" stroke="var(--color-inquiries)" strokeWidth={2} dot={false} />
+                            </LineChart>
+                        </ChartContainer>
+                    )}
+                </CardContent>
+            </Card>
+
             <Card>
                 <CardHeader>
                     <CardTitle>Platform Overview</CardTitle>

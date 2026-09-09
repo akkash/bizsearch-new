@@ -50,9 +50,54 @@ export interface PlatformStats {
     totalFranchises: number;
     pendingListings: number;
     pendingDocuments: number;
+    pendingFraudAlerts: number;
     newUsersThisWeek: number;
     newListingsThisWeek: number;
 }
+
+export interface AnalyticsTrendPoint {
+    date: string;
+    users: number;
+    businesses: number;
+    franchises: number;
+    inquiries: number;
+}
+
+export interface FraudAlert {
+    id: string;
+    type: string;
+    entity_id: string;
+    entity_name: string;
+    risk_score: number;
+    reason: string;
+    status: string;
+    created_at: string;
+    reviewed_at?: string | null;
+}
+
+export interface CmsPage {
+    id: string;
+    title: string;
+    slug: string;
+    body: string;
+    status: 'draft' | 'published' | 'archived';
+    created_at: string;
+    updated_at: string;
+}
+
+export interface PlatformAnnouncement {
+    id: string;
+    title: string;
+    body: string;
+    type: 'feature' | 'info' | 'maintenance' | 'alert';
+    active: boolean;
+    starts_at: string | null;
+    ends_at: string | null;
+    created_at: string;
+    updated_at: string;
+}
+
+export type PlatformSettingsMap = Record<string, Record<string, unknown>>;
 
 export interface ActivityLog {
     id: string;
@@ -85,6 +130,24 @@ export interface ListingFilters {
 }
 
 export class AdminService {
+    private static async logAction(
+        action: string,
+        entityType: string,
+        entityId: string,
+        metadata?: Record<string, unknown>
+    ): Promise<void> {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        await supabase.from('activity_logs').insert({
+            profile_id: user.id,
+            user_id: user.id,
+            action,
+            entity_type: entityType,
+            entity_id: entityId,
+            metadata: metadata || null,
+        });
+    }
+
     /**
      * Get all users with filters
      */
@@ -197,6 +260,75 @@ export class AdminService {
         return data;
     }
 
+    static async setUserBanned(userId: string, banned: boolean): Promise<void> {
+        const { error } = await supabase
+            .from('profiles')
+            .update({ is_banned: banned })
+            .eq('id', userId);
+
+        if (error) {
+            console.error('Error updating ban status:', error);
+            throw error;
+        }
+
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            await supabase.from('activity_logs').insert({
+                profile_id: user.id,
+                user_id: user.id,
+                action: banned ? 'user_banned' : 'user_unbanned',
+                entity_type: 'profile',
+                entity_id: userId,
+            });
+        }
+    }
+
+    static async changeUserRole(userId: string, role: string): Promise<void> {
+        const allowed = ['seller', 'buyer', 'franchisor', 'franchisee', 'advisor', 'broker', 'admin'];
+        if (!allowed.includes(role)) {
+            throw new Error(`Invalid role: ${role}`);
+        }
+
+        const { error: profileError } = await supabase
+            .from('profiles')
+            .update({ role })
+            .eq('id', userId);
+
+        if (profileError) {
+            console.error('Error changing user role:', profileError);
+            throw profileError;
+        }
+
+        await supabase
+            .from('profile_roles')
+            .update({ is_primary: false })
+            .eq('profile_id', userId);
+
+        const { error: roleError } = await supabase
+            .from('profile_roles')
+            .upsert(
+                { profile_id: userId, role, is_primary: true },
+                { onConflict: 'profile_id,role' }
+            );
+
+        if (roleError) {
+            console.error('Error updating profile_roles:', roleError);
+            throw roleError;
+        }
+
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            await supabase.from('activity_logs').insert({
+                profile_id: user.id,
+                user_id: user.id,
+                action: 'user_role_changed',
+                entity_type: 'profile',
+                entity_id: userId,
+                metadata: { role },
+            });
+        }
+    }
+
     /**
      * Get pending listings (businesses and franchises)
      */
@@ -298,6 +430,7 @@ export class AdminService {
             throw error;
         }
 
+        await this.logAction('listing_approved', type, listingId);
         return true;
     }
 
@@ -320,6 +453,7 @@ export class AdminService {
             throw error;
         }
 
+        await this.logAction('listing_rejected', type, listingId, { reason });
         return true;
     }
 
@@ -481,6 +615,7 @@ export class AdminService {
             pendingBusinessesResult,
             pendingFranchisesResult,
             pendingDocsResult,
+            pendingFraudResult,
             newUsersResult,
             newBusinessesResult,
             newFranchisesResult,
@@ -491,6 +626,7 @@ export class AdminService {
             supabase.from('businesses').select('id', { count: 'exact', head: true }).eq('status', 'pending_review'),
             supabase.from('franchises').select('id', { count: 'exact', head: true }).eq('status', 'pending_review'),
             supabase.from('verification_documents').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+            supabase.from('fraud_alerts').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
             supabase.from('profiles').select('id', { count: 'exact', head: true }).gte('created_at', oneWeekAgo.toISOString()),
             supabase.from('businesses').select('id', { count: 'exact', head: true }).gte('created_at', oneWeekAgo.toISOString()),
             supabase.from('franchises').select('id', { count: 'exact', head: true }).gte('created_at', oneWeekAgo.toISOString()),
@@ -502,6 +638,7 @@ export class AdminService {
             totalFranchises: franchisesResult.count || 0,
             pendingListings: (pendingBusinessesResult.count || 0) + (pendingFranchisesResult.count || 0),
             pendingDocuments: pendingDocsResult.count || 0,
+            pendingFraudAlerts: pendingFraudResult.count || 0,
             newUsersThisWeek: newUsersResult.count || 0,
             newListingsThisWeek: (newBusinessesResult.count || 0) + (newFranchisesResult.count || 0),
         };
@@ -554,5 +691,197 @@ export class AdminService {
         }
 
         return (roles?.length ?? 0) > 0;
+    }
+
+    static async getPendingFraudAlerts(): Promise<FraudAlert[]> {
+        const { data, error } = await supabase
+            .from('fraud_alerts')
+            .select('*')
+            .eq('status', 'pending')
+            .order('risk_score', { ascending: false });
+
+        if (error) {
+            console.error('Error fetching fraud alerts:', error);
+            return [];
+        }
+        return data || [];
+    }
+
+    static async getFraudAlertsResolvedToday(): Promise<number> {
+        const start = new Date();
+        start.setHours(0, 0, 0, 0);
+        const { count, error } = await supabase
+            .from('fraud_alerts')
+            .select('id', { count: 'exact', head: true })
+            .in('status', ['reviewed', 'dismissed', 'confirmed'])
+            .gte('reviewed_at', start.toISOString());
+
+        if (error) return 0;
+        return count || 0;
+    }
+
+    static async resolveFraudAlert(
+        alertId: string,
+        status: 'reviewed' | 'dismissed' | 'confirmed'
+    ): Promise<void> {
+        const { data: { user } } = await supabase.auth.getUser();
+        const { error } = await supabase
+            .from('fraud_alerts')
+            .update({
+                status,
+                reviewed_by: user?.id || null,
+                reviewed_at: new Date().toISOString(),
+            })
+            .eq('id', alertId);
+
+        if (error) throw error;
+        await this.logAction(`fraud_alert_${status}`, 'fraud_alert', alertId, { status });
+    }
+
+    static async getListingById(
+        listingId: string,
+        type: 'business' | 'franchise'
+    ): Promise<Record<string, unknown> | null> {
+        const table = type === 'business' ? 'businesses' : 'franchises';
+        const ownerCol = type === 'business' ? 'seller_id' : 'franchisor_id';
+        const { data, error } = await supabase
+            .from(table)
+            .select(`*, owner:profiles!${ownerCol}(id, display_name, email)`)
+            .eq('id', listingId)
+            .maybeSingle();
+
+        if (error) {
+            console.error('Error fetching listing:', error);
+            return null;
+        }
+        return data as Record<string, unknown>;
+    }
+
+    static async getAnalyticsTrends(days = 14): Promise<AnalyticsTrendPoint[]> {
+        const since = new Date();
+        since.setDate(since.getDate() - days);
+
+        const [users, businesses, franchises, inquiries] = await Promise.all([
+            supabase.from('profiles').select('created_at').gte('created_at', since.toISOString()),
+            supabase.from('businesses').select('created_at').gte('created_at', since.toISOString()),
+            supabase.from('franchises').select('created_at').gte('created_at', since.toISOString()),
+            supabase.from('inquiries').select('created_at').gte('created_at', since.toISOString()),
+        ]);
+
+        const buckets = new Map<string, AnalyticsTrendPoint>();
+        for (let i = 0; i < days; i++) {
+            const d = new Date();
+            d.setDate(d.getDate() - (days - 1 - i));
+            const key = d.toISOString().slice(0, 10);
+            buckets.set(key, { date: key, users: 0, businesses: 0, franchises: 0, inquiries: 0 });
+        }
+
+        const addToBucket = (rows: { created_at: string }[] | null, field: keyof Omit<AnalyticsTrendPoint, 'date'>) => {
+            (rows || []).forEach((row) => {
+                const key = row.created_at.slice(0, 10);
+                const bucket = buckets.get(key);
+                if (bucket) bucket[field] += 1;
+            });
+        };
+
+        addToBucket(users.data, 'users');
+        addToBucket(businesses.data, 'businesses');
+        addToBucket(franchises.data, 'franchises');
+        addToBucket(inquiries.data, 'inquiries');
+
+        return [...buckets.values()];
+    }
+
+    static async getSettings(): Promise<PlatformSettingsMap> {
+        const { data, error } = await supabase.from('platform_settings').select('key, value');
+        if (error) throw error;
+        const map: PlatformSettingsMap = {};
+        (data || []).forEach((row) => {
+            map[row.key] = row.value as Record<string, unknown>;
+        });
+        return map;
+    }
+
+    static async updateSettings(
+        key: string,
+        value: Record<string, unknown>
+    ): Promise<void> {
+        const { data: { user } } = await supabase.auth.getUser();
+        const { error } = await supabase
+            .from('platform_settings')
+            .upsert({
+                key,
+                value,
+                updated_by: user?.id || null,
+                updated_at: new Date().toISOString(),
+            });
+
+        if (error) throw error;
+        await this.logAction('settings_updated', 'platform_settings', key);
+    }
+
+    static async getCmsPages(): Promise<CmsPage[]> {
+        const { data, error } = await supabase
+            .from('cms_pages')
+            .select('*')
+            .order('updated_at', { ascending: false });
+        if (error) throw error;
+        return data || [];
+    }
+
+    static async upsertCmsPage(page: Partial<CmsPage> & { title: string; slug: string }): Promise<CmsPage> {
+        const { data: { user } } = await supabase.auth.getUser();
+        const payload = {
+            ...page,
+            updated_by: user?.id || null,
+            updated_at: new Date().toISOString(),
+        };
+        const { data, error } = await supabase
+            .from('cms_pages')
+            .upsert(payload)
+            .select()
+            .single();
+        if (error) throw error;
+        await this.logAction('cms_page_upserted', 'cms_page', data.id);
+        return data;
+    }
+
+    static async deleteCmsPage(id: string): Promise<void> {
+        const { error } = await supabase.from('cms_pages').delete().eq('id', id);
+        if (error) throw error;
+        await this.logAction('cms_page_deleted', 'cms_page', id);
+    }
+
+    static async getAnnouncements(): Promise<PlatformAnnouncement[]> {
+        const { data, error } = await supabase
+            .from('platform_announcements')
+            .select('*')
+            .order('created_at', { ascending: false });
+        if (error) throw error;
+        return data || [];
+    }
+
+    static async upsertAnnouncement(
+        announcement: Partial<PlatformAnnouncement> & { title: string }
+    ): Promise<PlatformAnnouncement> {
+        const { data: { user } } = await supabase.auth.getUser();
+        const { data, error } = await supabase
+            .from('platform_announcements')
+            .upsert({
+                ...announcement,
+                updated_by: user?.id || null,
+                updated_at: new Date().toISOString(),
+            })
+            .select()
+            .single();
+        if (error) throw error;
+        await this.logAction('announcement_upserted', 'platform_announcement', data.id);
+        return data;
+    }
+
+    static async deleteAnnouncement(id: string): Promise<void> {
+        const { error } = await supabase.from('platform_announcements').delete().eq('id', id);
+        if (error) throw error;
+        await this.logAction('announcement_deleted', 'platform_announcement', id);
     }
 }
