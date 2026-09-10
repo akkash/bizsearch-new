@@ -56,7 +56,7 @@ interface NDA {
 const statusColors: Record<string, string> = {
     sent: 'bg-blue-100 text-blue-800',
     viewed: 'bg-yellow-100 text-yellow-800',
-    signed: 'bg-green-100 text-green-800',
+    signed: 'bg-secondary text-foreground',
     expired: 'bg-secondary text-muted-foreground',
 };
 
@@ -210,7 +210,7 @@ export function NDAManagementPage() {
                 </Card>
                 <Card>
                     <CardContent className="p-4 text-center">
-                        <p className="text-2xl font-bold text-green-600">{stats.signed}</p>
+                        <p className="text-2xl font-bold text-foreground">{stats.signed}</p>
                         <p className="text-sm text-muted-foreground">Signed</p>
                     </CardContent>
                 </Card>
@@ -265,7 +265,7 @@ export function NDAManagementPage() {
                                         </TableCell>
                                         <TableCell className="text-sm">
                                             {nda.signed_at ? (
-                                                <span className="text-green-600">
+                                                <span className="text-foreground">
                                                     {format(new Date(nda.signed_at), 'MMM d, yyyy')}
                                                 </span>
                                             ) : (

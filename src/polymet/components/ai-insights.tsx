@@ -412,13 +412,13 @@ Provide at least 3 key insights, 3-5 risk factors, and 3-5 opportunities. Focus 
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-green-600 bg-green-50";
+    if (score >= 80) return "text-foreground bg-secondary";
     if (score >= 60) return "text-yellow-600 bg-yellow-50";
     return "text-red-600 bg-red-50";
   };
 
   const getRecommendationColor = (recommendation: string) => {
-    if (recommendation === "High Potential") return "bg-green-500";
+    if (recommendation === "High Potential") return "bg-secondary0";
     if (recommendation === "Proceed with Caution") return "bg-red-500";
     return "bg-blue-500";
   };
@@ -517,7 +517,7 @@ Provide at least 3 key insights, 3-5 risk factors, and 3-5 opportunities. Focus 
           {insights.keyInsights.map((insight, index) => (
             <div key={index} className="flex gap-3 p-3 rounded-lg bg-muted/30">
               {insight.type === "positive" ? (
-                <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                <CheckCircle className="h-5 w-5 text-foreground flex-shrink-0 mt-0.5" />
               ) : insight.type === "warning" ? (
                 <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
               ) : (
@@ -553,13 +553,13 @@ Provide at least 3 key insights, 3-5 risk factors, and 3-5 opportunities. Focus 
         {/* Opportunities */}
         <div className="space-y-3">
           <h4 className="font-semibold flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-green-600" />
+            <TrendingUp className="h-4 w-4 text-foreground" />
             Growth Opportunities
           </h4>
           <div className="space-y-2">
             {insights.opportunities.map((opportunity, index) => (
               <div key={index} className="flex items-center gap-2 text-sm">
-                <div className="w-1.5 h-1.5 bg-green-500 rounded-full flex-shrink-0" />
+                <div className="w-1.5 h-1.5 bg-secondary0 rounded-full flex-shrink-0" />
 
                 <span className="text-muted-foreground">{opportunity}</span>
               </div>

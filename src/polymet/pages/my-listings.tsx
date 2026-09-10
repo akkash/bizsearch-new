@@ -48,7 +48,7 @@ const statusConfig = {
   active: {
     label: "Active",
     icon: CheckCircle,
-    color: "text-green-600 bg-green-100",
+    color: "text-foreground bg-secondary",
   },
   inactive: {
     label: "Inactive",
@@ -264,7 +264,7 @@ export function MyListingsPage({ className }: MyListingsPageProps) {
                 <p className="text-sm text-muted-foreground">Franchises</p>
                 <p className="text-2xl font-bold">{franchises.length}</p>
               </div>
-              <Briefcase className="h-8 w-8 text-green-600" />
+              <Briefcase className="h-8 w-8 text-foreground" />
             </div>
           </CardContent>
         </Card>
@@ -278,7 +278,7 @@ export function MyListingsPage({ className }: MyListingsPageProps) {
                     franchises.filter(f => f.status === 'active').length}
                 </p>
               </div>
-              <CheckCircle className="h-8 w-8 text-green-600" />
+              <CheckCircle className="h-8 w-8 text-foreground" />
             </div>
           </CardContent>
         </Card>

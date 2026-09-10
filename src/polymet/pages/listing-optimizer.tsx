@@ -250,7 +250,7 @@ export function ListingOptimizerPage() {
                                                     </div>
                                                     <p className="font-medium text-sm mb-1">{suggestion.issue}</p>
                                                     <p className="text-sm text-muted-foreground mb-2">{suggestion.suggestion}</p>
-                                                    <Badge variant="outline" className="text-green-600">
+                                                    <Badge variant="outline" className="text-foreground">
                                                         <TrendingUp className="h-3 w-3 mr-1" />
                                                         {suggestion.impact}
                                                     </Badge>
@@ -296,7 +296,7 @@ export function ListingOptimizerPage() {
                                             strokeWidth="12"
                                             fill="none"
                                             strokeDasharray={`${(score / 100) * 352} 352`}
-                                            className={score >= 80 ? 'text-green-500' : score >= 60 ? 'text-yellow-500' : 'text-red-500'}
+                                            className={score >= 80 ? 'text-foreground' : score >= 60 ? 'text-yellow-500' : 'text-red-500'}
                                         />
                                     </svg>
                                     <span className="absolute text-3xl font-bold">{score}%</span>

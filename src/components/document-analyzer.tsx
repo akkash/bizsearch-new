@@ -69,16 +69,16 @@ export function DocumentAnalyzer({ onClose, className }: DocumentAnalyzerProps) 
       case 'financial':
         return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'legal':
-        return 'bg-growth-green/10 text-purple-800 border-growth-green/30';
+        return 'bg-growth-green/10 text-foreground border-growth-green/30';
       case 'operational':
-        return 'bg-green-100 text-green-800 border-green-200';
+        return 'bg-secondary text-foreground border-border';
       default:
         return 'bg-secondary text-foreground border-border';
     }
   };
 
   const getConfidenceColor = (score: number) => {
-    if (score >= 75) return 'text-green-600';
+    if (score >= 75) return 'text-foreground';
     if (score >= 50) return 'text-yellow-600';
     return 'text-red-600';
   };
@@ -213,7 +213,7 @@ export function DocumentAnalyzer({ onClose, className }: DocumentAnalyzerProps) 
                                     <ul className="space-y-1">
                                       {analysis.keyFindings.map((finding, i) => (
                                         <li key={i} className="flex items-start gap-2 text-xs">
-                                          <CheckCircle className="h-3 w-3 text-green-600 mt-0.5 flex-shrink-0" />
+                                          <CheckCircle className="h-3 w-3 text-foreground mt-0.5 flex-shrink-0" />
                                           <span>{finding}</span>
                                         </li>
                                       ))}

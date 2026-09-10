@@ -865,7 +865,7 @@ export function ListingWizard({
       {/* YEAR-OVER-YEAR GROWTH */}
       <div className="p-4 border rounded-lg space-y-4">
         <h4 className="font-medium flex items-center gap-2">
-          <TrendingUp className="w-4 h-4 text-green-600" />
+          <TrendingUp className="w-4 h-4 text-foreground" />
           Year-over-Year Growth
         </h4>
         <p className="text-sm text-muted-foreground">
@@ -1300,7 +1300,7 @@ export function ListingWizard({
                 index === currentStep
                   ? "bg-primary text-primary-foreground"
                   : completedSteps.has(index)
-                    ? "bg-green-100 text-green-800"
+                    ? "bg-secondary text-foreground"
                     : "bg-muted/50 text-muted-foreground"
               )}
             >

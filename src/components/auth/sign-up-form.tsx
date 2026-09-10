@@ -146,8 +146,8 @@ export function SignUpForm() {
     return (
       <Card className="w-full max-w-md mx-auto">
         <CardHeader className="text-center">
-          <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
-            <CheckCircle className="h-6 w-6 text-green-600" />
+          <div className="mx-auto w-12 h-12 bg-secondary rounded-full flex items-center justify-center mb-4">
+            <CheckCircle className="h-6 w-6 text-foreground" />
           </div>
           <CardTitle>Check Your Email</CardTitle>
           <CardDescription>
@@ -163,9 +163,9 @@ export function SignUpForm() {
           </Alert>
 
           {resendSuccess && (
-            <Alert className="bg-green-50 border-green-200">
-              <CheckCircle className="h-4 w-4 text-green-600" />
-              <AlertDescription className="text-green-700">
+            <Alert className="bg-secondary border-border">
+              <CheckCircle className="h-4 w-4 text-foreground" />
+              <AlertDescription className="text-foreground">
                 Confirmation email sent! Check your inbox.
               </AlertDescription>
             </Alert>
@@ -238,9 +238,9 @@ export function SignUpForm() {
           </Alert>
 
           {resendSuccess && (
-            <Alert className="bg-green-50 border-green-200">
-              <CheckCircle className="h-4 w-4 text-green-600" />
-              <AlertDescription className="text-green-700">
+            <Alert className="bg-secondary border-border">
+              <CheckCircle className="h-4 w-4 text-foreground" />
+              <AlertDescription className="text-foreground">
                 Confirmation email sent! Check your inbox.
               </AlertDescription>
             </Alert>
@@ -433,7 +433,7 @@ export function SignUpForm() {
                         ? 'text-orange-500'
                         : passwordStrength.score === 3
                           ? 'text-yellow-500'
-                          : 'text-green-500'
+                          : 'text-foreground'
                       }`}
                   >
                     {getPasswordStrengthLabel(passwordStrength.score)}

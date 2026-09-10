@@ -52,7 +52,7 @@ export function DueDiligenceDashboard({
     if (score >= 75) return 'text-red-600 bg-red-50 border-red-200';
     if (score >= 50) return 'text-orange-600 bg-orange-50 border-orange-200';
     if (score >= 25) return 'text-yellow-600 bg-yellow-50 border-yellow-200';
-    return 'text-green-600 bg-green-50 border-green-200';
+    return 'text-foreground bg-secondary border-border';
   };
 
   const getRiskIcon = (score: number) => {
@@ -172,9 +172,9 @@ export function DueDiligenceDashboard({
 
                 {/* Positive Factors */}
                 {report.positiveFactors.length > 0 && (
-                  <Card className="border-green-200 bg-green-50">
+                  <Card className="border-border bg-secondary">
                     <CardHeader>
-                      <CardTitle className="text-green-800 flex items-center gap-2">
+                      <CardTitle className="text-foreground flex items-center gap-2">
                         <CheckCircle className="h-5 w-5" />
                         Positive Factors
                       </CardTitle>
@@ -182,7 +182,7 @@ export function DueDiligenceDashboard({
                     <CardContent>
                       <ul className="space-y-2">
                         {report.positiveFactors.map((factor, i) => (
-                          <li key={i} className="flex items-start gap-2 text-sm text-green-700">
+                          <li key={i} className="flex items-start gap-2 text-sm text-foreground">
                             <CheckCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                             {factor}
                           </li>
@@ -246,7 +246,7 @@ export function DueDiligenceDashboard({
                   score={report.operationalAnalysis.score}
                   findings={report.operationalAnalysis.findings}
                   redFlags={report.operationalAnalysis.redFlags}
-                  icon={<Briefcase className="h-6 w-6 text-green-600" />}
+                  icon={<Briefcase className="h-6 w-6 text-foreground" />}
                 />
               </TabsContent>
 
@@ -277,7 +277,7 @@ export function DueDiligenceDashboard({
 // Helper Components
 function AnalysisScoreCard({ title, score, icon }: { title: string; score: number; icon: React.ReactNode }) {
   const getColor = (score: number) => {
-    if (score >= 75) return 'text-green-600';
+    if (score >= 75) return 'text-foreground';
     if (score >= 50) return 'text-yellow-600';
     return 'text-red-600';
   };

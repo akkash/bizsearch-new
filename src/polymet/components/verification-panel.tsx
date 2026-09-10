@@ -212,7 +212,7 @@ export function VerificationPanel({
   const getStatusIcon = (status: VerificationDocument["status"]) => {
     switch (status) {
       case "verified":
-        return <CheckCircle className="w-4 h-4 text-green-600" />;
+        return <CheckCircle className="w-4 h-4 text-foreground" />;
 
       case "uploaded":
         return <Clock className="w-4 h-4 text-yellow-600" />;
@@ -227,7 +227,7 @@ export function VerificationPanel({
 
   const getStatusBadge = (status: VerificationDocument["status"]) => {
     const variants = {
-      verified: "bg-green-100 text-green-800",
+      verified: "bg-secondary text-foreground",
       uploaded: "bg-yellow-100 text-yellow-800",
       rejected: "bg-red-100 text-red-800",
       not_uploaded: "bg-secondary text-muted-foreground",
@@ -246,7 +246,7 @@ export function VerificationPanel({
   const getVerificationStatusIcon = () => {
     switch (profile.verificationStatus) {
       case "verified":
-        return <ShieldCheck className="w-6 h-6 text-green-600" />;
+        return <ShieldCheck className="w-6 h-6 text-foreground" />;
 
       case "pending":
         return <Clock className="w-6 h-6 text-yellow-600" />;

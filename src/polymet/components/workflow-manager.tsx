@@ -96,12 +96,12 @@ const statusConfig = {
     label: "Under Review",
   },
   approved: {
-    color: "bg-green-100 text-green-800",
+    color: "bg-secondary text-foreground",
     icon: CheckCircleIcon,
     label: "Approved",
   },
   published: {
-    color: "bg-emerald-100 text-emerald-800",
+    color: "bg-secondary text-foreground",
     icon: CheckCircleIcon,
     label: "Published",
   },
@@ -230,7 +230,7 @@ export function WorkflowManager({
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center ${
                         isCompleted
-                          ? "bg-green-500 text-white"
+                          ? "bg-secondary0 text-white"
                           : isCurrent
                             ? "bg-blue-500 text-white"
                             : "bg-gray-200 text-muted-foreground"
@@ -245,7 +245,7 @@ export function WorkflowManager({
                     {index < steps.length - 1 && (
                       <div
                         className={`w-0.5 h-8 ${
-                          isCompleted ? "bg-green-500" : "bg-gray-200"
+                          isCompleted ? "bg-secondary0" : "bg-gray-200"
                         }`}
                       />
                     )}
@@ -256,7 +256,7 @@ export function WorkflowManager({
                         isCurrent
                           ? "text-blue-600"
                           : isCompleted
-                            ? "text-green-600"
+                            ? "text-foreground"
                             : "text-muted-foreground"
                       }`}
                     >

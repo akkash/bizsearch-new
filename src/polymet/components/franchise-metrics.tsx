@@ -189,13 +189,13 @@ const mockMetrics: FranchiseMetrics[] = [
 ];
 
 const statusConfig = {
-  excellent: { color: "bg-green-100 text-green-800", label: "Excellent" },
+  excellent: { color: "bg-secondary text-foreground", label: "Excellent" },
   active: { color: "bg-blue-100 text-blue-800", label: "Active" },
   underperforming: {
     color: "bg-red-100 text-red-800",
     label: "Underperforming",
   },
-  new: { color: "bg-growth-green/10 text-purple-800", label: "New" },
+  new: { color: "bg-growth-green/10 text-foreground", label: "New" },
 };
 
 const COLORS = [
@@ -294,14 +294,14 @@ export function FranchiseMetrics({
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-2">
-              <DollarSignIcon className="h-5 w-5 text-green-500" />
+              <DollarSignIcon className="h-5 w-5 text-foreground" />
 
               <div>
                 <p className="text-sm text-muted-foreground">Total Revenue</p>
                 <p className="text-2xl font-bold">
                   {formatCurrency(totalRevenue)}
                 </p>
-                <p className="text-xs text-green-600 flex items-center gap-1">
+                <p className="text-xs text-foreground flex items-center gap-1">
                   <TrendingUpIcon className="h-3 w-3" />
                   {avgGrowth.toFixed(1)}% growth
                 </p>
@@ -491,7 +491,7 @@ export function FranchiseMetrics({
                 <p className="text-xl font-bold">
                   {formatCurrency(selectedMetrics.monthlyRevenue)}
                 </p>
-                <p className="text-xs text-green-600 flex items-center gap-1">
+                <p className="text-xs text-foreground flex items-center gap-1">
                   <TrendingUpIcon className="h-3 w-3" />
                   {selectedMetrics.revenueGrowth}% growth
                 </p>
@@ -544,7 +544,7 @@ export function FranchiseMetrics({
                   {selectedMetrics.marketShare}%
                 </p>
               </div>
-              <div className="p-3 bg-green-50 rounded-lg">
+              <div className="p-3 bg-secondary rounded-lg">
                 <p className="text-sm text-muted-foreground">
                   Brand Compliance
                 </p>

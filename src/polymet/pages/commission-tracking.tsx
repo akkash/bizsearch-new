@@ -46,7 +46,7 @@ interface Commission {
 const statusConfig: Record<string, { color: string; icon: any }> = {
     pending: { color: 'bg-yellow-100 text-yellow-800', icon: Clock },
     approved: { color: 'bg-blue-100 text-blue-800', icon: CheckCircle },
-    paid: { color: 'bg-green-100 text-green-800', icon: DollarSign },
+    paid: { color: 'bg-secondary text-foreground', icon: DollarSign },
 };
 
 export function CommissionTrackingPage() {
@@ -308,12 +308,12 @@ export function CommissionTrackingPage() {
                                 <div className="space-y-4">
                                     <div>
                                         <div className="flex justify-between text-sm mb-1">
-                                            <span className="text-green-600">Paid</span>
+                                            <span className="text-foreground">Paid</span>
                                             <span>{formatCurrency(stats.totalEarned)}</span>
                                         </div>
                                         <div className="h-2 bg-muted rounded-full overflow-hidden">
                                             <div
-                                                className="h-full bg-green-500 rounded-full"
+                                                className="h-full bg-secondary0 rounded-full"
                                                 style={{ width: `${(stats.totalEarned / (stats.totalEarned + stats.pending + stats.approved)) * 100}%` }}
                                             />
                                         </div>

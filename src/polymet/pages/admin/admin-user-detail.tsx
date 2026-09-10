@@ -43,8 +43,8 @@ import { format } from 'date-fns';
 const roleColors: Record<string, string> = {
     admin: 'bg-red-100 text-red-800',
     seller: 'bg-blue-100 text-blue-800',
-    buyer: 'bg-green-100 text-green-800',
-    franchisor: 'bg-growth-green/10 text-purple-800',
+    buyer: 'bg-secondary text-foreground',
+    franchisor: 'bg-growth-green/10 text-foreground',
     franchisee: 'bg-orange-100 text-orange-800',
     advisor: 'bg-teal-100 text-teal-800',
     broker: 'bg-secondary text-indigo-800',
@@ -180,7 +180,7 @@ export function AdminUserDetail() {
                                 )}
                             </div>
                             {user.verified && (
-                                <div className="flex items-center justify-center gap-1 mt-2 text-green-600">
+                                <div className="flex items-center justify-center gap-1 mt-2 text-foreground">
                                     <CheckCircle className="h-4 w-4" />
                                     <span className="text-sm">Verified</span>
                                 </div>

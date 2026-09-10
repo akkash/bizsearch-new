@@ -52,8 +52,8 @@ import { toast } from 'sonner';
 const roleColors: Record<string, string> = {
     admin: 'bg-red-100 text-red-800',
     seller: 'bg-blue-100 text-blue-800',
-    buyer: 'bg-green-100 text-green-800',
-    franchisor: 'bg-growth-green/10 text-purple-800',
+    buyer: 'bg-secondary text-foreground',
+    franchisor: 'bg-growth-green/10 text-foreground',
     franchisee: 'bg-orange-100 text-orange-800',
     advisor: 'bg-teal-100 text-teal-800',
     broker: 'bg-secondary text-indigo-800',
@@ -257,7 +257,7 @@ export function AdminUsers() {
                                             </TableCell>
                                             <TableCell>
                                                 {user.verified ? (
-                                                    <CheckCircle className="h-5 w-5 text-green-600" />
+                                                    <CheckCircle className="h-5 w-5 text-foreground" />
                                                 ) : (
                                                     <XCircle className="h-5 w-5 text-muted-foreground" />
                                                 )}

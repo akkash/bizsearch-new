@@ -149,12 +149,12 @@ export function OnboardingStepVerification({
                     const uploadedDoc = getDocForType(type);
 
                     return (
-                        <Card key={type} className={uploadedDoc ? 'border-green-200 bg-green-50/50' : ''}>
+                        <Card key={type} className={uploadedDoc ? 'border-border bg-secondary/50' : ''}>
                             <CardHeader className="pb-3">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
-                                        <div className={`p-2 rounded-lg ${uploadedDoc ? 'bg-green-100' : 'bg-muted'}`}>
-                                            <Icon className={`h-5 w-5 ${uploadedDoc ? 'text-green-600' : 'text-muted-foreground'}`} />
+                                        <div className={`p-2 rounded-lg ${uploadedDoc ? 'bg-secondary' : 'bg-muted'}`}>
+                                            <Icon className={`h-5 w-5 ${uploadedDoc ? 'text-foreground' : 'text-muted-foreground'}`} />
                                         </div>
                                         <div>
                                             <CardTitle className="text-base">{config.title}</CardTitle>
@@ -164,7 +164,7 @@ export function OnboardingStepVerification({
                                         </div>
                                     </div>
                                     {uploadedDoc && (
-                                        <Badge variant="outline" className="bg-green-100 text-green-700 border-green-200">
+                                        <Badge variant="outline" className="bg-secondary text-foreground border-border">
                                             {uploadedDoc.status === 'uploading' ? (
                                                 <><Loader2 className="h-3 w-3 mr-1 animate-spin" /> Uploading</>
                                             ) : uploadedDoc.status === 'uploaded' ? (

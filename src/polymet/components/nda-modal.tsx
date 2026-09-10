@@ -138,7 +138,7 @@ export function NDAModal({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-4 text-center">
-            <FileText className="w-8 h-8 mx-auto mb-2 text-green-600" />
+            <FileText className="w-8 h-8 mx-auto mb-2 text-foreground" />
 
             <h4 className="font-medium">Protected Documents</h4>
             <p className="text-sm text-muted-foreground">
@@ -511,7 +511,7 @@ export function NDAModal({
 
   const renderConfirmation = () => (
     <div className="space-y-6 text-center">
-      <CheckCircle className="w-16 h-16 mx-auto text-green-600" />
+      <CheckCircle className="w-16 h-16 mx-auto text-foreground" />
 
       <div>
         <h3 className="text-xl font-semibold mb-2">NDA Signed Successfully!</h3>

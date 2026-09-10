@@ -74,15 +74,15 @@ export function RoleTabs({
         inactive: "text-blue-600 hover:bg-blue-50 border-transparent",
       },
       green: {
-        active: "bg-green-100 text-green-900 border-green-300",
-        inactive: "text-green-600 hover:bg-green-50 border-transparent",
+        active: "bg-secondary text-foreground border-border",
+        inactive: "text-foreground hover:bg-secondary border-transparent",
       },
       orange: {
         active: "bg-orange-100 text-orange-900 border-orange-300",
         inactive: "text-orange-600 hover:bg-orange-50 border-transparent",
       },
       purple: {
-        active: "bg-growth-green/10 text-purple-900 border-purple-300",
+        active: "bg-growth-green/10 text-foreground border-border",
         inactive: "text-growth-green hover:bg-accent border-transparent",
       },
       gray: {

@@ -127,7 +127,7 @@ export const FloatingLabelInput = forwardRef<
 
                         {/* Validation Status */}
                         {isValid && !error && (
-                            <CheckCircle className="h-4 w-4 text-green-500 animate-in fade-in duration-200" />
+                            <CheckCircle className="h-4 w-4 text-foreground animate-in fade-in duration-200" />
                         )}
                         {error && (
                             <AlertCircle className="h-4 w-4 text-destructive animate-in fade-in duration-200" />

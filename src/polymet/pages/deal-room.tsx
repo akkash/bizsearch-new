@@ -49,7 +49,7 @@ const categoryIcons: Record<string, any> = {
 };
 
 const categoryColors: Record<string, string> = {
-    financial: 'bg-green-100 text-green-800',
+    financial: 'bg-secondary text-foreground',
     legal: 'bg-growth-green/10 text-growth-green',
     operational: 'bg-blue-100 text-blue-800',
     overview: 'bg-orange-100 text-orange-800',
@@ -353,7 +353,7 @@ export function DealRoomPage() {
                             </div>
                             <div className="flex items-center justify-between">
                                 <span className="text-muted-foreground">NDA Signed Buyers</span>
-                                <span className="font-semibold text-green-600">{signedNdas}</span>
+                                <span className="font-semibold text-foreground">{signedNdas}</span>
                             </div>
                             <div className="flex items-center justify-between">
                                 <span className="text-muted-foreground">Pending NDA</span>

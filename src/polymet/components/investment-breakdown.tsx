@@ -220,7 +220,7 @@ export function InvestmentBreakdown({
               </div>
             </div>
             <div className="text-center p-4 bg-muted rounded-lg">
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-2xl font-bold text-foreground">
                 ₹{((totalInvestment - requiredInvestment) / 100000).toFixed(1)}L
               </div>
               <div className="text-sm text-muted-foreground">
@@ -287,7 +287,7 @@ export function InvestmentBreakdown({
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <span>Payment: {item.paymentTiming}</span>
                       {item.financingAvailable && (
-                        <span className="text-green-600">
+                        <span className="text-foreground">
                           Financing Available
                         </span>
                       )}
@@ -602,15 +602,15 @@ export function InvestmentBreakdown({
             </div>
 
             {selectedFinancing.length > 0 && (
-              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+              <div className="p-4 bg-secondary border border-border rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
-                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <CheckCircle className="h-4 w-4 text-foreground" />
 
-                  <span className="font-medium text-green-800">
+                  <span className="font-medium text-foreground">
                     Financing Summary
                   </span>
                 </div>
-                <div className="text-sm text-green-700">
+                <div className="text-sm text-foreground">
                   <p>
                     Total financing available: ₹
                     {(getFinancingAmount() / 100000).toFixed(1)}L

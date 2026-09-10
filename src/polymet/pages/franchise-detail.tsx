@@ -23,8 +23,10 @@ import { ComparisonFeature } from "@/polymet/components/comparison-feature";
 import {
   findStoreFormat,
   getFranchiseInvestmentRange,
+  getListingRequirements,
   getStoreFormatsFromFranchise,
 } from "@/lib/store-formats";
+import { VabgoSiteLink } from "@/components/vabgo-site-link";
 
 interface FranchiseDetailProps {
   className?: string;
@@ -191,15 +193,26 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
-          <h2 className="text-2xl font-bold">Franchise Not Found</h2>
+          <h2 className="font-display text-3xl font-bold uppercase tracking-tight">
+            No details found in the table.
+          </h2>
           <p className="text-muted-foreground">
-            This franchise may be unavailable or no longer published.
+            This franchise may be unpublished or the link is incorrect.
           </p>
           <Button onClick={() => navigate("/franchises")}>Browse Franchises</Button>
         </div>
       </div>
     );
   }
+
+  const listingReqs = getListingRequirements(franchise);
+  const vabgoIntent = {
+    city: listingReqs.preferredCities[0],
+    propertyType: selectedFormat?.propertyType || listingReqs.propertyType,
+    minAreaSqft: selectedFormat?.minSqft ?? listingReqs.minAreaSqft,
+    maxAreaSqft: selectedFormat?.maxSqft ?? listingReqs.maxAreaSqft,
+    listingType: "Rent" as const,
+  };
 
   return (
     <div className={cn("min-h-screen bg-background", className)}>
@@ -214,14 +227,14 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
               <Separator orientation="vertical" className="h-6 hidden sm:block" />
               <div className="flex items-center gap-3 min-w-0">
                 {logo ? (
-                  <img src={logo} alt={brandName} className="w-12 h-12 rounded-lg object-cover" />
+                  <img src={logo} alt={brandName} className="w-12 h-12 object-contain border border-border" />
                 ) : (
-                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center font-bold text-primary">
+                  <div className="w-12 h-12 border-2 border-foreground flex items-center justify-center font-display font-bold">
                     {brandName.charAt(0)}
                   </div>
                 )}
                 <div className="min-w-0">
-                  <h1 className="text-xl sm:text-2xl font-bold truncate">{brandName}</h1>
+                  <h1 className="font-display text-2xl sm:text-3xl font-bold uppercase tracking-tight truncate">{brandName}</h1>
                   <p className="text-sm text-muted-foreground truncate">
                     {franchise.industry}
                     {franchise.establishedYear || franchise.established_year
@@ -249,7 +262,7 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
                 variant="outline"
                 size="sm"
                 onClick={handleCompare}
-                className={cn(compared && "border-growth-green text-growth-green")}
+                className={cn(compared && "border-foreground")}
               >
                 <GitCompareArrows className="h-4 w-4 mr-2" />
                 {compared ? "In Compare" : "Compare"}
@@ -268,7 +281,7 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
               </Button>
               <Button
                 size="sm"
-                className="bg-growth-green hover:bg-growth-green/90 text-white"
+                className="bg-foreground text-background hover:bg-foreground/80"
                 onClick={handleApply}
               >
                 <FileTextIcon className="h-4 w-4 mr-2" />
@@ -282,7 +295,7 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
       {/* Mobile sticky Contact CTA */}
       <div className="fixed bottom-16 left-0 right-0 z-20 p-3 md:hidden border-t border-border bg-background/95 backdrop-blur-md">
         <Button
-          className="w-full bg-growth-green hover:bg-growth-green/90 text-white"
+          className="w-full"
           onClick={() => setShowContactForm(true)}
         >
           Contact
@@ -299,7 +312,6 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
         <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center pb-8">
           <Button
             size="lg"
-            className="bg-growth-green hover:bg-growth-green/90 text-white"
             onClick={() => setShowContactForm(true)}
           >
             Request Franchise Information
@@ -307,6 +319,10 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
           <Button size="lg" variant="outline" onClick={handleApply}>
             Start Application
           </Button>
+          <VabgoSiteLink
+            size="lg"
+            intent={vabgoIntent}
+          />
           <Button size="lg" variant="ghost" asChild>
             <Link to="/franchises">Browse More Franchises</Link>
           </Button>

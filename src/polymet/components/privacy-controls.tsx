@@ -73,7 +73,7 @@ const visibilityOptions = [
     label: "Public",
     description: "Visible to everyone",
     icon: Globe,
-    color: "text-green-600",
+    color: "text-foreground",
   },
   {
     value: "verified-only",

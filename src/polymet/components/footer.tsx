@@ -9,10 +9,7 @@ import {
   Linkedin,
   Instagram,
   Youtube,
-  Shield,
   CheckCircle,
-  Award,
-  Lock,
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
@@ -222,6 +219,16 @@ export function Footer() {
                   Investment / ROI
                 </Link>
               </li>
+              <li>
+                <a
+                  href="https://vabgo.com/commercial"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-background/60 hover:opacity-60 transition-colors"
+                >
+                  Commercial property (VABGO)
+                </a>
+              </li>
             </ul>
           </div>
 
@@ -396,25 +403,10 @@ export function Footer() {
 
         <Separator className="bg-white/10 mb-6" />
 
-        {/* Trust Badges */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="flex items-center gap-2 p-3 bg-white/5 rounded-md border border-white/10">
-            <Shield className="h-5 w-5 text-background flex-shrink-0" />
-            <span className="text-xs text-background/70">Listing moderation</span>
-          </div>
-          <div className="flex items-center gap-2 p-3 bg-white/5 rounded-md border border-white/10">
-            <Lock className="h-5 w-5 text-background/70 flex-shrink-0" />
-            <span className="text-xs text-background/70">Secure platform</span>
-          </div>
-          <div className="flex items-center gap-2 p-3 bg-white/5 rounded-md border border-white/10">
-            <CheckCircle className="h-5 w-5 text-background flex-shrink-0" />
-            <span className="text-xs text-background/70">Verification levels</span>
-          </div>
-          <div className="flex items-center gap-2 p-3 bg-white/5 rounded-md border border-white/10">
-            <Award className="h-5 w-5 text-amber-400 flex-shrink-0" />
-            <span className="text-xs text-background/70">Transparent listings</span>
-          </div>
-        </div>
+        {/* Trust */}
+        <p className="text-xs uppercase tracking-widest text-background/50 mb-6">
+          Listing moderation · Secure platform · Verification levels · Transparent listings
+        </p>
 
         <Separator className="bg-white/10 mb-6" />
 

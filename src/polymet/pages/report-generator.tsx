@@ -229,7 +229,7 @@ export function ReportGeneratorPage() {
                                                 <Loader2 className="h-4 w-4 animate-spin text-primary" />
                                             )}
                                             {section.status === 'complete' && (
-                                                <CheckCircle className="h-4 w-4 text-green-500" />
+                                                <CheckCircle className="h-4 w-4 text-foreground" />
                                             )}
                                             <span className={section.status === 'complete' ? 'text-muted-foreground' : ''}>
                                                 {section.title}

@@ -34,7 +34,7 @@ export function ProfileHeader({
   const getVerificationIcon = () => {
     switch (profile.verificationStatus) {
       case "verified":
-        return <ShieldCheck className="w-4 h-4 text-green-600" />;
+        return <ShieldCheck className="w-4 h-4 text-foreground" />;
 
       case "pending":
         return <Clock className="w-4 h-4 text-yellow-600" />;
@@ -46,7 +46,7 @@ export function ProfileHeader({
 
   const getVerificationBadge = () => {
     const variants = {
-      verified: "bg-green-100 text-green-800 border-green-200",
+      verified: "bg-secondary text-foreground border-border",
       pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
       unverified: "bg-secondary text-muted-foreground border-border",
     };
@@ -69,7 +69,7 @@ export function ProfileHeader({
       buyer: {
         label: "Business Buyer",
         icon: TrendingUp,
-        color: "bg-green-100 text-green-800 border-green-200",
+        color: "bg-secondary text-foreground border-border",
       },
       franchisor: {
         label: "Franchisor",
@@ -79,7 +79,7 @@ export function ProfileHeader({
       franchisee: {
         label: "Franchisee",
         icon: Award,
-        color: "bg-growth-green/10 text-purple-800 border-growth-green/30",
+        color: "bg-growth-green/10 text-foreground border-growth-green/30",
       },
       advisor: {
         label: "Advisor/Broker",

@@ -47,9 +47,9 @@ const notificationIcons: Record<NotificationType, any> = {
 const notificationColors: Record<NotificationType, string> = {
   inquiry: "text-blue-500",
   message: "text-growth-green",
-  listing_approved: "text-green-500",
+  listing_approved: "text-foreground",
   listing_rejected: "text-red-500",
-  verification_approved: "text-green-500",
+  verification_approved: "text-foreground",
   verification_rejected: "text-red-500",
   saved_listing_update: "text-pink-500",
   new_inquiry: "text-blue-500",
@@ -193,7 +193,7 @@ export function NotificationsPage({ className }: NotificationsPageProps) {
                     <p className="text-sm text-muted-foreground">Read</p>
                     <p className="text-2xl font-bold">{notifications.length - unreadCount}</p>
                   </div>
-                  <MailOpen className="h-8 w-8 text-green-500" />
+                  <MailOpen className="h-8 w-8 text-foreground" />
                 </div>
               </CardContent>
             </Card>

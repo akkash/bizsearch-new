@@ -360,15 +360,15 @@ export function AddBusinessListingPage({
 
           <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
-              <CheckCircle className="h-4 w-4 text-green-600" />
+              <CheckCircle className="h-4 w-4 text-foreground" />
               <span>Free to list</span>
             </div>
             <div className="flex items-center gap-1">
-              <CheckCircle className="h-4 w-4 text-green-600" />
+              <CheckCircle className="h-4 w-4 text-foreground" />
               <span>Confidential</span>
             </div>
             <div className="flex items-center gap-1">
-              <CheckCircle className="h-4 w-4 text-green-600" />
+              <CheckCircle className="h-4 w-4 text-foreground" />
               <span>24/7 support</span>
             </div>
           </div>

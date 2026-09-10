@@ -403,7 +403,9 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
     return (
       <div className={cn("min-h-screen bg-background", className)}>
         <div className="container mx-auto px-4 py-8">
-          <h1 className="text-3xl font-bold mb-6">Franchise Opportunities</h1>
+          <h1 className="font-display text-3xl md:text-5xl font-bold uppercase tracking-tight mb-6">
+            Franchise Opportunities
+          </h1>
           <SkeletonLoader type="card" count={6} />
         </div>
       </div>
@@ -417,7 +419,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
         <div className="container mx-auto px-4 py-8">
           <EmptyState
             type="error"
-            title="Unable to Load Franchises"
+            title="No details found in the table."
             description={error}
             actionText="Try Again"
             onAction={() => window.location.reload()}
@@ -427,15 +429,22 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
     );
   }
 
-  // Empty database state
-  if (!loading && !error && franchises.length === 0) {
+  // Empty database state — not a filtered search with zero hits
+  const hasActiveQuery = Boolean(
+    urlSearchQuery ||
+      searchQuery.trim() ||
+      filters ||
+      selectedInvestmentRange ||
+      currentCategory
+  );
+  if (!loading && !error && franchises.length === 0 && !hasActiveQuery) {
     return (
       <div className={cn("min-h-screen bg-background", className)}>
         <div className="container mx-auto px-4 py-8">
           <EmptyState
             type="no-data"
-            title="No Active Franchise Opportunities"
-            description="No active franchise opportunities are currently available."
+            title="No details found in the table."
+            description="Listings will appear here when they are published."
             actionText="List Your Franchise"
             actionLink="/add-franchise-listing"
           />
@@ -479,7 +488,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
           )}
 
           <div className="mb-6">
-            <h1 className="text-2xl md:text-3xl font-bold mb-2 text-foreground">
+            <h1 className="font-display text-3xl md:text-5xl font-bold uppercase tracking-tight mb-3 text-foreground">
               {(() => {
                 const categoryName = currentSubcategory?.name || currentCategory?.name || '';
                 const locationName = filters?.city?.length
@@ -511,7 +520,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
                 <Link
                   key={cat.id}
                   to={`/franchises?category=${cat.slug}`}
-                  className="px-3 py-1.5 text-sm rounded-md bg-secondary border border-border text-foreground hover:bg-secondary/80 transition-colors"
+                  className="px-3 py-1.5 text-sm border-2 border-foreground/20 hover:bg-foreground hover:text-background transition-colors"
                 >
                   {cat.name}
                 </Link>
@@ -524,10 +533,10 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
               <Link
                 to={`/franchises?category=${currentCategory.slug}`}
                 className={cn(
-                  "px-3 py-1.5 text-sm rounded-md border transition-colors",
+                  "px-3 py-1.5 text-sm border-2 transition-colors",
                   !currentSubcategory
-                    ? "bg-growth-green text-white border-growth-green"
-                    : "bg-secondary border-border text-foreground hover:bg-secondary/80"
+                    ? "bg-foreground text-background border-foreground"
+                    : "border-foreground/20 hover:bg-foreground hover:text-background"
                 )}
               >
                 All {currentCategory.name}
@@ -537,10 +546,10 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
                   key={sub.id}
                   to={`/franchises?category=${currentCategory.slug}&subcategory=${sub.slug}`}
                   className={cn(
-                    "px-3 py-1.5 text-sm rounded-md border transition-colors",
+                    "px-3 py-1.5 text-sm border-2 transition-colors",
                     currentSubcategory?.id === sub.id
-                      ? "bg-growth-green text-white border-growth-green"
-                      : "bg-secondary border-border text-foreground hover:bg-secondary/80"
+                      ? "bg-foreground text-background border-foreground"
+                      : "border-foreground/20 hover:bg-foreground hover:text-background"
                   )}
                 >
                   {sub.name}
@@ -568,7 +577,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
             >
               <ToggleGroupItem
                 value=""
-                className="px-3 py-1.5 text-sm rounded-md border border-border bg-secondary data-[state=on]:bg-growth-green data-[state=on]:text-white data-[state=on]:border-growth-green text-foreground hover:bg-secondary/80 transition-colors"
+                className="px-3 py-1.5 text-sm border-2 border-foreground/20 bg-transparent data-[state=on]:bg-foreground data-[state=on]:text-background data-[state=on]:border-foreground text-foreground hover:bg-foreground hover:text-background transition-colors"
               >
                 All Ranges
               </ToggleGroupItem>
@@ -576,7 +585,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
                 <ToggleGroupItem
                   key={range.label}
                   value={range.label}
-                  className="px-3 py-1.5 text-sm rounded-md border border-border bg-secondary data-[state=on]:bg-growth-green data-[state=on]:text-white data-[state=on]:border-growth-green text-foreground hover:bg-secondary/80 transition-colors"
+                  className="px-3 py-1.5 text-sm border-2 border-foreground/20 bg-transparent data-[state=on]:bg-foreground data-[state=on]:text-background data-[state=on]:border-foreground text-foreground hover:bg-foreground hover:text-background transition-colors"
                 >
                   {range.label}
                 </ToggleGroupItem>
@@ -831,14 +840,14 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
               </Card>
             )}
 
-            {filteredFranchises.length === 0 && franchises.length > 0 && (
+            {filteredFranchises.length === 0 && (
               <Card>
                 <CardContent className="p-12 text-center">
                   <SearchIcon className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
 
-                  <h3 className="font-semibold mb-2">No franchises match your current criteria.</h3>
+                  <h3 className="font-display text-xl font-bold uppercase tracking-tight mb-2">No details found in the table.</h3>
                   <p className="text-muted-foreground mb-4">
-                    Try adjusting your search criteria or filters.
+                    Try a broader search or clear filters.
                   </p>
                   <Button
                     variant="outline"

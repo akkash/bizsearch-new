@@ -140,7 +140,7 @@ const mockTerritories: Territory[] = [
 
 const statusConfig = {
   available: {
-    color: "bg-green-100 text-green-800",
+    color: "bg-secondary text-foreground",
     icon: CheckCircleIcon,
     label: "Available",
   },
@@ -331,7 +331,7 @@ export function TerritoryAvailability({
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-2">
-              <CheckCircleIcon className="h-5 w-5 text-green-500" />
+              <CheckCircleIcon className="h-5 w-5 text-foreground" />
 
               <div>
                 <p className="text-sm text-muted-foreground">Available</p>
@@ -373,7 +373,7 @@ export function TerritoryAvailability({
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-2">
-              <DollarSignIcon className="h-5 w-5 text-green-500" />
+              <DollarSignIcon className="h-5 w-5 text-foreground" />
 
               <div>
                 <p className="text-sm text-muted-foreground">Avg ROI</p>
@@ -483,7 +483,7 @@ export function TerritoryAvailability({
                         Est. ROI
                       </span>
                     </div>
-                    <p className="font-semibold text-green-600">
+                    <p className="font-semibold text-foreground">
                       {territory.estimatedROI}%
                     </p>
                   </div>
@@ -522,7 +522,7 @@ export function TerritoryAvailability({
                   <div className="space-y-2">
                     <h4 className="font-medium text-sm">Performance Metrics</h4>
                     <div className="grid grid-cols-3 gap-2 text-sm">
-                      <div className="text-center p-2 bg-green-50 rounded">
+                      <div className="text-center p-2 bg-secondary rounded">
                         <p className="text-xs text-muted-foreground">Revenue</p>
                         <p className="font-semibold">
                           {formatCurrency(

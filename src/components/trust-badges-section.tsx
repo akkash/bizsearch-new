@@ -34,8 +34,8 @@ const trustBadges = [
         icon: Shield,
         title: "100% Verified Listings",
         description: "Every listing is manually verified before going live",
-        color: "text-green-600 dark:text-green-400",
-        bgColor: "bg-green-50 dark:bg-green-900/20",
+        color: "text-foreground dark:text-green-400",
+        bgColor: "bg-secondary dark:bg-green-900/20",
     },
     {
         icon: Lock,

@@ -132,7 +132,7 @@ async function resolveOwnerEmails(userIds: string[]): Promise<Map<string, string
 
 const statusColors = {
     pending: 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300',
-    verified: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300',
+    verified: 'bg-secondary text-foreground dark:bg-emerald-900/50 dark:text-emerald-300',
     rejected: 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300',
     unverified: 'bg-secondary text-foreground dark:bg-gray-800 dark:text-gray-300',
 };

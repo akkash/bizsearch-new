@@ -38,8 +38,12 @@ import {
     formatInvestmentRange,
     formatStoreFormatSpace,
     getFranchiseInvestmentRange,
+    getListingRequirements,
     getStoreFormatsFromFranchise,
 } from '@/lib/store-formats';
+import { VabgoSiteLink } from '@/components/vabgo-site-link';
+import { VabgoSitePanel } from '@/components/vabgo-site-panel';
+import { hasSearchableIntent } from '@/lib/vabgo-client';
 
 interface FranchiseBentoViewProps {
     franchise: any;
@@ -99,12 +103,20 @@ export function FranchiseBentoView({
         (totalInvestmentMin && franchiseFee
             ? Math.max(0, Number(totalInvestmentMin) - Number(franchiseFee))
             : null);
+    const listingReqs = getListingRequirements(franchise);
     const spaceReq = selectedFormat
         ? formatStoreFormatSpace(selectedFormat)
         : franchise.space_requirement ||
           franchise.min_area_sqft ||
           franchise.spaceRequirement ||
           franchise.space_required_sqft;
+    const vabgoIntent = {
+        city: listingReqs.preferredCities[0] || franchise.city || franchise.headquarters_city,
+        propertyType: selectedFormat?.propertyType || listingReqs.propertyType,
+        minAreaSqft: selectedFormat?.minSqft ?? listingReqs.minAreaSqft,
+        maxAreaSqft: selectedFormat?.maxSqft ?? listingReqs.maxAreaSqft,
+        listingType: 'Rent' as const,
+    };
     const verificationStatus =
         franchise.verificationStatus || franchise.verification_status;
 
@@ -315,13 +327,29 @@ export function FranchiseBentoView({
                         </div>
                     </div>
                 </div>
-                {spaceReq && (
-                    <p className="text-sm text-muted-foreground mt-4">
-                        Space requirement:{' '}
-                        <span className="text-foreground font-medium">
-                            {typeof spaceReq === 'number' ? `${spaceReq} sq ft` : spaceReq}
-                        </span>
-                    </p>
+                {(spaceReq || listingReqs.propertyType || listingReqs.preferredCities.length > 0) && (
+                    <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        {spaceReq ? (
+                            <p className="text-sm text-muted-foreground">
+                                Space requirement:{' '}
+                                <span className="text-foreground font-medium">
+                                    {typeof spaceReq === 'number' ? `${spaceReq} sq ft` : spaceReq}
+                                </span>
+                            </p>
+                        ) : (
+                            <p className="text-sm text-muted-foreground">
+                                Need a commercial site for this format?
+                            </p>
+                        )}
+                        <VabgoSiteLink intent={vabgoIntent} />
+                    </div>
+                )}
+                {hasSearchableIntent(vabgoIntent) && (
+                    <VabgoSitePanel
+                        className="mt-4"
+                        intent={vabgoIntent}
+                        heading="Matching commercial sites"
+                    />
                 )}
             </div>
 

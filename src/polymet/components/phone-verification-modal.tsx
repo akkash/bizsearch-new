@@ -138,7 +138,7 @@ export function PhoneVerificationModal({
                         </div>
                     ) : (
                         <div className="space-y-4">
-                            <div className="p-3 bg-green-50 text-green-700 text-sm rounded-md flex items-center gap-2">
+                            <div className="p-3 bg-secondary text-foreground text-sm rounded-md flex items-center gap-2">
                                 <CheckCircle className="w-4 h-4" />
                                 OTP sent to {phone}
                             </div>

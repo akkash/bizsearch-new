@@ -44,7 +44,7 @@ import { toast } from 'sonner';
 
 const statusColors: Record<string, string> = {
     pending_review: 'bg-yellow-100 text-yellow-800',
-    active: 'bg-green-100 text-green-800',
+    active: 'bg-secondary text-foreground',
     rejected: 'bg-red-100 text-red-800',
     draft: 'bg-secondary text-foreground',
     sold: 'bg-blue-100 text-blue-800',
@@ -212,7 +212,7 @@ export function AdminListings() {
                                                             <Button
                                                                 size="sm"
                                                                 variant="outline"
-                                                                className="text-green-600"
+                                                                className="text-foreground"
                                                                 onClick={() => setActionDialog({ open: true, listing, action: 'approve' })}
                                                             >
                                                                 <CheckCircle className="h-4 w-4 mr-1" />

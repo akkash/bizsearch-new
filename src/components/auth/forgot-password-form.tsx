@@ -65,8 +65,8 @@ export function ForgotPasswordForm() {
     return (
       <Card className="w-full max-w-md mx-auto">
         <CardHeader>
-          <div className="flex items-center justify-center w-12 h-12 bg-green-100 dark:bg-green-900 rounded-full mx-auto mb-4">
-            <Mail className="h-6 w-6 text-green-600 dark:text-green-400" />
+          <div className="flex items-center justify-center w-12 h-12 bg-secondary dark:bg-green-900 rounded-full mx-auto mb-4">
+            <Mail className="h-6 w-6 text-foreground dark:text-green-400" />
           </div>
           <CardTitle className="text-center">Check Your Email</CardTitle>
           <CardDescription className="text-center">

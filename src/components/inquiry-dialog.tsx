@@ -221,7 +221,7 @@ export function InquiryDialog({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-md">
           <div className="text-center py-8">
-            <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
+            <CheckCircle className="h-16 w-16 text-foreground mx-auto mb-4" />
             <h3 className="text-xl font-semibold mb-2">Enquiry Sent</h3>
             <p className="text-muted-foreground">
               {listingType === 'franchise'
@@ -267,8 +267,8 @@ export function InquiryDialog({
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center flex-shrink-0">
-                  <Bell className="h-4 w-4 text-green-600" />
+                <div className="w-8 h-8 rounded-full bg-secondary0/10 flex items-center justify-center flex-shrink-0">
+                  <Bell className="h-4 w-4 text-foreground" />
                 </div>
                 <div>
                   <div className="font-medium text-sm">Get notifications</div>

@@ -55,7 +55,7 @@ interface Inquiry {
 const statusConfig: Record<string, { color: string; icon: any }> = {
     pending: { color: 'bg-yellow-100 text-yellow-800', icon: Clock },
     responded: { color: 'bg-blue-100 text-blue-800', icon: MessageSquare },
-    approved: { color: 'bg-green-100 text-green-800', icon: CheckCircle },
+    approved: { color: 'bg-secondary text-foreground', icon: CheckCircle },
     rejected: { color: 'bg-red-100 text-red-800', icon: XCircle },
 };
 
@@ -218,7 +218,7 @@ export function BuyerInquiriesPage() {
                                                         {inquiry.status}
                                                     </Badge>
                                                     {inquiry.nda_signed && (
-                                                        <Badge variant="outline" className="text-green-600">
+                                                        <Badge variant="outline" className="text-foreground">
                                                             <FileText className="h-3 w-3 mr-1" />
                                                             NDA Signed
                                                         </Badge>
@@ -266,7 +266,7 @@ export function BuyerInquiriesPage() {
                                                             {inquiry.status === 'pending' && (
                                                                 <>
                                                                     <DropdownMenuItem onClick={() => updateStatus(inquiry.id, 'approved')}>
-                                                                        <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
+                                                                        <CheckCircle className="h-4 w-4 mr-2 text-foreground" />
                                                                         Approve & Send NDA
                                                                     </DropdownMenuItem>
                                                                     <DropdownMenuItem onClick={() => updateStatus(inquiry.id, 'rejected')}>

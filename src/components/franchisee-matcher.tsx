@@ -15,6 +15,8 @@ import {
 import { AIFranchiseeMatcherService, type FranchiseeProfile } from '@/lib/ai-franchisee-matcher-service';
 import { FranchiseeIntentService } from '@/lib/franchisee-intent-service';
 import { InquiryService } from '@/lib/inquiry-service';
+import { VabgoSiteLink } from '@/components/vabgo-site-link';
+import { VabgoSitePanel } from '@/components/vabgo-site-panel';
 import { useAuth } from '@/contexts/AuthContext';
 import type { ExtendedProfile } from '@/types/auth.types';
 import { cn } from '@/lib/utils';
@@ -175,7 +177,7 @@ export function FranchiseeMatcher({ onClose, className }: FranchiseeMatcherProps
     setEnquiringId(match.franchise.franchiseId);
     try {
       await persistIntent(buildMatcherProfile()!);
-      await InquiryService.enquireFromMatch({
+      const inquiryId = await InquiryService.enquireFromMatch({
         senderId: user.id,
         listingId: match.franchise.franchiseId,
         contactEmail: email,
@@ -184,7 +186,7 @@ export function FranchiseeMatcher({ onClose, className }: FranchiseeMatcherProps
         brandName: match.franchise.brandName,
       });
       toast.success(`Enquiry sent for ${match.franchise.brandName}`);
-      navigate(`/franchise/${match.franchise.franchiseId}?contact=true`);
+      navigate(`/buyer-inquiries?inquiry=${inquiryId}`);
     } catch (error) {
       console.error('Error creating match enquiry:', error);
       toast.error('Failed to send enquiry');
@@ -194,9 +196,9 @@ export function FranchiseeMatcher({ onClose, className }: FranchiseeMatcherProps
   };
 
   const getMatchColor = (score: number) => {
-    if (score >= 80) return 'text-green-600 bg-green-50 border-green-200';
-    if (score >= 65) return 'text-blue-600 bg-blue-50 border-blue-200';
-    if (score >= 45) return 'text-orange-600 bg-orange-50 border-orange-200';
+    if (score >= 80) return 'text-foreground bg-foreground/5 border-foreground';
+    if (score >= 65) return 'text-foreground bg-secondary border-border';
+    if (score >= 45) return 'text-muted-foreground bg-muted border-border';
     return 'text-muted-foreground bg-muted border-border';
   };
 
@@ -353,14 +355,26 @@ export function FranchiseeMatcher({ onClose, className }: FranchiseeMatcherProps
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
                 <h3 className="text-lg font-semibold">
                   {matches.length > 0 ? `Top ${matches.length} Matches` : 'No Matches Found'}
                 </h3>
-                <Button variant="outline" size="sm" onClick={() => setStep('profile')}>
-                  Refine Search
-                </Button>
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="outline" size="sm" onClick={() => setStep('profile')}>
+                    Refine Search
+                  </Button>
+                </div>
               </div>
+
+              <VabgoSitePanel
+                intent={{
+                  city: profileData.preferredLocations?.[0],
+                  areaSqft: profileData.spaceAvailable ?? null,
+                  listingType: 'Rent',
+                  limit: 5,
+                }}
+                heading="Sites that match your location"
+              />
 
               {matches.map((match, index) => (
                 <Card key={`${match.franchise.franchiseId}-${index}`} className={cn('border-2', getMatchColor(match.matchScore))}>
@@ -416,7 +430,7 @@ export function FranchiseeMatcher({ onClose, className }: FranchiseeMatcherProps
                       <div className="mt-3 pt-3 border-t space-y-2">
                         {match.strengths.slice(0, 4).map((strength, i) => (
                           <div key={`s-${i}`} className="text-xs flex items-start gap-1">
-                            <span className="text-green-600">✓</span>
+                            <span className="text-foreground">✓</span>
                             <span>{strength}</span>
                           </div>
                         ))}
@@ -431,7 +445,7 @@ export function FranchiseeMatcher({ onClose, className }: FranchiseeMatcherProps
 
                     <div className="flex flex-col sm:flex-row gap-2 mt-3">
                       <Button
-                        className="flex-1 bg-growth-green hover:bg-growth-green/90 text-white"
+                        className="flex-1"
                         size="sm"
                         disabled={enquiringId === match.franchise.franchiseId}
                         onClick={() => handleEnquire(match)}
@@ -448,6 +462,20 @@ export function FranchiseeMatcher({ onClose, className }: FranchiseeMatcherProps
                       >
                         View details
                       </Button>
+                      <VabgoSiteLink
+                        className="flex-1"
+                        intent={{
+                          city:
+                            match.franchise.preferredCities?.[0] ||
+                            profileData.preferredLocations?.[0],
+                          propertyType: match.franchise.propertyType,
+                          minAreaSqft: match.franchise.minAreaSqft,
+                          maxAreaSqft: match.franchise.maxAreaSqft,
+                          areaSqft: profileData.spaceAvailable ?? null,
+                          listingType: 'Rent',
+                        }}
+                        label="Find a site"
+                      />
                     </div>
                   </CardContent>
                 </Card>

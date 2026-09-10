@@ -196,7 +196,7 @@ export function FranchisePreview({
                     </div>
                   </div>
                   <div className="text-center p-4 bg-muted rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">
+                    <div className="text-2xl font-bold text-foreground">
                       {data.investment?.averageROI || "N/A"}%
                     </div>
                     <div className="text-sm text-muted-foreground">
@@ -246,7 +246,7 @@ export function FranchisePreview({
                       {data.description.uniqueSellingPoints.map(
                         (usp, index) => (
                           <div key={index} className="flex items-start gap-2">
-                            <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                            <CheckCircle className="h-5 w-5 text-foreground mt-0.5 flex-shrink-0" />
 
                             <span className="text-sm">{usp}</span>
                           </div>
@@ -434,7 +434,7 @@ export function FranchisePreview({
 
                 <div className="flex items-center justify-between text-sm">
                   <span className="font-medium">ROI:</span>
-                  <span className="text-green-600">
+                  <span className="text-foreground">
                     {data.investment?.averageROI || "N/A"}%
                   </span>
                 </div>
@@ -579,7 +579,7 @@ export function FranchisePreview({
                           key={index}
                           className="flex items-center gap-2 text-sm"
                         >
-                          <CheckCircle className="h-3 w-3 text-green-600" />
+                          <CheckCircle className="h-3 w-3 text-foreground" />
 
                           <span>{usp}</span>
                         </div>

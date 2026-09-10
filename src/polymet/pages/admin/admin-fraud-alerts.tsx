@@ -75,7 +75,7 @@ export function AdminFraudAlerts() {
         if (score >= 80) return 'bg-red-100 text-red-800';
         if (score >= 60) return 'bg-orange-100 text-orange-800';
         if (score >= 40) return 'bg-yellow-100 text-yellow-800';
-        return 'bg-green-100 text-green-800';
+        return 'bg-secondary text-foreground';
     };
 
     const getEntityLink = (alert: FraudAlert) => {
@@ -125,7 +125,7 @@ export function AdminFraudAlerts() {
                 <Card>
                     <CardContent className="p-6">
                         <div className="flex items-center gap-4">
-                            <div className="p-3 rounded-lg bg-green-100 text-green-600">
+                            <div className="p-3 rounded-lg bg-secondary text-foreground">
                                 <CheckCircle className="h-6 w-6" />
                             </div>
                             <div>
@@ -201,7 +201,7 @@ export function AdminFraudAlerts() {
                                                 <Button
                                                     size="sm"
                                                     variant="outline"
-                                                    className="text-green-600"
+                                                    className="text-foreground"
                                                     disabled={actingId === alert.id}
                                                     onClick={() => handleResolve(alert.id, 'reviewed')}
                                                     title="Resolve"

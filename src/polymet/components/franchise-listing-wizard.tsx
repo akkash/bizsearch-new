@@ -1132,7 +1132,8 @@ export function FranchiseListingWizard({
               <Separator />
               <h4 className="font-semibold text-lg">Location requirements</h4>
               <p className="text-sm text-muted-foreground">
-                Structured site criteria for matching — not a property listing.
+                Structured site criteria for matching. Franchisees find commercial
+                property on VABGO — do not list properties here.
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1750,7 +1751,7 @@ export function FranchiseListingWizard({
                       isCurrent
                         ? "border-primary bg-primary/5 ring-2 ring-primary/20"
                         : isCompleted
-                          ? "border-green-200 bg-green-50 dark:bg-green-950/30 dark:border-green-800"
+                          ? "border-border bg-secondary dark:bg-secondary dark:border-border"
                           : "border-muted hover:bg-muted/50"
                     )}
                   >
@@ -1760,7 +1761,7 @@ export function FranchiseListingWizard({
                         isCurrent
                           ? "bg-primary text-primary-foreground"
                           : isCompleted
-                            ? "bg-green-500 text-white"
+                            ? "bg-secondary0 text-white"
                             : "bg-muted"
                       )}
                     >
@@ -1779,7 +1780,7 @@ export function FranchiseListingWizard({
                       </div>
                     </div>
                     {isCompleted && (
-                      <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
+                      <CheckCircle className="h-4 w-4 text-foreground flex-shrink-0" />
                     )}
                   </button>
                 );

@@ -82,7 +82,7 @@ export function AdminAnalytics() {
             value: stats?.totalBusinesses || 0,
             subtitle: 'Listed on platform',
             icon: Building2,
-            color: 'text-green-600 bg-green-100',
+            color: 'text-foreground bg-secondary',
         },
         {
             title: 'Total Franchises',
@@ -228,7 +228,7 @@ export function AdminAnalytics() {
                             <p className="text-sm text-muted-foreground">Pending Documents</p>
                         </div>
                         <div className="p-4 bg-muted/50 rounded-lg">
-                            <p className="text-2xl font-bold text-green-600">
+                            <p className="text-2xl font-bold text-foreground">
                                 {((stats?.totalBusinesses || 0) + (stats?.totalFranchises || 0)).toLocaleString()}
                             </p>
                             <p className="text-sm text-muted-foreground">Total Listings</p>

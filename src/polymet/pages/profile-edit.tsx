@@ -121,7 +121,7 @@ export function ProfileEditPage({ className = "" }: ProfileEditPageProps) {
 
   const roleOptions: { value: UserRole; label: string; description: string; icon: any; color: string }[] = [
     { value: 'buyer', label: 'Business Buyer', description: 'Looking to acquire a business', icon: User, color: 'text-trust-blue' },
-    { value: 'seller', label: 'Business Seller', description: 'Looking to sell your business', icon: Building2, color: 'text-green-600' },
+    { value: 'seller', label: 'Business Seller', description: 'Looking to sell your business', icon: Building2, color: 'text-foreground' },
     { value: 'franchisor', label: 'Franchisor', description: 'Offering franchise opportunities', icon: Store, color: 'text-orange-600' },
     { value: 'franchisee', label: 'Franchisee', description: 'Looking for franchise opportunities', icon: Store, color: 'text-amber-600' },
     { value: 'advisor', label: 'Advisor / Broker', description: 'Business broker or consultant', icon: Briefcase, color: 'text-blue-600' },
@@ -267,7 +267,7 @@ export function ProfileEditPage({ className = "" }: ProfileEditPageProps) {
                     }
                     className={
                       verificationStatus === "verified"
-                        ? "bg-green-100 text-green-800"
+                        ? "bg-secondary text-foreground"
                         : "bg-yellow-100 text-yellow-800"
                     }
                   >
@@ -366,7 +366,7 @@ export function ProfileEditPage({ className = "" }: ProfileEditPageProps) {
               </div>
               {selectedRoles.length > 1 && (
                 <p className="text-sm text-muted-foreground flex items-center gap-1">
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                  <CheckCircle2 className="h-4 w-4 text-foreground" />
                   {selectedRoles.length} roles selected
                 </p>
               )}

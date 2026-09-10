@@ -225,18 +225,51 @@ export function NaturalLanguageSearch() {
                         </CardContent>
                     </Card>
 
-                    {/* Business Results */}
-                    {result.results.businesses.length > 0 && (
+                    {/* Franchise Results first — franchise spine, not business-sale AI */}
+                    {result.results.franchises.length > 0 && (
                         <div>
-                            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                            <h3 className="font-display text-2xl font-bold uppercase tracking-tight mb-4 flex items-center gap-2">
+                                <Store className="h-5 w-5" />
+                                Franchises ({result.meta.total_franchises})
+                            </h3>
+                            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {result.results.franchises.map((franchise) => (
+                                    <Card
+                                        key={franchise.id}
+                                        className="cursor-pointer border-2 border-foreground"
+                                        onClick={() => navigate(`/franchise/${franchise.slug || franchise.id}`)}
+                                    >
+                                        <CardContent className="p-4">
+                                            <div className="flex items-center gap-3">
+                                                {franchise.logo_url && (
+                                                    <img src={franchise.logo_url} alt="" className="h-10 w-10 object-contain border border-border" />
+                                                )}
+                                                <div>
+                                                    <h4 className="font-display font-bold uppercase line-clamp-1">{franchise.brand_name}</h4>
+                                                    <p className="text-sm text-muted-foreground">{franchise.industry}</p>
+                                                </div>
+                                            </div>
+                                            <div className="mt-3 font-bold text-lg font-mono tabular-nums">
+                                                {formatPrice(franchise.total_investment_min)} - {formatPrice(franchise.total_investment_max)}
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {result.intent.listing_type !== 'franchise' && result.results.businesses.length > 0 && (
+                        <div>
+                            <h3 className="font-display text-xl font-bold uppercase tracking-tight mb-4 flex items-center gap-2 text-muted-foreground">
                                 <Building2 className="h-5 w-5" />
-                                Businesses ({result.meta.total_businesses})
+                                Also: businesses ({result.meta.total_businesses})
                             </h3>
                             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {result.results.businesses.map((business) => (
                                     <Card
                                         key={business.id}
-                                        className="cursor-pointer border border-border hover:border-growth-green/40 transition-colors"
+                                        className="cursor-pointer border-2 border-border"
                                         onClick={() => navigate(`/business/${business.slug || business.id}`)}
                                     >
                                         <CardContent className="p-4">
@@ -246,42 +279,8 @@ export function NaturalLanguageSearch() {
                                                 <MapPin className="h-3 w-3" />
                                                 {business.city}, {business.state}
                                             </div>
-                                            <div className="mt-3 font-bold text-lg text-foreground">
+                                            <div className="mt-3 font-bold text-lg font-mono tabular-nums">
                                                 {formatPrice(business.price)}
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Franchise Results */}
-                    {result.results.franchises.length > 0 && (
-                        <div>
-                            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                                <Store className="h-5 w-5" />
-                                Franchises ({result.meta.total_franchises})
-                            </h3>
-                            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {result.results.franchises.map((franchise) => (
-                                    <Card
-                                        key={franchise.id}
-                                        className="cursor-pointer border border-border hover:border-growth-green/40 transition-colors"
-                                        onClick={() => navigate(`/franchise/${franchise.slug || franchise.id}`)}
-                                    >
-                                        <CardContent className="p-4">
-                                            <div className="flex items-center gap-3">
-                                                {franchise.logo_url && (
-                                                    <img src={franchise.logo_url} alt="" className="h-10 w-10 rounded-md object-cover border border-border" />
-                                                )}
-                                                <div>
-                                                    <h4 className="font-semibold line-clamp-1">{franchise.brand_name}</h4>
-                                                    <p className="text-sm text-muted-foreground">{franchise.industry}</p>
-                                                </div>
-                                            </div>
-                                            <div className="mt-3 font-bold text-lg text-foreground">
-                                                {formatPrice(franchise.total_investment_min)} - {formatPrice(franchise.total_investment_max)}
                                             </div>
                                         </CardContent>
                                     </Card>

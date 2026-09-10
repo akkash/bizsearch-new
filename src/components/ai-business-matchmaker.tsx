@@ -1,3 +1,8 @@
+/**
+ * Business-sale matchmaker. Do not import from franchise routes
+ * (/match, /franchises, enquire, applications). Franchise matching
+ * lives in FranchiseeMatcher + AIFranchiseeMatcherService.
+ */
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';

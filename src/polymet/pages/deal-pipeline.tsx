@@ -57,7 +57,7 @@ const stageConfig: Record<string, { label: string; color: string; bgColor: strin
     qualified: { label: 'Qualified', color: 'text-blue-700', bgColor: 'bg-blue-100' },
     proposal: { label: 'Proposal', color: 'text-yellow-700', bgColor: 'bg-yellow-100' },
     negotiation: { label: 'Negotiation', color: 'text-orange-700', bgColor: 'bg-orange-100' },
-    closed_won: { label: 'Won', color: 'text-green-700', bgColor: 'bg-green-100' },
+    closed_won: { label: 'Won', color: 'text-foreground', bgColor: 'bg-secondary' },
     closed_lost: { label: 'Lost', color: 'text-red-700', bgColor: 'bg-red-100' },
 };
 
@@ -244,7 +244,7 @@ export function DealPipelinePage() {
                 </Card>
                 <Card>
                     <CardContent className="p-4 text-center">
-                        <p className="text-2xl font-bold text-green-600">{formatCurrency(pipelineStats.wonValue)}</p>
+                        <p className="text-2xl font-bold text-foreground">{formatCurrency(pipelineStats.wonValue)}</p>
                         <p className="text-sm text-muted-foreground">Won (This Month)</p>
                     </CardContent>
                 </Card>

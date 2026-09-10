@@ -189,7 +189,7 @@ export function UpdatePasswordForm() {
                         ? 'text-orange-500'
                         : passwordStrength.score === 3
                         ? 'text-yellow-500'
-                        : 'text-green-500'
+                        : 'text-foreground'
                     }`}
                   >
                     {getPasswordStrengthLabel(passwordStrength.score)}

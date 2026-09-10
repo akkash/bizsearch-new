@@ -366,7 +366,7 @@ export function ComparisonFeature({
                             ? "Annual Revenue"
                             : "Avg. Unit Revenue"}
                         </div>
-                        <div className="font-semibold text-lg text-green-600">
+                        <div className="font-semibold text-lg text-foreground">
                           {formatOptionalCurrency(getRevenue(item))}
                         </div>
                       </div>

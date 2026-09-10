@@ -82,8 +82,8 @@ export function QuoteRequestDialog({ selectedListings, onClose, isOpen }: QuoteR
             <Dialog open={isOpen} onOpenChange={onClose}>
                 <DialogContent className="sm:max-w-md">
                     <div className="text-center py-8">
-                        <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                            <CheckCircle className="h-8 w-8 text-green-600" />
+                        <div className="mx-auto w-16 h-16 bg-secondary rounded-full flex items-center justify-center mb-4">
+                            <CheckCircle className="h-8 w-8 text-foreground" />
                         </div>
                         <h3 className="text-xl font-semibold mb-2">Quote Requests Sent!</h3>
                         <p className="text-muted-foreground mb-6">

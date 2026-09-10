@@ -44,13 +44,13 @@ import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 
 const statusColors = {
-    active: 'bg-green-100 text-green-800',
+    active: 'bg-secondary text-foreground',
     inactive: 'bg-secondary text-foreground',
     prospect: 'bg-blue-100 text-blue-800',
 };
 
 const typeColors = {
-    buyer: 'bg-growth-green/10 text-purple-800',
+    buyer: 'bg-growth-green/10 text-foreground',
     seller: 'bg-orange-100 text-orange-800',
     both: 'bg-secondary text-indigo-800',
 };

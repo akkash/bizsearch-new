@@ -168,7 +168,7 @@ export function PhoneVerification({ onVerified }: PhoneVerificationProps) {
                 <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                         <CardTitle className="text-lg">Phone Verification</CardTitle>
-                        <Badge variant="default" className="bg-green-100 text-green-800">
+                        <Badge variant="default" className="bg-secondary text-foreground">
                             <CheckCircle className="h-3 w-3 mr-1" />
                             Verified
                         </Badge>

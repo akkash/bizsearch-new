@@ -223,7 +223,7 @@ export function ROICalculator({
       case "realistic":
         return "text-blue-600 bg-blue-50";
       case "optimistic":
-        return "text-green-600 bg-green-50";
+        return "text-foreground bg-secondary";
       default:
         return "text-muted-foreground bg-muted";
     }
@@ -416,7 +416,7 @@ export function ROICalculator({
                 {/* Key Metrics */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="text-center p-4 bg-muted rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">
+                    <div className="text-2xl font-bold text-foreground">
                       {finalROI.toFixed(1)}%
                     </div>
                     <div className="text-sm text-muted-foreground">
@@ -489,7 +489,7 @@ export function ROICalculator({
                               <span
                                 className={
                                   projection.netIncome >= 0
-                                    ? "text-green-600"
+                                    ? "text-foreground"
                                     : "text-red-600"
                                 }
                               >
@@ -500,7 +500,7 @@ export function ROICalculator({
                               <span
                                 className={
                                   projection.cumulativeROI >= 0
-                                    ? "text-green-600"
+                                    ? "text-foreground"
                                     : "text-red-600"
                                 }
                               >
@@ -527,7 +527,7 @@ export function ROICalculator({
                           key={index}
                           className="flex items-start gap-2 text-sm"
                         >
-                          <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                          <CheckCircle className="h-4 w-4 text-foreground mt-0.5 flex-shrink-0" />
 
                           <span>{assumption}</span>
                         </div>

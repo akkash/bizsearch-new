@@ -36,9 +36,9 @@ const TIER_INFO: Record<VerificationTier, Omit<VerificationTierInfo, 'tier' | 'n
     2: {
         label: 'Phone Verified',
         description: 'Contact verified',
-        color: 'text-green-600',
-        bgColor: 'bg-green-50',
-        borderColor: 'border-green-200',
+        color: 'text-foreground',
+        bgColor: 'bg-secondary',
+        borderColor: 'border-border',
         icon: 'shield-plus',
     },
     3: {

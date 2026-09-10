@@ -25,7 +25,7 @@ export function TrustIndicators({
       icon: Shield,
       label: "Identity Verified",
       description: "When a user completes identity verification",
-      color: "bg-green-500",
+      color: "bg-secondary0",
     },
     {
       icon: FileCheck,

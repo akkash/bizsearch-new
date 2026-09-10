@@ -179,7 +179,7 @@ export function SavedListingsPage({ className }: SavedListingsPageProps) {
                     <p className="text-sm text-muted-foreground">Franchises</p>
                     <p className="text-2xl font-bold">{franchiseCount}</p>
                   </div>
-                  <Store className="h-8 w-8 text-green-500" />
+                  <Store className="h-8 w-8 text-foreground" />
                 </div>
               </CardContent>
             </Card>

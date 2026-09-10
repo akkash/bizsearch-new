@@ -308,7 +308,7 @@ export function BusinessListings({ className }: BusinessListingsProps) {
             )}
 
             <div className="mb-6">
-              <h1 className="text-2xl md:text-3xl font-bold mb-2 text-foreground">
+              <h1 className="font-display text-3xl md:text-5xl font-bold uppercase tracking-tight mb-3 text-foreground">
                 {currentCategory?.name || "Businesses for sale"}
               </h1>
               <p className="text-sm text-muted-foreground max-w-2xl">
@@ -324,10 +324,10 @@ export function BusinessListings({ className }: BusinessListingsProps) {
                   key={cat.id}
                   to={`/businesses?category=${cat.slug}`}
                   className={cn(
-                    "px-3 py-1.5 text-sm rounded-md border transition-colors",
+                    "px-3 py-1.5 text-sm border-2 transition-colors",
                     currentCategory?.id === cat.id
-                      ? "bg-growth-green text-white border-growth-green"
-                      : "bg-secondary border-border text-foreground hover:bg-secondary/80"
+                      ? "bg-foreground text-background border-foreground"
+                      : "border-foreground/20 hover:bg-foreground hover:text-background"
                   )}
                 >
                   {cat.name}
@@ -340,8 +340,8 @@ export function BusinessListings({ className }: BusinessListingsProps) {
         <div className="container mx-auto px-4 py-8">
           <EmptyState
             type="no-data"
-            title={currentCategory ? `No ${currentCategory.name} Businesses Yet` : "No Businesses Available Yet"}
-            description="No businesses are listed in this category yet. Check back later or list your business."
+            title="No details found in the table."
+            description="Listings will appear here when they are published."
             actionText="List Your Business"
             actionLink="/add-business-listing"
           />
@@ -385,7 +385,7 @@ export function BusinessListings({ className }: BusinessListingsProps) {
           )}
 
           <div className="mb-6">
-            <h1 className="text-2xl md:text-3xl font-bold mb-2 text-foreground">
+            <h1 className="font-display text-3xl md:text-5xl font-bold uppercase tracking-tight mb-3 text-foreground">
               {currentSubcategory?.name || currentCategory?.name || "Businesses for sale"}
             </h1>
             <p className="text-sm text-muted-foreground max-w-2xl">
@@ -401,7 +401,7 @@ export function BusinessListings({ className }: BusinessListingsProps) {
                 <Link
                   key={cat.id}
                   to={`/businesses?category=${cat.slug}`}
-                  className="px-3 py-1.5 text-sm rounded-md bg-secondary border border-border text-foreground hover:bg-secondary/80 transition-colors"
+                  className="px-3 py-1.5 text-sm border-2 border-foreground/20 hover:bg-foreground hover:text-background transition-colors"
                 >
                   {cat.name}
                 </Link>
@@ -414,10 +414,10 @@ export function BusinessListings({ className }: BusinessListingsProps) {
               <Link
                 to={`/businesses?category=${currentCategory.slug}`}
                 className={cn(
-                  "px-3 py-1.5 text-sm rounded-md border transition-colors",
+                  "px-3 py-1.5 text-sm border-2 transition-colors",
                   !currentSubcategory
-                    ? "bg-growth-green text-white border-growth-green"
-                    : "bg-secondary border-border text-foreground hover:bg-secondary/80"
+                    ? "bg-foreground text-background border-foreground"
+                    : "border-foreground/20 hover:bg-foreground hover:text-background"
                 )}
               >
                 All {currentCategory.name}
@@ -427,10 +427,10 @@ export function BusinessListings({ className }: BusinessListingsProps) {
                   key={sub.id}
                   to={`/businesses?category=${currentCategory.slug}&subcategory=${sub.slug}`}
                   className={cn(
-                    "px-3 py-1.5 text-sm rounded-md border transition-colors",
+                    "px-3 py-1.5 text-sm border-2 transition-colors",
                     currentSubcategory?.id === sub.id
-                      ? "bg-growth-green text-white border-growth-green"
-                      : "bg-secondary border-border text-foreground hover:bg-secondary/80"
+                      ? "bg-foreground text-background border-foreground"
+                      : "border-foreground/20 hover:bg-foreground hover:text-background"
                   )}
                 >
                   {sub.name}
@@ -604,7 +604,7 @@ export function BusinessListings({ className }: BusinessListingsProps) {
                     ))}
                     {paginatedBusinesses.length === 0 && (
                       <div className="flex-none w-80 p-8 text-center text-muted-foreground">
-                        No businesses match your criteria
+                        No details found in the table.
                       </div>
                     )}
                   </div>
@@ -684,7 +684,7 @@ export function BusinessListings({ className }: BusinessListingsProps) {
                 <CardContent className="p-12 text-center">
                   <SearchIcon className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
 
-                  <h3 className="font-semibold mb-2">No businesses found</h3>
+                  <h3 className="font-display text-xl font-bold uppercase tracking-tight mb-2">No details found in the table.</h3>
                   <p className="text-muted-foreground mb-4">
                     Try adjusting your search criteria or filters
                   </p>

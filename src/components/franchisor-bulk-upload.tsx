@@ -143,13 +143,13 @@ export function FranchisorBulkUpload({ franchiseId, onComplete }: BulkUploadProp
         {result && (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <Card className="border-green-200 bg-green-50">
+              <Card className="border-border bg-secondary">
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-3">
-                    <CheckCircle className="h-8 w-8 text-green-600" />
+                    <CheckCircle className="h-8 w-8 text-foreground" />
                     <div>
                       <p className="text-2xl font-bold text-green-900">{result.success}</p>
-                      <p className="text-sm text-green-700">Successful</p>
+                      <p className="text-sm text-foreground">Successful</p>
                     </div>
                   </div>
                 </CardContent>

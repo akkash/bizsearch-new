@@ -84,7 +84,7 @@ export function AdminDashboard() {
             value: (stats?.totalBusinesses || 0) + (stats?.totalFranchises || 0),
             change: `+${stats?.newListingsThisWeek || 0} this week`,
             icon: Building2,
-            color: 'text-green-600 bg-green-100',
+            color: 'text-foreground bg-secondary',
         },
         {
             title: 'Pending Review',
@@ -246,7 +246,7 @@ export function AdminDashboard() {
                 <Card>
                     <CardContent className="p-6">
                         <div className="flex items-center gap-4">
-                            <div className="p-3 rounded-lg bg-green-100 text-green-600">
+                            <div className="p-3 rounded-lg bg-secondary text-foreground">
                                 <TrendingUp className="h-6 w-6" />
                             </div>
                             <div>

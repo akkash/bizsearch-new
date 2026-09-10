@@ -162,7 +162,7 @@ export function ProfileDocumentsPage({
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "verified":
-        return <CheckCircle className="w-4 h-4 text-green-600" />;
+        return <CheckCircle className="w-4 h-4 text-foreground" />;
 
       case "pending":
         return <Clock className="w-4 h-4 text-yellow-600" />;
@@ -178,7 +178,7 @@ export function ProfileDocumentsPage({
   const getStatusColor = (status: string) => {
     switch (status) {
       case "verified":
-        return "bg-green-100 text-green-800";
+        return "bg-secondary text-foreground";
       case "pending":
         return "bg-yellow-100 text-yellow-800";
       case "rejected":
@@ -239,7 +239,7 @@ export function ProfileDocumentsPage({
                   }
                   className={
                     profile.verificationStatus === "verified"
-                      ? "bg-green-100 text-green-800"
+                      ? "bg-secondary text-foreground"
                       : profile.verificationStatus === "pending"
                         ? "bg-yellow-100 text-yellow-800"
                         : "bg-secondary text-foreground"

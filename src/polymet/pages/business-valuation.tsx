@@ -273,7 +273,7 @@ export function BusinessValuationPage() {
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
-                                <TrendingUp className="h-5 w-5 text-green-600" />
+                                <TrendingUp className="h-5 w-5 text-foreground" />
                                 Estimated Valuation
                             </CardTitle>
                         </CardHeader>
@@ -285,7 +285,7 @@ export function BusinessValuationPage() {
                                         {formatCurrency(valuation.low)}
                                     </span>
                                     <span className="text-muted-foreground">to</span>
-                                    <span className="text-2xl font-bold text-green-600">
+                                    <span className="text-2xl font-bold text-foreground">
                                         {formatCurrency(valuation.high)}
                                     </span>
                                 </div>

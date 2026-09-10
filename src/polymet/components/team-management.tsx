@@ -70,9 +70,9 @@ const rolePermissions = {
 };
 
 const roleColors = {
-  owner: "bg-growth-green/10 text-purple-800",
+  owner: "bg-growth-green/10 text-foreground",
   admin: "bg-blue-100 text-blue-800",
-  editor: "bg-green-100 text-green-800",
+  editor: "bg-secondary text-foreground",
   viewer: "bg-secondary text-foreground",
 };
 
@@ -83,7 +83,7 @@ const statusIcons = {
 };
 
 const statusColors = {
-  active: "text-green-600",
+  active: "text-foreground",
   pending: "text-yellow-600",
   suspended: "text-red-600",
 };

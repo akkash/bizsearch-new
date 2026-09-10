@@ -139,7 +139,7 @@ export function SellerAnalyticsPage() {
                                 <Eye className="h-6 w-6 text-blue-600" />
                             </div>
                         </div>
-                        <div className="flex items-center gap-1 mt-2 text-sm text-green-600">
+                        <div className="flex items-center gap-1 mt-2 text-sm text-foreground">
                             <TrendingUp className="h-4 w-4" />
                             <span>+12% vs last period</span>
                         </div>
@@ -157,7 +157,7 @@ export function SellerAnalyticsPage() {
                                 <Heart className="h-6 w-6 text-pink-600" />
                             </div>
                         </div>
-                        <div className="flex items-center gap-1 mt-2 text-sm text-green-600">
+                        <div className="flex items-center gap-1 mt-2 text-sm text-foreground">
                             <TrendingUp className="h-4 w-4" />
                             <span>+8% vs last period</span>
                         </div>
@@ -171,11 +171,11 @@ export function SellerAnalyticsPage() {
                                 <p className="text-sm text-muted-foreground">Inquiries</p>
                                 <p className="text-3xl font-bold">{overview.totalInquiries}</p>
                             </div>
-                            <div className="p-3 bg-green-100 rounded-lg">
-                                <MessageSquare className="h-6 w-6 text-green-600" />
+                            <div className="p-3 bg-secondary rounded-lg">
+                                <MessageSquare className="h-6 w-6 text-foreground" />
                             </div>
                         </div>
-                        <div className="flex items-center gap-1 mt-2 text-sm text-green-600">
+                        <div className="flex items-center gap-1 mt-2 text-sm text-foreground">
                             <TrendingUp className="h-4 w-4" />
                             <span>+25% vs last period</span>
                         </div>
@@ -251,7 +251,7 @@ export function SellerAnalyticsPage() {
                                         <div className="flex items-center gap-2">
                                             <Badge
                                                 variant={listing.viewsTrend >= 0 ? 'default' : 'secondary'}
-                                                className={listing.viewsTrend >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}
+                                                className={listing.viewsTrend >= 0 ? 'bg-secondary text-foreground' : 'bg-red-100 text-red-800'}
                                             >
                                                 {listing.viewsTrend >= 0 ? (
                                                     <TrendingUp className="h-3 w-3 mr-1" />
@@ -309,7 +309,7 @@ export function SellerAnalyticsPage() {
                                             <span>22%</span>
                                         </div>
                                         <div className="h-2 bg-muted rounded-full overflow-hidden">
-                                            <div className="h-full bg-green-500 rounded-full" style={{ width: '22%' }} />
+                                            <div className="h-full bg-secondary0 rounded-full" style={{ width: '22%' }} />
                                         </div>
                                     </div>
                                     <div>

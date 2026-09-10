@@ -39,14 +39,14 @@ import { toast } from 'sonner';
 
 const documentTypeColors: Record<string, string> = {
     identity: 'bg-blue-100 text-blue-800',
-    business: 'bg-green-100 text-green-800',
-    financial: 'bg-growth-green/10 text-purple-800',
+    business: 'bg-secondary text-foreground',
+    financial: 'bg-growth-green/10 text-foreground',
     legal: 'bg-orange-100 text-orange-800',
 };
 
 const statusConfig = {
     pending: { label: 'Pending', color: 'bg-yellow-100 text-yellow-800', icon: Clock },
-    verified: { label: 'Verified', color: 'bg-green-100 text-green-800', icon: CheckCircle },
+    verified: { label: 'Verified', color: 'bg-secondary text-foreground', icon: CheckCircle },
     rejected: { label: 'Rejected', color: 'bg-red-100 text-red-800', icon: XCircle },
 };
 
@@ -186,7 +186,7 @@ export function AdminDocuments() {
                                                 <Button
                                                     size="sm"
                                                     variant="outline"
-                                                    className="text-green-600 hover:bg-green-50"
+                                                    className="text-foreground hover:bg-secondary"
                                                     onClick={() => handleApprove(doc)}
                                                     disabled={processing}
                                                 >

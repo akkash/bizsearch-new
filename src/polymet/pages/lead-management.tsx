@@ -48,14 +48,14 @@ import { cn } from '@/lib/utils';
 const statusColor: Record<InquiryStatus, string> = {
   new: 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200',
   contacted: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-200',
-  qualified: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200',
+  qualified: 'bg-secondary text-foreground dark:bg-secondary dark:text-foreground',
   information_sent: 'bg-secondary text-muted-foreground',
   meeting: 'bg-violet-100 text-violet-800 dark:bg-violet-950 dark:text-violet-200',
   application: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-950 dark:text-cyan-200',
   negotiation: 'bg-orange-100 text-orange-800 dark:bg-orange-950 dark:text-orange-200',
   agreement: 'bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-200',
-  opened: 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200',
-  converted: 'bg-emerald-100 text-emerald-800',
+  opened: 'bg-secondary text-foreground dark:bg-secondary dark:text-foreground',
+  converted: 'bg-secondary text-foreground',
   lost: 'bg-secondary text-muted-foreground',
 };
 

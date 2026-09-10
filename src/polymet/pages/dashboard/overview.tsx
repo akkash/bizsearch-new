@@ -91,7 +91,7 @@ export function DashboardPage() {
                 <Card>
                     <CardContent className="pt-6">
                         <div className="flex items-center gap-4">
-                            <div className="p-3 bg-green-100 text-green-600 rounded-lg">
+                            <div className="p-3 bg-secondary text-foreground rounded-lg">
                                 <MessageSquare className="w-6 h-6" />
                             </div>
                             <div>

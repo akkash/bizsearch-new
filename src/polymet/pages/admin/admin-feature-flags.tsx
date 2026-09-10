@@ -28,7 +28,7 @@ import type { FeatureFlag } from '@/lib/feature-flags-service';
 const categoryConfig: Record<string, { label: string; icon: any; color: string }> = {
     core: { label: 'Core Features', icon: Zap, color: 'bg-blue-100 text-blue-700' },
     ai_features: { label: 'AI Features', icon: Brain, color: 'bg-growth-green/10 text-growth-green' },
-    maps: { label: 'Maps & Location', icon: Map, color: 'bg-green-100 text-green-700' },
+    maps: { label: 'Maps & Location', icon: Map, color: 'bg-secondary text-foreground' },
     security: { label: 'Security', icon: Shield, color: 'bg-red-100 text-red-700' },
     beta: { label: 'Beta Features', icon: FlaskConical, color: 'bg-orange-100 text-orange-700' },
     system: { label: 'System', icon: Settings, color: 'bg-secondary text-foreground' },
@@ -109,8 +109,8 @@ export function AdminFeatureFlags() {
                 <Card>
                     <CardContent className="pt-6">
                         <div className="flex items-center gap-4">
-                            <div className="p-3 bg-green-100 rounded-full">
-                                <Check className="h-6 w-6 text-green-600" />
+                            <div className="p-3 bg-secondary rounded-full">
+                                <Check className="h-6 w-6 text-foreground" />
                             </div>
                             <div>
                                 <p className="text-2xl font-bold">{enabledCount}</p>
@@ -218,7 +218,7 @@ export function AdminFeatureFlags() {
                                                         <h4 className="font-medium">{flag.name}</h4>
                                                         <Badge
                                                             variant={flag.enabled ? 'default' : 'secondary'}
-                                                            className={flag.enabled ? 'bg-green-100 text-green-700' : ''}
+                                                            className={flag.enabled ? 'bg-secondary text-foreground' : ''}
                                                         >
                                                             {flag.enabled ? 'Enabled' : 'Disabled'}
                                                         </Badge>

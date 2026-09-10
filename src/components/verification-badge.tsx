@@ -17,29 +17,29 @@ const statusConfig = {
     verified: {
         icon: ShieldCheck,
         label: 'Verified',
-        color: 'bg-green-500/10 text-green-700 border-green-500/20 hover:bg-green-500/20',
-        iconColor: 'text-green-600',
+        color: 'bg-foreground text-background border-foreground hover:bg-foreground/80',
+        iconColor: 'text-background',
         description: 'This listing has been verified by BizSearch',
     },
     pending: {
         icon: Clock,
         label: 'Pending',
-        color: 'bg-yellow-500/10 text-yellow-700 border-yellow-500/20 hover:bg-yellow-500/20',
-        iconColor: 'text-yellow-600',
+        color: 'bg-transparent text-foreground border-foreground/30 hover:bg-secondary',
+        iconColor: 'text-foreground',
         description: 'Verification in progress',
     },
     unverified: {
         icon: ShieldQuestion,
         label: 'Unverified',
-        color: 'bg-gray-500/10 text-muted-foreground border-gray-500/20 hover:bg-gray-500/20',
+        color: 'bg-transparent text-muted-foreground border-border hover:bg-secondary',
         iconColor: 'text-muted-foreground',
         description: 'This listing has not been verified yet',
     },
     rejected: {
         icon: ShieldAlert,
         label: 'Rejected',
-        color: 'bg-red-500/10 text-red-700 border-red-500/20 hover:bg-red-500/20',
-        iconColor: 'text-red-600',
+        color: 'bg-destructive/10 text-destructive border-destructive/30 hover:bg-destructive/20',
+        iconColor: 'text-destructive',
         description: 'Verification was rejected',
     },
 };
@@ -149,7 +149,7 @@ export function LastVerifiedLabel({
 
     // Color based on recency
     const colorClass = daysSinceVerification <= 30
-        ? 'text-green-600'
+        ? 'text-foreground'
         : daysSinceVerification <= 90
             ? 'text-yellow-600'
             : 'text-red-600';
@@ -173,7 +173,7 @@ export function DataCompletenessBar({
     className?: string;
 }) {
     const getColor = () => {
-        if (score >= 80) return 'bg-green-500';
+        if (score >= 80) return 'bg-foreground';
         if (score >= 60) return 'bg-yellow-500';
         if (score >= 40) return 'bg-orange-500';
         return 'bg-red-500';

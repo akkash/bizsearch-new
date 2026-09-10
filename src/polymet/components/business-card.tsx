@@ -56,7 +56,7 @@ export function BusinessCard({
   return (
     <Card
       className={cn(
-        "group border-border hover:border-growth-green/40 transition-colors duration-200 cursor-pointer overflow-hidden",
+        "group border-2 border-foreground cursor-pointer overflow-hidden",
         className
       )}
       onClick={() => onViewDetails?.(business.id)}

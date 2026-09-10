@@ -434,7 +434,7 @@ export function TerritoryMapper({
                       onClick={() => toggleTerritoryAvailability(territory.id)}
                       className={
                         territory.isAvailable
-                          ? "text-green-600"
+                          ? "text-foreground"
                           : "text-red-600"
                       }
                     >

@@ -204,13 +204,13 @@ export function BuyerQualifierDashboard({ sellerId, onClose, className }: BuyerQ
                               {/* Strengths */}
                               <div>
                                 <div className="text-sm font-semibold mb-2 flex items-center gap-1">
-                                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                                  <CheckCircle2 className="h-4 w-4 text-foreground" />
                                   Strengths
                                 </div>
                                 <ul className="space-y-1">
                                   {lead.strengths.map((strength, i) => (
                                     <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
-                                      <span className="text-green-600">•</span>
+                                      <span className="text-foreground">•</span>
                                       <span>{strength}</span>
                                     </li>
                                   ))}

@@ -40,7 +40,7 @@ export function TerritoryAnalyzer({ franchiseBrand, franchiseIndustry, onClose, 
   const getViabilityColor = (level: string) => {
     switch (level) {
       case 'Excellent':
-        return 'bg-green-50 border-green-200 text-green-700';
+        return 'bg-secondary border-border text-foreground';
       case 'Good':
         return 'bg-blue-50 border-blue-200 text-blue-700';
       case 'Fair':
@@ -203,7 +203,7 @@ export function TerritoryAnalyzer({ franchiseBrand, franchiseIndustry, onClose, 
                     <ul className="space-y-2">
                       {analysis.opportunities.map((opp, i) => (
                         <li key={i} className="flex items-start gap-2 text-sm">
-                          <span className="text-green-600">✓</span>
+                          <span className="text-foreground">✓</span>
                           <span>{opp}</span>
                         </li>
                       ))}
