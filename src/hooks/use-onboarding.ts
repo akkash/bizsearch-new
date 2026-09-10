@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import type { ProfileUpdate } from '@/types/auth.types';
+import type { ExtendedProfile, ProfileUpdate } from '@/types/auth.types';
+import { FranchiseeIntentService } from '@/lib/franchisee-intent-service';
 
 export type OnboardingStep = 'essentials' | 'role' | 'verification' | 'complete';
 
@@ -164,7 +165,25 @@ export function useOnboarding() {
                 if (data.roleData.investment_max) updates.investment_max = data.roleData.investment_max;
                 if (data.roleData.preferred_industries) updates.preferred_industries = data.roleData.preferred_industries;
             }
-            // Add more roles as needed
+
+            const extended = profile as ExtendedProfile;
+            const roleSet = new Set<string>([
+                role,
+                ...(extended.roles || []).map((entry) => entry.role),
+            ]);
+            if (roleSet.has('franchisee')) {
+                try {
+                    await FranchiseeIntentService.upsert(user.id, {
+                        investmentBudgetMin: data.roleData.investment_min ?? null,
+                        investmentBudgetMax: data.roleData.investment_max ?? null,
+                        preferredIndustries: data.roleData.preferred_industries || [],
+                        preferredCities: [data.city, data.state].filter(Boolean),
+                        status: 'active',
+                    });
+                } catch (intentErr) {
+                    console.warn('Could not persist franchisee intent:', intentErr);
+                }
+            }
 
             console.log('📝 Updates to save:', updates);
 

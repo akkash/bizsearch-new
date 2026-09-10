@@ -142,6 +142,17 @@ export interface Franchise {
     store_formats?: import('@/lib/store-formats').StoreFormat[];
     spaceRequiredSqft?: number;
     space_required_sqft?: number;
+    property_type?: string;
+    min_area_sqft?: number;
+    max_area_sqft?: number;
+    owner_operator_required?: boolean;
+    opening_timeline?: string;
+    preferred_cities?: string[];
+    preferred_experience?: string;
+    ground_floor?: boolean;
+    parking_required?: boolean;
+    max_rent?: number;
+    frontage_ft?: number;
     // New verification system fields
     verified_at?: string;
     verification_status?: 'verified' | 'pending' | 'unverified' | 'rejected';

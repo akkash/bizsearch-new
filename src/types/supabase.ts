@@ -388,6 +388,18 @@ export interface Database {
           franchise_experience: string | null
           industry_experience: string | null
           timeline: string | null
+          funding_method: string | null
+          owner_operated: boolean | null
+          preferred_formats: Json | null
+          property_required: boolean | null
+          preferred_property_type: string | null
+          space_available: number | null
+          preferred_cities: Json | null
+          status: string | null
+          liquid_capital: number | null
+          net_worth: number | null
+          time_commitment: string | null
+          management_experience_years: number | null
           created_at: string
           updated_at: string
         }
@@ -401,6 +413,18 @@ export interface Database {
           franchise_experience?: string | null
           industry_experience?: string | null
           timeline?: string | null
+          funding_method?: string | null
+          owner_operated?: boolean | null
+          preferred_formats?: Json | null
+          property_required?: boolean | null
+          preferred_property_type?: string | null
+          space_available?: number | null
+          preferred_cities?: Json | null
+          status?: string | null
+          liquid_capital?: number | null
+          net_worth?: number | null
+          time_commitment?: string | null
+          management_experience_years?: number | null
           created_at?: string
           updated_at?: string
         }
@@ -414,6 +438,18 @@ export interface Database {
           franchise_experience?: string | null
           industry_experience?: string | null
           timeline?: string | null
+          funding_method?: string | null
+          owner_operated?: boolean | null
+          preferred_formats?: Json | null
+          property_required?: boolean | null
+          preferred_property_type?: string | null
+          space_available?: number | null
+          preferred_cities?: Json | null
+          status?: string | null
+          liquid_capital?: number | null
+          net_worth?: number | null
+          time_commitment?: string | null
+          management_experience_years?: number | null
           created_at?: string
           updated_at?: string
         }

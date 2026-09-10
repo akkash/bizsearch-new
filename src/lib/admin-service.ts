@@ -133,7 +133,7 @@ export class AdminService {
     private static async logAction(
         action: string,
         entityType: string,
-        entityId: string,
+        entityId?: string | null,
         metadata?: Record<string, unknown>
     ): Promise<void> {
         const { data: { user } } = await supabase.auth.getUser();
@@ -143,7 +143,7 @@ export class AdminService {
             user_id: user.id,
             action,
             entity_type: entityType,
-            entity_id: entityId,
+            entity_id: entityId || null,
             metadata: metadata || null,
         });
     }
@@ -537,6 +537,10 @@ export class AdminService {
 
         // Check if user now has verified documents and update profile
         await this.updateUserVerificationStatus(doc.profile_id);
+        await this.logAction('document_approved', 'verification_document', documentId, {
+            profile_id: doc.profile_id,
+            document_type: doc.document_type,
+        });
 
         return true;
     }
@@ -545,13 +549,23 @@ export class AdminService {
      * Reject a document with reason
      */
     static async rejectDocument(documentId: string, adminId: string, reason?: string): Promise<boolean> {
+        const { data: doc, error: docError } = await supabase
+            .from('verification_documents')
+            .select('profile_id, document_type')
+            .eq('id', documentId)
+            .single();
+
+        if (docError || !doc) {
+            console.error('Error fetching document:', docError);
+            throw new Error('Document not found');
+        }
+
         const { error } = await supabase
             .from('verification_documents')
             .update({
                 status: 'rejected',
                 verified_at: new Date().toISOString(),
                 verified_by: adminId,
-                rejection_reason: reason || null,
             })
             .eq('id', documentId);
 
@@ -559,6 +573,12 @@ export class AdminService {
             console.error('Error rejecting document:', error);
             throw error;
         }
+
+        await this.logAction('document_rejected', 'verification_document', documentId, {
+            profile_id: doc.profile_id,
+            document_type: doc.document_type,
+            reason: reason || null,
+        });
 
         return true;
     }
@@ -738,6 +758,24 @@ export class AdminService {
         await this.logAction(`fraud_alert_${status}`, 'fraud_alert', alertId, { status });
     }
 
+    static async resolveListingType(listingId: string): Promise<'business' | 'franchise' | null> {
+        const { data: business } = await supabase
+            .from('businesses')
+            .select('id')
+            .eq('id', listingId)
+            .maybeSingle();
+        if (business) return 'business';
+
+        const { data: franchise } = await supabase
+            .from('franchises')
+            .select('id')
+            .eq('id', listingId)
+            .maybeSingle();
+        if (franchise) return 'franchise';
+
+        return null;
+    }
+
     static async getListingById(
         listingId: string,
         type: 'business' | 'franchise'
@@ -817,7 +855,7 @@ export class AdminService {
             });
 
         if (error) throw error;
-        await this.logAction('settings_updated', 'platform_settings', key);
+        await this.logAction('settings_updated', 'platform_settings', null, { key });
     }
 
     static async getCmsPages(): Promise<CmsPage[]> {

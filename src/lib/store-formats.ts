@@ -10,6 +10,11 @@ export interface StoreFormat {
   investmentMax?: number;
   franchiseFee?: number;
   description?: string;
+  propertyType?: string;
+  groundFloor?: boolean;
+  parkingRequired?: boolean;
+  maxRent?: number;
+  frontageFt?: number;
 }
 
 function num(v: unknown): number | undefined {
@@ -44,6 +49,21 @@ export function normalizeStoreFormats(raw: unknown): StoreFormat[] {
         investmentMax: num(o.investmentMax) ?? num(o.investment_max),
         franchiseFee: num(o.franchiseFee) ?? num(o.franchise_fee),
         description: str(o.description),
+        propertyType: str(o.propertyType) || str(o.property_type),
+        groundFloor:
+          typeof o.groundFloor === 'boolean'
+            ? o.groundFloor
+            : typeof o.ground_floor === 'boolean'
+              ? o.ground_floor
+              : undefined,
+        parkingRequired:
+          typeof o.parkingRequired === 'boolean'
+            ? o.parkingRequired
+            : typeof o.parking_required === 'boolean'
+              ? o.parking_required
+              : undefined,
+        maxRent: num(o.maxRent) ?? num(o.max_rent),
+        frontageFt: num(o.frontageFt) ?? num(o.frontage_ft),
       } satisfies StoreFormat;
     })
     .filter(Boolean) as StoreFormat[];
@@ -129,6 +149,8 @@ export function aggregateInvestmentFromFormats(formats: StoreFormat[]): {
   total_investment_min?: number;
   total_investment_max?: number;
   space_required_sqft?: number;
+  min_area_sqft?: number;
+  max_area_sqft?: number;
 } {
   const normalized = formats.filter(Boolean);
   if (!normalized.length) return {};
@@ -142,10 +164,92 @@ export function aggregateInvestmentFromFormats(formats: StoreFormat[]): {
   const spaces = normalized
     .map((f) => f.minSqft || f.maxSqft)
     .filter((n) => n > 0);
+  const maxSpaces = normalized
+    .map((f) => f.maxSqft || f.minSqft)
+    .filter((n) => n > 0);
 
   return {
     total_investment_min: mins.length ? Math.min(...mins) : undefined,
     total_investment_max: maxs.length ? Math.max(...maxs) : undefined,
     space_required_sqft: spaces.length ? Math.min(...spaces) : undefined,
+    min_area_sqft: spaces.length ? Math.min(...spaces) : undefined,
+    max_area_sqft: maxSpaces.length ? Math.max(...maxSpaces) : undefined,
+  };
+}
+
+export type FranchiseListingRequirements = {
+  minInvestment: number | null;
+  maxInvestment: number | null;
+  minAreaSqft: number | null;
+  maxAreaSqft: number | null;
+  propertyType: string | null;
+  ownerOperatorRequired: boolean;
+  openingTimeline: string | null;
+  preferredCities: string[];
+  requiredExperience: string | null;
+  preferredExperience: string | null;
+  groundFloor: boolean | null;
+  parkingRequired: boolean | null;
+  maxRent: number | null;
+};
+
+function asStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
+}
+
+/** Structured listing-side requirements used by matching */
+export function getListingRequirements(franchise: {
+  storeFormats?: unknown;
+  store_formats?: unknown;
+  investmentMin?: number;
+  investmentMax?: number;
+  total_investment_min?: number;
+  total_investment_max?: number;
+  space_required_sqft?: number;
+  min_area_sqft?: number;
+  max_area_sqft?: number;
+  property_type?: string | null;
+  owner_operator_required?: boolean | null;
+  opening_timeline?: string | null;
+  preferred_cities?: unknown;
+  expansion_territories?: unknown;
+  experience_required?: string | null;
+  preferred_experience?: string | null;
+  ground_floor?: boolean | null;
+  parking_required?: boolean | null;
+  max_rent?: number | null;
+}): FranchiseListingRequirements {
+  const range = getFranchiseInvestmentRange(franchise);
+  const formats = getStoreFormatsFromFranchise(franchise);
+  const fromFormats = aggregateInvestmentFromFormats(formats);
+  const cities = asStringArray(franchise.preferred_cities);
+  const territories = asStringArray(franchise.expansion_territories);
+  const formatProperty = formats.find((f) => f.propertyType)?.propertyType;
+
+  return {
+    minInvestment: range.min,
+    maxInvestment: range.max,
+    minAreaSqft:
+      franchise.min_area_sqft ??
+      fromFormats.min_area_sqft ??
+      franchise.space_required_sqft ??
+      null,
+    maxAreaSqft: franchise.max_area_sqft ?? fromFormats.max_area_sqft ?? null,
+    propertyType: franchise.property_type || formatProperty || null,
+    ownerOperatorRequired: franchise.owner_operator_required === true,
+    openingTimeline: franchise.opening_timeline || null,
+    preferredCities: cities.length ? cities : territories,
+    requiredExperience: franchise.experience_required || null,
+    preferredExperience: franchise.preferred_experience || null,
+    groundFloor:
+      typeof franchise.ground_floor === 'boolean'
+        ? franchise.ground_floor
+        : formats.some((f) => f.groundFloor) || null,
+    parkingRequired:
+      typeof franchise.parking_required === 'boolean'
+        ? franchise.parking_required
+        : formats.some((f) => f.parkingRequired) || null,
+    maxRent: franchise.max_rent ?? formats.find((f) => f.maxRent)?.maxRent ?? null,
   };
 }

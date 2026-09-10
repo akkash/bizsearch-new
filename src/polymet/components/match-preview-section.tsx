@@ -46,7 +46,7 @@ export function MatchPreviewSection({ className }: { className?: string }) {
                   </li>
                 ))}
               </ul>
-              <Link to="/smart-search?q=I+have+50L+and+want+a+food+franchise+in+Chennai">
+              <Link to="/match">
                 <Button size="sm" className="h-8 bg-growth-green hover:bg-growth-green/90 text-white">
                   View Franchise Matches
                   <ArrowRight className="ml-1.5 h-3.5 w-3.5" />

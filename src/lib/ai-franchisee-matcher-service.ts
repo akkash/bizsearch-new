@@ -1,4 +1,5 @@
 import { generateGeminiContent } from './gemini-proxy-client';
+import { getListingRequirements } from './store-formats';
 import { supabase } from './supabase';
 
 
@@ -10,6 +11,7 @@ export interface FranchiseeProfile {
   industries?: string[];
   preferredLocations?: string[];
   businessExperience?: string[];
+  franchiseExperience?: string;
   managementExperience?: number; // years
   industryExperience?: number; // years
   educationLevel?: 'high-school' | 'bachelors' | 'masters' | 'phd';
@@ -21,6 +23,7 @@ export interface FranchiseeProfile {
   netWorth?: number;
   creditScore?: number;
   hasReferencesChecked?: boolean;
+  spaceAvailable?: number;
 }
 
 export interface FranchiseOpportunity {
@@ -31,10 +34,16 @@ export interface FranchiseOpportunity {
   totalInvestment: { min: number; max: number };
   royaltyPercentage: number;
   requiredExperience?: string;
+  preferredExperience?: string;
   idealFranchiseeProfile?: string;
   supportProvided?: string[];
   trainingDuration?: number; // days
   territoriesAvailable?: string[];
+  preferredCities?: string[];
+  ownerOperatorRequired?: boolean;
+  minAreaSqft?: number | null;
+  maxAreaSqft?: number | null;
+  propertyType?: string | null;
   minimumNetWorth?: number;
   minimumLiquidCapital?: number;
   multiUnitDiscount?: boolean;
@@ -50,6 +59,7 @@ export interface FranchiseeMatch {
   experienceFitScore: number;
   personalityFitScore: number;
   commitmentFitScore: number;
+  locationFitScore: number;
   successProbability: number; // 0-100
   matchLevel: 'Excellent Match' | 'Good Match' | 'Fair Match' | 'Poor Match';
   strengths: string[];
@@ -57,6 +67,47 @@ export interface FranchiseeMatch {
   recommendation: string;
   expectedROI?: { year1: number; year3: number; year5: number };
   estimatedBreakEven?: number; // months
+}
+
+function normalizeMatchText(value: string): string {
+  return value.toLowerCase().replace(/[_-]+/g, ' ').trim();
+}
+
+function textsOverlap(left: string, right: string): boolean {
+  const a = normalizeMatchText(left);
+  const b = normalizeMatchText(right);
+  if (!a || !b) return false;
+  return a.includes(b) || b.includes(a);
+}
+
+function anyTextOverlap(left?: string[], right?: string[]): boolean {
+  if (!left?.length || !right?.length) return false;
+  return left.some((item) => right.some((other) => textsOverlap(item, other)));
+}
+
+function listingLocations(franchise: FranchiseOpportunity): string[] {
+  return [...(franchise.preferredCities || []), ...(franchise.territoriesAvailable || [])];
+}
+
+function experienceRequirementKey(value?: string | null): string {
+  return (value || '').toLowerCase().replace(/[\s-]+/g, '_');
+}
+
+function hasIndustryExperience(
+  franchisee: FranchiseeProfile,
+  franchise: FranchiseOpportunity
+): boolean {
+  const industry = franchise.industry || '';
+  return (franchisee.businessExperience || []).some((exp) => textsOverlap(exp, industry))
+    || (franchisee.industries || []).some((ind) => textsOverlap(ind, industry));
+}
+
+function hasFranchiseOwnership(franchisee: FranchiseeProfile): boolean {
+  const stated = (franchisee.franchiseExperience || '').trim();
+  if (stated && !['none', 'no', 'false'].includes(stated.toLowerCase())) return true;
+  return (franchisee.businessExperience || []).some((exp) =>
+    normalizeMatchText(exp).includes('franchise')
+  );
 }
 
 export class AIFranchiseeMatcherService {
@@ -93,21 +144,22 @@ export class AIFranchiseeMatcherService {
     const experienceFitScore = this.calculateExperienceFit(franchisee, franchise);
     const personalityFitScore = this.calculatePersonalityFit(franchisee, franchise);
     const commitmentFitScore = this.calculateCommitmentFit(franchisee, franchise);
+    const locationFitScore = this.calculateLocationFit(franchisee, franchise);
 
-    // Weighted overall score
     const matchScore = Math.round(
-      financialFitScore * 0.35 +
-      experienceFitScore * 0.30 +
-      personalityFitScore * 0.20 +
-      commitmentFitScore * 0.15
+      financialFitScore * 0.30 +
+      experienceFitScore * 0.25 +
+      locationFitScore * 0.20 +
+      commitmentFitScore * 0.15 +
+      personalityFitScore * 0.10
     );
 
-    // Use rule-based explainable reasons (no invented data)
     const analysis = this.generateExplainableReasons(franchisee, franchise, {
       financialFitScore,
       experienceFitScore,
       personalityFitScore,
       commitmentFitScore,
+      locationFitScore,
       matchScore,
     });
 
@@ -126,6 +178,7 @@ export class AIFranchiseeMatcherService {
       experienceFitScore,
       personalityFitScore,
       commitmentFitScore,
+      locationFitScore,
       successProbability,
       matchLevel,
       strengths: analysis.strengths,
@@ -207,34 +260,50 @@ export class AIFranchiseeMatcherService {
     franchise: FranchiseOpportunity
   ): number {
     let score = 0;
+    const requirement = experienceRequirementKey(franchise.requiredExperience);
+    const hasBusiness =
+      (franchisee.businessExperience?.length || 0) > 0 ||
+      (franchisee.managementExperience || 0) > 0 ||
+      (franchisee.industryExperience || 0) > 0;
+    const industryMatch = hasIndustryExperience(franchisee, franchise);
 
-    // Industry experience (40 points)
-    if (franchisee.businessExperience && franchisee.businessExperience.length > 0) {
-      const hasIndustryMatch = franchisee.businessExperience.some(exp =>
-        franchise.industry.toLowerCase().includes(exp.toLowerCase()) ||
-        exp.toLowerCase().includes(franchise.industry.toLowerCase())
-      );
-
-      if (hasIndustryMatch && franchisee.industryExperience) {
-        if (franchisee.industryExperience >= 5) score += 40;
-        else if (franchisee.industryExperience >= 3) score += 30;
-        else if (franchisee.industryExperience >= 1) score += 20;
-      } else if (hasIndustryMatch) {
-        score += 25;
-      } else if (franchisee.businessExperience.length > 0) {
-        score += 15; // Some business experience
+    switch (requirement) {
+      case 'none':
+      case '':
+        score += 40;
+        break;
+      case 'any_business':
+        score += hasBusiness ? 40 : 12;
+        break;
+      case 'industry_specific':
+        score += industryMatch ? 40 : 10;
+        break;
+      case 'management':
+        if ((franchisee.managementExperience || 0) >= 5) score += 40;
+        else if ((franchisee.managementExperience || 0) >= 3) score += 32;
+        else if ((franchisee.managementExperience || 0) >= 1) score += 24;
+        else score += 8;
+        break;
+      case 'franchise_owner':
+        score += hasFranchiseOwnership(franchisee) ? 40 : 10;
+        break;
+      default: {
+        const haystack = [
+          ...(franchisee.businessExperience || []),
+          ...(franchisee.industries || []),
+          franchise.industry,
+        ].join(' ');
+        score += textsOverlap(haystack, franchise.requiredExperience || '') ? 32 : 16;
       }
     }
 
-    // Management experience (30 points)
-    if (franchisee.managementExperience) {
-      if (franchisee.managementExperience >= 10) score += 30;
-      else if (franchisee.managementExperience >= 5) score += 25;
-      else if (franchisee.managementExperience >= 3) score += 20;
-      else if (franchisee.managementExperience >= 1) score += 15;
+    if (requirement !== 'management' && franchisee.managementExperience) {
+      if (franchisee.managementExperience >= 10) score += 25;
+      else if (franchisee.managementExperience >= 5) score += 20;
+      else if (franchisee.managementExperience >= 3) score += 15;
+      else if (franchisee.managementExperience >= 1) score += 10;
     }
 
-    // Education (20 points)
     if (franchisee.educationLevel) {
       switch (franchisee.educationLevel) {
         case 'phd':
@@ -250,9 +319,19 @@ export class AIFranchiseeMatcherService {
       }
     }
 
-    // Multi-unit readiness (10 points)
     if (franchisee.multiUnitInterest && franchise.multiUnitDiscount) {
       score += 10;
+    }
+
+    if (franchise.preferredExperience) {
+      const profileText = [
+        ...(franchisee.industries || []),
+        ...(franchisee.businessExperience || []),
+        franchise.industry,
+      ].join(' ');
+      if (textsOverlap(profileText, franchise.preferredExperience)) {
+        score += 10;
+      }
     }
 
     return Math.min(100, score);
@@ -310,38 +389,70 @@ export class AIFranchiseeMatcherService {
     franchisee: FranchiseeProfile,
     franchise: FranchiseOpportunity
   ): number {
-    let score = 50; // Base score
+    let score = 40;
 
-    // Time commitment alignment (50 points)
-    if (franchisee.timeCommitment === 'full-time') {
-      score += 50; // Full-time is ideal for most franchises
-    } else if (franchisee.timeCommitment === 'semi-absentee') {
-      // Good for established brands with strong systems
-      if (franchise.successRate && franchise.successRate >= 80) {
-        score += 35;
-      } else {
-        score += 25;
+    if (franchise.ownerOperatorRequired) {
+      switch (franchisee.timeCommitment) {
+        case 'full-time':
+          score += 50;
+          break;
+        case 'semi-absentee':
+          score += 18;
+          break;
+        case 'part-time':
+          score += 10;
+          break;
+        case 'absentee':
+          score += 4;
+          break;
+        default:
+          score += 12;
       }
+    } else if (franchisee.timeCommitment === 'full-time') {
+      score += 45;
+    } else if (franchisee.timeCommitment === 'semi-absentee') {
+      score += franchise.successRate && franchise.successRate >= 80 ? 32 : 22;
     } else if (franchisee.timeCommitment === 'part-time') {
-      score += 20; // Part-time is challenging
+      score += 16;
     } else if (franchisee.timeCommitment === 'absentee') {
-      score += 15; // Absentee is risky
+      score += 10;
+    } else {
+      score += 15;
     }
 
-    // Location alignment (25 points)
-    if (franchisee.preferredLocations && franchise.territoriesAvailable) {
-      const hasLocationMatch = franchisee.preferredLocations.some(loc =>
-        franchise.territoriesAvailable!.some(territory =>
-          territory.toLowerCase().includes(loc.toLowerCase())
-        )
-      );
-      if (hasLocationMatch) score += 25;
-      else score += 10; // Some territories available
-    }
-
-    // References checked (25 points)
     if (franchisee.hasReferencesChecked) {
-      score += 25;
+      score += 15;
+    }
+
+    return Math.min(100, score);
+  }
+
+  /**
+   * Location + optional existing-space fit against listing requirements
+   */
+  private static calculateLocationFit(
+    franchisee: FranchiseeProfile,
+    franchise: FranchiseOpportunity
+  ): number {
+    const cities = listingLocations(franchise);
+    let score = 55;
+
+    if (franchisee.preferredLocations?.length && cities.length) {
+      score = anyTextOverlap(franchisee.preferredLocations, cities) ? 90 : 32;
+    } else if (!franchisee.preferredLocations?.length) {
+      score = 60;
+    }
+
+    if (franchisee.spaceAvailable && franchise.minAreaSqft) {
+      if (franchisee.spaceAvailable >= franchise.minAreaSqft) {
+        if (!franchise.maxAreaSqft || franchisee.spaceAvailable <= franchise.maxAreaSqft) {
+          score = Math.min(100, score + 10);
+        } else {
+          score = Math.min(100, score + 4);
+        }
+      } else {
+        score = Math.max(20, score - 18);
+      }
     }
 
     return Math.min(100, score);
@@ -417,6 +528,7 @@ Provide analysis in EXACT JSON format (no markdown):
       experienceFitScore: number;
       personalityFitScore: number;
       commitmentFitScore: number;
+      locationFitScore: number;
       matchScore: number;
     }
   ): {
@@ -443,16 +555,23 @@ Provide analysis in EXACT JSON format (no markdown):
       }
     }
 
-    if (franchisee.preferredLocations?.length && franchise.territoriesAvailable?.length) {
-      const locationMatch = franchisee.preferredLocations.some((loc) =>
-        franchise.territoriesAvailable!.some((territory) =>
-          territory.toLowerCase().includes(loc.toLowerCase())
-        )
-      );
-      if (locationMatch) {
-        strengths.push('Available in your selected location');
-      } else {
-        concerns.push('Preferred location may not be available');
+    const cities = listingLocations(franchise);
+    if (franchisee.preferredLocations?.length && cities.length) {
+      if (anyTextOverlap(franchisee.preferredLocations, cities)) {
+        strengths.push('Brand is expanding in your preferred cities');
+      } else if (scores.locationFitScore < 50) {
+        concerns.push("Preferred cities may not overlap with this brand's expansion markets");
+      }
+    }
+
+    if (franchisee.spaceAvailable && franchise.minAreaSqft) {
+      if (
+        franchisee.spaceAvailable >= franchise.minAreaSqft &&
+        (!franchise.maxAreaSqft || franchisee.spaceAvailable <= franchise.maxAreaSqft)
+      ) {
+        strengths.push('Available space fits the required outlet size');
+      } else if (franchisee.spaceAvailable < franchise.minAreaSqft) {
+        concerns.push('Available space is below the required outlet size');
       }
     }
 
@@ -463,13 +582,28 @@ Provide analysis in EXACT JSON format (no markdown):
       if (industryMatch) {
         strengths.push('Matches your preferred industry');
       }
+    }
+
+    const requirement = experienceRequirementKey(franchise.requiredExperience);
+    if (requirement === 'franchise_owner' && !hasFranchiseOwnership(franchisee)) {
+      concerns.push('This brand prefers prior franchise ownership');
+    } else if (requirement === 'industry_specific' && !hasIndustryExperience(franchisee, franchise)) {
+      concerns.push('Industry-specific experience is required');
+    } else if (requirement === 'management' && (franchisee.managementExperience || 0) < 1) {
+      concerns.push('Management experience is required');
     } else if (scores.experienceFitScore >= 70) {
       strengths.push('Experience requirement aligns with your profile');
     } else if (franchise.requiredExperience && scores.experienceFitScore < 50) {
       concerns.push('Experience requirement may not match your profile');
     }
 
-    if (franchisee.timeCommitment === 'full-time' && scores.commitmentFitScore >= 70) {
+    if (franchise.ownerOperatorRequired) {
+      if (franchisee.timeCommitment === 'full-time') {
+        strengths.push('Owner-operator requirement matches your full-time commitment');
+      } else {
+        concerns.push('This brand requires an owner-operator');
+      }
+    } else if (franchisee.timeCommitment === 'full-time' && scores.commitmentFitScore >= 70) {
       strengths.push('Operating model fits your time commitment');
     } else if (scores.commitmentFitScore < 60) {
       concerns.push('Operating model may not fit your time commitment');
@@ -593,10 +727,10 @@ Provide analysis in EXACT JSON format (no markdown):
       if (error) throw error;
       if (!franchises || franchises.length === 0) return [];
 
-      // Convert to FranchiseOpportunity format
       const opportunities: FranchiseOpportunity[] = franchises.map((f) => {
-        const investmentMin = f.total_investment_min ?? f.franchise_fee ?? 0;
-        const investmentMax = f.total_investment_max ?? investmentMin;
+        const reqs = getListingRequirements(f);
+        const investmentMin = reqs.minInvestment ?? f.franchise_fee ?? 0;
+        const investmentMax = reqs.maxInvestment ?? investmentMin;
         const territories =
           f.expansion_territories ||
           f.operating_locations ||
@@ -610,11 +744,17 @@ Provide analysis in EXACT JSON format (no markdown):
           franchiseFee: f.franchise_fee,
           totalInvestment: { min: investmentMin, max: investmentMax },
           royaltyPercentage: f.royalty_percentage || 0,
-          requiredExperience: f.experience_required || f.required_experience,
+          requiredExperience: reqs.requiredExperience || f.required_experience,
+          preferredExperience: reqs.preferredExperience || undefined,
           idealFranchiseeProfile: f.ideal_franchisee,
           supportProvided: f.support_provided || [],
           trainingDuration: f.training_duration_days || f.training_duration,
           territoriesAvailable: Array.isArray(territories) ? territories : [],
+          preferredCities: reqs.preferredCities,
+          ownerOperatorRequired: reqs.ownerOperatorRequired,
+          minAreaSqft: reqs.minAreaSqft,
+          maxAreaSqft: reqs.maxAreaSqft,
+          propertyType: reqs.propertyType,
           minimumNetWorth: f.minimum_net_worth,
           minimumLiquidCapital: f.minimum_liquid_capital,
           multiUnitDiscount: f.multi_unit_discount,

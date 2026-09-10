@@ -85,7 +85,7 @@ export function NDAManagementPage() {
         const { data: businesses } = await supabase
             .from('businesses')
             .select('id')
-            .eq('owner_id', user.id);
+            .eq('seller_id', user.id);
 
         if (!businesses || businesses.length === 0) {
             setLoading(false);

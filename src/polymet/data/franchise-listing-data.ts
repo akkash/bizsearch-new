@@ -153,6 +153,11 @@ export const franchiseListingSchema = z.object({
         investmentMax: z.number().min(1, "Format investment max is required"),
         franchiseFee: z.number().min(0).optional(),
         description: z.string().optional(),
+        propertyType: z.string().optional(),
+        groundFloor: z.boolean().optional(),
+        parkingRequired: z.boolean().optional(),
+        maxRent: z.number().min(0).optional(),
+        frontageFt: z.number().min(0).optional(),
       })
     ).min(1, "At least one store format is required"),
   }),
@@ -234,8 +239,16 @@ export const franchiseListingSchema = z.object({
       .optional(),
     timeCommitment: z.string().optional(),
     backgroundPreferences: z.array(z.string()).optional(),
-    // Minimum net worth requirement for franchisees
     minimumNetWorth: z.number().min(0, "Net worth cannot be negative").optional(),
+    ownerOperatorRequired: z.boolean().optional(),
+    openingTimeline: z.string().optional(),
+    preferredCities: z.string().optional(),
+    preferredExperience: z.string().optional(),
+    propertyType: z.string().optional(),
+    groundFloor: z.boolean().optional(),
+    parkingRequired: z.boolean().optional(),
+    maxRent: z.number().min(0).optional(),
+    frontageFt: z.number().min(0).optional(),
   }).optional(),
 
   // Media & Documents

@@ -42,12 +42,14 @@ interface MainLayoutProps {
 
 const NAV_LINKS = [
   { name: "Franchises", href: "/franchises" },
+  { name: "Match", href: "/match" },
   { name: "Businesses", href: "/businesses" },
   { name: "Franchise Map", href: "/franchise-map" },
 ];
 
 const TOOLS_LINKS = [
   { name: "Franchise Pipeline", href: "/pipeline", icon: Users },
+  { name: "Franchise Match", href: "/match", icon: Search },
   { name: "Smart Search", href: "/smart-search", icon: Search },
   { name: "Franchise Map", href: "/franchise-map", icon: Store },
   { name: "Business Valuation", href: "/business-valuation", icon: Calculator },

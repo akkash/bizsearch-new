@@ -123,7 +123,10 @@ async function isAdminUser(supabase: SupabaseClient, userId: string): Promise<bo
 async function processInquiry(supabase: SupabaseClient, inquiryId: string) {
     const { data: inquiry, error } = await supabase
         .from("inquiries")
-        .select("*, listing:listing_id(*)")
+        .select(`
+            *,
+            sender:profiles!inquiries_sender_id_fkey(display_name)
+        `)
         .eq("id", inquiryId)
         .single();
 
@@ -135,26 +138,45 @@ async function processInquiry(supabase: SupabaseClient, inquiryId: string) {
         .from("lead_queue")
         .select("id")
         .eq("inquiry_id", inquiryId)
-        .single();
+        .maybeSingle();
 
     if (existingLead) {
         return jsonResponse({ message: "Lead already processed" });
     }
 
-    const qualificationResult = qualifyLead(inquiry);
-    const listingOwnerId = inquiry.listing?.owner_id || inquiry.listing?.seller_id;
+    const listingType = inquiry.listing_type || "business";
+    const table = listingType === "franchise" ? "franchises" : "businesses";
+    const nameField = listingType === "franchise" ? "brand_name" : "name";
+    const ownerField = listingType === "franchise" ? "franchisor_id" : "seller_id";
+
+    const { data: listing } = await supabase
+        .from(table)
+        .select(`${nameField}, ${ownerField}`)
+        .eq("id", inquiry.listing_id)
+        .maybeSingle();
+
+    const sellerId = inquiry.recipient_id || listing?.[ownerField];
+    const inquiryForScoring = {
+        ...inquiry,
+        email: inquiry.contact_email,
+        phone: inquiry.contact_phone,
+        name: inquiry.sender?.display_name,
+        listing,
+    };
+
+    const qualificationResult = qualifyLead(inquiryForScoring);
 
     const { data: lead, error: leadError } = await supabase
         .from("lead_queue")
         .insert({
             inquiry_id: inquiryId,
             listing_id: inquiry.listing_id,
-            listing_type: inquiry.listing_type || "business",
-            seller_id: listingOwnerId,
-            buyer_id: inquiry.user_id,
-            buyer_name: inquiry.name,
-            buyer_email: inquiry.email,
-            buyer_phone: inquiry.phone,
+            listing_type: listingType,
+            seller_id: sellerId,
+            buyer_id: inquiry.sender_id,
+            buyer_name: inquiry.sender?.display_name || null,
+            buyer_email: inquiry.contact_email,
+            buyer_phone: inquiry.contact_phone,
             qualification_score: qualificationResult.score,
             qualification_notes: qualificationResult.notes,
             status: "new",
@@ -166,7 +188,7 @@ async function processInquiry(supabase: SupabaseClient, inquiryId: string) {
         return jsonResponse({ error: leadError.message }, 400);
     }
 
-    const autoResponse = generateAutoResponse(inquiry, qualificationResult.score);
+    const autoResponse = generateAutoResponse(inquiryForScoring, qualificationResult.score);
 
     await supabase
         .from("lead_queue")
@@ -269,7 +291,8 @@ function qualifyLead(inquiry: Record<string, unknown>): { score: number; notes: 
 
 function generateAutoResponse(inquiry: Record<string, unknown>, qualificationScore: number): string {
     const listing = inquiry.listing as Record<string, unknown> | undefined;
-    const buyerName = typeof inquiry.name === "string" ? inquiry.name : "there";
+    const buyerName =
+        (typeof inquiry.name === "string" ? inquiry.name : null) || "there";
     const listingName =
         (typeof listing?.name === "string" ? listing.name : null) ||
         (typeof listing?.brand_name === "string" ? listing.brand_name : null) ||

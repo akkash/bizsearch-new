@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { BusinessCard } from '@/polymet/components/business-card';
 import { FranchiseCard } from '@/polymet/components/franchise-card';
+import { FranchisorGrowthDashboard } from '@/polymet/pages/dashboard/franchisor-growth';
 import type { Business, Franchise } from '@/types/listings';
 import { useNavigate } from 'react-router-dom';
 
@@ -51,7 +52,9 @@ export function DashboardPage() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold">Dashboard</h1>
+                    <h1 className="text-3xl font-bold">
+                        {isFranchisor ? 'Franchise Growth' : 'Dashboard'}
+                    </h1>
                     <p className="text-muted-foreground">Welcome back, {profile.display_name}</p>
                 </div>
                 <div className="flex gap-2">
@@ -68,7 +71,9 @@ export function DashboardPage() {
                 </div>
             </div>
 
-            {/* Stats Overview */}
+            {isFranchisor && user?.id ? (
+                <FranchisorGrowthDashboard userId={user.id} />
+            ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
                 <Card>
                     <CardContent className="pt-6">
@@ -96,7 +101,7 @@ export function DashboardPage() {
                         </div>
                     </CardContent>
                 </Card>
-                {(isFranchisor || isSeller) && (
+                {isSeller && (
                     <>
                         <Card>
                             <CardContent className="pt-6">
@@ -124,21 +129,6 @@ export function DashboardPage() {
                                 </div>
                             </CardContent>
                         </Card>
-                        {isFranchisor && (
-                            <Card>
-                                <CardContent className="pt-6">
-                                    <div className="flex items-center gap-4">
-                                        <div className="p-3 bg-growth-green/10 text-growth-green rounded-lg">
-                                            <TrendingUp className="w-6 h-6" />
-                                        </div>
-                                        <div>
-                                            <div className="text-2xl font-bold">{stats.applications}</div>
-                                            <div className="text-sm text-muted-foreground">Applications</div>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        )}
                     </>
                 )}
                 <Card>
@@ -155,6 +145,7 @@ export function DashboardPage() {
                     </CardContent>
                 </Card>
             </div>
+            )}
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
                 <TabsList>
@@ -202,6 +193,8 @@ export function DashboardPage() {
                                 <p className="text-muted-foreground max-w-sm mb-6">
                                     {isBuyer
                                         ? "You haven't set up your Investment Mandate yet. Creating one helps sellers find you."
+                                        : isFranchisor
+                                        ? "List a franchise to start receiving qualified opportunities."
                                         : "Create your first business listing to start getting inquiries."}
                                 </p>
                                 {isBuyer ? (
@@ -239,9 +232,11 @@ export function DashboardPage() {
                         <CardContent>
                             <div className="text-center py-8 space-y-4">
                                 <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                                    View and manage franchise and business enquiries from entrepreneurs and buyers.
+                                    {isFranchisor
+                                        ? 'The franchise pipeline is the canonical lead inbox. Applications stay linked to those opportunities.'
+                                        : 'View and manage franchise and business enquiries from entrepreneurs and buyers.'}
                                 </p>
-                                <Button onClick={() => navigate('/leads')}>
+                                <Button onClick={() => navigate(isFranchisor ? '/pipeline' : '/leads')}>
                                     Open Franchise Pipeline
                                 </Button>
                             </div>

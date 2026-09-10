@@ -60,7 +60,7 @@ export function SellerAnalyticsPage() {
             const { data: businesses, error } = await supabase
                 .from('businesses')
                 .select('id, name, slug, views_count, saves_count, inquiries_count')
-                .eq('owner_id', user.id);
+                .eq('seller_id', user.id);
 
             if (error) throw error;
 

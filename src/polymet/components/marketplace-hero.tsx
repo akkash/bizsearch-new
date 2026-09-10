@@ -19,13 +19,14 @@ const POPULAR = [
 
 const INTENTS = [
   { id: "franchise" as const, label: "Find a Franchise", href: "/franchises" },
+  { id: "match" as const, label: "Match My Profile", href: "/match" },
   { id: "compare" as const, label: "Compare Opportunities", href: "/franchises?compare=1" },
   { id: "list" as const, label: "List Your Franchise", href: "/add-franchise-listing" },
 ];
 
 export function MarketplaceHero({ className }: MarketplaceHeroProps) {
   const [query, setQuery] = useState("");
-  const [activeIntent, setActiveIntent] = useState<"franchise" | "compare" | "list">("franchise");
+  const [activeIntent, setActiveIntent] = useState<(typeof INTENTS)[number]["id"]>("franchise");
   const navigate = useNavigate();
 
   const go = (q: string, type: "business" | "franchise" = "franchise") => {

@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "validate:phase1": "node scripts/phase1-production-validation.mjs",
+    "validate:schema": "node scripts/validate-live-schema.mjs",
     "seed:phase1": "node scripts/phase1-seed-test-data.mjs",
     "deploy:p0-p1": "node scripts/deploy-p0-p1-live.mjs",
     "rotate:secrets": "node scripts/rotate-exposed-secrets.mjs"

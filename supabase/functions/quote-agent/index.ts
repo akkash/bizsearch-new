@@ -118,10 +118,11 @@ async function createQuoteRequest(supabase: any, userId: string, payload: QuoteR
     // Get listing details
     const table = listing_type === "franchise" ? "franchises" : "businesses";
     const nameField = listing_type === "franchise" ? "brand_name" : "name";
+    const ownerField = listing_type === "franchise" ? "franchisor_id" : "seller_id";
 
     const { data: listings } = await supabase
         .from(table)
-        .select(`id, ${nameField}, owner_id, industry`)
+        .select(`id, ${nameField}, ${ownerField}, industry`)
         .in("id", listing_ids);
 
     // Create individual quote responses for each listing
@@ -129,7 +130,7 @@ async function createQuoteRequest(supabase: any, userId: string, payload: QuoteR
         quote_request_id: quoteRequest.id,
         listing_id: listing.id,
         listing_type,
-        responder_id: listing.owner_id,
+        responder_id: listing[ownerField],
         initial_message: generateInquiryMessage(profile, listing, requirements, listing_type),
         status: "pending",
     }));

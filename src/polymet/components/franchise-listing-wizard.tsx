@@ -877,8 +877,31 @@ export function FranchiseListingWizard({
                             <Label htmlFor={`format-desc-${index}`}>Description</Label>
                             <Input
                               id={`format-desc-${index}`}
-                              placeholder="Brief description of this format"
                               {...form.register(`investment.storeFormats.${index}.description`)}
+                              placeholder="Short description of this format"
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label>Property type</Label>
+                            <Controller
+                              control={form.control}
+                              name={`investment.storeFormats.${index}.propertyType`}
+                              render={({ field }) => (
+                                <Select onValueChange={field.onChange} value={field.value || ""}>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Typical site type" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="retail">Retail shop</SelectItem>
+                                    <SelectItem value="food_qsr">Food / QSR</SelectItem>
+                                    <SelectItem value="kiosk">Kiosk</SelectItem>
+                                    <SelectItem value="warehouse">Warehouse</SelectItem>
+                                    <SelectItem value="office">Office</SelectItem>
+                                    <SelectItem value="mixed">Mixed use</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              )}
                             />
                           </div>
                         </div>
@@ -1104,6 +1127,132 @@ export function FranchiseListingWizard({
                     );
                   }}
                 />
+              </div>
+
+              <Separator />
+              <h4 className="font-semibold text-lg">Location requirements</h4>
+              <p className="text-sm text-muted-foreground">
+                Structured site criteria for matching — not a property listing.
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Property type</Label>
+                  <Controller
+                    control={form.control}
+                    name="franchiseeProfile.propertyType"
+                    render={({ field }) => (
+                      <Select onValueChange={field.onChange} value={field.value || ""}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Required site type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="retail">Retail shop</SelectItem>
+                          <SelectItem value="food_qsr">Food / QSR</SelectItem>
+                          <SelectItem value="kiosk">Kiosk</SelectItem>
+                          <SelectItem value="warehouse">Warehouse</SelectItem>
+                          <SelectItem value="office">Office</SelectItem>
+                          <SelectItem value="mixed">Mixed use</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Opening timeline</Label>
+                  <Controller
+                    control={form.control}
+                    name="franchiseeProfile.openingTimeline"
+                    render={({ field }) => (
+                      <Select onValueChange={field.onChange} value={field.value || ""}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="When should a unit open?" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="immediate">Immediately</SelectItem>
+                          <SelectItem value="1_3_months">1–3 months</SelectItem>
+                          <SelectItem value="3_6_months">3–6 months</SelectItem>
+                          <SelectItem value="6_12_months">6–12 months</SelectItem>
+                          <SelectItem value="exploring">Flexible / exploring</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Preferred experience</Label>
+                  <Input
+                    {...form.register("franchiseeProfile.preferredExperience")}
+                    placeholder="e.g. F&B operations, retail management"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Max rent (₹ / month, optional)</Label>
+                  <Input
+                    type="number"
+                    {...form.register("franchiseeProfile.maxRent", { valueAsNumber: true })}
+                    placeholder="150000"
+                  />
+                </div>
+                <div className="md:col-span-2 space-y-2">
+                  <Label>Preferred expansion cities</Label>
+                  <Textarea
+                    {...form.register("franchiseeProfile.preferredCities")}
+                    placeholder="Chennai, Bangalore, Coimbatore"
+                    rows={2}
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-6">
+                <div className="flex items-center space-x-2">
+                  <Controller
+                    control={form.control}
+                    name="franchiseeProfile.ownerOperatorRequired"
+                    render={({ field }) => (
+                      <Checkbox
+                        id="ownerOperatorRequired"
+                        checked={field.value === true}
+                        onCheckedChange={(checked) => field.onChange(checked === true)}
+                      />
+                    )}
+                  />
+                  <Label htmlFor="ownerOperatorRequired" className="font-normal">
+                    Owner-operator required
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Controller
+                    control={form.control}
+                    name="franchiseeProfile.groundFloor"
+                    render={({ field }) => (
+                      <Checkbox
+                        id="groundFloor"
+                        checked={field.value === true}
+                        onCheckedChange={(checked) => field.onChange(checked === true)}
+                      />
+                    )}
+                  />
+                  <Label htmlFor="groundFloor" className="font-normal">
+                    Ground floor preferred
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Controller
+                    control={form.control}
+                    name="franchiseeProfile.parkingRequired"
+                    render={({ field }) => (
+                      <Checkbox
+                        id="parkingRequired"
+                        checked={field.value === true}
+                        onCheckedChange={(checked) => field.onChange(checked === true)}
+                      />
+                    )}
+                  />
+                  <Label htmlFor="parkingRequired" className="font-normal">
+                    Parking required
+                  </Label>
+                </div>
               </div>
             </div>
           </div>

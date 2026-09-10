@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -66,6 +66,8 @@ function getSenderName(lead: FranchiseInquiry): string {
 
 export function LeadManagementPage() {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const focusLeadId = searchParams.get('lead');
   const [leads, setLeads] = useState<FranchiseInquiry[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -84,6 +86,13 @@ export function LeadManagementPage() {
     try {
       const inquiries = await InquiryService.getFranchisePipeline(user.id);
       setLeads(inquiries);
+      if (focusLeadId) {
+        const match = inquiries.find((l) => l.id === focusLeadId);
+        if (match) {
+          setSelectedLead(match);
+          setNotesDraft(match.notes || '');
+        }
+      }
     } catch (error) {
       console.error('Error loading pipeline:', error);
       try {
@@ -532,7 +541,7 @@ export function LeadManagementPage() {
                 <div className="flex flex-wrap gap-2 pt-2">
                   {selectedLead.linkedApplicationId ? (
                     <Button size="sm" variant="outline" asChild>
-                      <Link to="/franchisor/applications">
+                      <Link to={`/franchisor/applications?inquiry=${selectedLead.id}`}>
                         <FileText className="h-3.5 w-3.5 mr-1" />
                         View application
                       </Link>

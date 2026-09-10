@@ -191,6 +191,22 @@ export function AddFranchiseListingPage({
         skills_required: data.franchiseeProfile?.skillsRequired || [],
         time_commitment: data.franchiseeProfile?.timeCommitment,
         background_preferences: data.franchiseeProfile?.backgroundPreferences || [],
+        owner_operator_required:
+          data.franchiseeProfile?.ownerOperatorRequired ??
+          data.franchiseeProfile?.timeCommitment === 'full_time_owner',
+        opening_timeline: data.franchiseeProfile?.openingTimeline,
+        preferred_experience: data.franchiseeProfile?.preferredExperience,
+        property_type: data.franchiseeProfile?.propertyType,
+        ground_floor: data.franchiseeProfile?.groundFloor,
+        parking_required: data.franchiseeProfile?.parkingRequired,
+        max_rent: data.franchiseeProfile?.maxRent,
+        frontage_ft: data.franchiseeProfile?.frontageFt,
+        preferred_cities: (data.franchiseeProfile?.preferredCities || '')
+          .split(/[\n,]/)
+          .map((s) => s.trim())
+          .filter(Boolean),
+        min_area_sqft: fromFormats.min_area_sqft,
+        max_area_sqft: fromFormats.max_area_sqft,
         // Financial projections
         average_unit_revenue: data.investment?.totalInvestment?.min,
         average_unit_profit: data.investment?.averageROI,

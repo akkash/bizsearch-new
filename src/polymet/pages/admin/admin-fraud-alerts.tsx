@@ -19,6 +19,7 @@ import { formatDistanceToNow } from 'date-fns';
 export function AdminFraudAlerts() {
     const [alerts, setAlerts] = useState<FraudAlert[]>([]);
     const [resolvedToday, setResolvedToday] = useState(0);
+    const [listingTypes, setListingTypes] = useState<Record<string, 'business' | 'franchise'>>({});
     const [loading, setLoading] = useState(true);
     const [actingId, setActingId] = useState<string | null>(null);
 
@@ -31,6 +32,16 @@ export function AdminFraudAlerts() {
             ]);
             setAlerts(pending);
             setResolvedToday(resolved);
+
+            const listingAlerts = pending.filter((a) => a.type === 'listing');
+            const typeMap: Record<string, 'business' | 'franchise'> = {};
+            await Promise.all(
+                listingAlerts.map(async (alert) => {
+                    const listingType = await AdminService.resolveListingType(alert.entity_id);
+                    if (listingType) typeMap[alert.entity_id] = listingType;
+                })
+            );
+            setListingTypes(typeMap);
         } catch (error) {
             console.error('Error loading alerts:', error);
             toast.error('Failed to load fraud alerts');
@@ -69,7 +80,10 @@ export function AdminFraudAlerts() {
 
     const getEntityLink = (alert: FraudAlert) => {
         if (alert.type === 'user') return `/admin/users/${alert.entity_id}`;
-        if (alert.type === 'listing') return `/admin/listings/franchise/${alert.entity_id}`;
+        if (alert.type === 'listing') {
+            const listingType = listingTypes[alert.entity_id];
+            if (listingType) return `/admin/listings/${listingType}/${alert.entity_id}`;
+        }
         return null;
     };
 

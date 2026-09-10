@@ -88,6 +88,23 @@ function mapInquiry(
   };
 }
 
+export interface FranchiseGrowthMetrics {
+  qualifiedOpportunities: number;
+  newThisWeek: number;
+  meetings: number;
+  applications: number;
+  approved: number;
+  territoriesFilled: number;
+  pipeline: {
+    new: number;
+    qualified: number;
+    meeting: number;
+    application: number;
+    approved: number;
+  };
+  locationDemand: Array<{ location: string; count: number }>;
+}
+
 export type CreateInquiryInput = {
   senderId: string;
   listingId: string;
@@ -176,17 +193,6 @@ export class InquiryService {
 
     const q = input.qualification;
     const fmt = input.selectedStoreFormat;
-    const metadata = {
-      ...(input.metadata || {}),
-      investment_capacity: q?.investmentCapacity,
-      preferred_location: q?.preferredLocation,
-      opening_timeline: q?.openingTimeline,
-      funds_available: q?.fundsAvailable,
-      relevant_experience: q?.relevantExperience,
-      selected_store_format_id: fmt?.id,
-      selected_store_format_name: fmt?.name,
-      selected_store_format_snapshot: fmt?.snapshot,
-    };
 
     const row: Record<string, unknown> = {
       sender_id: input.senderId,
@@ -198,8 +204,6 @@ export class InquiryService {
       contact_email: input.contactEmail,
       contact_phone: input.contactPhone || null,
       status: 'new',
-      priority: 'medium',
-      metadata,
     };
 
     if (q?.investmentCapacity) row.investment_capacity = q.investmentCapacity;
@@ -223,7 +227,7 @@ export class InquiryService {
       if (error.code === '23505') {
         throw new Error('You already have an open enquiry for this listing.');
       }
-      // Fallback without new columns if migration not yet applied
+      // Fallback without optional qualification columns if migration not yet applied
       if (
         error.message?.includes('investment_capacity') ||
         error.message?.includes('selected_store_format') ||
@@ -241,8 +245,6 @@ export class InquiryService {
             contact_email: input.contactEmail,
             contact_phone: input.contactPhone || null,
             status: 'new',
-            priority: 'medium',
-            metadata,
           })
           .select('id')
           .single();
@@ -366,6 +368,169 @@ export class InquiryService {
   /** Mark inquiry as application stage when linked app is created */
   static async markApplicationStarted(inquiryId: string): Promise<void> {
     await this.updateInquiry(inquiryId, { status: 'application' });
+  }
+
+  /** Latest non-lost franchise inquiry from this sender for this listing */
+  static async findFranchiseInquiryForSender(
+    senderId: string,
+    listingId: string
+  ): Promise<string | null> {
+    const { data, error } = await supabase
+      .from('inquiries')
+      .select('id')
+      .eq('sender_id', senderId)
+      .eq('listing_id', listingId)
+      .eq('listing_type', 'franchise')
+      .neq('status', 'lost')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data?.id ? String(data.id) : null;
+  }
+
+  /**
+   * Reuse an existing franchise inquiry or create one so every application
+   * has a canonical Lead / Opportunity row.
+   */
+  static async enquireFromMatch(input: {
+    senderId: string;
+    listingId: string;
+    contactEmail: string;
+    contactPhone?: string;
+    matchScore: number;
+    brandName?: string;
+  }): Promise<string> {
+    const inquiryId = await this.ensureFranchiseInquiry({
+      senderId: input.senderId,
+      listingId: input.listingId,
+      contactEmail: input.contactEmail,
+      contactPhone: input.contactPhone,
+      subject: input.brandName
+        ? `Match enquiry: ${input.brandName}`
+        : 'Franchise match enquiry',
+      message: `Enquiry started from franchise matcher${
+        input.brandName ? ` for ${input.brandName}` : ''
+      }.`,
+    });
+
+    try {
+      await this.updateInquiry(inquiryId, {
+        match_score: Math.round(input.matchScore),
+      });
+    } catch (error) {
+      console.warn('Could not persist match_score on inquiry:', error);
+    }
+
+    return inquiryId;
+  }
+
+  static async ensureFranchiseInquiry(input: {
+    senderId: string;
+    listingId: string;
+    contactEmail: string;
+    contactPhone?: string;
+    subject?: string;
+    message?: string;
+  }): Promise<string> {
+    const existing = await this.findFranchiseInquiryForSender(
+      input.senderId,
+      input.listingId
+    );
+    if (existing) return existing;
+
+    try {
+      return await this.createInquiry({
+        senderId: input.senderId,
+        listingId: input.listingId,
+        listingType: 'franchise',
+        subject: input.subject || 'Franchise application',
+        message:
+          input.message ||
+          'Application submitted via the franchise apply flow.',
+        contactEmail: input.contactEmail,
+        contactPhone: input.contactPhone,
+      });
+    } catch (err) {
+      const raced = await this.findFranchiseInquiryForSender(
+        input.senderId,
+        input.listingId
+      );
+      if (raced) return raced;
+      throw err;
+    }
+  }
+
+  static applicationStatusToInquiryStatus(
+    appStatus: string
+  ): InquiryStatus | null {
+    switch (appStatus) {
+      case 'submitted':
+      case 'under_review':
+        return 'application';
+      case 'interview_scheduled':
+        return 'meeting';
+      case 'approved':
+        return 'negotiation';
+      case 'rejected':
+      case 'withdrawn':
+        return 'lost';
+      default:
+        return null;
+    }
+  }
+
+  static async syncInquiryFromApplication(
+    inquiryId: string,
+    appStatus: string
+  ): Promise<void> {
+    const status = this.applicationStatusToInquiryStatus(appStatus);
+    if (!status) return;
+    await this.updateInquiry(inquiryId, { status });
+  }
+
+  static async getFranchiseGrowthMetrics(
+    userId: string
+  ): Promise<FranchiseGrowthMetrics> {
+    const leads = await this.getFranchisePipeline(userId);
+    const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    const active = leads.filter((l) => l.status !== 'lost');
+
+    const locationCounts = new Map<string, number>();
+    for (const lead of active) {
+      const loc = (lead.preferredLocation || '').trim();
+      if (!loc) continue;
+      locationCounts.set(loc, (locationCounts.get(loc) || 0) + 1);
+    }
+
+    const locationDemand = [...locationCounts.entries()]
+      .map(([location, count]) => ({ location, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8);
+
+    const applications = leads.filter(
+      (l) => l.status === 'application' || Boolean(l.linkedApplicationId)
+    ).length;
+
+    return {
+      qualifiedOpportunities: active.length,
+      newThisWeek: leads.filter(
+        (l) => new Date(l.createdAt).getTime() >= weekAgo
+      ).length,
+      meetings: leads.filter((l) => l.status === 'meeting').length,
+      applications,
+      approved: leads.filter((l) => l.status === 'negotiation').length,
+      territoriesFilled: leads.filter((l) => l.status === 'opened').length,
+      pipeline: {
+        new: leads.filter((l) => l.status === 'new').length,
+        qualified: leads.filter((l) => l.status === 'qualified').length,
+        meeting: leads.filter((l) => l.status === 'meeting').length,
+        application: applications,
+        approved: leads.filter((l) => l.status === 'negotiation').length,
+      },
+      locationDemand,
+    };
   }
 
   private static async resolveLinkedApplications(

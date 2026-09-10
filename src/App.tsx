@@ -81,6 +81,7 @@ import { ScrollToTop } from "@/components/ScrollToTop";
 import { HelpCenterPage } from "@/polymet/pages/help-center";
 import { ApiDocsPage } from "@/polymet/pages/api-docs";
 import { SmartSearchPage } from "@/polymet/pages/smart-search";
+import { FranchiseMatchPage } from "@/polymet/pages/franchise-match";
 
 // Advisor Dashboard
 import { AdvisorLayout } from "@/polymet/layouts/advisor-layout";
@@ -274,6 +275,15 @@ export default function BizSearchApp() {
                       element={
                         <MainLayout>
                           <SmartSearchPage />
+                        </MainLayout>
+                      }
+                    />
+
+                    <Route
+                      path="/match"
+                      element={
+                        <MainLayout>
+                          <FranchiseMatchPage />
                         </MainLayout>
                       }
                     />

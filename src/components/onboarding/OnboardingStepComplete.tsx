@@ -47,8 +47,8 @@ export function OnboardingStepComplete({
                 ];
             case 'franchisee':
                 return [
+                    { icon: Search, label: 'Match Franchises', path: '/match' },
                     { icon: Store, label: 'Explore Franchises', path: '/franchises' },
-                    { icon: Search, label: 'Browse Map', path: '/franchise-map' },
                 ];
             case 'advisor':
             case 'broker':

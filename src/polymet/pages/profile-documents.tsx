@@ -72,7 +72,7 @@ export function ProfileDocumentsPage({
       const { data, error } = await supabase
         .from('verification_documents')
         .select('*')
-        .eq('user_id', userId || user.id)
+        .eq('profile_id', userId || user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -83,7 +83,7 @@ export function ProfileDocumentsPage({
         type: doc.document_type || 'other',
         size: formatFileSize(doc.file_size || 0),
         uploadDate: doc.created_at,
-        status: doc.verification_status || 'pending',
+        status: doc.status || 'pending',
         requiresNDA: doc.requires_nda || false,
         category: doc.category || 'General',
       }));

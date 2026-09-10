@@ -328,15 +328,51 @@ export class FranchiseService {
    * Create a new franchise listing
    */
   static async createFranchise(userId: string, franchise: FranchiseCreateInput) {
+    const payload = {
+      franchisor_id: userId,
+      ...franchise,
+      status: 'pending_review' as const,
+    };
+
     const { data, error } = await supabase
       .from('franchises')
-      .insert({
-        franchisor_id: userId,
-        ...franchise,
-        status: 'pending_review', // Start as pending review
-      })
+      .insert(payload)
       .select()
       .single();
+
+    if (
+      error &&
+      (error.code === 'PGRST204' ||
+        [
+          'property_type',
+          'min_area_sqft',
+          'max_area_sqft',
+          'owner_operator_required',
+          'opening_timeline',
+          'preferred_cities',
+          'preferred_experience',
+          'ground_floor',
+          'parking_required',
+          'max_rent',
+          'frontage_ft',
+        ].some((col) => error.message?.includes(col)))
+    ) {
+      const fallback = { ...payload } as Record<string, unknown>;
+      delete fallback.property_type;
+      delete fallback.min_area_sqft;
+      delete fallback.max_area_sqft;
+      delete fallback.owner_operator_required;
+      delete fallback.opening_timeline;
+      delete fallback.preferred_cities;
+      delete fallback.preferred_experience;
+      delete fallback.ground_floor;
+      delete fallback.parking_required;
+      delete fallback.max_rent;
+      delete fallback.frontage_ft;
+      const retry = await supabase.from('franchises').insert(fallback).select().single();
+      if (retry.error) throw retry.error;
+      return retry.data;
+    }
 
     if (error) throw error;
     return data;

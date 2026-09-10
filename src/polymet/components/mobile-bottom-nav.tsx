@@ -36,7 +36,8 @@ export function MobileBottomNav({
         location.pathname.startsWith("/franchises") ||
         location.pathname.startsWith("/search") ||
         location.pathname.startsWith("/smart-search") ||
-        location.pathname.startsWith("/franchise-map"),
+        location.pathname.startsWith("/franchise-map") ||
+        location.pathname.startsWith("/match"),
     },
     {
       name: "Saved",

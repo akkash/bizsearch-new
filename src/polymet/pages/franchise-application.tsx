@@ -20,6 +20,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { InquiryService } from '@/lib/inquiry-service';
+import { FranchiseService } from '@/lib/franchise-service';
 import { formatINR } from '@/lib/format-currency';
 import { StoreFormatPicker } from '@/components/store-format-picker';
 import {
@@ -98,23 +99,35 @@ export function FranchiseApplicationPage() {
     useEffect(() => {
         const loadFranchise = async () => {
             if (!franchiseId) return;
-            const { data } = await supabase
-                .from('franchises')
-                .select('id, brand_name, logo_url, total_investment_min, total_investment_max, store_formats')
-                .eq('id', franchiseId)
-                .single();
-
-            if (data) {
-                setFranchise(data);
-                const fmt = getStoreFormatsFromFranchise(data);
-                setFormats(fmt);
-                setSelectedFormatId(formatIdParam || fmt[0]?.id || null);
+            try {
+                const result = await FranchiseService.getFranchiseByIdOrSlug(franchiseId);
+                const row = result && !Array.isArray(result) ? result : null;
+                if (row) {
+                    const info: FranchiseInfo = {
+                        id: row.id,
+                        brand_name: row.brandName || row.brand_name || 'Franchise',
+                        logo_url: row.logo || row.logo_url || null,
+                        total_investment_min:
+                            row.investmentMin ?? row.total_investment_min ?? null,
+                        total_investment_max:
+                            row.investmentMax ?? row.total_investment_max ?? null,
+                        store_formats: row.storeFormats ?? row.store_formats,
+                    };
+                    setFranchise(info);
+                    const fmt = getStoreFormatsFromFranchise(info);
+                    setFormats(fmt);
+                    setSelectedFormatId(formatIdParam || fmt[0]?.id || null);
+                }
+            } catch (error) {
+                console.error('Error loading franchise for application:', error);
+                setFranchise(null);
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
         };
 
         loadFranchise();
-    }, [franchiseId]);
+    }, [franchiseId, formatIdParam]);
 
     useEffect(() => {
         if (profile) {
@@ -146,7 +159,7 @@ export function FranchiseApplicationPage() {
     };
 
     const handleSubmit = async () => {
-        if (!user || !franchiseId) return;
+        if (!user || !franchise) return;
         if (submitting) return;
 
         setSubmitting(true);
@@ -158,10 +171,25 @@ export function FranchiseApplicationPage() {
             }
 
             const selectedFormat = findStoreFormat(formats, selectedFormatId);
+            const listingId = franchise.id;
+
+            const linkedInquiryId =
+                inquiryId ||
+                (await InquiryService.ensureFranchiseInquiry({
+                    senderId: user.id,
+                    listingId,
+                    contactEmail: formData.email,
+                    contactPhone: formData.phone || undefined,
+                    subject: `Application: ${franchise.brand_name}`,
+                    message:
+                        formData.whyThisFranchise ||
+                        `Application submitted for ${franchise.brand_name}.`,
+                }));
 
             const payload: Record<string, unknown> = {
-                franchise_id: franchiseId,
+                franchise_id: listingId,
                 user_id: user.id,
+                inquiry_id: linkedInquiryId,
                 status: 'submitted',
                 personal_info: {
                     fullName: formData.fullName,
@@ -197,9 +225,6 @@ export function FranchiseApplicationPage() {
                 },
             };
 
-            if (inquiryId) {
-                payload.inquiry_id = inquiryId;
-            }
             if (selectedFormat) {
                 payload.selected_store_format_id = selectedFormat.id;
                 payload.selected_store_format_name = selectedFormat.name;
@@ -208,14 +233,13 @@ export function FranchiseApplicationPage() {
 
             let { error } = await supabase.from('franchise_applications').insert(payload);
 
-            // Fallback if new columns not yet migrated
+            // Retry without store-format columns only — never drop inquiry_id
             if (
                 error &&
-                (error.message?.includes('inquiry_id') ||
-                    error.message?.includes('selected_store_format') ||
+                !error.message?.includes('inquiry_id') &&
+                (error.message?.includes('selected_store_format') ||
                     error.code === 'PGRST204')
             ) {
-                delete payload.inquiry_id;
                 delete payload.selected_store_format_id;
                 delete payload.selected_store_format_name;
                 delete payload.selected_store_format_snapshot;
@@ -232,12 +256,10 @@ export function FranchiseApplicationPage() {
                 throw error;
             }
 
-            if (inquiryId) {
-                try {
-                    await InquiryService.markApplicationStarted(inquiryId);
-                } catch (linkErr) {
-                    console.warn('Could not update inquiry stage:', linkErr);
-                }
+            try {
+                await InquiryService.markApplicationStarted(linkedInquiryId);
+            } catch (linkErr) {
+                console.warn('Could not update inquiry stage:', linkErr);
             }
 
             toast.success('Application submitted successfully!');

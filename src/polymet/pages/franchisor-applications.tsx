@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -42,6 +42,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
+import { InquiryService } from '@/lib/inquiry-service';
 import { formatDistanceToNow, format } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -49,6 +50,7 @@ interface Application {
     id: string;
     franchise_id: string;
     user_id: string;
+    inquiry_id: string | null;
     status: string;
     personal_info: {
         fullName?: string;
@@ -98,6 +100,8 @@ const statusConfig: Record<string, { color: string; icon: any; label: string }> 
 
 export function FranchisorApplicationsPage() {
     const { user } = useAuth();
+    const [searchParams] = useSearchParams();
+    const focusInquiryId = searchParams.get('inquiry');
     const [applications, setApplications] = useState<Application[]>([]);
     const [franchises, setFranchises] = useState<Franchise[]>([]);
     const [loading, setLoading] = useState(true);
@@ -172,6 +176,7 @@ export function FranchisorApplicationsPage() {
                 id,
                 franchise_id,
                 user_id,
+                inquiry_id,
                 status,
                 personal_info,
                 financial_info,
@@ -221,9 +226,18 @@ export function FranchisorApplicationsPage() {
                 });
             }
 
-            setApplications(
-                data.map((row) => mapApplicationRow(row as Record<string, unknown>, profileMap))
+            const mapped = data.map((row) =>
+                mapApplicationRow(row as Record<string, unknown>, profileMap)
             );
+            setApplications(mapped);
+
+            if (focusInquiryId) {
+                const match = mapped.find((app) => app.inquiry_id === focusInquiryId);
+                if (match) {
+                    setSelectedApp(match);
+                    setShowDetailDialog(true);
+                }
+            }
         }
         setLoading(false);
     };
@@ -244,6 +258,17 @@ export function FranchisorApplicationsPage() {
                 .eq('id', selectedApp.id);
 
             if (error) throw error;
+
+            if (selectedApp.inquiry_id) {
+                try {
+                    await InquiryService.syncInquiryFromApplication(
+                        selectedApp.inquiry_id,
+                        newStatus
+                    );
+                } catch (syncErr) {
+                    console.warn('Could not sync inquiry stage:', syncErr);
+                }
+            }
 
             toast.success(`Application ${newStatus.replace('_', ' ')}`);
             setShowStatusDialog(false);
@@ -310,7 +335,7 @@ export function FranchisorApplicationsPage() {
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-4">
-                    <Link to="/my-listings">
+                    <Link to="/dashboard">
                         <Button variant="ghost" size="icon">
                             <ArrowLeft className="h-4 w-4" />
                         </Button>
@@ -320,9 +345,14 @@ export function FranchisorApplicationsPage() {
                             <FileText className="h-6 w-6 text-primary" />
                             Franchise Applications
                         </h1>
-                        <p className="text-muted-foreground">Review and manage applicants</p>
+                        <p className="text-muted-foreground">
+                            Formal applications linked to the franchise pipeline
+                        </p>
                     </div>
                 </div>
+                <Button variant="outline" asChild>
+                    <Link to="/pipeline">Open pipeline</Link>
+                </Button>
             </div>
 
             {/* Stats */}
@@ -446,10 +476,17 @@ export function FranchisorApplicationsPage() {
                                                           : ''}
                                                     </p>
                                                 </div>
-                                                <Badge className={`${status.color} flex items-center gap-1`}>
-                                                    <StatusIcon className="h-3 w-3" />
-                                                    {status.label}
-                                                </Badge>
+                                                <div className="flex items-center gap-2">
+                                                    <Badge className={`${status.color} flex items-center gap-1`}>
+                                                        <StatusIcon className="h-3 w-3" />
+                                                        {status.label}
+                                                    </Badge>
+                                                    {app.inquiry_id && (
+                                                        <Badge variant="outline" className="text-[10px]">
+                                                            Lead linked
+                                                        </Badge>
+                                                    )}
+                                                </div>
                                             </div>
 
                                             <div className="flex flex-wrap gap-4 mt-3 text-sm text-muted-foreground">
@@ -479,6 +516,13 @@ export function FranchisorApplicationsPage() {
                                         </div>
 
                                         <div className="flex items-center gap-2">
+                                            {app.inquiry_id && (
+                                                <Button variant="outline" size="sm" asChild>
+                                                    <Link to={`/pipeline?lead=${app.inquiry_id}`}>
+                                                        Pipeline
+                                                    </Link>
+                                                </Button>
+                                            )}
                                             <Button
                                                 variant="outline"
                                                 size="sm"
@@ -657,6 +701,13 @@ export function FranchisorApplicationsPage() {
                         </div>
                     )}
                     <DialogFooter>
+                        {selectedApp?.inquiry_id && (
+                            <Button variant="outline" asChild>
+                                <Link to={`/pipeline?lead=${selectedApp.inquiry_id}`}>
+                                    Open in pipeline
+                                </Link>
+                            </Button>
+                        )}
                         <Button variant="outline" onClick={() => setShowDetailDialog(false)}>
                             Close
                         </Button>

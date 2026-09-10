@@ -8,14 +8,30 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import {
   Target,
-  TrendingUp,
   DollarSign,
   X,
   LogIn,
 } from 'lucide-react';
 import { AIFranchiseeMatcherService, type FranchiseeProfile } from '@/lib/ai-franchisee-matcher-service';
+import { FranchiseeIntentService } from '@/lib/franchisee-intent-service';
+import { InquiryService } from '@/lib/inquiry-service';
 import { useAuth } from '@/contexts/AuthContext';
+import type { ExtendedProfile } from '@/types/auth.types';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+
+function asStringArray(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
+  }
+  return [];
+}
+
+function numOrNull(value: unknown): number | null {
+  if (value == null || value === '') return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
 
 interface FranchiseeMatcherProps {
   onClose?: () => void;
@@ -29,48 +45,151 @@ export function FranchiseeMatcher({ onClose, className }: FranchiseeMatcherProps
   const [profileData, setProfileData] = useState<Partial<FranchiseeProfile>>({});
   const [matches, setMatches] = useState<Awaited<ReturnType<typeof AIFranchiseeMatcherService.findBestMatches>>>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [enquiringId, setEnquiringId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!profile) return;
-    setProfileData((prev) => ({
-      ...prev,
+    if (!user) return;
+
+    const loadIntent = async () => {
+      const intent = await FranchiseeIntentService.get(user.id);
+      const extended = profile as ExtendedProfile | null;
+      const details = extended?.franchisee_details;
+
+      const min =
+        intent?.investmentBudgetMin ??
+        numOrNull(details?.investment_budget_min) ??
+        profile?.investment_min ??
+        0;
+      const max =
+        intent?.investmentBudgetMax ??
+        numOrNull(details?.investment_budget_max) ??
+        profile?.investment_max ??
+        0;
+      const cities =
+        intent?.preferredCities?.length
+          ? intent.preferredCities
+          : asStringArray(details?.preferred_cities).length
+            ? asStringArray(details?.preferred_cities)
+            : profile?.city && profile?.state
+              ? [`${profile.city}, ${profile.state}`]
+              : [];
+
+      setProfileData((prev) => ({
+        ...prev,
+        budget: { min: min || 0, max: max || 0 },
+        industries:
+          intent?.preferredIndustries?.length
+            ? intent.preferredIndustries
+            : asStringArray(details?.preferred_industries).length
+              ? asStringArray(details?.preferred_industries)
+              : asStringArray(profile?.preferred_industries) || prev.industries,
+        preferredLocations: cities.length ? cities : prev.preferredLocations,
+        liquidCapital:
+          intent?.liquidCapital ??
+          numOrNull(details?.liquid_capital) ??
+          prev.liquidCapital,
+        netWorth:
+          intent?.netWorth ??
+          numOrNull(details?.net_worth) ??
+          prev.netWorth,
+        managementExperience:
+          intent?.managementExperienceYears ??
+          numOrNull(details?.management_experience_years) ??
+          prev.managementExperience,
+        timeCommitment:
+          intent?.timeCommitment ||
+          (details?.time_commitment as FranchiseeProfile['timeCommitment']) ||
+          prev.timeCommitment ||
+          'full-time',
+        spaceAvailable:
+          intent?.spaceAvailable ??
+          numOrNull(details?.space_available) ??
+          prev.spaceAvailable,
+        franchiseExperience:
+          intent?.franchiseExperience ||
+          (typeof details?.franchise_experience === 'string'
+            ? details.franchise_experience
+            : prev.franchiseExperience),
+      }));
+    };
+
+    loadIntent();
+  }, [user, profile]);
+
+  const buildMatcherProfile = (): FranchiseeProfile | null => {
+    if (!user) return null;
+    return {
+      userId: user.id,
       budget: {
-        min: profile.investment_min ?? prev.budget?.min ?? 0,
-        max: profile.investment_max ?? prev.budget?.max ?? 0,
+        min: Number(profileData.budget?.min) || 0,
+        max: Number(profileData.budget?.max) || 0,
       },
-      industries: profile.preferred_industries ?? prev.industries,
-      preferredLocations: profile.city && profile.state ? [`${profile.city}, ${profile.state}`] : prev.preferredLocations,
-      liquidCapital: profile.liquid_capital ?? prev.liquidCapital,
-      netWorth: profile.net_worth ?? prev.netWorth,
-    }));
-  }, [profile]);
+      industries: profileData.industries,
+      preferredLocations: profileData.preferredLocations,
+      liquidCapital: Number(profileData.liquidCapital) || 0,
+      netWorth: Number(profileData.netWorth) || 0,
+      managementExperience: Number(profileData.managementExperience) || 0,
+      timeCommitment: profileData.timeCommitment || 'full-time',
+      spaceAvailable: Number(profileData.spaceAvailable) || undefined,
+      franchiseExperience: profileData.franchiseExperience,
+    };
+  };
+
+  const persistIntent = async (franchiseeProfile: FranchiseeProfile) => {
+    try {
+      await FranchiseeIntentService.upsert(
+        franchiseeProfile.userId,
+        FranchiseeIntentService.fromMatcherProfile(franchiseeProfile)
+      );
+    } catch (error) {
+      console.warn('Could not persist franchisee intent:', error);
+    }
+  };
 
   const handleFindMatches = async () => {
-    if (!user) return;
+    const franchiseeProfile = buildMatcherProfile();
+    if (!franchiseeProfile) return;
 
     setIsLoading(true);
     try {
-      const franchiseeProfile: FranchiseeProfile = {
-        userId: user.id,
-        budget: {
-          min: Number(profileData.budget?.min) || 0,
-          max: Number(profileData.budget?.max) || 0,
-        },
-        industries: profileData.industries,
-        preferredLocations: profileData.preferredLocations,
-        liquidCapital: Number(profileData.liquidCapital) || 0,
-        netWorth: Number(profileData.netWorth) || 0,
-        managementExperience: Number(profileData.managementExperience) || 0,
-        timeCommitment: profileData.timeCommitment || 'full-time',
-      };
-
+      await persistIntent(franchiseeProfile);
       const results = await AIFranchiseeMatcherService.findBestMatches(franchiseeProfile, 10);
       setMatches(results);
       setStep('results');
     } catch (error) {
       console.error('Error finding matches:', error);
+      toast.error('Could not find matches. Please try again.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleEnquire = async (match: (typeof matches)[number]) => {
+    if (!user) return;
+    const email = profile?.email || user.email;
+    if (!email) {
+      toast.error('Add an email to your profile before sending an enquiry.');
+      return;
+    }
+
+    setEnquiringId(match.franchise.franchiseId);
+    try {
+      await persistIntent(buildMatcherProfile()!);
+      await InquiryService.enquireFromMatch({
+        senderId: user.id,
+        listingId: match.franchise.franchiseId,
+        contactEmail: email,
+        contactPhone: profile?.phone || undefined,
+        matchScore: match.matchScore,
+        brandName: match.franchise.brandName,
+      });
+      toast.success(`Enquiry sent for ${match.franchise.brandName}`);
+      navigate(`/franchise/${match.franchise.franchiseId}?contact=true`);
+    } catch (error) {
+      console.error('Error creating match enquiry:', error);
+      toast.error('Failed to send enquiry');
+    } finally {
+      setEnquiringId(null);
     }
   };
 
@@ -92,7 +211,7 @@ export function FranchiseeMatcher({ onClose, className }: FranchiseeMatcherProps
               Complete onboarding and sign in to match franchises against your saved preferences.
             </p>
             <Button asChild>
-              <Link to="/login?redirect=/franchises">
+              <Link to="/login?redirect=/match">
                 <LogIn className="h-4 w-4 mr-2" />
                 Sign In
               </Link>
@@ -192,6 +311,36 @@ export function FranchiseeMatcher({ onClose, className }: FranchiseeMatcherProps
                     <option value="absentee">Absentee</option>
                   </select>
                 </div>
+                <div className="md:col-span-2">
+                  <Label>Preferred cities</Label>
+                  <Input
+                    placeholder="Chennai, Bangalore, Coimbatore"
+                    value={(profileData.preferredLocations || []).join(', ')}
+                    onChange={(e) =>
+                      setProfileData({
+                        ...profileData,
+                        preferredLocations: e.target.value
+                          .split(',')
+                          .map((city) => city.trim())
+                          .filter(Boolean),
+                      })
+                    }
+                  />
+                </div>
+                <div>
+                  <Label>Space available (sq ft, optional)</Label>
+                  <Input
+                    type="number"
+                    placeholder="e.g., 800"
+                    value={profileData.spaceAvailable || ''}
+                    onChange={(e) =>
+                      setProfileData({
+                        ...profileData,
+                        spaceAvailable: Number(e.target.value) || undefined,
+                      })
+                    }
+                  />
+                </div>
               </div>
 
               <Button
@@ -221,9 +370,14 @@ export function FranchiseeMatcher({ onClose, className }: FranchiseeMatcherProps
                         <h4 className="font-bold text-lg">{match.franchise.brandName}</h4>
                         <p className="text-sm text-muted-foreground">{match.franchise.industry}</p>
                       </div>
-                      <Badge className={getMatchColor(match.matchScore)}>
-                        {match.matchScore}% Match
-                      </Badge>
+                      <div className="text-right">
+                        <Badge className={getMatchColor(match.matchScore)}>
+                          {match.matchScore}% Match
+                        </Badge>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {match.matchLevel}
+                        </p>
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
@@ -238,13 +392,14 @@ export function FranchiseeMatcher({ onClose, className }: FranchiseeMatcherProps
                         <div className="text-xs font-semibold mt-1">{match.experienceFitScore}/100</div>
                       </div>
                       <div>
+                        <div className="text-xs text-muted-foreground">Location Fit</div>
+                        <Progress value={match.locationFitScore} className="h-1.5 mt-1" />
+                        <div className="text-xs font-semibold mt-1">{match.locationFitScore}/100</div>
+                      </div>
+                      <div>
                         <div className="text-xs text-muted-foreground">Commitment Fit</div>
                         <Progress value={match.commitmentFitScore} className="h-1.5 mt-1" />
                         <div className="text-xs font-semibold mt-1">{match.commitmentFitScore}/100</div>
-                      </div>
-                      <div>
-                        <div className="text-xs text-muted-foreground">Match Level</div>
-                        <Badge variant="outline" className="mt-1">{match.matchLevel}</Badge>
                       </div>
                     </div>
 
@@ -274,13 +429,26 @@ export function FranchiseeMatcher({ onClose, className }: FranchiseeMatcherProps
                       </div>
                     )}
 
-                    <Button
-                      className="w-full mt-3"
-                      size="sm"
-                      onClick={() => navigate(`/franchise/${match.franchise.franchiseId}`)}
-                    >
-                      View Franchise Details
-                    </Button>
+                    <div className="flex flex-col sm:flex-row gap-2 mt-3">
+                      <Button
+                        className="flex-1 bg-growth-green hover:bg-growth-green/90 text-white"
+                        size="sm"
+                        disabled={enquiringId === match.franchise.franchiseId}
+                        onClick={() => handleEnquire(match)}
+                      >
+                        {enquiringId === match.franchise.franchiseId
+                          ? 'Sending enquiry…'
+                          : 'Enquire'}
+                      </Button>
+                      <Button
+                        className="flex-1"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => navigate(`/franchise/${match.franchise.franchiseId}`)}
+                      >
+                        View details
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               ))}
@@ -289,7 +457,7 @@ export function FranchiseeMatcher({ onClose, className }: FranchiseeMatcherProps
                 <Card>
                   <CardContent className="p-8 text-center text-muted-foreground">
                     <Target className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                    <p>No active franchises match your criteria. Try adjusting your budget or preferences.</p>
+                    <p>No details found in the table.</p>
                   </CardContent>
                 </Card>
               )}
