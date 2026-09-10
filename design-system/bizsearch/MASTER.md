@@ -19,28 +19,28 @@
 
 | Role | Hex | CSS Variable |
 |------|-----|--------------|
-| Primary / Navy | Deep charcoal navy | `--trust-blue` / `--primary` (light) |
-| Accent / CTA | Emerald green | `--growth-green` |
-| Secondary accent | Electric blue (sparingly) | `--electric-blue` |
+| Primary / Near-black | `#0A0A0A` | `--trust-blue` / `--primary` / `--foreground` |
+| Accent / CTA | Near-black (inverted in dark) | `--growth-green` |
 | Warning | Amber | `--warning` |
 | Danger | Red | `--destructive` |
-| Background (dark) | `#0B1220`-class navy | `--background` |
-| Card | Slightly lighter navy panel | `--card` |
-| Border | Low-contrast navy border | `--border` |
+| Background | `#F9F9F9` | `--background` |
+| Card | `#FFFFFF` | `--card` |
+| Border | `#E5E5E5` | `--border` |
 
-**Color Notes:** Navy/charcoal + emerald. No purple gradients, no gold crypto aesthetic.
+**Color Notes:** Swiss high-contrast near-black + off-white. No navy, no emerald, no purple gradients.
 
 ### Typography
 
-- **Heading Font:** IBM Plex Sans
-- **Body Font:** IBM Plex Sans
+- **Heading Font:** Cabinet Grotesk
+- **Body Font:** Satoshi
 - **Data / prices:** JetBrains Mono (tabular nums)
-- **Mood:** financial, trustworthy, professional, serious
-- **Google Fonts:** IBM Plex Sans + JetBrains Mono
+- **Mood:** typographic, high contrast, editorial, marketplace
+- **Fonts:** Fontshare Cabinet Grotesk + Satoshi; Google JetBrains Mono
 
 **CSS Import:**
 ```css
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@800,700,500,400&f[]=satoshi@700,500,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 ```
 
 ### Spacing Variables

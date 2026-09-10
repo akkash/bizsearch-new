@@ -15,10 +15,10 @@ import { cn } from "@/lib/utils";
 
 function RowSkeleton() {
   return (
-    <div className="border-b border-border py-4 animate-pulse">
-      <div className="h-4 w-1/3 bg-muted rounded mb-2" />
-      <div className="h-7 w-24 bg-muted rounded mb-2" />
-      <div className="h-4 w-2/3 bg-muted rounded" />
+    <div className="border-2 border-foreground py-6 px-6 animate-pulse">
+      <div className="h-4 w-1/3 bg-muted mb-2" />
+      <div className="h-7 w-24 bg-muted mb-2" />
+      <div className="h-4 w-2/3 bg-muted" />
     </div>
   );
 }
@@ -31,9 +31,9 @@ function EmptyInventory({
   suggestions: { label: string; href: string }[];
 }) {
   return (
-    <div className="border border-border py-8 px-4 text-center">
+    <div className="border-2 border-foreground border-dashed py-12 px-4 text-center text-foreground/60">
       <p className="font-medium text-foreground mb-1">{title}</p>
-      <p className="text-sm text-muted-foreground mb-4">
+      <p className="text-sm mb-4">
         Try a broader search or create a buyer requirement.
       </p>
       <div className="flex flex-wrap justify-center gap-2 mb-4">
@@ -156,25 +156,27 @@ export function HomeBusinessInventory({ className }: { className?: string }) {
   return (
     <section
       id="business-listings"
-      className={cn("pt-3 pb-5 md:pt-4 md:pb-6 border-b border-border", className)}
+      className={cn("py-12 md:py-16 border-b border-border bg-foreground/5", className)}
     >
-      <div className="container mx-auto px-4">
-        <div className="flex flex-wrap items-baseline justify-between gap-2 mb-2 md:mb-3">
+      <div className="container mx-auto px-4 md:px-6">
+        <div className="flex flex-wrap items-end justify-between gap-4 mb-10 md:mb-12">
           <div>
-            <h2 className="text-base md:text-lg font-semibold tracking-tight text-muted-foreground">
-              Also: businesses for sale
+            <h2 className="font-display text-2xl md:text-3xl font-bold uppercase tracking-tight">
+              Businesses
+              <br />
+              For Sale
             </h2>
             {!loading && items.length > 0 && (
-              <p className="text-[12px] text-muted-foreground/80 mt-0.5">
+              <p className="text-[12px] text-muted-foreground/80 mt-1">
                 {items.length} listing{items.length === 1 ? "" : "s"} available · secondary marketplace
               </p>
             )}
           </div>
           <Link
             to="/businesses"
-            className="text-sm text-electric-blue hover:underline underline-offset-2"
+            className="text-sm font-bold uppercase tracking-widest border-b border-foreground pb-1 hover:opacity-60"
           >
-            Browse businesses
+            Browse All
           </Link>
         </div>
 
@@ -186,7 +188,7 @@ export function HomeBusinessInventory({ className }: { className?: string }) {
           </div>
         ) : items.length === 0 ? (
           <EmptyInventory
-            title="No businesses match this search yet."
+            title="No details found in the table."
             suggestions={[
               { label: "Restaurant in Chennai", href: "/businesses?q=Restaurant+in+Chennai" },
               { label: "Business under ₹1Cr", href: "/businesses?q=Business+under+1Cr" },
@@ -195,7 +197,7 @@ export function HomeBusinessInventory({ className }: { className?: string }) {
           />
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-0">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
               {items.map((b) => {
                 const ebitda = getEbitda(b);
                 const hasRevenue = b.revenue != null && Number(b.revenue) > 0;
@@ -211,22 +213,22 @@ export function HomeBusinessInventory({ className }: { className?: string }) {
                 return (
                   <article
                     key={b.id}
-                    className="group border-t border-border py-3.5 md:py-4 flex flex-col cursor-pointer hover:bg-secondary/20 -mx-2 px-2 transition-colors"
+                    className="group border-2 border-foreground p-6 flex flex-col cursor-pointer transition-colors"
                     onClick={() => navigate(`/business/${id}`)}
                   >
-                    <h3 className="text-[1.0625rem] md:text-lg font-semibold leading-snug line-clamp-1 group-hover:text-growth-green transition-colors">
+                    <h3 className="font-display text-2xl font-bold uppercase mb-2 leading-snug line-clamp-1">
                       {b.name}
                     </h3>
-                    <p className="text-[12px] text-muted-foreground mt-0.5 line-clamp-1">
+                    <p className="text-sm opacity-60 uppercase tracking-widest line-clamp-1">
                       {b.city && b.state ? `${b.city}, ${b.state}` : b.location}
                       {b.industry ? ` · ${b.industry}` : ""}
                     </p>
 
-                    <div className="mt-2.5 mb-2.5">
-                      <div className="text-[1.625rem] md:text-[1.875rem] font-bold font-mono tabular-nums tracking-tight leading-none text-foreground">
+                    <div className="mt-auto pt-8">
+                      <div className="text-4xl font-display font-bold mb-1 font-mono tabular-nums tracking-tight leading-none">
                         {formatINR(b.price)}
                       </div>
-                      <div className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground mt-1 font-medium">
+                      <div className="text-xs uppercase tracking-widest opacity-60 mb-6">
                         Asking price
                       </div>
                     </div>
@@ -386,16 +388,18 @@ export function HomeFranchiseInventory({ className }: { className?: string }) {
   return (
     <section
       id="marketplace-listings"
-      className={cn("pt-3 pb-6 md:pt-5 md:pb-8 border-b border-border", className)}
+      className={cn("py-16 md:py-24 border-b border-border", className)}
     >
-      <div className="container mx-auto px-4">
-        <div className="flex flex-wrap items-baseline justify-between gap-2 mb-2 md:mb-3">
+      <div className="container mx-auto px-4 md:px-6">
+        <div className="flex flex-wrap items-end justify-between gap-4 mb-12 md:mb-16">
           <div>
-            <h2 className="text-lg md:text-xl font-bold tracking-tight">
-              Franchises you may be interested in
+            <h2 className="font-display text-4xl md:text-5xl font-bold uppercase tracking-tight">
+              Franchises
+              <br />
+              For You
             </h2>
             {!loading && items.length > 0 && (
-              <p className="text-[12px] text-muted-foreground mt-0.5">
+              <p className="text-[12px] text-muted-foreground mt-1">
                 {items.length} franchise{items.length === 1 ? "" : "s"} matching
                 current availability
               </p>
@@ -403,9 +407,9 @@ export function HomeFranchiseInventory({ className }: { className?: string }) {
           </div>
           <Link
             to="/franchises"
-            className="text-sm text-electric-blue hover:underline underline-offset-2"
+            className="text-sm font-bold uppercase tracking-widest border-b border-foreground pb-1 hover:opacity-60"
           >
-            Browse all franchises
+            Browse All
           </Link>
         </div>
 
@@ -417,7 +421,7 @@ export function HomeFranchiseInventory({ className }: { className?: string }) {
           </div>
         ) : items.length === 0 ? (
           <EmptyInventory
-            title="No franchise opportunities listed yet."
+            title="No details found in the table."
             suggestions={[
               { label: "Food franchise under ₹50L", href: "/franchises?q=Food+franchise+under+50L" },
               { label: "School franchise", href: "/franchises?q=school" },
@@ -426,7 +430,7 @@ export function HomeFranchiseInventory({ className }: { className?: string }) {
           />
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-0">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
             {items.map((f) => {
               const brand = f.brand_name || f.brandName || "Franchise";
               const formats = getStoreFormatsFromFranchise(f);
@@ -446,22 +450,22 @@ export function HomeFranchiseInventory({ className }: { className?: string }) {
                 return (
                   <article
                     key={f.id}
-                    className="group border-t border-border py-3.5 md:py-4 flex flex-col cursor-pointer hover:bg-secondary/20 -mx-2 px-2 transition-colors"
+                    className="group border-2 border-foreground p-6 flex flex-col cursor-pointer transition-colors"
                     onClick={() => navigate(`/franchise/${id}`)}
                   >
-                    <h3 className="text-[1.0625rem] md:text-lg font-semibold leading-snug line-clamp-1 group-hover:text-growth-green transition-colors">
+                    <h3 className="font-display text-2xl font-bold uppercase mb-2 leading-snug line-clamp-1">
                       {brand}
                     </h3>
-                    <p className="text-[12px] text-muted-foreground mt-0.5 line-clamp-1">
+                    <p className="text-sm opacity-60 uppercase tracking-widest line-clamp-1">
                       {f.industry || "Franchise"}
                       {territories.length
                         ? ` · ${territories.slice(0, 2).join(", ")}`
                         : ""}
                     </p>
 
-                    <div className="mt-2.5 mb-2.5">
+                    <div className="mt-auto pt-8">
                       {investLabel ? (
-                        <div className="text-[1.625rem] md:text-[1.875rem] font-bold font-mono tabular-nums tracking-tight leading-none text-foreground">
+                        <div className="text-4xl font-display font-bold mb-1 font-mono tabular-nums tracking-tight leading-none">
                           {investLabel}
                         </div>
                       ) : (
@@ -469,7 +473,7 @@ export function HomeFranchiseInventory({ className }: { className?: string }) {
                           Investment not provided
                         </div>
                       )}
-                      <div className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground mt-1 font-medium">
+                      <div className="text-xs uppercase tracking-widest opacity-60 mb-6">
                         {formats.length > 1
                           ? `Investment · ${formats.length} formats`
                           : "Investment range"}

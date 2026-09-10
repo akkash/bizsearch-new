@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSavedListings } from "@/contexts/SavedListingsContext";
@@ -14,7 +14,6 @@ import {
   LogOut,
   Store,
   Shield,
-  Building,
   LayoutDashboard,
   Calculator,
   Search,
@@ -57,19 +56,12 @@ const TOOLS_LINKS = [
 
 export function MainLayout({ children }: MainLayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
   const { savedCount } = useSavedListings();
   const { unreadCount } = useNotifications();
   const isAIChatEnabled = useFeatureFlag("ai_chat_advisor");
-
-  useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 8);
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   const handleSignOut = async () => {
     try {
@@ -91,39 +83,33 @@ export function MainLayout({ children }: MainLayoutProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      <header
-        className={cn(
-          "sticky top-0 z-50 w-full border-b transition-shadow duration-200",
-          "bg-background/95 backdrop-blur-md",
-          isScrolled ? "border-border shadow-sm" : "border-border/60"
-        )}
-      >
-        <div className="container mx-auto px-4">
-          <div className="flex h-14 md:h-16 items-center justify-between gap-4">
-            <Link to="/" className="flex items-center gap-2 shrink-0">
+      <header className="sticky top-0 z-50 w-full border-b border-border bg-background/90 backdrop-blur-md">
+        <div className="container mx-auto px-6">
+          <div className="flex h-16 md:h-20 items-center justify-between gap-4">
+            <Link to="/" className="flex items-center shrink-0" id="nav-home-link">
               <img
                 src="/logo.png"
                 alt="BizSearch"
-                className="h-9 w-auto object-contain block dark:hidden"
+                className="h-8 w-auto object-contain block dark:hidden"
               />
               <img
                 src="/logo-dark.png"
                 alt="BizSearch"
-                className="h-9 w-auto object-contain hidden dark:block"
+                className="h-8 w-auto object-contain hidden dark:block"
               />
             </Link>
 
             {/* Desktop nav */}
-            <nav className="hidden lg:flex items-center gap-1">
+            <nav className="hidden lg:flex items-center gap-8">
               {NAV_LINKS.map((link) => (
                 <Link
                   key={`${link.name}-${link.href}`}
                   to={link.href}
                   className={cn(
-                    "px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                    "text-sm font-medium transition-opacity hover:opacity-60",
                     isActivePath(link.href)
-                      ? "text-foreground bg-secondary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
+                      ? "text-foreground"
+                      : "text-foreground/70"
                   )}
                 >
                   {link.name}
@@ -132,9 +118,7 @@ export function MainLayout({ children }: MainLayoutProps) {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
-                    className={cn(
-                      "px-3 py-2 text-sm font-medium rounded-md transition-colors text-muted-foreground hover:text-foreground hover:bg-secondary/60 cursor-pointer"
-                    )}
+                    className="flex items-center gap-1 text-sm font-medium text-foreground/70 hover:opacity-60 transition-opacity cursor-pointer"
                   >
                     Tools
                   </button>
@@ -272,20 +256,18 @@ export function MainLayout({ children }: MainLayoutProps) {
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
-                <div className="hidden md:flex items-center gap-2 ml-2">
-                  <Link to="/login">
-                    <Button variant="ghost" size="sm">
-                      Sign In
-                    </Button>
+                <div className="hidden md:flex items-center gap-6 ml-2">
+                  <Link
+                    to="/login"
+                    className="text-sm font-bold uppercase tracking-widest hover:opacity-60"
+                  >
+                    Sign In
                   </Link>
                 </div>
               )}
 
               <Link to="/add-franchise-listing" className="hidden sm:block ml-1">
-                <Button
-                  size="sm"
-                  className="bg-growth-green hover:bg-growth-green/90 text-white font-medium"
-                >
+                <Button size="sm" className="px-6 py-3 h-auto">
                   List Your Franchise
                 </Button>
               </Link>
@@ -304,7 +286,8 @@ export function MainLayout({ children }: MainLayoutProps) {
                 <SheetContent side="right" className="w-72 p-0">
                   <div className="flex flex-col h-full">
                     <div className="p-4 border-b">
-                      <span className="text-lg font-semibold">BizSearch</span>
+                      <img src="/logo.png" alt="BizSearch" className="h-8 w-auto object-contain dark:hidden" />
+                      <img src="/logo-dark.png" alt="BizSearch" className="h-8 w-auto object-contain hidden dark:block" />
                     </div>
                     <div className="flex-1 py-4 overflow-y-auto">
                       <nav className="space-y-1 px-2">
@@ -319,7 +302,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                             to={item.href}
                             onClick={() => setIsMobileMenuOpen(false)}
                             className={cn(
-                              "block px-3 py-2.5 rounded-md text-sm font-medium transition-colors",
+                              "block px-3 py-2.5 text-sm font-medium transition-opacity",
                               isActivePath(item.href)
                                 ? "bg-secondary text-foreground"
                                 : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
@@ -335,7 +318,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                           to="/add-franchise-listing"
                           onClick={() => setIsMobileMenuOpen(false)}
                         >
-                          <Button className="w-full bg-growth-green hover:bg-growth-green/90 text-white">
+                          <Button className="w-full">
                             List Your Franchise
                           </Button>
                         </Link>

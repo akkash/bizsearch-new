@@ -27,14 +27,25 @@
     <meta property="twitter:image" content="/og-image.jpg" />
     
     <!-- Theme Color -->
-    <meta name="theme-color" content="#0B1220" />
-    <meta name="msapplication-TileColor" content="#0B1220" />
+    <meta name="theme-color" content="#0A0A0A" />
+    <meta name="msapplication-TileColor" content="#0A0A0A" />
     
     <!-- Favicon -->
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="manifest" href="/site.webmanifest" />
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem("bizsearch-theme");
+          var theme = stored || "light";
+          var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+          var resolved = theme === "dark" || (theme === "system" && prefersDark) ? "dark" : "light";
+          document.documentElement.classList.add(resolved);
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

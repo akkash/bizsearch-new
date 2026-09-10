@@ -8,7 +8,8 @@ export default {
   theme: {
   	extend: {
   		fontFamily: {
-  			sans: ['"IBM Plex Sans"', 'system-ui', 'sans-serif'],
+  			sans: ['Satoshi', 'system-ui', 'sans-serif'],
+  			display: ['"Cabinet Grotesk"', 'Satoshi', 'system-ui', 'sans-serif'],
   			mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
   		},
   		borderRadius: {

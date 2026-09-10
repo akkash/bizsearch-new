@@ -21,7 +21,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const [theme, setTheme] = useState<Theme>(() => {
         if (typeof window !== 'undefined') {
             const stored = localStorage.getItem('bizsearch-theme') as Theme | null;
-            return stored || 'system';
+            return stored || 'light';
         }
         return 'system';
     });

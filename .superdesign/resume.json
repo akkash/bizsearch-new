@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "targets": {
+    "/": {
+      "targetKind": "existing-ui",
+      "projectId": "fdc0c504-b7fe-4d79-820c-44c424032394",
+      "baselineDraftId": "4536f3d8-e07a-43f9-9d94-81c3829c1779",
+      "activeDraftId": "f9960b70-3e5d-4b45-ba47-7d7ecc8dbc26",
+      "selectedDirection": "swiss-typography-first",
+      "designSystemPath": ".superdesign/design-system.md",
+      "referenceIds": [
+        "public-logo.png",
+        "public-logo-dark.png"
+      ],
+      "brandAssets": {
+        "logo": {
+          "assetKey": "public-logo.png",
+          "url": "https://vgbujcuwptvheqijyjbe.supabase.co/storage/v1/object/public/hmac-uploads/projects/fdc0c504-b7fe-4d79-820c-44c424032394/brand-assets/public-logo.png/logo.png",
+          "sourcePath": "public/logo.png"
+        }
+      },
+      "contextFiles": [
+        ".superdesign/design-system.md",
+        ".superdesign/init/theme.md:1:70",
+        "src/polymet/pages/home.tsx",
+        "src/polymet/components/marketplace-hero.tsx",
+        "src/polymet/components/home-inventory.tsx",
+        "src/polymet/components/match-preview-section.tsx",
+        "src/polymet/components/valuation-preview-section.tsx",
+        "src/polymet/components/trust-verification-section.tsx",
+        "src/polymet/components/seller-cta-section.tsx",
+        "src/polymet/layouts/main-layout.tsx:92:396",
+        "src/polymet/components/footer.tsx:54:419"
+      ],
+      "fingerprints": {
+        ".superdesign/design-system.md": "b85048f0d76d0f886951231f47af46623d2339dca39a3bfd307e422f3ea18141",
+        ".superdesign/init/theme.md": "b7f6e80fb57b609d3208b62e5a3106e14edae30249e492e6313cd43570995a50",
+        "src/polymet/pages/home.tsx": "97cd67a3894b91ac6c8e390956e4244f3ad08759a6da0e970c7e73e0f94505e0",
+        "src/polymet/components/marketplace-hero.tsx": "4f93612ff231168d6c2aade2c9e8dcd7855e1935a527d9ef25ad6d5d5d186f5b",
+        "src/polymet/components/home-inventory.tsx": "9b8dcd6c8b06a926ba5c99e2ee2817298b2172a349026b91fd5e9fb18f04ba2c",
+        "src/polymet/components/match-preview-section.tsx": "daff83032080c2b720d146dc7e7e8c3a002b9454834c2a81fb8d67274d1d2a91",
+        "src/polymet/components/valuation-preview-section.tsx": "f2a8c261d750aed3fe78a2eae6498ebc4716afcdfc21c6713dc2d7d777c0ca26",
+        "src/polymet/components/trust-verification-section.tsx": "f7f3352ce77056788bc8b637b85ede827e19b774f2a705663f672900d8767bc5",
+        "src/polymet/components/seller-cta-section.tsx": "95668c68789fba146fe95ac739e6efe046cbbb3d360a9da9509c405d6a268b1e",
+        "src/polymet/layouts/main-layout.tsx": "a9df95a39b6f8242351fd5cc84dfce2ccc67f4c42ebbf75a922aa6f1f4df41a5",
+        "src/polymet/components/footer.tsx": "2a8ae78bb08c4653064e345cc5c34905030fe62be0aefb6ecf8429b580966ff1"
+      },
+      "components": [
+        {
+          "name": "NavBar",
+          "id": "316bed6b-76b8-4e64-a6dc-189cc9732fbe",
+          "sourcePath": "src/polymet/layouts/main-layout.tsx",
+          "logoAssetKey": "public-logo.png"
+        }
+      ],
+      "drafts": {
+        "4536f3d8-e07a-43f9-9d94-81c3829c1779": {
+          "title": "Current homepage",
+          "visualDirection": "navy + emerald live look, refined density and hierarchy",
+          "currentVersion": 2
+        },
+        "f9960b70-3e5d-4b45-ba47-7d7ecc8dbc26": {
+          "title": "BizSearch | Swiss Typography Redesign",
+          "visualDirection": "high-contrast Swiss typography-first marketplace",
+          "parentDraftId": "4536f3d8-e07a-43f9-9d94-81c3829c1779",
+          "currentVersion": 2
+        },
+        "c4b8a54f-44ad-4685-8763-75a108953071": {
+          "title": "BizSearch Homepage - Editorial Redesign",
+          "visualDirection": "bold editorial charcoal/white with sharp accent CTAs",
+          "parentDraftId": "4536f3d8-e07a-43f9-9d94-81c3829c1779",
+          "currentVersion": 1
+        }
+      },
+      "updatedAt": "2026-09-10T10:25:25.000Z"
+    }
+  }
+}

@@ -31,11 +31,11 @@ export function PageHero({
       <div className="container mx-auto px-4">
         <div className="max-w-3xl">
           {eyebrow && (
-            <p className="text-xs font-semibold uppercase tracking-wider text-growth-green mb-3">
+            <p className="text-xs font-bold uppercase tracking-widest text-foreground mb-3">
               {eyebrow}
             </p>
           )}
-          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight text-foreground">
+          <h1 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold uppercase tracking-tight text-foreground leading-[0.95]">
             {title}
           </h1>
           {description && (
@@ -72,7 +72,7 @@ export function AuthShell({ children, title, subtitle }: AuthShellProps) {
             )}
           </div>
         )}
-        <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
+        <div className="rounded-none border-2 border-foreground bg-card p-6 shadow-none">
           {children}
         </div>
       </div>

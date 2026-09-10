@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  Building2,
   Mail,
   Phone,
   MapPin,
@@ -52,16 +51,16 @@ export function Footer() {
   };
 
   return (
-    <footer className="bg-[hsl(220,32%,7%)] text-slate-200">
+    <footer className="bg-foreground text-background">
       {/* Newsletter Section */}
       <div className="border-b border-white/10">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="container mx-auto px-4 py-5 md:py-6">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="text-center md:text-left">
-              <h3 className="text-xl font-bold text-white mb-1">
+              <h3 className="text-sm font-bold uppercase tracking-widest text-background mb-0.5">
                 Get listing alerts
               </h3>
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-background/60">
                 New franchises and franchise territories, delivered when they go live
               </p>
             </div>
@@ -71,12 +70,12 @@ export function Footer() {
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="bg-white/5 border-white/10 text-white placeholder:text-slate-500 w-full md:w-64"
+                className="bg-transparent border-2 border-background/20 text-background placeholder:text-background/40 w-full md:w-64 rounded-none"
               />
               <Button
                 type="submit"
                 disabled={isSubscribing}
-                className="bg-growth-green hover:bg-growth-green/90 text-white whitespace-nowrap"
+                className="bg-background text-foreground hover:bg-background/90 whitespace-nowrap"
               >
                 {isSubscribing ? "..." : "Subscribe"}
               </Button>
@@ -85,16 +84,24 @@ export function Footer() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-12">
+      <div className="container mx-auto px-4 py-8 md:py-10">
         {/* Main Footer Content - Desktop */}
         <div className="hidden md:grid grid-cols-2 lg:grid-cols-5 gap-8 mb-8">
           {/* Company Info */}
           <div className="lg:col-span-1">
             <div className="flex items-center gap-2 mb-4">
-              <Building2 className="h-8 w-8 text-growth-green" />
-              <span className="text-2xl font-bold text-white">BizSearch</span>
+              <img
+                src="/logo-dark.png"
+                alt="BizSearch"
+                className="h-10 w-auto object-contain dark:hidden"
+              />
+              <img
+                src="/logo.png"
+                alt="BizSearch"
+                className="h-10 w-auto object-contain hidden dark:block"
+              />
             </div>
-            <p className="text-sm text-slate-400 mb-4">
+            <p className="text-sm text-background/70 mb-4">
               Find the right franchise. Evaluate investment, territory and fit —
               then connect with brands. Businesses for sale also available.
             </p>
@@ -148,20 +155,20 @@ export function Footer() {
           </div>
 
           <div>
-            <h3 className="text-lg font-semibold text-white mb-4">Franchises</h3>
+            <h3 className="text-sm font-bold uppercase tracking-widest text-background/60 mb-3">Franchises</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/franchises" className="text-sm text-slate-400 hover:text-growth-green transition-colors">
+                <Link to="/franchises" className="text-sm text-background/60 hover:opacity-60 transition-colors">
                   Franchise Opportunities
                 </Link>
               </li>
               <li>
-                <Link to="/franchises" className="text-sm text-slate-400 hover:text-growth-green transition-colors">
+                <Link to="/franchises" className="text-sm text-background/60 hover:opacity-60 transition-colors">
                   Browse Franchises
                 </Link>
               </li>
               <li>
-                <Link to="/franchise-map" className="text-sm text-slate-400 hover:text-growth-green transition-colors">
+                <Link to="/franchise-map" className="text-sm text-background/60 hover:opacity-60 transition-colors">
                   Franchise Map
                 </Link>
               </li>
@@ -169,28 +176,28 @@ export function Footer() {
           </div>
 
           <div>
-            <h3 className="text-lg font-semibold text-white mb-4">For Franchisors</h3>
+            <h3 className="text-sm font-bold uppercase tracking-widest text-background/60 mb-3">For Franchisors</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/add-franchise-listing" className="text-sm text-slate-400 hover:text-growth-green transition-colors">
+                <Link to="/add-franchise-listing" className="text-sm text-background/60 hover:opacity-60 transition-colors">
                   List Your Franchise
                 </Link>
               </li>
               <li>
-                <Link to="/franchisor/applications" className="text-sm text-slate-400 hover:text-growth-green transition-colors">
+                <Link to="/franchisor/applications" className="text-sm text-background/60 hover:opacity-60 transition-colors">
                   Franchisee Applications
                 </Link>
               </li>
             </ul>
-            <h3 className="text-lg font-semibold text-white mb-4 mt-6">Businesses</h3>
+            <h3 className="text-sm font-semibold text-background mb-3 mt-6">Businesses</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/businesses" className="text-sm text-slate-400 hover:text-growth-green transition-colors">
+                <Link to="/businesses" className="text-sm text-background/60 hover:opacity-60 transition-colors">
                   Businesses for Sale
                 </Link>
               </li>
               <li>
-                <Link to="/add-business-listing" className="text-sm text-slate-400 hover:text-growth-green transition-colors">
+                <Link to="/add-business-listing" className="text-sm text-background/60 hover:opacity-60 transition-colors">
                   Sell a Business
                 </Link>
               </li>
@@ -198,20 +205,20 @@ export function Footer() {
           </div>
 
           <div>
-            <h3 className="text-lg font-semibold text-white mb-4">Tools</h3>
+            <h3 className="text-sm font-bold uppercase tracking-widest text-background/60 mb-3">Tools</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/smart-search" className="text-sm text-slate-400 hover:text-growth-green transition-colors">
+                <Link to="/smart-search" className="text-sm text-background/60 hover:opacity-60 transition-colors">
                   Franchise Matching
                 </Link>
               </li>
               <li>
-                <Link to="/franchise-map" className="text-sm text-slate-400 hover:text-growth-green transition-colors">
+                <Link to="/franchise-map" className="text-sm text-background/60 hover:opacity-60 transition-colors">
                   Territory Map
                 </Link>
               </li>
               <li>
-                <Link to="/business-valuation" className="text-sm text-slate-400 hover:text-growth-green transition-colors">
+                <Link to="/business-valuation" className="text-sm text-background/60 hover:opacity-60 transition-colors">
                   Investment / ROI
                 </Link>
               </li>
@@ -219,39 +226,39 @@ export function Footer() {
           </div>
 
           <div>
-            <h3 className="text-lg font-semibold text-white mb-4">Company</h3>
+            <h3 className="text-sm font-bold uppercase tracking-widest text-background/60 mb-3">Company</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/about" className="text-sm text-slate-400 hover:text-growth-green transition-colors">
+                <Link to="/about" className="text-sm text-background/60 hover:opacity-60 transition-colors">
                   About
                 </Link>
               </li>
               <li>
-                <Link to="/contact" className="text-sm text-slate-400 hover:text-growth-green transition-colors">
+                <Link to="/contact" className="text-sm text-background/60 hover:opacity-60 transition-colors">
                   Contact
                 </Link>
               </li>
               <li>
-                <Link to="/terms" className="text-sm text-slate-400 hover:text-growth-green transition-colors">
+                <Link to="/terms" className="text-sm text-background/60 hover:opacity-60 transition-colors">
                   Terms
                 </Link>
               </li>
               <li>
-                <Link to="/privacy" className="text-sm text-slate-400 hover:text-growth-green transition-colors">
+                <Link to="/privacy" className="text-sm text-background/60 hover:opacity-60 transition-colors">
                   Privacy
                 </Link>
               </li>
             </ul>
             <ul className="space-y-3 mt-6">
-              <li className="flex items-center gap-2 text-sm text-slate-400">
-                <Mail className="h-4 w-4 flex-shrink-0 text-growth-green" />
-                <a href="mailto:support@bizsearch.in" className="hover:text-growth-green transition-colors">
+              <li className="flex items-center gap-2 text-sm text-background/60">
+                <Mail className="h-4 w-4 flex-shrink-0 text-background" />
+                <a href="mailto:support@bizsearch.in" className="hover:opacity-60 transition-colors">
                   support@bizsearch.in
                 </a>
               </li>
-              <li className="flex items-center gap-2 text-sm text-slate-400">
-                <Phone className="h-4 w-4 flex-shrink-0 text-growth-green" />
-                <a href="tel:+911800123456" className="hover:text-growth-green transition-colors">
+              <li className="flex items-center gap-2 text-sm text-background/60">
+                <Phone className="h-4 w-4 flex-shrink-0 text-background" />
+                <a href="tel:+911800123456" className="hover:opacity-60 transition-colors">
                   +91 1800 123 456
                 </a>
               </li>
@@ -264,10 +271,18 @@ export function Footer() {
           {/* Company Info - Always visible on mobile */}
           <div className="text-center pb-4">
             <div className="flex items-center justify-center gap-2 mb-3">
-              <Building2 className="h-8 w-8 text-growth-green" />
-              <span className="text-2xl font-bold text-white">BizSearch</span>
+              <img
+                src="/logo-dark.png"
+                alt="BizSearch"
+                className="h-10 w-auto object-contain dark:hidden"
+              />
+              <img
+                src="/logo.png"
+                alt="BizSearch"
+                className="h-10 w-auto object-contain hidden dark:block"
+              />
             </div>
-            <p className="text-sm text-slate-400 mb-4">
+            <p className="text-sm text-background/70 mb-4">
               Find the right franchise. Evaluate investment, territory and fit —
               then connect with brands. Businesses for sale also available.
             </p>
@@ -323,11 +338,11 @@ export function Footer() {
                 onClick={() => toggleSection(section.id)}
                 className="flex items-center justify-between w-full py-3 text-left"
               >
-                <span className="font-semibold text-white">{section.title}</span>
+                <span className="font-semibold text-background">{section.title}</span>
                 {expandedSection === section.id ? (
-                  <ChevronUp className="h-4 w-4 text-slate-400" />
+                  <ChevronUp className="h-4 w-4 text-background/60" />
                 ) : (
-                  <ChevronDown className="h-4 w-4 text-slate-400" />
+                  <ChevronDown className="h-4 w-4 text-background/60" />
                 )}
               </button>
               {expandedSection === section.id && (
@@ -336,7 +351,7 @@ export function Footer() {
                     <li key={idx}>
                       <Link
                         to={link.to}
-                        className="text-sm text-slate-400 hover:text-growth-green transition-colors"
+                        className="text-sm text-background/60 hover:opacity-60 transition-colors"
                       >
                         {link.label}
                       </Link>
@@ -353,25 +368,25 @@ export function Footer() {
               onClick={() => toggleSection('contact')}
               className="flex items-center justify-between w-full py-3 text-left"
             >
-              <span className="font-semibold text-white">Contact Us</span>
+              <span className="font-semibold text-background">Contact Us</span>
               {expandedSection === 'contact' ? (
-                <ChevronUp className="h-4 w-4 text-slate-400" />
+                <ChevronUp className="h-4 w-4 text-background/60" />
               ) : (
-                <ChevronDown className="h-4 w-4 text-slate-400" />
+                <ChevronDown className="h-4 w-4 text-background/60" />
               )}
             </button>
             {expandedSection === 'contact' && (
               <ul className="space-y-3 pb-3">
-                <li className="flex items-start gap-2 text-sm text-slate-400">
-                  <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0 text-growth-green" />
+                <li className="flex items-start gap-2 text-sm text-background/60">
+                  <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0 text-background" />
                   <span>123 Business Hub, MG Road, Bangalore 560001</span>
                 </li>
-                <li className="flex items-center gap-2 text-sm text-slate-400">
-                  <Mail className="h-4 w-4 flex-shrink-0 text-growth-green" />
+                <li className="flex items-center gap-2 text-sm text-background/60">
+                  <Mail className="h-4 w-4 flex-shrink-0 text-background" />
                   <a href="mailto:support@bizsearch.in">support@bizsearch.in</a>
                 </li>
-                <li className="flex items-center gap-2 text-sm text-slate-400">
-                  <Phone className="h-4 w-4 flex-shrink-0 text-growth-green" />
+                <li className="flex items-center gap-2 text-sm text-background/60">
+                  <Phone className="h-4 w-4 flex-shrink-0 text-background" />
                   <a href="tel:+911800123456">+91 1800 123 456</a>
                 </li>
               </ul>
@@ -384,20 +399,20 @@ export function Footer() {
         {/* Trust Badges */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="flex items-center gap-2 p-3 bg-white/5 rounded-md border border-white/10">
-            <Shield className="h-5 w-5 text-growth-green flex-shrink-0" />
-            <span className="text-xs text-slate-300">Listing moderation</span>
+            <Shield className="h-5 w-5 text-background flex-shrink-0" />
+            <span className="text-xs text-background/70">Listing moderation</span>
           </div>
           <div className="flex items-center gap-2 p-3 bg-white/5 rounded-md border border-white/10">
-            <Lock className="h-5 w-5 text-slate-300 flex-shrink-0" />
-            <span className="text-xs text-slate-300">Secure platform</span>
+            <Lock className="h-5 w-5 text-background/70 flex-shrink-0" />
+            <span className="text-xs text-background/70">Secure platform</span>
           </div>
           <div className="flex items-center gap-2 p-3 bg-white/5 rounded-md border border-white/10">
-            <CheckCircle className="h-5 w-5 text-growth-green flex-shrink-0" />
-            <span className="text-xs text-slate-300">Verification levels</span>
+            <CheckCircle className="h-5 w-5 text-background flex-shrink-0" />
+            <span className="text-xs text-background/70">Verification levels</span>
           </div>
           <div className="flex items-center gap-2 p-3 bg-white/5 rounded-md border border-white/10">
             <Award className="h-5 w-5 text-amber-400 flex-shrink-0" />
-            <span className="text-xs text-slate-300">Transparent listings</span>
+            <span className="text-xs text-background/70">Transparent listings</span>
           </div>
         </div>
 
@@ -405,11 +420,11 @@ export function Footer() {
 
         {/* Bottom Bar */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="flex items-center gap-2 text-sm text-slate-400">
-            <CheckCircle className="h-4 w-4 text-growth-green" />
+          <div className="flex items-center gap-2 text-sm text-background/60">
+            <CheckCircle className="h-4 w-4 text-background" />
             <span>Listings reviewed before publication where moderation is enabled</span>
           </div>
-          <p className="text-sm text-slate-400 text-center">
+          <p className="text-sm text-background/60 text-center">
             © {currentYear} BizSearch. All rights reserved.
           </p>
         </div>

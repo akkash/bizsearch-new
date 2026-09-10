@@ -43,83 +43,83 @@ export function MarketplaceHero({ className }: MarketplaceHeroProps) {
   };
 
   return (
-    <section className={cn("bg-[hsl(220,32%,7%)] border-b border-white/10", className)}>
-      <div className="container mx-auto px-4 pt-3 pb-3 md:pt-5 md:pb-4">
-        <div className="max-w-5xl mx-auto">
-          <h1 className="text-lg md:text-2xl lg:text-[1.75rem] font-semibold text-white/90 tracking-tight leading-snug mb-2 md:mb-3">
-            Find the right franchise to build your next business.
+    <section className={cn("bg-background border-b border-border pt-16 pb-14 md:pt-24 md:pb-20 px-0", className)}>
+      <div className="container mx-auto px-4 md:px-6">
+        <div className="max-w-6xl">
+          <h1 className="font-display text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-extrabold tracking-tight leading-[0.9] mb-8 md:mb-12 uppercase">
+            Find the right
+            <br />
+            franchise to build
+            <br />
+            your next business.
           </h1>
 
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              go(query || "Food franchise under ₹50L in Chennai", "franchise");
-            }}
-            className="mb-2"
-          >
-            <div className="flex flex-col sm:flex-row gap-1.5 p-1 sm:p-1.5 rounded-md bg-white shadow-lg ring-1 ring-white/30">
+          <div className="max-w-3xl">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                go(query || "Food franchise under ₹50L in Chennai", "franchise");
+              }}
+              className="flex flex-col md:flex-row gap-4 mb-8"
+            >
               <div className="relative flex-1 min-w-0">
                 <Search
-                  className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 md:h-5 md:w-5 text-neutral-400"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-foreground"
                   aria-hidden="true"
                 />
                 <Input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Food franchise under ₹50L in Chennai"
-                  className="h-11 md:h-14 pl-10 md:pl-11 border-0 bg-transparent text-sm md:text-lg text-neutral-900 placeholder:text-neutral-400 shadow-none focus-visible:ring-0"
+                  className="w-full h-14 md:h-16 pl-12 pr-4 bg-transparent border-2 border-foreground text-base md:text-lg placeholder:text-foreground/40 font-medium shadow-none rounded-none focus-visible:ring-0"
                   aria-label="Search franchises by investment, location, industry or expected returns"
                 />
               </div>
               <Button
                 type="submit"
-                className="h-11 md:h-14 px-5 md:px-8 text-sm md:text-base font-semibold bg-growth-green hover:bg-growth-green/90 text-white shrink-0 rounded-sm"
+                className="h-14 md:h-16 px-10 text-base md:text-lg shrink-0"
               >
                 Search
               </Button>
+            </form>
+
+            <div className="flex flex-wrap gap-2 mb-10 md:mb-12 items-center">
+              <span className="text-xs font-bold uppercase tracking-widest mr-2">Popular:</span>
+              {POPULAR.map((item) => (
+                <button
+                  key={item.label}
+                  type="button"
+                  onClick={() => go(item.q, item.type)}
+                  className="text-xs border border-foreground/20 px-3 py-1.5 hover:bg-foreground hover:text-background transition-colors cursor-pointer min-h-[28px]"
+                >
+                  {item.label}
+                </button>
+              ))}
             </div>
-          </form>
 
-          <p className="text-[11px] text-white/40 mb-1.5 hidden sm:block">
-            Search franchises by investment, location, industry or expected returns
-          </p>
-
-          <div className="flex flex-nowrap overflow-x-auto gap-1.5 mb-2 md:mb-2.5 scrollbar-hide -mx-0.5 px-0.5">
-            <span className="text-[11px] text-white/40 shrink-0 self-center">Popular:</span>
-            {POPULAR.map((item) => (
-              <button
-                key={item.label}
-                type="button"
-                onClick={() => go(item.q, item.type)}
-                className="px-2 py-1 rounded text-[11px] md:text-[12px] text-white/65 hover:text-white hover:bg-white/10 whitespace-nowrap shrink-0 cursor-pointer transition-colors min-h-[28px]"
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
-
-          <div
-            className="flex w-full sm:w-auto rounded-md border border-white/15 bg-white/[0.03] p-0.5"
-            role="tablist"
-            aria-label="Primary intent"
-          >
-            {INTENTS.map((intent) => (
-              <button
-                key={intent.id}
-                type="button"
-                role="tab"
-                aria-selected={activeIntent === intent.id}
-                onClick={() => onIntent(intent)}
-                className={cn(
-                  "flex-1 sm:flex-none px-2.5 py-2 md:px-3 md:py-1.5 text-[11px] md:text-sm font-medium rounded-sm transition-colors cursor-pointer min-h-[36px]",
-                  activeIntent === intent.id
-                    ? "bg-white text-neutral-900"
-                    : "text-white/70 hover:text-white"
-                )}
-              >
-                {intent.label}
-              </button>
-            ))}
+            <div
+              className="flex flex-nowrap overflow-x-auto scrollbar-hide border-b-2 border-foreground"
+              role="tablist"
+              aria-label="Primary intent"
+            >
+              {INTENTS.map((intent) => (
+                <button
+                  key={intent.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={activeIntent === intent.id}
+                  onClick={() => onIntent(intent)}
+                  className={cn(
+                    "px-3 md:px-5 py-3 md:py-4 text-[10px] md:text-sm font-bold uppercase tracking-widest transition-colors cursor-pointer min-h-[44px] whitespace-nowrap shrink-0",
+                    activeIntent === intent.id
+                      ? "bg-foreground text-background"
+                      : "text-foreground/60 hover:text-foreground"
+                  )}
+                >
+                  {intent.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
