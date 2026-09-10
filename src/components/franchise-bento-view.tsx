@@ -17,7 +17,6 @@ import {
     Star,
     Search,
     IndianRupee,
-    Store,
     GraduationCap,
     Headphones,
     Package,
@@ -237,11 +236,11 @@ export function FranchiseBentoView({
             {/* Identity + investment economics */}
             <div className="rounded-lg border border-border bg-card p-5 md:p-6">
                 <div className="flex flex-wrap items-start gap-4 mb-6">
-                    <div className="h-14 w-14 rounded-md border border-border bg-secondary flex items-center justify-center overflow-hidden shrink-0">
+                    <div className="h-20 w-20 border border-border bg-white dark:bg-card flex items-center justify-center overflow-hidden shrink-0 p-2">
                         {logoUrl ? (
-                            <img src={logoUrl} alt="" className="h-full w-full object-contain p-1" />
+                            <img src={logoUrl} alt={`${brandName} logo`} className="h-full w-full object-contain" />
                         ) : (
-                            <Store className="h-6 w-6 text-muted-foreground" />
+                            <span className="font-display text-2xl font-bold text-trust-blue">{brandName.charAt(0)}</span>
                         )}
                     </div>
                     <div className="min-w-0 flex-1">

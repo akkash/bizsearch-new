@@ -1,9 +1,11 @@
 import { NaturalLanguageSearch } from '@/components/natural-language-search';
 import { MessageSquare, Search, ListChecks } from 'lucide-react';
 import { PageHero } from '@/components/page-hero';
+import { useSearchParams } from 'react-router-dom';
 
 export function SmartSearchPage() {
-    return (
+    const [params] = useSearchParams();
+    const initialQuery = params.get('q') || '';    return (
         <div className="min-h-[80vh] bg-background">
             <PageHero
                 eyebrow="Search"
@@ -12,7 +14,7 @@ export function SmartSearchPage() {
             />
 
             <div className="container mx-auto px-4 py-10 md:py-12">
-                <NaturalLanguageSearch />
+                <NaturalLanguageSearch initialQuery={initialQuery} />
 
                 <div className="mt-16">
                     <h2 className="font-display text-2xl font-bold uppercase tracking-tight text-foreground mb-6">How it works</h2>

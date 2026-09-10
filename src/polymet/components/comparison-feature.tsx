@@ -20,7 +20,11 @@ import { Business, Franchise } from "@/types/listings";
 import {
   getFranchiseInvestmentRange,
   getStoreFormatsFromFranchise,
+  formatStoreFormatSpace,
 } from "@/lib/store-formats";
+import { ListingBrandHero } from "@/components/listing-brand-hero";
+import { listingCoverUrl, listingLogoUrl } from "@/lib/listing-media";
+import { formatINR } from "@/lib/format-currency";
 
 interface ComparisonItem {
   id: string;
@@ -191,9 +195,13 @@ export function ComparisonFeature({
   const getSpaceRequirement = (item: ComparisonItem) => {
     if (item.type !== "franchise") return "Not provided";
     const franchise = item.data as Franchise;
+    const formats = getStoreFormatsFromFranchise(franchise);
+    if (formats[0]) return formatStoreFormatSpace(formats[0]);
     const sqft = franchise.spaceRequiredSqft ?? franchise.space_required_sqft;
     return sqft ? `${sqft} sq ft` : "Not provided";
   };
+
+  const franchiseItems = items.filter((item) => item.type === "franchise");
 
   const getLiquidCapital = (item: ComparisonItem): number | null => {
     if (item.type !== "franchise") return null;
@@ -248,6 +256,68 @@ export function ComparisonFeature({
       </CardHeader>
 
       <CardContent className="space-y-6">
+        {franchiseItems.length >= 2 && (
+          <div className="overflow-x-auto border border-border">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-secondary/50 border-b border-border">
+                  <th className="text-left p-3 text-xs uppercase tracking-widest text-muted-foreground">Metric</th>
+                  {franchiseItems.map((item) => (
+                    <th key={item.id} className="text-left p-3 font-display font-bold uppercase">
+                      {getBusinessName(item)}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                <tr>
+                  <td className="p-3 text-muted-foreground">Investment</td>
+                  {franchiseItems.map((item) => (
+                    <td key={`${item.id}-inv`} className="p-3 font-mono font-semibold">
+                      {getFranchiseInvestmentLabel(item)}
+                    </td>
+                  ))}
+                </tr>
+                <tr>
+                  <td className="p-3 text-muted-foreground">Royalty</td>
+                  {franchiseItems.map((item) => (
+                    <td key={`${item.id}-roy`} className="p-3 font-mono font-semibold">
+                      {getRoyalty(item) != null ? `${getRoyalty(item)}%` : "Not provided"}
+                    </td>
+                  ))}
+                </tr>
+                <tr>
+                  <td className="p-3 text-muted-foreground">Area required</td>
+                  {franchiseItems.map((item) => (
+                    <td key={`${item.id}-area`} className="p-3 font-mono font-semibold">
+                      {getSpaceRequirement(item)}
+                    </td>
+                  ))}
+                </tr>
+                <tr>
+                  <td className="p-3 text-muted-foreground">Payback</td>
+                  {franchiseItems.map((item) => {
+                    const months = (item.data as Franchise).payback_period_months;
+                    return (
+                      <td key={`${item.id}-pay`} className="p-3 font-mono font-semibold">
+                        {months ? `${months} mo` : "Not provided"}
+                      </td>
+                    );
+                  })}
+                </tr>
+                <tr>
+                  <td className="p-3 text-muted-foreground">Unit revenue</td>
+                  {franchiseItems.map((item) => (
+                    <td key={`${item.id}-rev`} className="p-3 font-mono font-semibold">
+                      {formatINR((item.data as Franchise).average_unit_revenue)}
+                    </td>
+                  ))}
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        )}
+
         {/* Tabs */}
         <div className="flex border-b">
           {["overview", "financials", "details"].map((tab) => (
@@ -268,17 +338,24 @@ export function ComparisonFeature({
         <div className="overflow-x-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 min-w-full">
             {items.map((item, index) => (
-              <Card key={item.id} className="relative">
+              <Card key={item.id} className="relative overflow-hidden">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="absolute top-2 right-2 h-6 w-6"
+                  className="absolute top-2 right-2 h-6 w-6 z-10 bg-white/90 dark:bg-card/90"
                   onClick={() => onRemoveItem(item.id)}
                 >
                   <X className="h-4 w-4" />
                 </Button>
 
-                <CardContent className="pt-6 space-y-4">
+                <ListingBrandHero
+                  brandName={getBusinessName(item)}
+                  logoUrl={listingLogoUrl(item.data)}
+                  coverUrl={listingCoverUrl(item.data)}
+                  variant="compact"
+                />
+
+                <CardContent className="pt-4 space-y-4">
                   {/* Header */}
                   <div className="space-y-2">
                     <Badge

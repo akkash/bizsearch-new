@@ -2,6 +2,7 @@ import { supabase } from './supabase';
 import { isUUID, sanitizeSlug } from './slug-utils';
 import { mapFranchiseFromDb, mapFranchisesFromDb } from './franchise-mapper';
 import type { Franchise } from '@/types/listings';
+import { franchiseMatchesCity } from './franchise-search';
 
 export { mapFranchiseFromDb, mapFranchisesFromDb } from './franchise-mapper';
 
@@ -25,6 +26,8 @@ export interface FranchiseFilters {
   trending?: boolean;
   verified?: boolean;
   search?: string;
+  /** Buyer liquid-capital ceiling: keep listings whose min investment is at or below this */
+  capitalMax?: number;
 }
 
 export interface FranchiseCreateInput {
@@ -108,6 +111,9 @@ export class FranchiseService {
     if (filters?.investmentMax != null) {
       params.set('total_investment_max', `lte.${filters.investmentMax}`);
     }
+    if (filters?.capitalMax != null) {
+      params.set('total_investment_min', `lte.${filters.capitalMax}`);
+    }
     if (filters?.franchiseFeeMin != null) {
       params.set('franchise_fee', `gte.${filters.franchiseFeeMin}`);
     }
@@ -159,7 +165,13 @@ export class FranchiseService {
       }
 
       console.log('✅ Franchises fetched:', rows.length, 'active franchises');
-      return mapFranchisesFromDb(rows);
+      let mapped = mapFranchisesFromDb(rows);
+      if (filters?.city?.length) {
+        mapped = mapped.filter((row) =>
+          filters.city!.some((city) => franchiseMatchesCity(row, city))
+        );
+      }
+      return mapped;
     } catch (err) {
       console.error('❌ Exception in getFranchises:', err);
       throw err;

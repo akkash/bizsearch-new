@@ -47,6 +47,8 @@ export function mapFranchiseFromDb(raw: FranchiseDbRow): Franchise {
     num(raw.expected_roi_percentage) ?? num(raw.expectedRoiPercentage);
   const averageUnitRevenue =
     num(raw.average_unit_revenue) ?? num(raw.averageUnitRevenue);
+  const averageUnitProfit =
+    num(raw.average_unit_profit) ?? num(raw.averageUnitProfit);
 
   return {
     id: String(raw.id),
@@ -110,6 +112,8 @@ export function mapFranchiseFromDb(raw: FranchiseDbRow): Franchise {
     expected_roi_percentage: expectedRoiPercentage,
     averageUnitRevenue,
     average_unit_revenue: averageUnitRevenue,
+    averageUnitProfit,
+    average_unit_profit: averageUnitProfit,
     paybackPeriodMonths: num(raw.payback_period_months) ?? num(raw.paybackPeriodMonths),
     payback_period_months: num(raw.payback_period_months) ?? num(raw.paybackPeriodMonths),
     establishedYear,

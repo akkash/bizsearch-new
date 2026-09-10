@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,8 @@ import {
     Lightbulb
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { ListingBrandHero } from '@/components/listing-brand-hero';
+import { listingCoverUrl, listingLogoUrl } from '@/lib/listing-media';
 
 interface ParsedIntent {
     listing_type: 'business' | 'franchise' | 'both';
@@ -56,23 +58,24 @@ const EXAMPLE_QUERIES = [
     "Profitable salon business in Maharashtra",
 ];
 
-export function NaturalLanguageSearch() {
-    const [query, setQuery] = useState('');
+export function NaturalLanguageSearch({ initialQuery = "" }: { initialQuery?: string }) {
+    const [query, setQuery] = useState(initialQuery);
     const [isSearching, setIsSearching] = useState(false);
     const [result, setResult] = useState<SearchResult | null>(null);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
     const navigate = useNavigate();
 
-    const handleSearch = async () => {
-        if (!query.trim()) return;
+    const handleSearch = async (nextQuery?: string) => {
+        const q = (nextQuery ?? query).trim();
+        if (!q) return;
 
         setIsSearching(true);
         setShowSuggestions(false);
 
         try {
             const { data, error } = await supabase.functions.invoke('nl-search', {
-                body: { query, execute: true, limit: 6 },
+                body: { query: q, execute: true, limit: 6 },
             });
 
             if (error) throw error;
@@ -99,8 +102,15 @@ export function NaturalLanguageSearch() {
     const handleExampleClick = (example: string) => {
         setQuery(example);
         setShowSuggestions(false);
-        setTimeout(() => inputRef.current?.focus(), 100);
+        void handleSearch(example);
     };
+
+    useEffect(() => {
+        if (initialQuery.trim()) {
+            void handleSearch(initialQuery);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const clearSearch = () => {
         setQuery('');
@@ -236,20 +246,19 @@ export function NaturalLanguageSearch() {
                                 {result.results.franchises.map((franchise) => (
                                     <Card
                                         key={franchise.id}
-                                        className="cursor-pointer card-hover-lift"
+                                        className="cursor-pointer card-hover-lift overflow-hidden"
                                         onClick={() => navigate(`/franchise/${franchise.slug || franchise.id}`)}
                                     >
+                                        <ListingBrandHero
+                                            brandName={franchise.brand_name || franchise.brandName || 'Franchise'}
+                                            logoUrl={listingLogoUrl(franchise)}
+                                            coverUrl={listingCoverUrl(franchise)}
+                                            variant="compact"
+                                        />
                                         <CardContent className="p-4">
-                                            <div className="flex items-center gap-3">
-                                                {franchise.logo_url && (
-                                                    <img src={franchise.logo_url} alt="" className="h-10 w-10 object-contain border border-border" />
-                                                )}
-                                                <div>
-                                                    <h4 className="font-display font-bold uppercase line-clamp-1">{franchise.brand_name}</h4>
-                                                    <p className="text-sm text-muted-foreground">{franchise.industry}</p>
-                                                </div>
-                                            </div>
-                                            <div className="mt-3 font-bold text-lg font-mono tabular-nums">
+                                            <h4 className="font-display font-bold uppercase line-clamp-1">{franchise.brand_name}</h4>
+                                            <p className="text-sm text-muted-foreground">{franchise.industry}</p>
+                                            <div className="mt-3 font-bold text-lg font-mono tabular-nums text-growth-green">
                                                 {formatPrice(franchise.total_investment_min)} - {formatPrice(franchise.total_investment_max)}
                                             </div>
                                         </CardContent>
@@ -269,9 +278,15 @@ export function NaturalLanguageSearch() {
                                 {result.results.businesses.map((business) => (
                                     <Card
                                         key={business.id}
-                                        className="cursor-pointer card-hover-lift"
+                                        className="cursor-pointer card-hover-lift overflow-hidden"
                                         onClick={() => navigate(`/business/${business.slug || business.id}`)}
                                     >
+                                        <ListingBrandHero
+                                            brandName={business.name || 'Business'}
+                                            logoUrl={listingLogoUrl(business)}
+                                            coverUrl={listingCoverUrl(business)}
+                                            variant="compact"
+                                        />
                                         <CardContent className="p-4">
                                             <h4 className="font-semibold line-clamp-1">{business.name}</h4>
                                             <p className="text-sm text-muted-foreground">{business.industry}</p>

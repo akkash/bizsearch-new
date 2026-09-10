@@ -1,46 +1,50 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { formatINR } from "@/lib/format-currency";
+import {
+  buildFranchiseSearchPath,
+  uniqueFranchiseCategories,
+  type FranchiseSearchIntent,
+} from "@/lib/franchise-search";
 
 interface MarketplaceHeroProps {
   className?: string;
 }
 
-const INDUSTRIES = [
-  { label: "Any industry", value: "" },
-  { label: "Food & beverage", value: "Food" },
-  { label: "Education", value: "Education" },
-  { label: "Retail", value: "Retail" },
-  { label: "Health & fitness", value: "Fitness" },
-  { label: "Services", value: "Services" },
-];
-
-const INVESTMENTS = [
-  { label: "Any investment", value: "" },
-  { label: "Under ₹25L", value: "under 25L" },
-  { label: "₹25L – ₹50L", value: "under 50L" },
-  { label: "₹50L – ₹1Cr", value: "under 1Cr" },
-  { label: "Above ₹1Cr", value: "above 1Cr" },
-];
-
 const CITIES = [
-  { label: "Any city", value: "" },
-  { label: "Chennai", value: "Chennai" },
-  { label: "Bengaluru", value: "Bangalore" },
-  { label: "Coimbatore", value: "Coimbatore" },
-  { label: "Hyderabad", value: "Hyderabad" },
-  { label: "Mumbai", value: "Mumbai" },
-  { label: "Delhi NCR", value: "Delhi" },
+  "Chennai",
+  "Bengaluru",
+  "Coimbatore",
+  "Hyderabad",
+  "Mumbai",
+  "Delhi NCR",
+  "Pune",
+  "Ahmedabad",
+  "Kochi",
+  "Kolkata",
 ];
 
-const POPULAR = [
-  { label: "Food franchise under ₹50L", q: "Food franchise under ₹50L", type: "franchise" as const },
-  { label: "School franchise under ₹1Cr", q: "School franchise under ₹1Cr", type: "franchise" as const },
-  { label: "Low-investment Bangalore", q: "Low-investment franchise in Bangalore", type: "franchise" as const },
-  { label: "Manufacturing Tamil Nadu", q: "Manufacturing franchise in Tamil Nadu", type: "franchise" as const },
-  { label: "Businesses for sale", q: "", type: "business" as const },
+const PROMPTS: { label: string; intent: FranchiseSearchIntent }[] = [
+  {
+    label: "I have ₹50L and want a food franchise in Chennai",
+    intent: { industrySlug: "food-beverage", city: "Chennai", budget: 5000000 },
+  },
+  {
+    label: "Education franchise under ₹1Cr",
+    intent: { industrySlug: "education", budget: 10000000 },
+  },
+  {
+    label: "Retail franchise in Bangalore under ₹40L",
+    intent: { industrySlug: "retail", city: "Bangalore", budget: 4000000 },
+  },
+  {
+    label: "Low-investment service franchise",
+    intent: { budget: 2500000 },
+  },
 ];
 
 const INTENTS = [
@@ -50,31 +54,40 @@ const INTENTS = [
   { id: "list" as const, label: "List Your Franchise", href: "/add-franchise-listing" },
 ];
 
+const BUDGET_MIN = 500000;
+const BUDGET_MAX = 20000000;
 const fieldClass =
-  "h-14 w-full border-0 bg-transparent px-4 text-sm font-medium text-foreground focus:outline-none focus-visible:ring-0";
+  "h-12 w-full border-0 bg-transparent px-4 text-sm font-medium text-foreground focus:outline-none focus-visible:ring-0";
 
 export function MarketplaceHero({ className }: MarketplaceHeroProps) {
+  const categories = useMemo(() => uniqueFranchiseCategories(), []);
   const [industry, setIndustry] = useState("");
-  const [investment, setInvestment] = useState("");
+  const [budget, setBudget] = useState(5000000);
   const [city, setCity] = useState("");
+  const [phrase, setPhrase] = useState("");
   const [activeIntent, setActiveIntent] = useState<(typeof INTENTS)[number]["id"]>("franchise");
   const navigate = useNavigate();
 
-  const go = (q: string, type: "business" | "franchise" = "franchise") => {
-    const trimmed = q.trim();
-    const params = new URLSearchParams();
-    if (trimmed) params.set("q", trimmed);
-    const path = type === "business" ? "/businesses" : "/franchises";
-    navigate(params.toString() ? `${path}?${params}` : path);
+  const applyIntent = (intent: FranchiseSearchIntent) => {
+    setIndustry(intent.industrySlug ?? "");
+    setCity(intent.city ?? "");
+    if (intent.budget) setBudget(intent.budget);
+    navigate(buildFranchiseSearchPath(intent));
   };
 
   const searchOpportunities = () => {
-    const parts = [
-      industry && `${industry} franchise`,
-      investment,
-      city && `in ${city}`,
-    ].filter(Boolean);
-    go(parts.join(" ") || "franchise", "franchise");
+    if (phrase.trim() && !industry && !city) {
+      navigate(`/smart-search?q=${encodeURIComponent(phrase.trim())}`);
+      return;
+    }
+    navigate(
+      buildFranchiseSearchPath({
+        industrySlug: industry || undefined,
+        city: city || undefined,
+        budget,
+        q: phrase.trim() || undefined,
+      })
+    );
   };
 
   return (
@@ -95,10 +108,10 @@ export function MarketplaceHero({ className }: MarketplaceHeroProps) {
           }}
           className="border border-border bg-card shadow-[var(--shadow-md)]"
         >
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_auto] divide-y md:divide-y-0 md:divide-x divide-border">
+          <div className="grid grid-cols-1 md:grid-cols-[1.1fr_1.2fr_1fr_auto] divide-y md:divide-y-0 md:divide-x divide-border">
             <label className="flex flex-col justify-center px-1 py-2 md:py-0">
               <span className="px-4 pt-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                Industry
+                Category / Industry
               </span>
               <select
                 value={industry}
@@ -106,46 +119,54 @@ export function MarketplaceHero({ className }: MarketplaceHeroProps) {
                 className={fieldClass}
                 aria-label="Industry"
               >
-                {INDUSTRIES.map((opt) => (
-                  <option key={opt.label} value={opt.value}>
-                    {opt.label}
+                <option value="">Any industry</option>
+                {categories.map((opt) => (
+                  <option key={opt.slug} value={opt.slug}>
+                    {opt.name}
                   </option>
                 ))}
               </select>
             </label>
-            <label className="flex flex-col justify-center px-1 py-2 md:py-0">
-              <span className="px-4 pt-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                Investment
+            <label className="flex flex-col justify-center px-4 py-3">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                Liquid capital
               </span>
-              <select
-                value={investment}
-                onChange={(e) => setInvestment(e.target.value)}
-                className={fieldClass}
-                aria-label="Investment range"
-              >
-                {INVESTMENTS.map((opt) => (
-                  <option key={opt.label} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
+              <div className="flex items-baseline justify-between gap-2 mb-2">
+                <span className="text-xs text-muted-foreground">Up to</span>
+                <span className="font-mono text-sm font-bold text-growth-green">{formatINR(budget)}</span>
+              </div>
+              <Slider
+                min={BUDGET_MIN}
+                max={BUDGET_MAX}
+                step={100000}
+                value={[budget]}
+                onValueChange={(v) => setBudget(v[0] ?? 5000000)}
+                aria-label="Maximum liquid capital"
+              />
+              <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
+                <span>₹5L</span>
+                <span>₹2Cr</span>
+              </div>
             </label>
             <label className="flex flex-col justify-center px-1 py-2 md:py-0">
               <span className="px-4 pt-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                City
+                City / Region
               </span>
-              <select
+              <input
+                list="hero-cities"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
+                placeholder="Any city"
                 className={fieldClass}
-                aria-label="City"
-              >
-                {CITIES.map((opt) => (
-                  <option key={opt.label} value={opt.value}>
-                    {opt.label}
+                aria-label="Target city or region"
+              />
+              <datalist id="hero-cities">
+                {CITIES.map((name) => (
+                  <option key={name} value={name === "Bengaluru" ? "Bangalore" : name}>
+                    {name}
                   </option>
                 ))}
-              </select>
+              </datalist>
             </label>
             <div className="p-2 md:p-0 flex">
               <Button
@@ -158,20 +179,32 @@ export function MarketplaceHero({ className }: MarketplaceHeroProps) {
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-2 items-center border-t border-border px-4 py-3 bg-secondary/60">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mr-1">
-              Popular
-            </span>
-            {POPULAR.map((item) => (
-              <button
-                key={item.label}
-                type="button"
-                onClick={() => go(item.q, item.type)}
-                className="text-xs rounded-full border border-border bg-card px-3 py-1.5 min-h-[32px] text-foreground hover:border-foreground hover:bg-foreground hover:text-background transition-colors"
-              >
-                {item.label}
-              </button>
-            ))}
+          <div className="border-t border-border px-4 py-3 bg-secondary/60 space-y-3">
+            <label className="block">
+              <span className="sr-only">Describe the franchise you want</span>
+              <input
+                value={phrase}
+                onChange={(e) => setPhrase(e.target.value)}
+                placeholder='Or type it: “I have ₹50L and want a food franchise in Chennai”'
+                className="h-10 w-full bg-card border border-border px-3 text-sm"
+                aria-label="Conversational franchise search"
+              />
+            </label>
+            <div className="flex flex-wrap gap-2 items-center">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mr-1">
+                Try
+              </span>
+              {PROMPTS.map((item) => (
+                <button
+                  key={item.label}
+                  type="button"
+                  onClick={() => applyIntent(item.intent)}
+                  className="text-xs rounded-full border border-border bg-card px-3 py-1.5 min-h-[32px] text-left text-foreground hover:border-foreground hover:bg-foreground hover:text-background transition-colors"
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
           </div>
         </form>
 

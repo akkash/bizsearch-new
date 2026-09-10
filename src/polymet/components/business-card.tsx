@@ -11,6 +11,8 @@ import { Business } from "@/types/listings";
 import { VerificationBadge, type VerificationStatus } from "@/components/verification-badge";
 import { formatINR } from "@/lib/format-currency";
 import { cn } from "@/lib/utils";
+import { ListingBrandHero } from "@/components/listing-brand-hero";
+import { listingCoverUrl, listingLogoUrl } from "@/lib/listing-media";
 
 interface BusinessCardProps {
   business: Business;
@@ -52,6 +54,8 @@ export function BusinessCard({
     Boolean(business.revenue) ||
     Boolean(profit) ||
     (Array.isArray(business.badges) && business.badges.includes("Verified"));
+  const coverUrl = listingCoverUrl(business);
+  const logoUrl = listingLogoUrl(business);
 
   return (
     <Card
@@ -62,25 +66,15 @@ export function BusinessCard({
       onClick={() => onViewDetails?.(business.id)}
     >
       <CardContent className="p-0">
-        {/* Compact image strip */}
-        <div className="relative h-36 bg-muted overflow-hidden">
-          {business.images && business.images.length > 0 ? (
-            <img
-              src={business.images[0]}
-              alt=""
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-secondary">
-              <span className="text-2xl font-semibold text-muted-foreground">
-                {business.name?.charAt(0) || "B"}
-              </span>
-            </div>
-          )}
+        <ListingBrandHero
+          brandName={business.name || "Business"}
+          logoUrl={logoUrl}
+          coverUrl={coverUrl}
+        >
           <Button
             variant="ghost"
             size="icon"
-            className="absolute top-2 right-2 h-8 w-8 bg-background/90 hover:bg-background"
+            className="absolute top-2 right-2 h-9 w-9 bg-white/90 dark:bg-card/90 hover:bg-white shadow-sm"
             onClick={(e) => {
               e.stopPropagation();
               onSave?.(business.id);
@@ -92,11 +86,11 @@ export function BusinessCard({
             />
           </Button>
           {business.featured && (
-            <Badge className="absolute top-2 left-2 bg-secondary text-foreground text-[10px] font-medium">
+            <Badge className="absolute top-2 left-2 bg-trust-blue text-white text-[10px] font-medium">
               Featured
             </Badge>
           )}
-        </div>
+        </ListingBrandHero>
 
         <div className="p-4 space-y-3">
           {/* Identity */}

@@ -12,13 +12,18 @@ import {
 } from "@/lib/store-formats";
 import type { Business, Franchise } from "@/types/listings";
 import { cn } from "@/lib/utils";
+import { ListingBrandHero } from "@/components/listing-brand-hero";
+import { listingCoverUrl, listingLogoUrl } from "@/lib/listing-media";
 
 function RowSkeleton() {
   return (
-    <div className="border border-border bg-card py-6 px-6 animate-pulse">
-      <div className="h-4 w-1/3 bg-muted mb-2" />
-      <div className="h-7 w-24 bg-muted mb-2" />
-      <div className="h-4 w-2/3 bg-muted" />
+    <div className="border border-border bg-card overflow-hidden animate-pulse">
+      <div className="aspect-[16/10] min-h-[11.5rem] bg-muted" />
+      <div className="py-6 px-6">
+        <div className="h-4 w-1/3 bg-muted mb-2" />
+        <div className="h-7 w-24 bg-muted mb-2" />
+        <div className="h-4 w-2/3 bg-muted" />
+      </div>
     </div>
   );
 }
@@ -215,13 +220,11 @@ export function HomeBusinessInventory({ className }: { className?: string }) {
                     className="group border border-border bg-card p-0 flex flex-col cursor-pointer card-hover-lift overflow-hidden"
                     onClick={() => navigate(`/business/${id}`)}
                   >
-                    {Array.isArray(b.images) && b.images[0] ? (
-                      <img
-                        src={typeof b.images[0] === "string" ? b.images[0] : b.images[0]?.url}
-                        alt=""
-                        className="h-40 w-full object-cover bg-muted"
-                      />
-                    ) : null}
+                    <ListingBrandHero
+                      brandName={b.name || "Business"}
+                      logoUrl={listingLogoUrl(b)}
+                      coverUrl={listingCoverUrl(b)}
+                    />
                     <div className="p-6 flex flex-col flex-1">
                     <h3 className="font-display text-2xl font-bold uppercase mb-2 leading-snug line-clamp-1">
                       {b.name}
@@ -448,19 +451,11 @@ export function HomeFranchiseInventory({ className }: { className?: string }) {
                 (f as any).breakeven_period ||
                 (f as any).breakevenPeriod;
               const territories = f.territories || [];
-              const id = f.slug || f.id;
+                const id = f.slug || f.id;
               const investLabel =
                 range.min != null || range.max != null
                   ? formatInvestmentRange(range.min, range.max)
                   : null;
-
-                const cover =
-                  Array.isArray(f.images) && f.images[0]
-                    ? typeof f.images[0] === "string"
-                      ? f.images[0]
-                      : f.images[0]?.url
-                    : null;
-                const logo = f.logo_url || f.logo;
 
                 return (
                   <article
@@ -468,25 +463,13 @@ export function HomeFranchiseInventory({ className }: { className?: string }) {
                     className="group border border-border bg-card p-0 flex flex-col cursor-pointer card-hover-lift overflow-hidden"
                     onClick={() => navigate(`/franchise/${id}`)}
                   >
-                    {cover ? (
-                      <img src={cover} alt="" className="h-40 w-full object-cover bg-muted" />
-                    ) : (
-                      <div className="h-2 w-full bg-trust-blue" />
-                    )}
+                    <ListingBrandHero
+                      brandName={brand}
+                      logoUrl={listingLogoUrl(f)}
+                      coverUrl={listingCoverUrl(f)}
+                    />
                     <div className="p-6 flex flex-col flex-1">
-                    <div className="flex items-start gap-3 mb-2">
-                      {logo ? (
-                        <img
-                          src={logo}
-                          alt=""
-                          className="h-12 w-12 object-contain border border-border bg-card shrink-0"
-                        />
-                      ) : (
-                        <div className="h-12 w-12 border border-border flex items-center justify-center font-display font-bold text-lg shrink-0">
-                          {brand.charAt(0)}
-                        </div>
-                      )}
-                      <div className="min-w-0">
+                    <div className="mb-2 min-w-0">
                     <h3 className="font-display text-2xl font-bold uppercase mb-1 leading-snug line-clamp-1">
                       {brand}
                     </h3>
@@ -496,7 +479,6 @@ export function HomeFranchiseInventory({ className }: { className?: string }) {
                         ? ` · ${territories.slice(0, 2).join(", ")}`
                         : ""}
                     </p>
-                      </div>
                     </div>
 
                     <div className="mt-auto pt-8">

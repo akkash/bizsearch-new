@@ -227,9 +227,9 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
               <Separator orientation="vertical" className="h-6 hidden sm:block" />
               <div className="flex items-center gap-3 min-w-0">
                 {logo ? (
-                  <img src={logo} alt={brandName} className="w-12 h-12 object-contain border border-border" />
+                  <img src={logo} alt={`${brandName} logo`} className="w-16 h-16 object-contain border border-border bg-white dark:bg-card p-1.5" />
                 ) : (
-                  <div className="w-12 h-12 border border-border bg-secondary flex items-center justify-center font-display font-bold">
+                  <div className="w-16 h-16 border border-border bg-secondary flex items-center justify-center font-display font-bold text-trust-blue">
                     {brandName.charAt(0)}
                   </div>
                 )}

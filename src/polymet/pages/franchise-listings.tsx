@@ -38,6 +38,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FRANCHISE_CATEGORIES, getCategoryBySlug } from "@/data/categories";
+import { franchiseMatchesCity } from "@/lib/franchise-search";
 
 interface FranchiseListingsProps {
   className?: string;
@@ -85,8 +86,17 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
   const categorySlug = searchParams.get("category") || searchParams.get("industry");
   const subcategorySlug = searchParams.get('subcategory');
   const urlSearchQuery = searchParams.get('q');
+  const urlCity = searchParams.get("city") || "";
+  const urlBudget = Number(searchParams.get("budget") || "");
+  const openCompare = searchParams.get("compare") === "1";
   const currentCategory = categorySlug ? getCategoryBySlug(categorySlug) : null;
   const currentSubcategory = currentCategory?.subcategories.find(s => s.slug === subcategorySlug);
+
+  useEffect(() => {
+    if (openCompare && compareIds.length >= 2) {
+      setShowComparePanel(true);
+    }
+  }, [openCompare, compareIds.length]);
 
   // Initialize search query from URL if present
   useEffect(() => {
@@ -113,8 +123,14 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
         if (filters?.state?.length) {
           serverFilters.state = filters.state;
         }
+        if (urlCity) {
+          serverFilters.city = [urlCity];
+        }
         if (filters?.city?.length) {
           serverFilters.city = filters.city;
+        }
+        if (Number.isFinite(urlBudget) && urlBudget > 0) {
+          serverFilters.capitalMax = urlBudget;
         }
         if (filters?.franchiseFee) {
           serverFilters.investmentMin = filters.franchiseFee[0];
@@ -139,7 +155,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
       }
     };
     fetchFranchises();
-  }, [urlSearchQuery, searchQuery, filters, selectedInvestmentRange, currentCategory?.name]);
+  }, [urlSearchQuery, searchQuery, filters, selectedInvestmentRange, currentCategory?.name, urlCity, urlBudget]);
 
   // Filter and search logic
   const filteredFranchises = useMemo(() => {
@@ -177,6 +193,22 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
           currentCategory.subcategories.some(sub =>
             franchiseIndustry.includes(sub.name.toLowerCase())
           );
+      });
+    }
+
+    if (urlCity) {
+      filtered = filtered.filter((franchise) => franchiseMatchesCity(franchise, urlCity));
+    }
+
+    if (Number.isFinite(urlBudget) && urlBudget > 0) {
+      filtered = filtered.filter((franchise) => {
+        const minInv =
+          franchise.investmentMin ??
+          franchise.total_investment_min ??
+          franchise.investmentMax ??
+          franchise.total_investment_max ??
+          0;
+        return minInv <= urlBudget;
       });
     }
 
@@ -321,7 +353,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
     }
 
     return filtered;
-  }, [searchQuery, filters, sortBy, selectedInvestmentRange, franchises, currentCategory, currentSubcategory]);
+  }, [searchQuery, filters, sortBy, selectedInvestmentRange, franchises, currentCategory, currentSubcategory, urlCity, urlBudget]);
 
   // Pagination
   const totalPages = Math.ceil(filteredFranchises.length / itemsPerPage);
@@ -819,7 +851,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
                     onCompare={handleCompare}
                     isSaved={isListingSaved("franchise", franchise.id)}
                     isCompared={isCompared(franchise.id)}
-                    className="flex flex-row items-center p-4 h-auto"
+                    variant="list"
                   />
                 ))}
               </div>

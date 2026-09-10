@@ -20,6 +20,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { listingCoverUrl, listingLogoUrl } from "@/lib/listing-media";
 
 // Helper function to format currency
 const formatCurrency = (value: number) => {
@@ -114,11 +115,26 @@ export function MyListingsPage({ className }: MyListingsPageProps) {
     );
   };
 
-  const BusinessCard = ({ business }: { business: any }) => (
-    <Card className="hover:shadow-md transition-shadow">
+  const BusinessCard = ({ business }: { business: any }) => {
+    const logo = listingLogoUrl(business);
+    const cover = listingCoverUrl(business);
+    const mark = logo || cover;
+    return (
+    <Card className="hover:shadow-md transition-shadow overflow-hidden">
       <CardContent className="p-4">
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex-1">
+        <div className="flex items-start justify-between gap-3 mb-3">
+          {mark ? (
+            <img
+              src={mark}
+              alt={`${business.name || "Business"} logo`}
+              className="h-14 w-14 object-contain border border-border bg-white dark:bg-card p-1 shrink-0"
+            />
+          ) : (
+            <div className="h-14 w-14 border border-border bg-secondary flex items-center justify-center font-display font-bold text-trust-blue shrink-0">
+              {(business.name || "B").charAt(0)}
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-lg mb-1">{business.name}</h3>
             <p className="text-sm text-muted-foreground mb-2">
               {business.city}, {business.state}
@@ -159,14 +175,31 @@ export function MyListingsPage({ className }: MyListingsPageProps) {
         </div>
       </CardContent>
     </Card>
-  );
+    );
+  };
 
-  const FranchiseCard = ({ franchise }: { franchise: any }) => (
-    <Card className="hover:shadow-md transition-shadow">
+  const FranchiseCard = ({ franchise }: { franchise: any }) => {
+    const logo = listingLogoUrl(franchise);
+    const cover = listingCoverUrl(franchise);
+    const mark = logo || cover;
+    const brand = franchise.brand_name || franchise.brandName || "Franchise";
+    return (
+    <Card className="hover:shadow-md transition-shadow overflow-hidden">
       <CardContent className="p-4">
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex-1">
-            <h3 className="font-semibold text-lg mb-1">{franchise.brand_name}</h3>
+        <div className="flex items-start justify-between gap-3 mb-3">
+          {mark ? (
+            <img
+              src={mark}
+              alt={`${brand} logo`}
+              className="h-14 w-14 object-contain border border-border bg-white dark:bg-card p-1 shrink-0"
+            />
+          ) : (
+            <div className="h-14 w-14 border border-border bg-secondary flex items-center justify-center font-display font-bold text-trust-blue shrink-0">
+              {brand.charAt(0)}
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-lg mb-1">{brand}</h3>
             <p className="text-sm text-muted-foreground mb-2">
               {franchise.headquarters_city}, {franchise.headquarters_state}
             </p>
@@ -206,7 +239,8 @@ export function MyListingsPage({ className }: MyListingsPageProps) {
         </div>
       </CardContent>
     </Card>
-  );
+    );
+  };
 
   if (loading) {
     return (
