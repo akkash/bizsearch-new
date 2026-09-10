@@ -366,12 +366,12 @@ export function VerificationPanel({
         </div>
 
         {/* Verification Benefits */}
-        <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-          <h4 className="font-medium text-blue-900 mb-2 flex items-center gap-2">
+        <div className="mt-6 p-4 bg-trust-blue/10 rounded-lg">
+          <h4 className="font-medium text-trust-blue mb-2 flex items-center gap-2">
             <ShieldCheck className="w-4 h-4" />
             Verification Benefits
           </h4>
-          <ul className="text-sm text-blue-800 space-y-1">
+          <ul className="text-sm text-trust-blue space-y-1">
             <li>• Higher visibility in search results</li>
             <li>• Increased trust from potential partners</li>
             <li>• Access to premium features and tools</li>

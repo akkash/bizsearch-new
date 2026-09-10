@@ -86,7 +86,7 @@ export type DealStage = Deal['stage'];
 
 export const DEAL_STAGES: { value: DealStage; label: string; color: string }[] = [
     { value: 'lead', label: 'Lead', color: 'bg-gray-100 text-gray-800' },
-    { value: 'qualified', label: 'Qualified', color: 'bg-blue-100 text-blue-800' },
+    { value: 'qualified', label: 'Qualified', color: 'bg-trust-blue/10 text-trust-blue' },
     { value: 'proposal', label: 'Proposal', color: 'bg-yellow-100 text-yellow-800' },
     { value: 'negotiation', label: 'Negotiation', color: 'bg-orange-100 text-orange-800' },
     { value: 'closed_won', label: 'Won', color: 'bg-secondary text-foreground' },

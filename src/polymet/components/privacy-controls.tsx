@@ -80,7 +80,7 @@ const visibilityOptions = [
     label: "Verified Users Only",
     description: "Only verified BizSearch users",
     icon: UserCheck,
-    color: "text-blue-600",
+    color: "text-trust-blue",
   },
   {
     value: "nda-required",
@@ -390,16 +390,16 @@ export function PrivacyControls({
       </Card>
 
       {/* Privacy Summary */}
-      <Card className="border-blue-200 bg-blue-50/50">
+      <Card className="border-trust-blue/20 bg-trust-blue/10">
         <CardContent className="pt-6">
           <div className="flex items-start gap-3">
-            <Info className="w-5 h-5 text-blue-600 mt-0.5" />
+            <Info className="w-5 h-5 text-trust-blue mt-0.5" />
 
             <div>
-              <h4 className="font-medium text-blue-900 mb-2">
+              <h4 className="font-medium text-trust-blue mb-2">
                 Privacy Summary
               </h4>
-              <div className="space-y-2 text-sm text-blue-800">
+              <div className="space-y-2 text-sm text-trust-blue">
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary" className="text-xs">
                     Profile:{" "}

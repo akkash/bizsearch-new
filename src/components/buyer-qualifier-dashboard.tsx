@@ -51,7 +51,7 @@ export function BuyerQualifierDashboard({ sellerId, onClose, className }: BuyerQ
       case 'Warm Lead':
         return <ThermometerSun className="h-5 w-5 text-orange-500" />;
       case 'Cold Lead':
-        return <Snowflake className="h-5 w-5 text-blue-500" />;
+        return <Snowflake className="h-5 w-5 text-trust-blue" />;
       default:
         return <AlertCircle className="h-5 w-5 text-muted-foreground" />;
     }
@@ -64,7 +64,7 @@ export function BuyerQualifierDashboard({ sellerId, onClose, className }: BuyerQ
       case 'Warm Lead':
         return 'bg-orange-50 border-orange-200 dark:bg-orange-950/20';
       case 'Cold Lead':
-        return 'bg-blue-50 border-blue-200 dark:bg-blue-950/20';
+        return 'bg-trust-blue/10 border-trust-blue/20';
       default:
         return 'bg-muted border-border';
     }
@@ -129,13 +129,13 @@ export function BuyerQualifierDashboard({ sellerId, onClose, className }: BuyerQ
                 <div className="text-2xl font-bold text-orange-600">{insights?.warmLeads || 0}</div>
               </CardContent>
             </Card>
-            <Card className="bg-blue-50 border-blue-200 dark:bg-blue-950/20">
+            <Card className="bg-trust-blue/10 border-trust-blue/20">
               <CardContent className="p-4">
                 <div className="text-sm text-muted-foreground flex items-center gap-1">
                   <Snowflake className="h-4 w-4" />
                   Cold Leads
                 </div>
-                <div className="text-2xl font-bold text-blue-600">{insights?.coldLeads || 0}</div>
+                <div className="text-2xl font-bold text-trust-blue">{insights?.coldLeads || 0}</div>
               </CardContent>
             </Card>
           </div>
@@ -255,10 +255,10 @@ export function BuyerQualifierDashboard({ sellerId, onClose, className }: BuyerQ
                               </div>
 
                               {/* Close Probability */}
-                              <div className="bg-blue-50 dark:bg-blue-950/20 p-3 rounded-lg">
+                              <div className="bg-trust-blue/10 p-3 rounded-lg">
                                 <div className="flex items-center justify-between mb-1">
                                   <span className="text-sm font-semibold">Estimated Close Probability</span>
-                                  <span className="text-lg font-bold text-blue-600">{lead.estimatedCloseProbability}%</span>
+                                  <span className="text-lg font-bold text-trust-blue">{lead.estimatedCloseProbability}%</span>
                                 </div>
                                 <Progress value={lead.estimatedCloseProbability} className="h-2" />
                               </div>

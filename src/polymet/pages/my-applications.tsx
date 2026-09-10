@@ -35,7 +35,7 @@ interface Application {
 }
 
 const statusConfig: Record<string, { color: string; icon: any; label: string; progress: number }> = {
-    submitted: { color: 'bg-blue-100 text-blue-800', icon: Clock, label: 'Submitted', progress: 20 },
+    submitted: { color: 'bg-trust-blue/10 text-trust-blue', icon: Clock, label: 'Submitted', progress: 20 },
     under_review: { color: 'bg-yellow-100 text-yellow-800', icon: FileText, label: 'Under Review', progress: 40 },
     interview_scheduled: { color: 'bg-growth-green/10 text-foreground', icon: Calendar, label: 'Interview Scheduled', progress: 60 },
     approved: { color: 'bg-secondary text-foreground', icon: CheckCircle, label: 'Approved', progress: 100 },

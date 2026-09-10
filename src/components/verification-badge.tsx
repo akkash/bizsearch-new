@@ -17,8 +17,8 @@ const statusConfig = {
     verified: {
         icon: ShieldCheck,
         label: 'Verified',
-        color: 'bg-foreground text-background border-foreground hover:bg-foreground/80',
-        iconColor: 'text-background',
+        color: 'bg-trust-blue text-white border-trust-blue hover:bg-trust-blue-dark',
+        iconColor: 'text-white',
         description: 'This listing has been verified by BizSearch',
     },
     pending: {

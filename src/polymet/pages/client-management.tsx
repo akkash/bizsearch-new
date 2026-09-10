@@ -64,7 +64,7 @@ interface Client {
 const statusColors: Record<string, string> = {
     active: 'bg-secondary text-foreground',
     inactive: 'bg-secondary text-muted-foreground',
-    prospect: 'bg-blue-100 text-blue-800',
+    prospect: 'bg-trust-blue/10 text-trust-blue',
 };
 
 const typeColors: Record<string, string> = {

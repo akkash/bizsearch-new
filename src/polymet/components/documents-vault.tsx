@@ -152,7 +152,7 @@ export function DocumentsVault({
   const getTypeBadge = (type: Document["type"]) => {
     const colors = {
       financial: "bg-secondary text-foreground",
-      legal: "bg-blue-100 text-blue-800",
+      legal: "bg-trust-blue/10 text-trust-blue",
       operational: "bg-orange-100 text-orange-800",
       marketing: "bg-growth-green/10 text-foreground",
       other: "bg-secondary text-foreground",

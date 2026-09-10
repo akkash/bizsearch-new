@@ -67,12 +67,12 @@ export function Footer() {
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="bg-transparent border-2 border-background/20 text-background placeholder:text-background/40 w-full md:w-64 rounded-none"
+                className="bg-transparent border border-background/20 text-background placeholder:text-background/40 w-full md:w-64 shadow-none"
               />
               <Button
                 type="submit"
                 disabled={isSubscribing}
-                className="bg-background text-foreground hover:bg-background/90 whitespace-nowrap"
+                className="bg-growth-green text-white hover:bg-growth-green-dark whitespace-nowrap"
               >
                 {isSubscribing ? "..." : "Subscribe"}
               </Button>
@@ -155,17 +155,17 @@ export function Footer() {
             <h3 className="text-sm font-bold uppercase tracking-widest text-background/60 mb-3">Franchises</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/franchises" className="text-sm text-background/60 hover:opacity-60 transition-colors">
+                <Link to="/franchises" className="text-sm text-background/60 hover:text-white transition-colors">
                   Franchise Opportunities
                 </Link>
               </li>
               <li>
-                <Link to="/franchises" className="text-sm text-background/60 hover:opacity-60 transition-colors">
+                <Link to="/franchises" className="text-sm text-background/60 hover:text-white transition-colors">
                   Browse Franchises
                 </Link>
               </li>
               <li>
-                <Link to="/franchise-map" className="text-sm text-background/60 hover:opacity-60 transition-colors">
+                <Link to="/franchise-map" className="text-sm text-background/60 hover:text-white transition-colors">
                   Franchise Map
                 </Link>
               </li>
@@ -176,12 +176,12 @@ export function Footer() {
             <h3 className="text-sm font-bold uppercase tracking-widest text-background/60 mb-3">For Franchisors</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/add-franchise-listing" className="text-sm text-background/60 hover:opacity-60 transition-colors">
+                <Link to="/add-franchise-listing" className="text-sm text-background/60 hover:text-white transition-colors">
                   List Your Franchise
                 </Link>
               </li>
               <li>
-                <Link to="/franchisor/applications" className="text-sm text-background/60 hover:opacity-60 transition-colors">
+                <Link to="/franchisor/applications" className="text-sm text-background/60 hover:text-white transition-colors">
                   Franchisee Applications
                 </Link>
               </li>
@@ -189,12 +189,12 @@ export function Footer() {
             <h3 className="text-sm font-semibold text-background mb-3 mt-6">Businesses</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/businesses" className="text-sm text-background/60 hover:opacity-60 transition-colors">
+                <Link to="/businesses" className="text-sm text-background/60 hover:text-white transition-colors">
                   Businesses for Sale
                 </Link>
               </li>
               <li>
-                <Link to="/add-business-listing" className="text-sm text-background/60 hover:opacity-60 transition-colors">
+                <Link to="/add-business-listing" className="text-sm text-background/60 hover:text-white transition-colors">
                   Sell a Business
                 </Link>
               </li>
@@ -205,17 +205,17 @@ export function Footer() {
             <h3 className="text-sm font-bold uppercase tracking-widest text-background/60 mb-3">Tools</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/smart-search" className="text-sm text-background/60 hover:opacity-60 transition-colors">
+                <Link to="/smart-search" className="text-sm text-background/60 hover:text-white transition-colors">
                   Franchise Matching
                 </Link>
               </li>
               <li>
-                <Link to="/franchise-map" className="text-sm text-background/60 hover:opacity-60 transition-colors">
+                <Link to="/franchise-map" className="text-sm text-background/60 hover:text-white transition-colors">
                   Territory Map
                 </Link>
               </li>
               <li>
-                <Link to="/business-valuation" className="text-sm text-background/60 hover:opacity-60 transition-colors">
+                <Link to="/business-valuation" className="text-sm text-background/60 hover:text-white transition-colors">
                   Investment / ROI
                 </Link>
               </li>
@@ -224,7 +224,7 @@ export function Footer() {
                   href="https://vabgo.com/commercial"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-background/60 hover:opacity-60 transition-colors"
+                  className="text-sm text-background/60 hover:text-white transition-colors"
                 >
                   Commercial property (VABGO)
                 </a>
@@ -236,22 +236,22 @@ export function Footer() {
             <h3 className="text-sm font-bold uppercase tracking-widest text-background/60 mb-3">Company</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/about" className="text-sm text-background/60 hover:opacity-60 transition-colors">
+                <Link to="/about" className="text-sm text-background/60 hover:text-white transition-colors">
                   About
                 </Link>
               </li>
               <li>
-                <Link to="/contact" className="text-sm text-background/60 hover:opacity-60 transition-colors">
+                <Link to="/contact" className="text-sm text-background/60 hover:text-white transition-colors">
                   Contact
                 </Link>
               </li>
               <li>
-                <Link to="/terms" className="text-sm text-background/60 hover:opacity-60 transition-colors">
+                <Link to="/terms" className="text-sm text-background/60 hover:text-white transition-colors">
                   Terms
                 </Link>
               </li>
               <li>
-                <Link to="/privacy" className="text-sm text-background/60 hover:opacity-60 transition-colors">
+                <Link to="/privacy" className="text-sm text-background/60 hover:text-white transition-colors">
                   Privacy
                 </Link>
               </li>
@@ -259,13 +259,13 @@ export function Footer() {
             <ul className="space-y-3 mt-6">
               <li className="flex items-center gap-2 text-sm text-background/60">
                 <Mail className="h-4 w-4 flex-shrink-0 text-background" />
-                <a href="mailto:support@bizsearch.in" className="hover:opacity-60 transition-colors">
+                <a href="mailto:support@bizsearch.in" className="hover:text-white transition-colors">
                   support@bizsearch.in
                 </a>
               </li>
               <li className="flex items-center gap-2 text-sm text-background/60">
                 <Phone className="h-4 w-4 flex-shrink-0 text-background" />
-                <a href="tel:+911800123456" className="hover:opacity-60 transition-colors">
+                <a href="tel:+911800123456" className="hover:text-white transition-colors">
                   +91 1800 123 456
                 </a>
               </li>
@@ -358,7 +358,7 @@ export function Footer() {
                     <li key={idx}>
                       <Link
                         to={link.to}
-                        className="text-sm text-background/60 hover:opacity-60 transition-colors"
+                        className="text-sm text-background/60 hover:text-white transition-colors"
                       >
                         {link.label}
                       </Link>

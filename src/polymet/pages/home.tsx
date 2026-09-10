@@ -34,8 +34,12 @@ export function HomePage({ className }: HomePageProps) {
       <MarketplaceHero />
       <HomeFranchiseInventory />
       <HomeBusinessInventory />
-      <MatchPreviewSection />
-      <ValuationPreviewSection />
+      <div className="border-b border-border">
+        <div className="container mx-auto px-4 md:px-6 py-16 md:py-24 grid lg:grid-cols-2 gap-8 items-stretch">
+          <MatchPreviewSection embedded />
+          <ValuationPreviewSection embedded />
+        </div>
+      </div>
       <TrustVerificationSection />
       <SellerCtaSection />
     </div>

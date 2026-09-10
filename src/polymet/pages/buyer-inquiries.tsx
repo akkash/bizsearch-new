@@ -54,7 +54,7 @@ interface Inquiry {
 
 const statusConfig: Record<string, { color: string; icon: any }> = {
     pending: { color: 'bg-yellow-100 text-yellow-800', icon: Clock },
-    responded: { color: 'bg-blue-100 text-blue-800', icon: MessageSquare },
+    responded: { color: 'bg-trust-blue/10 text-trust-blue', icon: MessageSquare },
     approved: { color: 'bg-secondary text-foreground', icon: CheckCircle },
     rejected: { color: 'bg-red-100 text-red-800', icon: XCircle },
 };

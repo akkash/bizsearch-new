@@ -40,9 +40,9 @@ export function TerritoryAnalyzer({ franchiseBrand, franchiseIndustry, onClose, 
   const getViabilityColor = (level: string) => {
     switch (level) {
       case 'Excellent':
-        return 'bg-secondary border-border text-foreground';
+        return 'bg-growth-green/10 border-growth-green text-growth-green';
       case 'Good':
-        return 'bg-blue-50 border-blue-200 text-blue-700';
+        return 'bg-trust-blue/10 border-trust-blue text-trust-blue';
       case 'Fair':
         return 'bg-orange-50 border-orange-200 text-orange-700';
       default:
@@ -178,16 +178,16 @@ export function TerritoryAnalyzer({ franchiseBrand, franchiseIndustry, onClose, 
               </div>
 
               {/* ROI & Break-even */}
-              <Card className="bg-blue-50 border-blue-200">
+              <Card className="bg-trust-blue/10 border-trust-blue/20">
                 <CardContent className="p-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <div className="text-sm text-muted-foreground">Estimated ROI</div>
-                      <div className="text-2xl font-bold text-blue-600">{analysis.estimatedROI}%</div>
+                      <div className="text-2xl font-bold text-trust-blue">{analysis.estimatedROI}%</div>
                     </div>
                     <div>
                       <div className="text-sm text-muted-foreground">Break-even</div>
-                      <div className="text-2xl font-bold text-blue-600">{analysis.breakEvenMonths} months</div>
+                      <div className="text-2xl font-bold text-trust-blue">{analysis.breakEvenMonths} months</div>
                     </div>
                   </div>
                 </CardContent>

@@ -51,7 +51,7 @@ const categoryIcons: Record<string, any> = {
 const categoryColors: Record<string, string> = {
     financial: 'bg-secondary text-foreground',
     legal: 'bg-growth-green/10 text-growth-green',
-    operational: 'bg-blue-100 text-blue-800',
+    operational: 'bg-trust-blue/10 text-trust-blue',
     overview: 'bg-orange-100 text-orange-800',
 };
 

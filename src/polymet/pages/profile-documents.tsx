@@ -216,7 +216,7 @@ export function ProfileDocumentsPage({
       </div>
 
       {/* Profile Info */}
-      <Card className="border-blue-200 bg-blue-50/50">
+      <Card className="border-trust-blue/20 bg-trust-blue/10">
         <CardContent className="pt-6">
           <div className="flex items-center gap-3">
             <img

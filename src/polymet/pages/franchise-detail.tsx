@@ -229,7 +229,7 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
                 {logo ? (
                   <img src={logo} alt={brandName} className="w-12 h-12 object-contain border border-border" />
                 ) : (
-                  <div className="w-12 h-12 border-2 border-foreground flex items-center justify-center font-display font-bold">
+                  <div className="w-12 h-12 border border-border bg-secondary flex items-center justify-center font-display font-bold">
                     {brandName.charAt(0)}
                   </div>
                 )}
@@ -281,7 +281,6 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
               </Button>
               <Button
                 size="sm"
-                className="bg-foreground text-background hover:bg-foreground/80"
                 onClick={handleApply}
               >
                 <FileTextIcon className="h-4 w-4 mr-2" />

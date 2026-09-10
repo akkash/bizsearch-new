@@ -824,7 +824,7 @@ export function ListingWizard({
       {/* FINANCING INFORMATION */}
       <div className="p-4 border rounded-lg space-y-4">
         <h4 className="font-medium flex items-center gap-2">
-          <DollarSign className="w-4 h-4 text-blue-600" />
+          <DollarSign className="w-4 h-4 text-trust-blue" />
           Financing Options
         </h4>
         <div className="flex items-center space-x-2">

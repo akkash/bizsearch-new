@@ -150,7 +150,7 @@ const statusConfig = {
     label: "Reserved",
   },
   sold: {
-    color: "bg-blue-100 text-blue-800",
+    color: "bg-trust-blue/10 text-trust-blue",
     icon: CheckCircleIcon,
     label: "Sold",
   },
@@ -359,7 +359,7 @@ export function TerritoryAvailability({
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-2">
-              <CheckCircleIcon className="h-5 w-5 text-blue-500" />
+              <CheckCircleIcon className="h-5 w-5 text-trust-blue" />
 
               <div>
                 <p className="text-sm text-muted-foreground">Sold</p>
@@ -530,7 +530,7 @@ export function TerritoryAvailability({
                           )}
                         </p>
                       </div>
-                      <div className="text-center p-2 bg-blue-50 rounded">
+                      <div className="text-center p-2 bg-trust-blue/10 rounded">
                         <p className="text-xs text-muted-foreground">Growth</p>
                         <p className="font-semibold">
                           {territory.performanceMetrics.growth}%
@@ -550,7 +550,7 @@ export function TerritoryAvailability({
 
                 {/* Notes */}
                 {territory.notes && (
-                  <div className="p-3 bg-blue-50 rounded-lg">
+                  <div className="p-3 bg-trust-blue/10 rounded-lg">
                     <p className="text-sm">{territory.notes}</p>
                   </div>
                 )}

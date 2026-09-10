@@ -38,7 +38,7 @@ const formatCurrency = (amount: number) => {
 
 const statusConfig = {
     pending: { label: 'Pending', color: 'bg-yellow-100 text-yellow-800', icon: Clock },
-    approved: { label: 'Approved', color: 'bg-blue-100 text-blue-800', icon: CheckCircle },
+    approved: { label: 'Approved', color: 'bg-trust-blue/10 text-trust-blue', icon: CheckCircle },
     paid: { label: 'Paid', color: 'bg-secondary text-foreground', icon: Wallet },
 };
 
@@ -140,10 +140,10 @@ export function AdvisorCommissions() {
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <CardTitle className="text-sm font-medium">Approved</CardTitle>
-                        <CheckCircle className="h-4 w-4 text-blue-500" />
+                        <CheckCircle className="h-4 w-4 text-trust-blue" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-blue-600">{formatCurrency(totals.approved)}</div>
+                        <div className="text-2xl font-bold text-trust-blue">{formatCurrency(totals.approved)}</div>
                         <p className="text-xs text-muted-foreground">Ready for payout</p>
                     </CardContent>
                 </Card>

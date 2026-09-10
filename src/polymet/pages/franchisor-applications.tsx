@@ -90,7 +90,7 @@ interface Franchise {
 }
 
 const statusConfig: Record<string, { color: string; icon: any; label: string }> = {
-    submitted: { color: 'bg-blue-100 text-blue-800', icon: Clock, label: 'Submitted' },
+    submitted: { color: 'bg-trust-blue/10 text-trust-blue', icon: Clock, label: 'Submitted' },
     under_review: { color: 'bg-yellow-100 text-yellow-800', icon: Eye, label: 'Under Review' },
     interview_scheduled: { color: 'bg-growth-green/10 text-foreground', icon: Calendar, label: 'Interview Scheduled' },
     approved: { color: 'bg-secondary text-foreground', icon: CheckCircle, label: 'Approved' },
@@ -364,7 +364,7 @@ export function FranchisorApplicationsPage() {
                                 <p className="text-sm text-muted-foreground">Total</p>
                                 <p className="text-2xl font-bold">{stats.total}</p>
                             </div>
-                            <FileText className="h-8 w-8 text-blue-500" />
+                            <FileText className="h-8 w-8 text-trust-blue" />
                         </div>
                     </CardContent>
                 </Card>

@@ -42,7 +42,7 @@ import { format } from 'date-fns';
 
 const roleColors: Record<string, string> = {
     admin: 'bg-red-100 text-red-800',
-    seller: 'bg-blue-100 text-blue-800',
+    seller: 'bg-trust-blue/10 text-trust-blue',
     buyer: 'bg-secondary text-foreground',
     franchisor: 'bg-growth-green/10 text-foreground',
     franchisee: 'bg-orange-100 text-orange-800',

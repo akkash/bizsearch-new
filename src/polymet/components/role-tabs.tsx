@@ -70,24 +70,24 @@ export function RoleTabs({
   const getColorClasses = (color: string, isActive: boolean) => {
     const colorMap = {
       blue: {
-        active: "bg-blue-100 text-blue-900 border-blue-300",
-        inactive: "text-blue-600 hover:bg-blue-50 border-transparent",
+        active: "bg-trust-blue text-white border-trust-blue",
+        inactive: "text-trust-blue hover:bg-trust-blue/10 border-border",
       },
       green: {
-        active: "bg-secondary text-foreground border-border",
-        inactive: "text-foreground hover:bg-secondary border-transparent",
+        active: "bg-growth-green text-white border-growth-green",
+        inactive: "text-growth-green hover:bg-growth-green/10 border-border",
       },
       orange: {
-        active: "bg-orange-100 text-orange-900 border-orange-300",
-        inactive: "text-orange-600 hover:bg-orange-50 border-transparent",
+        active: "bg-trust-blue text-white border-trust-blue",
+        inactive: "text-trust-blue hover:bg-trust-blue/10 border-border",
       },
       purple: {
-        active: "bg-growth-green/10 text-foreground border-border",
-        inactive: "text-growth-green hover:bg-accent border-transparent",
+        active: "bg-growth-green text-white border-growth-green",
+        inactive: "text-growth-green hover:bg-growth-green/10 border-border",
       },
       gray: {
-        active: "bg-secondary text-foreground border-gray-300",
-        inactive: "text-muted-foreground hover:bg-muted border-transparent",
+        active: "bg-secondary text-foreground border-border",
+        inactive: "text-muted-foreground hover:bg-muted border-border",
       },
     };
 
@@ -149,7 +149,7 @@ export function RoleTabs({
         <select
           value={activeRole}
           onChange={(e) => onRoleChange(e.target.value as UserProfile["role"])}
-          className="w-full p-3 border rounded-lg bg-card text-foreground focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full p-3 border rounded-lg bg-card text-foreground focus:ring-2 focus:ring-trust-blue focus:border-trust-blue"
         >
           {roles.map((role) => (
             <option key={role.id} value={role.id}>

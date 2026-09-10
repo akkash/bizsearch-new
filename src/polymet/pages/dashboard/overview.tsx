@@ -78,7 +78,7 @@ export function DashboardPage() {
                 <Card>
                     <CardContent className="pt-6">
                         <div className="flex items-center gap-4">
-                            <div className="p-3 bg-blue-100 text-blue-600 rounded-lg">
+                            <div className="p-3 bg-trust-blue/10 text-trust-blue rounded-lg">
                                 <Eye className="w-6 h-6" />
                             </div>
                             <div>

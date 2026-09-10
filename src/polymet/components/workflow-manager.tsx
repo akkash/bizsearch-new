@@ -86,7 +86,7 @@ const statusConfig = {
     label: "Draft",
   },
   submitted: {
-    color: "bg-blue-100 text-blue-800",
+    color: "bg-trust-blue/10 text-trust-blue",
     icon: SendIcon,
     label: "Submitted",
   },
@@ -230,9 +230,9 @@ export function WorkflowManager({
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center ${
                         isCompleted
-                          ? "bg-secondary0 text-white"
+                          ? "bg-growth-green text-white"
                           : isCurrent
-                            ? "bg-blue-500 text-white"
+                            ? "bg-trust-blue text-white"
                             : "bg-gray-200 text-muted-foreground"
                       }`}
                     >
@@ -245,7 +245,7 @@ export function WorkflowManager({
                     {index < steps.length - 1 && (
                       <div
                         className={`w-0.5 h-8 ${
-                          isCompleted ? "bg-secondary0" : "bg-gray-200"
+                          isCompleted ? "bg-growth-green" : "bg-gray-200"
                         }`}
                       />
                     )}
@@ -254,7 +254,7 @@ export function WorkflowManager({
                     <h4
                       className={`font-medium ${
                         isCurrent
-                          ? "text-blue-600"
+                          ? "text-trust-blue"
                           : isCompleted
                             ? "text-foreground"
                             : "text-muted-foreground"

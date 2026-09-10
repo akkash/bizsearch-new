@@ -687,15 +687,15 @@ export function RoyaltyScheduler({
               </div>
             </div>
 
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="p-4 bg-trust-blue/10 border border-trust-blue/20 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
-                <Info className="h-4 w-4 text-blue-600" />
+                <Info className="h-4 w-4 text-trust-blue" />
 
-                <span className="font-medium text-blue-800">
+                <span className="font-medium text-trust-blue">
                   Calculation Details
                 </span>
               </div>
-              <div className="text-sm text-blue-700 space-y-1">
+              <div className="text-sm text-trust-blue space-y-1">
                 <p>Revenue: ₹{simulationRevenue.toLocaleString()}</p>
                 <p>
                   Royalty: ₹{simulationResult.amount.toLocaleString()} (

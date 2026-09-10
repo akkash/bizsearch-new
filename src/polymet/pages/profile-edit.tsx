@@ -124,7 +124,7 @@ export function ProfileEditPage({ className = "" }: ProfileEditPageProps) {
     { value: 'seller', label: 'Business Seller', description: 'Looking to sell your business', icon: Building2, color: 'text-foreground' },
     { value: 'franchisor', label: 'Franchisor', description: 'Offering franchise opportunities', icon: Store, color: 'text-orange-600' },
     { value: 'franchisee', label: 'Franchisee', description: 'Looking for franchise opportunities', icon: Store, color: 'text-amber-600' },
-    { value: 'advisor', label: 'Advisor / Broker', description: 'Business broker or consultant', icon: Briefcase, color: 'text-blue-600' },
+    { value: 'advisor', label: 'Advisor / Broker', description: 'Business broker or consultant', icon: Briefcase, color: 'text-trust-blue' },
   ];
 
   const toggleRole = (role: UserRole) => {
@@ -223,7 +223,7 @@ export function ProfileEditPage({ className = "" }: ProfileEditPageProps) {
       </div>
 
       {/* User Info Card with Avatar Upload */}
-      <Card className="border-blue-200 bg-blue-50/50">
+      <Card className="border-trust-blue/20 bg-trust-blue/10">
         <CardContent className="pt-6">
           <div className="flex items-center gap-4">
             {/* Avatar with upload overlay */}

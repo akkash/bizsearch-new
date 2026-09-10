@@ -64,7 +64,7 @@ export function ProfileHeader({
       seller: {
         label: "Business Seller",
         icon: Building2,
-        color: "bg-blue-100 text-blue-800 border-blue-200",
+        color: "bg-trust-blue/10 text-trust-blue border-trust-blue/20",
       },
       buyer: {
         label: "Business Buyer",
@@ -189,7 +189,7 @@ export function ProfileHeader({
               {profile.isPublic && (
                 <Badge
                   variant="outline"
-                  className="bg-blue-50 text-blue-700 border-blue-200"
+                  className="bg-trust-blue/10 text-trust-blue border-trust-blue/20"
                 >
                   <Globe className="w-3 h-3 mr-1" />
                   Public Profile

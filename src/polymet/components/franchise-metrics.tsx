@@ -190,7 +190,7 @@ const mockMetrics: FranchiseMetrics[] = [
 
 const statusConfig = {
   excellent: { color: "bg-secondary text-foreground", label: "Excellent" },
-  active: { color: "bg-blue-100 text-blue-800", label: "Active" },
+  active: { color: "bg-trust-blue/10 text-trust-blue", label: "Active" },
   underperforming: {
     color: "bg-red-100 text-red-800",
     label: "Underperforming",
@@ -313,7 +313,7 @@ export function FranchiseMetrics({
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-2">
-              <UsersIcon className="h-5 w-5 text-blue-500" />
+              <UsersIcon className="h-5 w-5 text-trust-blue" />
 
               <div>
                 <p className="text-sm text-muted-foreground">Total Customers</p>
@@ -446,7 +446,7 @@ export function FranchiseMetrics({
                   key={metric.franchiseId}
                   onClick={() => setSelectedFranchise(metric.franchiseId)}
                   className={`w-full text-left p-3 rounded-lg border transition-colors ${selectedFranchise === metric.franchiseId
-                    ? "bg-blue-50 border-blue-200"
+                    ? "bg-trust-blue/10 border-trust-blue/20"
                     : "hover:bg-muted"
                     }`}
                 >
@@ -502,7 +502,7 @@ export function FranchiseMetrics({
                 <p className="text-xl font-bold">
                   {formatNumber(selectedMetrics.customerCount)}
                 </p>
-                <p className="text-xs text-blue-600 flex items-center gap-1">
+                <p className="text-xs text-trust-blue flex items-center gap-1">
                   <TrendingUpIcon className="h-3 w-3" />
                   {selectedMetrics.customerGrowth}% growth
                 </p>
@@ -538,7 +538,7 @@ export function FranchiseMetrics({
             </div>
 
             <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-3 bg-blue-50 rounded-lg">
+              <div className="p-3 bg-trust-blue/10 rounded-lg">
                 <p className="text-sm text-muted-foreground">Market Share</p>
                 <p className="text-lg font-semibold">
                   {selectedMetrics.marketShare}%

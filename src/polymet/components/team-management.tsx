@@ -71,7 +71,7 @@ const rolePermissions = {
 
 const roleColors = {
   owner: "bg-growth-green/10 text-foreground",
-  admin: "bg-blue-100 text-blue-800",
+  admin: "bg-trust-blue/10 text-trust-blue",
   editor: "bg-secondary text-foreground",
   viewer: "bg-secondary text-foreground",
 };

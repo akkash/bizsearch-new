@@ -52,7 +52,7 @@ export function DueDiligenceDashboard({
     if (score >= 75) return 'text-red-600 bg-red-50 border-red-200';
     if (score >= 50) return 'text-orange-600 bg-orange-50 border-orange-200';
     if (score >= 25) return 'text-yellow-600 bg-yellow-50 border-yellow-200';
-    return 'text-foreground bg-secondary border-border';
+    return 'text-growth-green bg-growth-green/10 border-growth-green';
   };
 
   const getRiskIcon = (score: number) => {
@@ -69,7 +69,7 @@ export function DueDiligenceDashboard({
           <div className="flex items-start justify-between">
             <div>
               <CardTitle className="flex items-center gap-2">
-                <Shield className="h-6 w-6 text-blue-600" />
+                <Shield className="h-6 w-6 text-trust-blue" />
                 Due Diligence Report
               </CardTitle>
               <CardDescription>
@@ -224,7 +224,7 @@ export function DueDiligenceDashboard({
                   score={report.financialAnalysis.score}
                   findings={report.financialAnalysis.findings}
                   redFlags={report.financialAnalysis.redFlags}
-                  icon={<BarChart3 className="h-6 w-6 text-blue-600" />}
+                  icon={<BarChart3 className="h-6 w-6 text-trust-blue" />}
                 />
               </TabsContent>
 
@@ -329,7 +329,7 @@ function AnalysisDetailCard({
           <ul className="space-y-2">
             {findings.map((finding, i) => (
               <li key={i} className="flex items-start gap-2 text-sm">
-                <CheckCircle className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                <CheckCircle className="h-4 w-4 text-trust-blue mt-0.5 flex-shrink-0" />
                 {finding}
               </li>
             ))}

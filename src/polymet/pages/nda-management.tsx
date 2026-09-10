@@ -54,7 +54,7 @@ interface NDA {
 }
 
 const statusColors: Record<string, string> = {
-    sent: 'bg-blue-100 text-blue-800',
+    sent: 'bg-trust-blue/10 text-trust-blue',
     viewed: 'bg-yellow-100 text-yellow-800',
     signed: 'bg-secondary text-foreground',
     expired: 'bg-secondary text-muted-foreground',
@@ -296,19 +296,19 @@ export function NDAManagementPage() {
             </Card>
 
             {/* NDA Template Info */}
-            <Card className="mt-6 bg-blue-50 border-blue-200">
+            <Card className="mt-6 bg-trust-blue/10 border-trust-blue/20">
                 <CardContent className="p-6">
                     <div className="flex items-start gap-4">
-                        <div className="p-2 bg-blue-100 rounded-lg">
-                            <Shield className="h-6 w-6 text-blue-600" />
+                        <div className="p-2 bg-trust-blue/10 rounded-lg">
+                            <Shield className="h-6 w-6 text-trust-blue" />
                         </div>
                         <div>
-                            <h3 className="font-semibold text-blue-900">About NDAs</h3>
-                            <p className="text-sm text-blue-700 mt-1">
+                            <h3 className="font-semibold text-trust-blue">About NDAs</h3>
+                            <p className="text-sm text-trust-blue mt-1">
                                 Non-Disclosure Agreements protect your confidential business information.
                                 Once signed, buyers can access sensitive details in the Deal Room.
                             </p>
-                            <ul className="text-sm text-blue-700 mt-2 list-disc list-inside space-y-1">
+                            <ul className="text-sm text-trust-blue mt-2 list-disc list-inside space-y-1">
                                 <li>Automatically generated from our legal template</li>
                                 <li>E-signature enabled for quick signing</li>
                                 <li>Valid for 2 years from signing date</li>

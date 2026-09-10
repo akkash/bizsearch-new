@@ -520,7 +520,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
                 <Link
                   key={cat.id}
                   to={`/franchises?category=${cat.slug}`}
-                  className="px-3 py-1.5 text-sm border-2 border-foreground/20 hover:bg-foreground hover:text-background transition-colors"
+                  className="rounded-full px-3 py-1.5 text-sm border border-border hover:bg-foreground hover:text-background transition-colors"
                 >
                   {cat.name}
                 </Link>
@@ -533,10 +533,10 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
               <Link
                 to={`/franchises?category=${currentCategory.slug}`}
                 className={cn(
-                  "px-3 py-1.5 text-sm border-2 transition-colors",
+                  "rounded-full px-3 py-1.5 text-sm border transition-colors",
                   !currentSubcategory
-                    ? "bg-foreground text-background border-foreground"
-                    : "border-foreground/20 hover:bg-foreground hover:text-background"
+                    ? "bg-growth-green text-white border-growth-green"
+                    : "border-border hover:bg-foreground hover:text-background"
                 )}
               >
                 All {currentCategory.name}
@@ -546,10 +546,10 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
                   key={sub.id}
                   to={`/franchises?category=${currentCategory.slug}&subcategory=${sub.slug}`}
                   className={cn(
-                    "px-3 py-1.5 text-sm border-2 transition-colors",
+                    "rounded-full px-3 py-1.5 text-sm border transition-colors",
                     currentSubcategory?.id === sub.id
-                      ? "bg-foreground text-background border-foreground"
-                      : "border-foreground/20 hover:bg-foreground hover:text-background"
+                      ? "bg-growth-green text-white border-growth-green"
+                      : "border-border hover:bg-foreground hover:text-background"
                   )}
                 >
                   {sub.name}
@@ -577,7 +577,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
             >
               <ToggleGroupItem
                 value=""
-                className="px-3 py-1.5 text-sm border-2 border-foreground/20 bg-transparent data-[state=on]:bg-foreground data-[state=on]:text-background data-[state=on]:border-foreground text-foreground hover:bg-foreground hover:text-background transition-colors"
+                className="rounded-full px-3 py-1.5 text-sm border border-border bg-transparent data-[state=on]:bg-growth-green data-[state=on]:text-white data-[state=on]:border-growth-green text-foreground hover:bg-foreground hover:text-background transition-colors"
               >
                 All Ranges
               </ToggleGroupItem>
@@ -585,7 +585,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
                 <ToggleGroupItem
                   key={range.label}
                   value={range.label}
-                  className="px-3 py-1.5 text-sm border-2 border-foreground/20 bg-transparent data-[state=on]:bg-foreground data-[state=on]:text-background data-[state=on]:border-foreground text-foreground hover:bg-foreground hover:text-background transition-colors"
+                  className="rounded-full px-3 py-1.5 text-sm border border-border bg-transparent data-[state=on]:bg-growth-green data-[state=on]:text-white data-[state=on]:border-growth-green text-foreground hover:bg-foreground hover:text-background transition-colors"
                 >
                   {range.label}
                 </ToggleGroupItem>

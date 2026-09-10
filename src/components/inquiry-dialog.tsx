@@ -267,7 +267,7 @@ export function InquiryDialog({
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-secondary0/10 flex items-center justify-center flex-shrink-0">
+                <div className="w-8 h-8 rounded-full bg-growth-green/10 flex items-center justify-center flex-shrink-0">
                   <Bell className="h-4 w-4 text-foreground" />
                 </div>
                 <div>
@@ -276,8 +276,8 @@ export function InquiryDialog({
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center flex-shrink-0">
-                  <Shield className="h-4 w-4 text-blue-600" />
+                <div className="w-8 h-8 rounded-full bg-trust-blue/100/10 flex items-center justify-center flex-shrink-0">
+                  <Shield className="h-4 w-4 text-trust-blue" />
                 </div>
                 <div>
                   <div className="font-medium text-sm">Secure messaging</div>

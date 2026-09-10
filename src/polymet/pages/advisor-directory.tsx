@@ -210,7 +210,7 @@ export function AdvisorDirectoryPage() {
                                                     <h3 className="font-semibold text-lg flex items-center gap-2">
                                                         {advisor.name}
                                                         {advisor.verified && (
-                                                            <CheckCircle className="h-4 w-4 text-blue-500" />
+                                                            <CheckCircle className="h-4 w-4 text-trust-blue" />
                                                         )}
                                                     </h3>
                                                     <p className="text-sm text-muted-foreground">{advisor.title}</p>
@@ -299,7 +299,7 @@ export function AdvisorDirectoryPage() {
                                                 <h3 className="font-semibold flex items-center gap-2">
                                                     {advisor.name}
                                                     {advisor.verified && (
-                                                        <CheckCircle className="h-4 w-4 text-blue-500" />
+                                                        <CheckCircle className="h-4 w-4 text-trust-blue" />
                                                     )}
                                                 </h3>
                                                 <p className="text-sm text-muted-foreground">

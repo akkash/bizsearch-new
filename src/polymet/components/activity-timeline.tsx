@@ -43,8 +43,8 @@ const activityIcons = {
 } as const;
 
 const activityColors = {
-  listing_created: "bg-blue-500",
-  inquiry_received: "bg-secondary0",
+  listing_created: "bg-trust-blue",
+  inquiry_received: "bg-growth-green",
   offer_made: "bg-orange-500",
   document_uploaded: "bg-growth-green",
   nda_signed: "bg-red-500",

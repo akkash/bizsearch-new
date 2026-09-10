@@ -47,7 +47,7 @@ export function EmptyState({
   const config = configs[type];
 
   return (
-    <div className="flex flex-col items-center justify-center py-16 px-6 text-center border-2 border-foreground border-dashed">
+    <div className="flex flex-col items-center justify-center py-16 px-6 text-center border border-dashed border-border bg-card shadow-[var(--shadow-sm)]">
       <h3 className="font-display text-2xl md:text-3xl font-bold uppercase tracking-tight text-foreground mb-3">
         {title || config.defaultTitle}
       </h3>

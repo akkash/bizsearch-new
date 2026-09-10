@@ -75,7 +75,7 @@ export function AdminAnalytics() {
             value: stats?.totalUsers || 0,
             subtitle: `+${stats?.newUsersThisWeek || 0} this week`,
             icon: Users,
-            color: 'text-blue-600 bg-blue-100',
+            color: 'text-trust-blue bg-trust-blue/10',
         },
         {
             title: 'Total Businesses',

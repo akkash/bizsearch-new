@@ -135,8 +135,8 @@ export function SellerAnalyticsPage() {
                                 <p className="text-sm text-muted-foreground">Total Views</p>
                                 <p className="text-3xl font-bold">{overview.totalViews.toLocaleString()}</p>
                             </div>
-                            <div className="p-3 bg-blue-100 rounded-lg">
-                                <Eye className="h-6 w-6 text-blue-600" />
+                            <div className="p-3 bg-trust-blue/10 rounded-lg">
+                                <Eye className="h-6 w-6 text-trust-blue" />
                             </div>
                         </div>
                         <div className="flex items-center gap-1 mt-2 text-sm text-foreground">
@@ -300,7 +300,7 @@ export function SellerAnalyticsPage() {
                                             <span>68%</span>
                                         </div>
                                         <div className="h-2 bg-muted rounded-full overflow-hidden">
-                                            <div className="h-full bg-blue-500 rounded-full" style={{ width: '68%' }} />
+                                            <div className="h-full bg-trust-blue/100 rounded-full" style={{ width: '68%' }} />
                                         </div>
                                     </div>
                                     <div>
@@ -309,7 +309,7 @@ export function SellerAnalyticsPage() {
                                             <span>22%</span>
                                         </div>
                                         <div className="h-2 bg-muted rounded-full overflow-hidden">
-                                            <div className="h-full bg-secondary0 rounded-full" style={{ width: '22%' }} />
+                                            <div className="h-full bg-growth-green rounded-full" style={{ width: '22%' }} />
                                         </div>
                                     </div>
                                     <div>

@@ -49,7 +49,7 @@ const statusColors: Record<string, string> = {
 };
 
 const announcementTypeColors: Record<string, string> = {
-    feature: 'bg-blue-100 text-blue-800',
+    feature: 'bg-trust-blue/10 text-trust-blue',
     info: 'bg-growth-green/10 text-foreground',
     maintenance: 'bg-orange-100 text-orange-800',
     alert: 'bg-red-100 text-red-800',

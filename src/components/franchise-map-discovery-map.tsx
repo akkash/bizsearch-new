@@ -285,7 +285,7 @@ export function FranchiseMapDiscoveryMap({ locations, onLocationClick }: Franchi
                     </div>
                     <div className="flex items-center gap-4 text-xs mt-2 pt-2 border-t">
                         <div className="flex items-center gap-1">
-                            <div className="w-3 h-3 rounded-full bg-blue-500" />
+                            <div className="w-3 h-3 rounded-full bg-trust-blue/100" />
                             <span>Operating</span>
                         </div>
                         <div className="flex items-center gap-1">

@@ -106,9 +106,9 @@ export function MainLayout({ children }: MainLayoutProps) {
                   key={`${link.name}-${link.href}`}
                   to={link.href}
                   className={cn(
-                    "text-sm font-medium transition-opacity hover:opacity-60",
+                    "text-sm font-medium transition-colors hover:text-trust-blue",
                     isActivePath(link.href)
-                      ? "text-foreground"
+                      ? "text-trust-blue"
                       : "text-foreground/70"
                   )}
                 >
@@ -118,7 +118,7 @@ export function MainLayout({ children }: MainLayoutProps) {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
-                    className="flex items-center gap-1 text-sm font-medium text-foreground/70 hover:opacity-60 transition-opacity cursor-pointer"
+                    className="flex items-center gap-1 text-sm font-medium text-foreground/70 hover:text-trust-blue transition-colors cursor-pointer"
                   >
                     Tools
                   </button>
@@ -147,7 +147,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                 >
                   <Bookmark className="h-4 w-4" />
                   {savedCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 h-4 w-4 flex items-center justify-center text-[10px] font-medium bg-foreground text-background rounded-full">
+                    <span className="absolute -top-0.5 -right-0.5 h-4 w-4 flex items-center justify-center text-[10px] font-medium bg-growth-green text-white rounded-full">
                       {savedCount > 9 ? "9+" : savedCount}
                     </span>
                   )}
@@ -259,7 +259,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                 <div className="hidden md:flex items-center gap-6 ml-2">
                   <Link
                     to="/login"
-                    className="text-sm font-bold uppercase tracking-widest hover:opacity-60"
+                    className="text-sm font-bold uppercase tracking-widest hover:text-trust-blue"
                   >
                     Sign In
                   </Link>

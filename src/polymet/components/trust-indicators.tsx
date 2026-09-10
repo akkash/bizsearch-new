@@ -25,13 +25,13 @@ export function TrustIndicators({
       icon: Shield,
       label: "Identity Verified",
       description: "When a user completes identity verification",
-      color: "bg-secondary0",
+      color: "bg-growth-green",
     },
     {
       icon: FileCheck,
       label: "Documentation Reviewed",
       description: "When franchisor documents have been reviewed",
-      color: "bg-blue-500",
+      color: "bg-trust-blue",
     },
     {
       icon: Lock,

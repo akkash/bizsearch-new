@@ -26,7 +26,7 @@ import { useFeatureFlags } from '@/contexts/FeatureFlagsContext';
 import type { FeatureFlag } from '@/lib/feature-flags-service';
 
 const categoryConfig: Record<string, { label: string; icon: any; color: string }> = {
-    core: { label: 'Core Features', icon: Zap, color: 'bg-blue-100 text-blue-700' },
+    core: { label: 'Core Features', icon: Zap, color: 'bg-trust-blue/10 text-trust-blue' },
     ai_features: { label: 'AI Features', icon: Brain, color: 'bg-growth-green/10 text-growth-green' },
     maps: { label: 'Maps & Location', icon: Map, color: 'bg-secondary text-foreground' },
     security: { label: 'Security', icon: Shield, color: 'bg-red-100 text-red-700' },
@@ -135,8 +135,8 @@ export function AdminFeatureFlags() {
                 <Card>
                     <CardContent className="pt-6">
                         <div className="flex items-center gap-4">
-                            <div className="p-3 bg-blue-100 rounded-full">
-                                <Flag className="h-6 w-6 text-blue-600" />
+                            <div className="p-3 bg-trust-blue/10 rounded-full">
+                                <Flag className="h-6 w-6 text-trust-blue" />
                             </div>
                             <div>
                                 <p className="text-2xl font-bold">{flags.length}</p>

@@ -25,20 +25,22 @@ export function TrustVerificationSection({ className }: { className?: string }) 
           </div>
 
           <div>
-            <div className="text-xs font-bold uppercase tracking-widest opacity-60 mb-6">
+            <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-6">
               Verification Checklist
             </div>
-            <ul className="space-y-6 border-t border-border pt-6">
+            <ul className="space-y-3 border-t border-border pt-6">
               {CHECKS.map((label) => (
-                <li
-                  key={label}
-                  className="flex items-center gap-4 text-lg font-medium"
-                >
-                  <CheckCircle2
-                    className="h-5 w-5 shrink-0"
-                    aria-hidden="true"
-                  />
-                  <span>{label}</span>
+                <li key={label}>
+                  <div className="flex items-center gap-3 border border-border bg-card px-4 py-3 shadow-[var(--shadow-sm)]">
+                    <CheckCircle2
+                      className="h-5 w-5 shrink-0 text-trust-blue"
+                      aria-hidden="true"
+                    />
+                    <span className="text-base font-medium">{label}</span>
+                    <span className="ml-auto text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                      Check
+                    </span>
+                  </div>
                 </li>
               ))}
             </ul>

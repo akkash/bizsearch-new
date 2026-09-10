@@ -221,7 +221,7 @@ export function ROICalculator({
       case "conservative":
         return "text-red-600 bg-red-50";
       case "realistic":
-        return "text-blue-600 bg-blue-50";
+        return "text-trust-blue bg-trust-blue/10";
       case "optimistic":
         return "text-foreground bg-secondary";
       default:
@@ -537,13 +537,13 @@ export function ROICalculator({
                 </div>
 
                 {/* AI Insights */}
-                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="p-4 bg-trust-blue/10 border border-trust-blue/20 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
-                    <Lightbulb className="h-5 w-5 text-blue-600" />
+                    <Lightbulb className="h-5 w-5 text-trust-blue" />
 
-                    <h4 className="font-semibold text-blue-800">AI Insights</h4>
+                    <h4 className="font-semibold text-trust-blue">AI Insights</h4>
                   </div>
-                  <div className="space-y-2 text-sm text-blue-700">
+                  <div className="space-y-2 text-sm text-trust-blue">
                     <p>
                       Based on industry benchmarks and location analysis, this
                       franchise shows

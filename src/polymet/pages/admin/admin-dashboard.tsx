@@ -77,7 +77,7 @@ export function AdminDashboard() {
             value: stats?.totalUsers || 0,
             change: `+${stats?.newUsersThisWeek || 0} this week`,
             icon: Users,
-            color: 'text-blue-600 bg-blue-100',
+            color: 'text-trust-blue bg-trust-blue/10',
         },
         {
             title: 'Total Listings',
@@ -233,7 +233,7 @@ export function AdminDashboard() {
                 <Card>
                     <CardContent className="p-6">
                         <div className="flex items-center gap-4">
-                            <div className="p-3 rounded-lg bg-blue-100 text-blue-600">
+                            <div className="p-3 rounded-lg bg-trust-blue/10 text-trust-blue">
                                 <Building2 className="h-6 w-6" />
                             </div>
                             <div>

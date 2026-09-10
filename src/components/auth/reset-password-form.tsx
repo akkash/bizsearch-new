@@ -94,8 +94,8 @@ export function ResetPasswordForm() {
     return (
       <Card className="w-full max-w-md mx-auto">
         <CardHeader>
-          <div className="flex items-center justify-center w-12 h-12 bg-secondary dark:bg-green-900 rounded-full mx-auto mb-4">
-            <Check className="h-6 w-6 text-foreground dark:text-green-400" />
+          <div className="flex items-center justify-center w-12 h-12 bg-growth-green/10 rounded-full mx-auto mb-4">
+            <Check className="h-6 w-6 text-growth-green" />
           </div>
           <CardTitle className="text-center">Password Reset Successful</CardTitle>
           <CardDescription className="text-center">

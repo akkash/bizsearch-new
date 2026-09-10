@@ -14,15 +14,16 @@
    LIGHT MODE — off-white / near-black
    =================================== */
 :root {
-  --trust-blue: 0 0% 4%;
-  --trust-blue-light: 0 0% 18%;
-  --trust-blue-dark: 0 0% 0%;
+  /* Trust navy + growth teal — used for CTAs, verified, metrics */
+  --trust-blue: 226 65% 33%;
+  --trust-blue-light: 217 91% 60%;
+  --trust-blue-dark: 226 70% 24%;
 
-  --growth-green: 0 0% 4%;
-  --growth-green-light: 0 0% 18%;
-  --growth-green-dark: 0 0% 0%;
+  --growth-green: 175 84% 26%;
+  --growth-green-light: 173 58% 39%;
+  --growth-green-dark: 175 84% 18%;
 
-  --electric-blue: 0 0% 4%;
+  --electric-blue: 217 91% 53%;
   --warning: 38 92% 50%;
   --warning-foreground: 0 0% 4%;
 
@@ -33,56 +34,56 @@
   --popover: 0 0% 100%;
   --popover-foreground: 0 0% 4%;
 
-  --primary: 0 0% 4%;
-  --primary-foreground: 0 0% 98%;
+  --primary: 175 84% 26%;
+  --primary-foreground: 0 0% 100%;
 
-  --secondary: 0 0% 94%;
+  --secondary: 220 14% 96%;
   --secondary-foreground: 0 0% 4%;
 
-  --muted: 0 0% 94%;
-  --muted-foreground: 0 0% 40%;
+  --muted: 220 14% 96%;
+  --muted-foreground: 215 16% 34%; /* #4B5563 — WCAG AA on white */
 
-  --accent: 0 0% 94%;
-  --accent-foreground: 0 0% 4%;
+  --accent: 226 65% 33%;
+  --accent-foreground: 0 0% 100%;
 
   --destructive: 0 72% 51%;
   --destructive-foreground: 0 0% 100%;
 
-  --success: 0 0% 4%;
-  --success-foreground: 0 0% 98%;
+  --success: 175 84% 26%;
+  --success-foreground: 0 0% 100%;
 
-  --border: 0 0% 90%;
-  --input: 0 0% 90%;
-  --ring: 0 0% 4%;
+  --border: 220 13% 91%; /* #E5E7EB */
+  --input: 220 13% 91%;
+  --ring: 175 84% 26%;
 
   --radius: 0px;
 
-  --chart-1: 0 0% 4%;
-  --chart-2: 0 0% 40%;
+  --chart-1: 175 84% 26%;
+  --chart-2: 226 65% 33%;
   --chart-3: 38 92% 50%;
-  --chart-4: 0 0% 60%;
+  --chart-4: 215 16% 47%;
   --chart-5: 0 72% 51%;
 
-  --shadow-sm: none;
-  --shadow: none;
-  --shadow-md: none;
-  --shadow-lg: none;
-  --shadow-xl: none;
+  --shadow-sm: 0 1px 2px rgb(15 23 42 / 0.06);
+  --shadow: 0 1px 3px rgb(15 23 42 / 0.08), 0 1px 2px rgb(15 23 42 / 0.04);
+  --shadow-md: 0 4px 12px rgb(15 23 42 / 0.08);
+  --shadow-lg: 0 10px 24px rgb(15 23 42 / 0.10);
+  --shadow-xl: 0 20px 40px rgb(15 23 42 / 0.12);
 }
 
 /* ===================================
    DARK MODE — inverted Swiss
    =================================== */
 .dark {
-  --trust-blue: 0 0% 98%;
-  --trust-blue-light: 0 0% 100%;
-  --trust-blue-dark: 0 0% 86%;
+  --trust-blue: 213 94% 72%;
+  --trust-blue-light: 213 97% 82%;
+  --trust-blue-dark: 226 65% 60%;
 
-  --growth-green: 0 0% 98%;
-  --growth-green-light: 0 0% 100%;
-  --growth-green-dark: 0 0% 86%;
+  --growth-green: 166 72% 48%;
+  --growth-green-light: 166 72% 62%;
+  --growth-green-dark: 175 84% 36%;
 
-  --electric-blue: 0 0% 98%;
+  --electric-blue: 213 94% 68%;
   --warning: 38 92% 55%;
   --warning-foreground: 0 0% 4%;
 
@@ -93,32 +94,32 @@
   --popover: 0 0% 7%;
   --popover-foreground: 0 0% 98%;
 
-  --primary: 0 0% 98%;
+  --primary: 166 72% 48%;
   --primary-foreground: 0 0% 4%;
 
   --secondary: 0 0% 12%;
   --secondary-foreground: 0 0% 98%;
 
   --muted: 0 0% 12%;
-  --muted-foreground: 0 0% 62%;
+  --muted-foreground: 220 9% 72%;
 
-  --accent: 0 0% 12%;
-  --accent-foreground: 0 0% 98%;
+  --accent: 213 94% 72%;
+  --accent-foreground: 0 0% 4%;
 
   --destructive: 0 70% 48%;
   --destructive-foreground: 0 0% 100%;
 
-  --success: 0 0% 98%;
+  --success: 166 72% 48%;
   --success-foreground: 0 0% 4%;
 
-  --border: 0 0% 18%;
-  --input: 0 0% 18%;
-  --ring: 0 0% 98%;
+  --border: 0 0% 22%;
+  --input: 0 0% 22%;
+  --ring: 166 72% 48%;
 
-  --chart-1: 0 0% 98%;
-  --chart-2: 0 0% 62%;
+  --chart-1: 166 72% 48%;
+  --chart-2: 213 94% 72%;
   --chart-3: 38 92% 55%;
-  --chart-4: 0 0% 40%;
+  --chart-4: 220 9% 62%;
   --chart-5: 0 70% 55%;
 }
 
@@ -178,9 +179,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-*[class*="border"] {
-  border-color: hsl(var(--border));
-}
 
 .rounded-sm,
 .rounded,
@@ -222,22 +220,15 @@ button:active:not(:disabled) {
 }
 
 .btn-growth {
-  background: hsl(var(--foreground));
-  color: hsl(var(--background));
+  background: hsl(var(--growth-green));
+  color: hsl(var(--primary-foreground));
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.16em;
-  box-shadow: none;
 }
 
 .btn-growth:hover {
-  background: hsl(var(--foreground) / 0.8);
-  box-shadow: none;
-  transform: none;
-}
-
-.btn-growth:active {
-  transform: none;
+  background: hsl(var(--growth-green-dark));
 }
 
 .bg-trust-blue {
@@ -256,22 +247,18 @@ button:active:not(:disabled) {
   background-color: hsl(var(--growth-green));
 }
 
-.bg-growth-green.text-white {
-  background-color: hsl(var(--foreground)) !important;
-  color: hsl(var(--background)) !important;
-}
 
 .text-growth-green {
   color: hsl(var(--growth-green));
 }
 
 .card-hover-lift {
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 }
 
 .card-hover-lift:hover {
-  transform: none;
-  box-shadow: none;
+  box-shadow: var(--shadow-md);
+  border-color: hsl(var(--foreground) / 0.2);
 }
 
 .glass {
@@ -352,8 +339,8 @@ button:active:not(:disabled) {
 }
 
 .gradient-growth {
-  background: hsl(var(--foreground));
-  color: hsl(var(--background));
+  background: hsl(var(--growth-green));
+  color: hsl(var(--primary-foreground));
 }
 
 .gradient-hero {
@@ -361,7 +348,7 @@ button:active:not(:disabled) {
 }
 
 .text-gradient-trust {
-  color: hsl(var(--foreground));
+  color: hsl(var(--trust-blue));
 }
 
 @media (prefers-reduced-motion: reduce) {

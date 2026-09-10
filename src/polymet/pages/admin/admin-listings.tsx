@@ -47,7 +47,7 @@ const statusColors: Record<string, string> = {
     active: 'bg-secondary text-foreground',
     rejected: 'bg-red-100 text-red-800',
     draft: 'bg-secondary text-foreground',
-    sold: 'bg-blue-100 text-blue-800',
+    sold: 'bg-trust-blue/10 text-trust-blue',
     inactive: 'bg-secondary text-muted-foreground',
 };
 

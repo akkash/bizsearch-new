@@ -168,7 +168,7 @@ export function SavedListingsPage({ className }: SavedListingsPageProps) {
                     <p className="text-sm text-muted-foreground">Businesses</p>
                     <p className="text-2xl font-bold">{businessCount}</p>
                   </div>
-                  <Building2 className="h-8 w-8 text-blue-500" />
+                  <Building2 className="h-8 w-8 text-trust-blue" />
                 </div>
               </CardContent>
             </Card>

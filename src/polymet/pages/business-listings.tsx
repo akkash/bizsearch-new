@@ -324,10 +324,10 @@ export function BusinessListings({ className }: BusinessListingsProps) {
                   key={cat.id}
                   to={`/businesses?category=${cat.slug}`}
                   className={cn(
-                    "px-3 py-1.5 text-sm border-2 transition-colors",
+                    "rounded-full px-3 py-1.5 text-sm border transition-colors",
                     currentCategory?.id === cat.id
-                      ? "bg-foreground text-background border-foreground"
-                      : "border-foreground/20 hover:bg-foreground hover:text-background"
+                      ? "bg-growth-green text-white border-growth-green"
+                      : "border-border hover:bg-foreground hover:text-background"
                   )}
                 >
                   {cat.name}
@@ -401,7 +401,7 @@ export function BusinessListings({ className }: BusinessListingsProps) {
                 <Link
                   key={cat.id}
                   to={`/businesses?category=${cat.slug}`}
-                  className="px-3 py-1.5 text-sm border-2 border-foreground/20 hover:bg-foreground hover:text-background transition-colors"
+                  className="rounded-full px-3 py-1.5 text-sm border border-border hover:bg-foreground hover:text-background transition-colors"
                 >
                   {cat.name}
                 </Link>
@@ -414,10 +414,10 @@ export function BusinessListings({ className }: BusinessListingsProps) {
               <Link
                 to={`/businesses?category=${currentCategory.slug}`}
                 className={cn(
-                  "px-3 py-1.5 text-sm border-2 transition-colors",
+                  "rounded-full px-3 py-1.5 text-sm border transition-colors",
                   !currentSubcategory
-                    ? "bg-foreground text-background border-foreground"
-                    : "border-foreground/20 hover:bg-foreground hover:text-background"
+                    ? "bg-growth-green text-white border-growth-green"
+                    : "border-border hover:bg-foreground hover:text-background"
                 )}
               >
                 All {currentCategory.name}
@@ -426,11 +426,11 @@ export function BusinessListings({ className }: BusinessListingsProps) {
                 <Link
                   key={sub.id}
                   to={`/businesses?category=${currentCategory.slug}&subcategory=${sub.slug}`}
-                  className={cn(
-                    "px-3 py-1.5 text-sm border-2 transition-colors",
+                    className={cn(
+                    "rounded-full px-3 py-1.5 text-sm border transition-colors",
                     currentSubcategory?.id === sub.id
-                      ? "bg-foreground text-background border-foreground"
-                      : "border-foreground/20 hover:bg-foreground hover:text-background"
+                      ? "bg-growth-green text-white border-growth-green"
+                      : "border-border hover:bg-foreground hover:text-background"
                   )}
                 >
                   {sub.name}

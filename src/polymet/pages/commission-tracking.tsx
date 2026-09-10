@@ -45,7 +45,7 @@ interface Commission {
 
 const statusConfig: Record<string, { color: string; icon: any }> = {
     pending: { color: 'bg-yellow-100 text-yellow-800', icon: Clock },
-    approved: { color: 'bg-blue-100 text-blue-800', icon: CheckCircle },
+    approved: { color: 'bg-trust-blue/10 text-trust-blue', icon: CheckCircle },
     paid: { color: 'bg-secondary text-foreground', icon: DollarSign },
 };
 
@@ -313,19 +313,19 @@ export function CommissionTrackingPage() {
                                         </div>
                                         <div className="h-2 bg-muted rounded-full overflow-hidden">
                                             <div
-                                                className="h-full bg-secondary0 rounded-full"
+                                                className="h-full bg-growth-green rounded-full"
                                                 style={{ width: `${(stats.totalEarned / (stats.totalEarned + stats.pending + stats.approved)) * 100}%` }}
                                             />
                                         </div>
                                     </div>
                                     <div>
                                         <div className="flex justify-between text-sm mb-1">
-                                            <span className="text-blue-600">Approved (Awaiting Payment)</span>
+                                            <span className="text-trust-blue">Approved (Awaiting Payment)</span>
                                             <span>{formatCurrency(stats.approved)}</span>
                                         </div>
                                         <div className="h-2 bg-muted rounded-full overflow-hidden">
                                             <div
-                                                className="h-full bg-blue-500 rounded-full"
+                                                className="h-full bg-trust-blue/100 rounded-full"
                                                 style={{ width: `${(stats.approved / (stats.totalEarned + stats.pending + stats.approved)) * 100}%` }}
                                             />
                                         </div>

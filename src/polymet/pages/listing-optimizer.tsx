@@ -40,7 +40,7 @@ const categoryIcons: Record<string, any> = {
 const priorityColors: Record<string, string> = {
     high: 'bg-red-100 text-red-800',
     medium: 'bg-yellow-100 text-yellow-800',
-    low: 'bg-blue-100 text-blue-800',
+    low: 'bg-trust-blue/10 text-trust-blue',
 };
 
 export function ListingOptimizerPage() {
@@ -337,13 +337,13 @@ export function ListingOptimizerPage() {
                     </Card>
 
                     {/* Tips */}
-                    <Card className="bg-blue-50 border-blue-200">
+                    <Card className="bg-trust-blue/10 border-trust-blue/20">
                         <CardContent className="p-4">
                             <div className="flex items-start gap-3">
-                                <Lightbulb className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                                <Lightbulb className="h-5 w-5 text-trust-blue flex-shrink-0 mt-0.5" />
                                 <div>
-                                    <p className="text-sm font-medium text-blue-900">Pro Tip</p>
-                                    <p className="text-xs text-blue-700 mt-1">
+                                    <p className="text-sm font-medium text-trust-blue">Pro Tip</p>
+                                    <p className="text-xs text-trust-blue mt-1">
                                         Listings with 80%+ optimization score get 3x more inquiries on average.
                                         Focus on high-priority suggestions first.
                                     </p>

@@ -196,8 +196,8 @@ export function FranchiseeMatcher({ onClose, className }: FranchiseeMatcherProps
   };
 
   const getMatchColor = (score: number) => {
-    if (score >= 80) return 'text-foreground bg-foreground/5 border-foreground';
-    if (score >= 65) return 'text-foreground bg-secondary border-border';
+    if (score >= 80) return 'text-growth-green bg-growth-green/10 border-growth-green';
+    if (score >= 65) return 'text-trust-blue bg-trust-blue/10 border-trust-blue';
     if (score >= 45) return 'text-muted-foreground bg-muted border-border';
     return 'text-muted-foreground bg-muted border-border';
   };
@@ -377,7 +377,7 @@ export function FranchiseeMatcher({ onClose, className }: FranchiseeMatcherProps
               />
 
               {matches.map((match, index) => (
-                <Card key={`${match.franchise.franchiseId}-${index}`} className={cn('border-2', getMatchColor(match.matchScore))}>
+                <Card key={`${match.franchise.franchiseId}-${index}`} className={cn(getMatchColor(match.matchScore))}>
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between mb-3">
                       <div>

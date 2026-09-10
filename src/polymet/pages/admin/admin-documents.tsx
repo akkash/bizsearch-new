@@ -38,7 +38,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 
 const documentTypeColors: Record<string, string> = {
-    identity: 'bg-blue-100 text-blue-800',
+    identity: 'bg-trust-blue/10 text-trust-blue',
     business: 'bg-secondary text-foreground',
     financial: 'bg-growth-green/10 text-foreground',
     legal: 'bg-orange-100 text-orange-800',
@@ -46,7 +46,7 @@ const documentTypeColors: Record<string, string> = {
 
 const statusConfig = {
     pending: { label: 'Pending', color: 'bg-yellow-100 text-yellow-800', icon: Clock },
-    verified: { label: 'Verified', color: 'bg-secondary text-foreground', icon: CheckCircle },
+    verified: { label: 'Verified', color: 'bg-growth-green/10 text-growth-green', icon: CheckCircle },
     rejected: { label: 'Rejected', color: 'bg-red-100 text-red-800', icon: XCircle },
 };
 
@@ -335,7 +335,7 @@ export function AdminDocuments() {
                                     Reject
                                 </Button>
                                 <Button
-                                    className="bg-green-600 hover:bg-green-700"
+                                    className="bg-growth-green hover:bg-growth-green-dark"
                                     onClick={() => previewDoc && handleApprove(previewDoc)}
                                     disabled={processing}
                                 >

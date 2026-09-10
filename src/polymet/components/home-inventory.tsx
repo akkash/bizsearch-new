@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 
 function RowSkeleton() {
   return (
-    <div className="border-2 border-foreground py-6 px-6 animate-pulse">
+    <div className="border border-border bg-card py-6 px-6 animate-pulse">
       <div className="h-4 w-1/3 bg-muted mb-2" />
       <div className="h-7 w-24 bg-muted mb-2" />
       <div className="h-4 w-2/3 bg-muted" />
@@ -31,7 +31,7 @@ function EmptyInventory({
   suggestions: { label: string; href: string }[];
 }) {
   return (
-    <div className="border-2 border-foreground border-dashed py-12 px-4 text-center text-foreground/60">
+    <div className="border border-dashed border-border py-12 px-4 text-center text-muted-foreground">
       <p className="font-medium text-foreground mb-1">{title}</p>
       <p className="text-sm mb-4">
         Try a broader search or create a buyer requirement.
@@ -172,11 +172,10 @@ export function HomeBusinessInventory({ className }: { className?: string }) {
               </p>
             )}
           </div>
-          <Link
-            to="/businesses"
-            className="text-sm font-bold uppercase tracking-widest border-b border-foreground pb-1 hover:opacity-60"
-          >
-            Browse All
+          <Link to="/businesses">
+            <Button variant="outline" size="sm" className="min-h-[40px]">
+              Browse All
+            </Button>
           </Link>
         </div>
 
@@ -213,13 +212,21 @@ export function HomeBusinessInventory({ className }: { className?: string }) {
                 return (
                   <article
                     key={b.id}
-                    className="group border-2 border-foreground p-6 flex flex-col cursor-pointer transition-colors"
+                    className="group border border-border bg-card p-0 flex flex-col cursor-pointer card-hover-lift overflow-hidden"
                     onClick={() => navigate(`/business/${id}`)}
                   >
+                    {Array.isArray(b.images) && b.images[0] ? (
+                      <img
+                        src={typeof b.images[0] === "string" ? b.images[0] : b.images[0]?.url}
+                        alt=""
+                        className="h-40 w-full object-cover bg-muted"
+                      />
+                    ) : null}
+                    <div className="p-6 flex flex-col flex-1">
                     <h3 className="font-display text-2xl font-bold uppercase mb-2 leading-snug line-clamp-1">
                       {b.name}
                     </h3>
-                    <p className="text-sm opacity-60 uppercase tracking-widest line-clamp-1">
+                    <p className="text-sm text-muted-foreground uppercase tracking-widest line-clamp-1">
                       {b.city && b.state ? `${b.city}, ${b.state}` : b.location}
                       {b.industry ? ` · ${b.industry}` : ""}
                     </p>
@@ -228,7 +235,7 @@ export function HomeBusinessInventory({ className }: { className?: string }) {
                       <div className="text-4xl font-display font-bold mb-1 font-mono tabular-nums tracking-tight leading-none">
                         {formatINR(b.price)}
                       </div>
-                      <div className="text-xs uppercase tracking-widest opacity-60 mb-6">
+                      <div className="text-xs uppercase tracking-widest text-muted-foreground mb-6">
                         Asking price
                       </div>
                     </div>
@@ -315,7 +322,7 @@ export function HomeBusinessInventory({ className }: { className?: string }) {
                     <div className="flex gap-2 mt-auto">
                       <Button
                         size="sm"
-                        className="h-8 text-xs bg-growth-green hover:bg-growth-green/90 text-white"
+                        className="h-8 text-xs"
                         onClick={(e) => {
                           e.stopPropagation();
                           navigate(`/business/${id}`);
@@ -334,6 +341,7 @@ export function HomeBusinessInventory({ className }: { className?: string }) {
                       >
                         Compare
                       </Button>
+                    </div>
                     </div>
                   </article>
                 );
@@ -405,11 +413,10 @@ export function HomeFranchiseInventory({ className }: { className?: string }) {
               </p>
             )}
           </div>
-          <Link
-            to="/franchises"
-            className="text-sm font-bold uppercase tracking-widest border-b border-foreground pb-1 hover:opacity-60"
-          >
-            Browse All
+          <Link to="/franchises">
+            <Button variant="outline" size="sm" className="min-h-[40px]">
+              Browse All
+            </Button>
           </Link>
         </div>
 
@@ -447,21 +454,50 @@ export function HomeFranchiseInventory({ className }: { className?: string }) {
                   ? formatInvestmentRange(range.min, range.max)
                   : null;
 
+                const cover =
+                  Array.isArray(f.images) && f.images[0]
+                    ? typeof f.images[0] === "string"
+                      ? f.images[0]
+                      : f.images[0]?.url
+                    : null;
+                const logo = f.logo_url || f.logo;
+
                 return (
                   <article
                     key={f.id}
-                    className="group border-2 border-foreground p-6 flex flex-col cursor-pointer transition-colors"
+                    className="group border border-border bg-card p-0 flex flex-col cursor-pointer card-hover-lift overflow-hidden"
                     onClick={() => navigate(`/franchise/${id}`)}
                   >
-                    <h3 className="font-display text-2xl font-bold uppercase mb-2 leading-snug line-clamp-1">
+                    {cover ? (
+                      <img src={cover} alt="" className="h-40 w-full object-cover bg-muted" />
+                    ) : (
+                      <div className="h-2 w-full bg-trust-blue" />
+                    )}
+                    <div className="p-6 flex flex-col flex-1">
+                    <div className="flex items-start gap-3 mb-2">
+                      {logo ? (
+                        <img
+                          src={logo}
+                          alt=""
+                          className="h-12 w-12 object-contain border border-border bg-card shrink-0"
+                        />
+                      ) : (
+                        <div className="h-12 w-12 border border-border flex items-center justify-center font-display font-bold text-lg shrink-0">
+                          {brand.charAt(0)}
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                    <h3 className="font-display text-2xl font-bold uppercase mb-1 leading-snug line-clamp-1">
                       {brand}
                     </h3>
-                    <p className="text-sm opacity-60 uppercase tracking-widest line-clamp-1">
+                    <p className="text-sm text-muted-foreground uppercase tracking-widest line-clamp-1">
                       {f.industry || "Franchise"}
                       {territories.length
                         ? ` · ${territories.slice(0, 2).join(", ")}`
                         : ""}
                     </p>
+                      </div>
+                    </div>
 
                     <div className="mt-auto pt-8">
                       {investLabel ? (
@@ -473,7 +509,7 @@ export function HomeFranchiseInventory({ className }: { className?: string }) {
                           Investment not provided
                         </div>
                       )}
-                      <div className="text-xs uppercase tracking-widest opacity-60 mb-6">
+                      <div className="text-xs uppercase tracking-widest text-muted-foreground mb-6">
                         {formats.length > 1
                           ? `Investment · ${formats.length} formats`
                           : "Investment range"}
@@ -517,7 +553,7 @@ export function HomeFranchiseInventory({ className }: { className?: string }) {
                     <div className="flex gap-2 mt-auto">
                       <Button
                         size="sm"
-                        className="h-8 text-xs bg-growth-green hover:bg-growth-green/90 text-white"
+                        className="h-8 text-xs"
                         onClick={(e) => {
                           e.stopPropagation();
                           navigate(`/franchise/${id}`);
@@ -537,23 +573,17 @@ export function HomeFranchiseInventory({ className }: { className?: string }) {
                         Compare
                       </Button>
                     </div>
+                    </div>
                   </article>
                 );
               })}
             </div>
 
             {items.length > 0 && items.length < 4 && (
-              <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
-                <Link to="/franchises">
-                  <Button variant="outline" size="sm" className="h-8">
-                    Browse all franchises
-                  </Button>
-                </Link>
-                <Link to="/add-franchise-listing">
-                  <Button variant="ghost" size="sm" className="h-8 text-muted-foreground">
-                    List your franchise
-                  </Button>
-                </Link>
+              <div className="mt-6">
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/add-franchise-listing">List your franchise</Link>
+                </Button>
               </div>
             )}
           </>

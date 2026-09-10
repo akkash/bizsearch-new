@@ -70,9 +70,9 @@ export function FranchisorBulkUpload({ franchiseId, onComplete }: BulkUploadProp
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Download Template */}
-        <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+        <div className="flex items-center justify-between p-4 bg-trust-blue/10 rounded-lg">
           <div className="flex items-center gap-3">
-            <FileText className="h-5 w-5 text-blue-600" />
+            <FileText className="h-5 w-5 text-trust-blue" />
             <div>
               <p className="font-medium text-sm">CSV Template</p>
               <p className="text-xs text-muted-foreground">
@@ -148,7 +148,7 @@ export function FranchisorBulkUpload({ franchiseId, onComplete }: BulkUploadProp
                   <div className="flex items-center gap-3">
                     <CheckCircle className="h-8 w-8 text-foreground" />
                     <div>
-                      <p className="text-2xl font-bold text-green-900">{result.success}</p>
+                      <p className="text-2xl font-bold text-growth-green">{result.success}</p>
                       <p className="text-sm text-foreground">Successful</p>
                     </div>
                   </div>

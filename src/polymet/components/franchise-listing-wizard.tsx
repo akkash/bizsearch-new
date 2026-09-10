@@ -1761,7 +1761,7 @@ export function FranchiseListingWizard({
                         isCurrent
                           ? "bg-primary text-primary-foreground"
                           : isCompleted
-                            ? "bg-secondary0 text-white"
+                            ? "bg-growth-green text-white"
                             : "bg-muted"
                       )}
                     >

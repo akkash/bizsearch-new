@@ -80,7 +80,7 @@ export const FloatingLabelInput = forwardRef<
                         className={cn(
                             "h-12 pt-4 pb-1 px-3 peer transition-all",
                             error && "border-destructive focus-visible:ring-destructive",
-                            isValid && !error && "border-green-500 focus-visible:ring-green-500",
+                            isValid && !error && "border-growth-green focus-visible:ring-growth-green",
                             className
                         )}
                         {...props}

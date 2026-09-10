@@ -331,13 +331,13 @@ export function BusinessValuationPage() {
                         </CardContent>
                     </Card>
 
-                    <Card className="bg-blue-50 border-blue-200">
+                    <Card className="bg-trust-blue/10 border-trust-blue/20">
                         <CardContent className="p-4">
                             <div className="flex items-start gap-3">
-                                <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                                <Info className="h-5 w-5 text-trust-blue flex-shrink-0 mt-0.5" />
                                 <div>
-                                    <p className="text-sm font-medium text-blue-900">Disclaimer</p>
-                                    <p className="text-xs text-blue-700 mt-1">
+                                    <p className="text-sm font-medium text-trust-blue">Disclaimer</p>
+                                    <p className="text-xs text-trust-blue mt-1">
                                         This is an estimate for informational purposes only. For an accurate valuation,
                                         please consult with a professional business appraiser or M&A advisor.
                                     </p>

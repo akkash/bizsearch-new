@@ -48,7 +48,7 @@ export function getPasswordStrengthColor(score: number): string {
   if (score <= 1) return 'bg-red-500';
   if (score === 2) return 'bg-orange-500';
   if (score === 3) return 'bg-yellow-500';
-  return 'bg-secondary0';
+  return 'bg-growth-green';
 }
 
 /**

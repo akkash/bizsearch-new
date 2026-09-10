@@ -80,10 +80,10 @@ export function VabgoSitePanel({
   const showEmpty = Boolean(search?.ok && !loading && results.length === 0);
 
   return (
-    <div className={cn("border border-border p-4 space-y-3", className)}>
+    <div className={cn("border border-border p-4 space-y-3 shadow-[var(--shadow-sm)]", className)}>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <p className="text-xs font-bold uppercase tracking-widest">VABGO</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-trust-blue">VABGO</p>
           <h3 className="text-sm font-semibold">{heading}</h3>
         </div>
         <VabgoSiteLink intent={intent} href={browseUrl} />
@@ -101,7 +101,7 @@ export function VabgoSitePanel({
                 href={site.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex gap-3 border border-border p-2 hover:bg-secondary/50 transition-colors"
+                className="flex gap-3 border border-border p-2 hover:bg-secondary/50 transition-colors card-hover-lift"
               >
                 {site.thumbnailUrl ? (
                   <img
@@ -122,7 +122,7 @@ export function VabgoSitePanel({
                       .join(" · ")}
                     {site.areaSqft ? ` · ${site.areaSqft.toLocaleString("en-IN")} sq ft` : ""}
                   </p>
-                  <p className="text-xs font-mono mt-1">
+                  <p className="text-xs font-mono mt-1 text-growth-green">
                     {site.priceFormatted || formatINR(site.price)}
                   </p>
                 </div>

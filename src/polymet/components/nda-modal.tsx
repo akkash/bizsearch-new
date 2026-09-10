@@ -122,7 +122,7 @@ export function NDAModal({
   const renderOverview = () => (
     <div className="space-y-6">
       <div className="text-center">
-        <Shield className="w-16 h-16 mx-auto mb-4 text-blue-600" />
+        <Shield className="w-16 h-16 mx-auto mb-4 text-trust-blue" />
 
         <h3 className="text-xl font-semibold mb-2">
           Non-Disclosure Agreement Required
@@ -165,7 +165,7 @@ export function NDAModal({
 
         <Card>
           <CardContent className="p-4 text-center">
-            <Shield className="w-8 h-8 mx-auto mb-2 text-blue-600" />
+            <Shield className="w-8 h-8 mx-auto mb-2 text-trust-blue" />
 
             <h4 className="font-medium">Legal Protection</h4>
             <p className="text-sm text-muted-foreground">

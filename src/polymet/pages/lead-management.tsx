@@ -46,7 +46,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 const statusColor: Record<InquiryStatus, string> = {
-  new: 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200',
+  new: 'bg-trust-blue/10 text-trust-blue',
   contacted: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-950 dark:text-yellow-200',
   qualified: 'bg-secondary text-foreground dark:bg-secondary dark:text-foreground',
   information_sent: 'bg-secondary text-muted-foreground',

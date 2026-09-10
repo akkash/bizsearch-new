@@ -67,7 +67,7 @@ export function DocumentAnalyzer({ onClose, className }: DocumentAnalyzerProps) 
   const getDocumentTypeColor = (type: string) => {
     switch (type) {
       case 'financial':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
+        return 'bg-trust-blue/10 text-trust-blue border-trust-blue/20';
       case 'legal':
         return 'bg-growth-green/10 text-foreground border-growth-green/30';
       case 'operational':
@@ -90,7 +90,7 @@ export function DocumentAnalyzer({ onClose, className }: DocumentAnalyzerProps) 
           <div className="flex items-start justify-between">
             <div>
               <CardTitle className="flex items-center gap-2">
-                <FileText className="h-6 w-6 text-blue-600" />
+                <FileText className="h-6 w-6 text-trust-blue" />
                 AI Document Analyzer
               </CardTitle>
               <CardDescription>
@@ -110,7 +110,7 @@ export function DocumentAnalyzer({ onClose, className }: DocumentAnalyzerProps) 
           <div
             className={cn(
               'border-2 border-dashed rounded-lg p-8 text-center transition-colors',
-              files.length > 0 ? 'border-blue-300 bg-blue-50' : 'border-gray-300 hover:border-blue-400'
+              files.length > 0 ? 'border-trust-blue/40 bg-trust-blue/10' : 'border-gray-300 hover:border-trust-blue'
             )}
             onClick={() => fileInputRef.current?.click()}
             style={{ cursor: 'pointer' }}
@@ -239,10 +239,10 @@ export function DocumentAnalyzer({ onClose, className }: DocumentAnalyzerProps) 
                                 {/* Recommendations */}
                                 {analysis.recommendations.length > 0 && (
                                   <div>
-                                    <h5 className="text-xs font-medium text-blue-700 mb-1">Recommendations:</h5>
+                                    <h5 className="text-xs font-medium text-trust-blue mb-1">Recommendations:</h5>
                                     <ul className="space-y-1">
                                       {analysis.recommendations.map((rec, i) => (
-                                        <li key={i} className="text-xs text-blue-600">
+                                        <li key={i} className="text-xs text-trust-blue">
                                           • {rec}
                                         </li>
                                       ))}
@@ -317,11 +317,11 @@ export function DocumentAnalyzer({ onClose, className }: DocumentAnalyzerProps) 
           )}
 
           {/* Supported Document Types */}
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <h4 className="text-sm font-medium text-blue-900 mb-2">
+          <div className="bg-trust-blue/10 p-4 rounded-lg">
+            <h4 className="text-sm font-medium text-trust-blue mb-2">
               Supported Documents:
             </h4>
-            <div className="grid grid-cols-2 gap-2 text-xs text-blue-800">
+            <div className="grid grid-cols-2 gap-2 text-xs text-trust-blue">
               <div>• Financial Statements (P&L, Balance Sheet)</div>
               <div>• Tax Returns</div>
               <div>• Legal Agreements</div>

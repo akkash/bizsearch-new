@@ -412,15 +412,15 @@ Provide at least 3 key insights, 3-5 risk factors, and 3-5 opportunities. Focus 
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-foreground bg-secondary";
+    if (score >= 80) return "text-growth-green bg-growth-green/10";
     if (score >= 60) return "text-yellow-600 bg-yellow-50";
     return "text-red-600 bg-red-50";
   };
 
   const getRecommendationColor = (recommendation: string) => {
-    if (recommendation === "High Potential") return "bg-secondary0";
+    if (recommendation === "High Potential") return "bg-growth-green";
     if (recommendation === "Proceed with Caution") return "bg-red-500";
-    return "bg-blue-500";
+    return "bg-trust-blue";
   };
 
   if (loading) {
@@ -521,7 +521,7 @@ Provide at least 3 key insights, 3-5 risk factors, and 3-5 opportunities. Focus 
               ) : insight.type === "warning" ? (
                 <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
               ) : (
-                <TrendingUp className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <TrendingUp className="h-5 w-5 text-trust-blue flex-shrink-0 mt-0.5" />
               )}
               <div>
                 <div className="font-medium text-sm">{insight.title}</div>
@@ -559,7 +559,7 @@ Provide at least 3 key insights, 3-5 risk factors, and 3-5 opportunities. Focus 
           <div className="space-y-2">
             {insights.opportunities.map((opportunity, index) => (
               <div key={index} className="flex items-center gap-2 text-sm">
-                <div className="w-1.5 h-1.5 bg-secondary0 rounded-full flex-shrink-0" />
+                <div className="w-1.5 h-1.5 bg-growth-green rounded-full flex-shrink-0" />
 
                 <span className="text-muted-foreground">{opportunity}</span>
               </div>

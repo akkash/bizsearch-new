@@ -132,7 +132,7 @@ async function resolveOwnerEmails(userIds: string[]): Promise<Map<string, string
 
 const statusColors = {
     pending: 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300',
-    verified: 'bg-secondary text-foreground dark:bg-emerald-900/50 dark:text-emerald-300',
+    verified: 'bg-growth-green/10 text-growth-green dark:bg-growth-green/20 dark:text-growth-green-light',
     rejected: 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300',
     unverified: 'bg-secondary text-foreground dark:bg-gray-800 dark:text-gray-300',
 };
@@ -370,10 +370,10 @@ export function AdminVerification() {
                 <Card>
                     <CardContent className="pt-4">
                         <div className="flex items-center gap-2">
-                            <ShieldCheck className="h-4 w-4 text-emerald-500" />
+                            <ShieldCheck className="h-4 w-4 text-growth-green" />
                             <span className="text-sm text-muted-foreground">Verified</span>
                         </div>
-                        <div className="text-2xl font-bold text-emerald-600">{stats.verified}</div>
+                        <div className="text-2xl font-bold text-growth-green">{stats.verified}</div>
                     </CardContent>
                 </Card>
                 <Card>
@@ -559,7 +559,7 @@ export function AdminVerification() {
                                                         <Button
                                                             size="sm"
                                                             variant="outline"
-                                                            className="text-emerald-600 hover:bg-emerald-50"
+                                                            className="text-growth-green hover:bg-growth-green/10"
                                                             onClick={() => handleVerify(listing)}
                                                         >
                                                             <CheckCircle className="h-4 w-4" />
@@ -633,7 +633,7 @@ export function AdminVerification() {
                         <Button
                             onClick={confirmAction}
                             className={dialogAction === 'verify'
-                                ? "bg-emerald-600 hover:bg-emerald-700"
+                                ? "bg-growth-green hover:bg-growth-green-dark"
                                 : "bg-red-600 hover:bg-red-700"
                             }
                         >

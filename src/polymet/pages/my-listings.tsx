@@ -63,7 +63,7 @@ const statusConfig = {
   sold: {
     label: "Sold",
     icon: CheckCircle,
-    color: "text-blue-600 bg-blue-100",
+    color: "text-trust-blue bg-trust-blue/10",
   },
 };
 
@@ -253,7 +253,7 @@ export function MyListingsPage({ className }: MyListingsPageProps) {
                 <p className="text-sm text-muted-foreground">Businesses</p>
                 <p className="text-2xl font-bold">{businesses.length}</p>
               </div>
-              <Store className="h-8 w-8 text-blue-600" />
+              <Store className="h-8 w-8 text-trust-blue" />
             </div>
           </CardContent>
         </Card>

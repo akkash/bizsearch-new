@@ -236,7 +236,7 @@ export function NaturalLanguageSearch() {
                                 {result.results.franchises.map((franchise) => (
                                     <Card
                                         key={franchise.id}
-                                        className="cursor-pointer border-2 border-foreground"
+                                        className="cursor-pointer card-hover-lift"
                                         onClick={() => navigate(`/franchise/${franchise.slug || franchise.id}`)}
                                     >
                                         <CardContent className="p-4">
@@ -269,7 +269,7 @@ export function NaturalLanguageSearch() {
                                 {result.results.businesses.map((business) => (
                                     <Card
                                         key={business.id}
-                                        className="cursor-pointer border-2 border-border"
+                                        className="cursor-pointer card-hover-lift"
                                         onClick={() => navigate(`/business/${business.slug || business.id}`)}
                                     >
                                         <CardContent className="p-4">

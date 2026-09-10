@@ -45,14 +45,14 @@ const notificationIcons: Record<NotificationType, any> = {
 };
 
 const notificationColors: Record<NotificationType, string> = {
-  inquiry: "text-blue-500",
+  inquiry: "text-trust-blue",
   message: "text-growth-green",
   listing_approved: "text-foreground",
   listing_rejected: "text-red-500",
   verification_approved: "text-foreground",
   verification_rejected: "text-red-500",
   saved_listing_update: "text-pink-500",
-  new_inquiry: "text-blue-500",
+  new_inquiry: "text-trust-blue",
   inquiry_response: "text-growth-green",
   system: "text-muted-foreground",
 };
@@ -257,7 +257,7 @@ export function NotificationsPage({ className }: NotificationsPageProps) {
                 key={notification.id}
                 className={cn(
                   "cursor-pointer transition-all hover:shadow-md",
-                  !notification.read && "bg-blue-50/50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800"
+                  !notification.read && "bg-trust-blue/10 border-trust-blue/20"
                 )}
               >
                 <CardContent className="p-4">
@@ -265,7 +265,7 @@ export function NotificationsPage({ className }: NotificationsPageProps) {
                     {/* Icon */}
                     <div className={cn(
                       "p-2 rounded-full",
-                      !notification.read ? "bg-blue-100 dark:bg-blue-900" : "bg-muted"
+                      !notification.read ? "bg-trust-blue/10" : "bg-muted"
                     )}>
                       <NotificationIcon type={notification.type} />
                     </div>
@@ -284,7 +284,7 @@ export function NotificationsPage({ className }: NotificationsPageProps) {
                             {formatTimeAgo(notification.created_at)}
                           </span>
                           {!notification.read && (
-                            <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                            <div className="w-2 h-2 bg-trust-blue/100 rounded-full" />
                           )}
                         </div>
                       </div>

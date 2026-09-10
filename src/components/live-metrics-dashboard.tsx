@@ -37,7 +37,7 @@ export function LiveMetricsDashboard({ className }: LiveMetricsDashboardProps) {
             value: "2,847",
             numericValue: 2847,
             icon: Users,
-            color: "text-blue-500",
+            color: "text-trust-blue",
             trend: "Live"
         },
         {
@@ -89,7 +89,7 @@ export function LiveMetricsDashboard({ className }: LiveMetricsDashboardProps) {
                     {/* Live indicator */}
                     <div className="hidden md:flex items-center gap-2 mr-6">
                         <div className="relative flex items-center gap-1.5">
-                            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                            <div className="w-2 h-2 bg-growth-green rounded-full animate-pulse" />
                             <span className="text-xs font-medium text-white/80">LIVE</span>
                         </div>
                     </div>
@@ -112,7 +112,7 @@ export function LiveMetricsDashboard({ className }: LiveMetricsDashboardProps) {
                                             <div className="text-[10px] md:text-xs text-white/70">
                                                 {metric.label}
                                                 {metric.trend && (
-                                                    <span className="ml-1 text-green-300">• {metric.trend}</span>
+                                                    <span className="ml-1 text-growth-green-light">• {metric.trend}</span>
                                                 )}
                                             </div>
                                         </div>

@@ -31,7 +31,7 @@ export function PageHero({
       <div className="container mx-auto px-4">
         <div className="max-w-3xl">
           {eyebrow && (
-            <p className="text-xs font-bold uppercase tracking-widest text-foreground mb-3">
+            <p className="text-xs font-bold uppercase tracking-widest text-trust-blue mb-3">
               {eyebrow}
             </p>
           )}
@@ -72,7 +72,7 @@ export function AuthShell({ children, title, subtitle }: AuthShellProps) {
             )}
           </div>
         )}
-        <div className="rounded-none border-2 border-foreground bg-card p-6 shadow-none">
+        <div className="rounded-none border border-border bg-card p-6 shadow-[var(--shadow-md)]">
           {children}
         </div>
       </div>
