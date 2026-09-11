@@ -1,12 +1,33 @@
 import { CheckCircle2 } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
 
 const CHECKS = [
-  "Owner identity",
-  "Business registration",
-  "GST information",
-  "Financial documents",
-  "Listing information",
+  {
+    label: "Owner identity",
+    body: "Confirm the franchisor’s legal name, directors, and that the person you are speaking with is authorised to offer the territory.",
+  },
+  {
+    label: "Business registration",
+    body: "Ask for CIN / GST / FSSAI (where relevant) and match them to the brand on the listing. Unverified registrations should pause the deal.",
+  },
+  {
+    label: "GST information",
+    body: "Royalty, brand fee, and fit-out invoices should show GST. Build 18% into working-capital so the first quarter is not underfunded.",
+  },
+  {
+    label: "Financial documents",
+    body: "Request unit-level P&L, not only network averages. Compare published investment, royalty, and payback against two operating outlets.",
+  },
+  {
+    label: "Listing information",
+    body: "Space, fee, and royalty on this page are franchisor-provided estimates. Walk the site, read the agreement, and take independent advice before you apply.",
+  },
 ];
 
 export function TrustVerificationSection({ className }: { className?: string }) {
@@ -19,31 +40,30 @@ export function TrustVerificationSection({ className }: { className?: string }) 
               Know what you&apos;re looking at.
             </h2>
             <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
-              Verification is listing-specific. Status badges appear only when
-              checks are completed for that business.
+              Verification is listing-specific. Expand each check for the due-diligence
+              step we recommend before you send an application.
             </p>
           </div>
 
           <div>
-            <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-6">
-              Verification Checklist
+            <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">
+              Due-diligence checklist
             </div>
-            <ul className="space-y-3 border-t border-border pt-6">
-              {CHECKS.map((label) => (
-                <li key={label}>
-                  <div className="flex items-center gap-3 border border-border bg-card px-4 py-3 shadow-[var(--shadow-sm)]">
-                    <CheckCircle2
-                      className="h-5 w-5 shrink-0 text-trust-blue"
-                      aria-hidden="true"
-                    />
-                    <span className="text-base font-medium">{label}</span>
-                    <span className="ml-auto text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                      Check
+            <Accordion type="single" collapsible className="border border-border rounded-xl bg-card shadow-sm divide-y divide-border">
+              {CHECKS.map((item) => (
+                <AccordionItem key={item.label} value={item.label} className="border-0 px-4">
+                  <AccordionTrigger className="hover:no-underline py-4">
+                    <span className="flex items-center gap-3 text-left">
+                      <CheckCircle2 className="h-5 w-5 shrink-0 text-growth-green" aria-hidden="true" />
+                      <span className="text-base font-medium">{item.label}</span>
                     </span>
-                  </div>
-                </li>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm text-muted-foreground pb-4 pl-8">
+                    {item.body}
+                  </AccordionContent>
+                </AccordionItem>
               ))}
-            </ul>
+            </Accordion>
             <p className="text-[11px] text-muted-foreground mt-6">
               Default status is{" "}
               <span className="text-foreground">Verification available</span>

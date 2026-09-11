@@ -31,6 +31,7 @@ import {
   TrendingUpIcon,
   ChevronRightIcon,
   Search,
+  Store,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SMERGERS_BUSINESS_CATEGORIES, FRANCHISE_CATEGORIES } from "@/data/categories";
@@ -54,6 +55,8 @@ export interface FilterState {
   trainingDuration: string;
   outlets: string;
   multiUnit: boolean;
+  spaceRange: [number, number];
+  formatModel: string[];
 }
 
 interface FiltersProps {
@@ -139,6 +142,8 @@ export function Filters({
       trainingDuration: "",
       outlets: "",
       multiUnit: false,
+      spaceRange: [0, 5000],
+      formatModel: [],
     };
   });
 
@@ -226,6 +231,8 @@ export function Filters({
       trainingDuration: "",
       outlets: "",
       multiUnit: false,
+      spaceRange: [0, 5000],
+      formatModel: [],
     };
     setFilters(clearedFilters);
     setStateSearch("");
@@ -250,6 +257,8 @@ export function Filters({
     if (type === "franchise") {
       if (filters.franchiseFee[0] > 0 || filters.franchiseFee[1] < 5000000) count++;
       if (filters.royaltyPercentage[0] > 0 || filters.royaltyPercentage[1] < 20) count++;
+      if (filters.spaceRange[0] > 0 || filters.spaceRange[1] < 5000) count++;
+      if (filters.formatModel.length > 0) count++;
       if (filters.trainingDuration) count++;
       if (filters.outlets) count++;
       if (filters.multiUnit) count++;
@@ -303,9 +312,7 @@ export function Filters({
             <AccordionTrigger className="hover:no-underline py-3">
               <div className="flex items-center gap-2">
                 <BuildingIcon className="h-4 w-4" />
-                <span className="font-medium">
-                  {type === "business" ? "Industry" : "Category"}
-                </span>
+                <span className="font-medium">Industry</span>
                 {filters.industry.length > 0 && (
                   <Badge variant="secondary" className="ml-2 text-xs">
                     {filters.industry.length}
@@ -396,7 +403,7 @@ export function Filters({
             <AccordionTrigger className="hover:no-underline py-3">
               <div className="flex items-center gap-2">
                 <MapPinIcon className="h-4 w-4" />
-                <span className="font-medium">State</span>
+                <span className="font-medium">State / City</span>
                 {filters.state.length > 0 && (
                   <Badge variant="secondary" className="ml-2 text-xs">
                     {filters.state.length}
@@ -506,7 +513,7 @@ export function Filters({
               <div className="flex items-center gap-2">
                 <IndianRupeeIcon className="h-4 w-4" />
                 <span className="font-medium">
-                  {type === "business" ? "Business Price" : "Investment Required"}
+                  {type === "business" ? "Business Price" : "Investment Range"}
                 </span>
               </div>
             </AccordionTrigger>
@@ -566,6 +573,68 @@ export function Filters({
                     <span>{formatCurrency(filters.revenueRange[1])}</span>
                   </div>
                 </div>
+              </AccordionContent>
+            </AccordionItem>
+          )}
+
+          {/* Space required */}
+          {type === "franchise" && (
+            <AccordionItem value="space" className="border rounded-lg px-4">
+              <AccordionTrigger className="hover:no-underline py-3">
+                <div className="flex items-center gap-2">
+                  <BuildingIcon className="h-4 w-4" />
+                  <span className="font-medium">Space Required</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="pb-4">
+                <div className="px-2">
+                  <Slider
+                    value={filters.spaceRange}
+                    onValueChange={(value) =>
+                      updateFilters({ spaceRange: value as [number, number] })
+                    }
+                    max={5000}
+                    step={50}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-sm text-muted-foreground mt-2">
+                    <span>{filters.spaceRange[0]} sq ft</span>
+                    <span>{filters.spaceRange[1]} sq ft</span>
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          )}
+
+          {type === "franchise" && (
+            <AccordionItem value="format" className="border rounded-lg px-4">
+              <AccordionTrigger className="hover:no-underline py-3">
+                <div className="flex items-center gap-2">
+                  <Store className="h-4 w-4" />
+                  <span className="font-medium">Format</span>
+                  {filters.formatModel.length > 0 && (
+                    <Badge variant="secondary" className="ml-2 text-xs">
+                      {filters.formatModel.length}
+                    </Badge>
+                  )}
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="pb-4">
+                <div className="flex flex-wrap gap-2">
+                  {["FOFO", "FOCO"].map((model) => (
+                    <Badge
+                      key={model}
+                      variant={filters.formatModel.includes(model) ? "default" : "outline"}
+                      className="cursor-pointer px-3 py-1.5"
+                      onClick={() => toggleArrayFilter("formatModel", model)}
+                    >
+                      {model}
+                    </Badge>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  FOFO: franchisee-owned, franchisee-operated. FOCO: franchisee-owned, company-operated.
+                </p>
               </AccordionContent>
             </AccordionItem>
           )}

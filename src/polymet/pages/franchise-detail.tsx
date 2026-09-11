@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { FranchiseService } from "@/lib/franchise-service";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSavedListings } from "@/contexts/SavedListingsContext";
@@ -12,21 +12,25 @@ import {
   ArrowLeftIcon,
   HeartIcon,
   ShareIcon,
-  MapPinIcon,
   FileTextIcon,
   GitCompareArrows,
+  Download,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { InquiryDialog } from "@/components/inquiry-dialog";
 import { FranchiseBentoView } from "@/components/franchise-bento-view";
 import { ComparisonFeature } from "@/polymet/components/comparison-feature";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   findStoreFormat,
   getFranchiseInvestmentRange,
-  getListingRequirements,
   getStoreFormatsFromFranchise,
 } from "@/lib/store-formats";
-import { VabgoSiteLink } from "@/components/vabgo-site-link";
 
 interface FranchiseDetailProps {
   className?: string;
@@ -160,6 +164,20 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
     navigate(`/franchise/${identifier}/apply${qs ? `?${qs}` : ''}`);
   };
 
+  const handlePitchDeck = () => {
+    if (!franchise) return;
+    const docs = Array.isArray(franchise.documents) ? franchise.documents : [];
+    const url = docs
+      .map((doc) => (typeof doc === "string" ? doc : (doc as { url?: string })?.url))
+      .find((item) => typeof item === "string" && item.length > 0);
+    if (url) {
+      window.open(url, "_blank", "noopener,noreferrer");
+      return;
+    }
+    toast.info("Pitch deck not provided on this listing");
+    setShowContactForm(true);
+  };
+
   const formats = franchise ? getStoreFormatsFromFranchise(franchise) : [];
   const selectedFormat = findStoreFormat(formats, selectedFormatId);
   const investRange = franchise
@@ -180,7 +198,7 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-[50vh] bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
           <p className="text-muted-foreground">Loading franchise details...</p>
@@ -191,7 +209,7 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
 
   if (!franchise) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-[50vh] bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
           <h2 className="font-display text-3xl font-bold uppercase tracking-tight">
             No details found in the table.
@@ -205,20 +223,11 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
     );
   }
 
-  const listingReqs = getListingRequirements(franchise);
-  const vabgoIntent = {
-    city: listingReqs.preferredCities[0],
-    propertyType: selectedFormat?.propertyType || listingReqs.propertyType,
-    minAreaSqft: selectedFormat?.minSqft ?? listingReqs.minAreaSqft,
-    maxAreaSqft: selectedFormat?.maxSqft ?? listingReqs.maxAreaSqft,
-    listingType: "Rent" as const,
-  };
-
   return (
-    <div className={cn("min-h-screen bg-background", className)}>
-      <div className="bg-background/95 backdrop-blur-md border-b border-border sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+    <div className={cn("bg-background overflow-x-hidden", className)}>
+      <div className="bg-background/95 backdrop-blur-md border-b border-border sticky top-16 md:top-20 z-10">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
             <div className="flex items-center gap-4 min-w-0">
               <Button variant="ghost" size="sm" onClick={() => navigate("/franchises")}>
                 <ArrowLeftIcon className="h-4 w-4 mr-2" />
@@ -227,14 +236,14 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
               <Separator orientation="vertical" className="h-6 hidden sm:block" />
               <div className="flex items-center gap-3 min-w-0">
                 {logo ? (
-                  <img src={logo} alt={`${brandName} logo`} className="w-16 h-16 object-contain border border-border bg-white dark:bg-card p-1.5" />
+                  <img src={logo} alt={`${brandName} logo`} className="w-12 h-12 object-contain rounded-lg border border-border bg-white dark:bg-card p-1" />
                 ) : (
-                  <div className="w-16 h-16 border border-border bg-secondary flex items-center justify-center font-display font-bold text-trust-blue">
-                    {brandName.charAt(0)}
+                  <div className="w-12 h-12 rounded-lg border border-border listing-hero-pattern flex items-center justify-center">
+                    <FileTextIcon className="h-5 w-5 text-growth-green" />
                   </div>
                 )}
                 <div className="min-w-0">
-                  <h1 className="font-display text-2xl sm:text-3xl font-bold uppercase tracking-tight truncate">{brandName}</h1>
+                  <h1 className="font-display text-xl sm:text-2xl font-bold uppercase tracking-tight truncate">{brandName}</h1>
                   <p className="text-sm text-muted-foreground truncate">
                     {franchise.industry}
                     {franchise.establishedYear || franchise.established_year
@@ -245,59 +254,59 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate(`/franchise/${identifier}/locations`)}
-              >
-                <MapPinIcon className="h-4 w-4 mr-2" />
-                Locations
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleSave}>
-                <HeartIcon className={cn("h-4 w-4 mr-2", isSaved && "fill-current text-red-500")} />
-                {isSaved ? "Saved" : "Save"}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleCompare}
-                className={cn(compared && "border-foreground")}
-              >
-                <GitCompareArrows className="h-4 w-4 mr-2" />
-                {compared ? "In Compare" : "Compare"}
-              </Button>
-              {compareIds.length > 0 && (
-                <Button size="sm" variant="secondary" onClick={() => setShowComparePanel(true)}>
-                  View Compare ({compareIds.length})
+            <TooltipProvider delayDuration={200}>
+              <div className="flex flex-wrap items-center gap-2">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="outline" size="icon" className="h-9 w-9" onClick={handleSave} aria-label={isSaved ? "Saved" : "Save"}>
+                      <HeartIcon className={cn("h-4 w-4", isSaved && "fill-current text-red-500")} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{isSaved ? "Saved" : "Save"}</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className={cn("h-9 w-9", compared && "border-growth-green text-growth-green")}
+                      onClick={handleCompare}
+                      aria-label={compared ? "In compare" : "Compare"}
+                    >
+                      <GitCompareArrows className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{compared ? "In compare" : "Compare"}</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="outline" size="icon" className="h-9 w-9" onClick={handleShare} aria-label="Share">
+                      <ShareIcon className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Share</TooltipContent>
+                </Tooltip>
+                {compareIds.length > 0 && (
+                  <Button size="sm" variant="secondary" onClick={() => setShowComparePanel(true)}>
+                    Compare ({compareIds.length})
+                  </Button>
+                )}
+                <Button variant="ghost" size="sm" onClick={handlePitchDeck}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Download Pitch Deck
                 </Button>
-              )}
-              <Button variant="outline" size="sm" onClick={handleShare}>
-                <ShareIcon className="h-4 w-4 mr-2" />
-                Share
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => setShowContactForm(true)}>
-                Request Information
-              </Button>
-              <Button
-                size="sm"
-                onClick={handleApply}
-              >
-                <FileTextIcon className="h-4 w-4 mr-2" />
-                Apply Now
-              </Button>
-            </div>
+                <Button size="sm" onClick={handleApply}>
+                  Apply for Franchise
+                </Button>
+              </div>
+            </TooltipProvider>
           </div>
         </div>
       </div>
 
-      {/* Mobile sticky Contact CTA */}
       <div className="fixed bottom-16 left-0 right-0 z-20 p-3 md:hidden border-t border-border bg-background/95 backdrop-blur-md">
-        <Button
-          className="w-full"
-          onClick={() => setShowContactForm(true)}
-        >
-          Contact
+        <Button className="w-full" onClick={handleApply}>
+          Apply for Franchise
         </Button>
       </div>
 
@@ -307,25 +316,6 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
           selectedFormatId={selectedFormatId}
           onFormatChange={setSelectedFormatId}
         />
-
-        <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center pb-8">
-          <Button
-            size="lg"
-            onClick={() => setShowContactForm(true)}
-          >
-            Request Franchise Information
-          </Button>
-          <Button size="lg" variant="outline" onClick={handleApply}>
-            Start Application
-          </Button>
-          <VabgoSiteLink
-            size="lg"
-            intent={vabgoIntent}
-          />
-          <Button size="lg" variant="ghost" asChild>
-            <Link to="/franchises">Browse More Franchises</Link>
-          </Button>
-        </div>
       </div>
 
       <InquiryDialog

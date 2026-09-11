@@ -52,22 +52,22 @@ export function Footer() {
       {/* Newsletter Section */}
       <div className="border-b border-white/10">
         <div className="container mx-auto px-4 py-5 md:py-6">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="text-center md:text-left">
+          <div className="flex flex-col items-center text-center gap-4 max-w-xl mx-auto">
+            <div>
               <h3 className="text-sm font-bold uppercase tracking-widest text-background mb-0.5">
                 Get listing alerts
               </h3>
-              <p className="text-sm text-background/60">
+              <p className="text-sm text-background/70">
                 New franchises and franchise territories, delivered when they go live
               </p>
             </div>
-            <form onSubmit={handleSubscribe} className="flex gap-2 w-full md:w-auto">
+            <form onSubmit={handleSubscribe} className="flex gap-2 w-full">
               <Input
                 type="email"
-                placeholder="Enter your email"
+                placeholder="Enter email for new franchise alerts"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="bg-transparent border border-background/20 text-background placeholder:text-background/40 w-full md:w-64 shadow-none"
+                className="bg-transparent border border-background/20 text-background placeholder:text-background/50 w-full shadow-none rounded-lg"
               />
               <Button
                 type="submit"
@@ -155,17 +155,17 @@ export function Footer() {
             <h3 className="text-sm font-bold uppercase tracking-widest text-background/60 mb-3">Franchises</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/franchises" className="text-sm text-background/60 hover:text-white transition-colors">
+                <Link to="/franchises" className="text-sm text-background/60 hover:text-white transition-colors duration-150">
                   Franchise Opportunities
                 </Link>
               </li>
               <li>
-                <Link to="/franchises" className="text-sm text-background/60 hover:text-white transition-colors">
+                <Link to="/franchises" className="text-sm text-background/60 hover:text-white transition-colors duration-150">
                   Browse Franchises
                 </Link>
               </li>
               <li>
-                <Link to="/franchise-map" className="text-sm text-background/60 hover:text-white transition-colors">
+                <Link to="/franchise-map" className="text-sm text-background/60 hover:text-white transition-colors duration-150">
                   Franchise Map
                 </Link>
               </li>
@@ -176,12 +176,12 @@ export function Footer() {
             <h3 className="text-sm font-bold uppercase tracking-widest text-background/60 mb-3">For Franchisors</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/add-franchise-listing" className="text-sm text-background/60 hover:text-white transition-colors">
+                <Link to="/add-franchise-listing" className="text-sm text-background/60 hover:text-white transition-colors duration-150">
                   List Your Franchise
                 </Link>
               </li>
               <li>
-                <Link to="/franchisor/applications" className="text-sm text-background/60 hover:text-white transition-colors">
+                <Link to="/franchisor/applications" className="text-sm text-background/60 hover:text-white transition-colors duration-150">
                   Franchisee Applications
                 </Link>
               </li>
@@ -189,12 +189,12 @@ export function Footer() {
             <h3 className="text-sm font-semibold text-background mb-3 mt-6">Businesses</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/businesses" className="text-sm text-background/60 hover:text-white transition-colors">
+                <Link to="/businesses" className="text-sm text-background/60 hover:text-white transition-colors duration-150">
                   Businesses for Sale
                 </Link>
               </li>
               <li>
-                <Link to="/add-business-listing" className="text-sm text-background/60 hover:text-white transition-colors">
+                <Link to="/add-business-listing" className="text-sm text-background/60 hover:text-white transition-colors duration-150">
                   Sell a Business
                 </Link>
               </li>
@@ -205,17 +205,17 @@ export function Footer() {
             <h3 className="text-sm font-bold uppercase tracking-widest text-background/60 mb-3">Tools</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/smart-search" className="text-sm text-background/60 hover:text-white transition-colors">
+                <Link to="/smart-search" className="text-sm text-background/60 hover:text-white transition-colors duration-150">
                   Franchise Matching
                 </Link>
               </li>
               <li>
-                <Link to="/franchise-map" className="text-sm text-background/60 hover:text-white transition-colors">
+                <Link to="/franchise-map" className="text-sm text-background/60 hover:text-white transition-colors duration-150">
                   Territory Map
                 </Link>
               </li>
               <li>
-                <Link to="/business-valuation" className="text-sm text-background/60 hover:text-white transition-colors">
+                <Link to="/business-valuation" className="text-sm text-background/60 hover:text-white transition-colors duration-150">
                   Investment / ROI
                 </Link>
               </li>
@@ -224,7 +224,7 @@ export function Footer() {
                   href="https://vabgo.com/commercial"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-background/60 hover:text-white transition-colors"
+                  className="text-sm text-background/60 hover:text-white transition-colors duration-150"
                 >
                   Commercial property (VABGO)
                 </a>
@@ -236,22 +236,22 @@ export function Footer() {
             <h3 className="text-sm font-bold uppercase tracking-widest text-background/60 mb-3">Company</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/about" className="text-sm text-background/60 hover:text-white transition-colors">
+                <Link to="/about" className="text-sm text-background/60 hover:text-white transition-colors duration-150">
                   About
                 </Link>
               </li>
               <li>
-                <Link to="/contact" className="text-sm text-background/60 hover:text-white transition-colors">
+                <Link to="/contact" className="text-sm text-background/60 hover:text-white transition-colors duration-150">
                   Contact
                 </Link>
               </li>
               <li>
-                <Link to="/terms" className="text-sm text-background/60 hover:text-white transition-colors">
+                <Link to="/terms" className="text-sm text-background/60 hover:text-white transition-colors duration-150">
                   Terms
                 </Link>
               </li>
               <li>
-                <Link to="/privacy" className="text-sm text-background/60 hover:text-white transition-colors">
+                <Link to="/privacy" className="text-sm text-background/60 hover:text-white transition-colors duration-150">
                   Privacy
                 </Link>
               </li>
@@ -259,13 +259,13 @@ export function Footer() {
             <ul className="space-y-3 mt-6">
               <li className="flex items-center gap-2 text-sm text-background/60">
                 <Mail className="h-4 w-4 flex-shrink-0 text-background" />
-                <a href="mailto:support@bizsearch.in" className="hover:text-white transition-colors">
+                <a href="mailto:support@bizsearch.in" className="hover:text-white transition-colors duration-150">
                   support@bizsearch.in
                 </a>
               </li>
               <li className="flex items-center gap-2 text-sm text-background/60">
                 <Phone className="h-4 w-4 flex-shrink-0 text-background" />
-                <a href="tel:+911800123456" className="hover:text-white transition-colors">
+                <a href="tel:+911800123456" className="hover:text-white transition-colors duration-150">
                   +91 1800 123 456
                 </a>
               </li>
@@ -358,7 +358,7 @@ export function Footer() {
                     <li key={idx}>
                       <Link
                         to={link.to}
-                        className="text-sm text-background/60 hover:text-white transition-colors"
+                        className="text-sm text-background/60 hover:text-white transition-colors duration-150"
                       >
                         {link.label}
                       </Link>
@@ -409,6 +409,10 @@ export function Footer() {
         </p>
 
         <Separator className="bg-white/10 mb-6" />
+
+        <p className="text-xs text-background/70 mb-4 max-w-3xl">
+          Investment figures and returns are estimates provided by respective franchisors. Independent due diligence is advised.
+        </p>
 
         {/* Bottom Bar */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">

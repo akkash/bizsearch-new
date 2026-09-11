@@ -109,26 +109,26 @@ export function HomeCompareTable({ className }: { className?: string }) {
             <p className="text-xs font-bold uppercase tracking-widest text-trust-blue mb-4">
               {cohort.industry}
             </p>
-            <div className="overflow-x-auto border border-border bg-card shadow-[var(--shadow-sm)]">
-              <table className="w-full min-w-[640px] text-sm">
-                <thead>
-                  <tr className="border-b border-border bg-secondary/50">
-                    <th className="text-left p-4 font-bold uppercase tracking-widest text-xs text-muted-foreground">
+            <div className="overflow-x-auto border border-border bg-card shadow-sm rounded-xl">
+              <table className="w-full min-w-[640px] text-sm border-separate border-spacing-0">
+                <thead className="sticky top-0 z-10">
+                  <tr className="bg-secondary">
+                    <th className="text-left p-4 font-bold uppercase tracking-widest text-xs text-muted-foreground sticky left-0 bg-secondary border-b border-r border-border">
                       Metric
                     </th>
                     {cohort.brands.map((brand) => (
-                      <th key={brand.id} className="text-left p-4">
-                        <div className="flex items-center gap-2">
+                      <th key={brand.id} className="text-left p-4 border-b border-r last:border-r-0 border-border bg-secondary">
+                        <div className="flex items-center gap-2 min-w-[9rem]">
                           {listingLogoUrl(brand) && (
                             <img
                               src={listingLogoUrl(brand)!}
                               alt=""
-                              className="h-8 w-8 object-contain border border-border bg-white dark:bg-card p-0.5"
+                              className="h-8 w-8 object-contain rounded-lg border border-border bg-white dark:bg-card p-0.5"
                             />
                           )}
                           <Link
                             to={`/franchise/${brand.slug || brand.id}`}
-                            className="font-display font-bold uppercase hover:text-trust-blue"
+                            className="font-display font-bold uppercase hover:text-growth-green"
                           >
                             {brand.brand_name || brand.brandName}
                           </Link>
@@ -137,14 +137,22 @@ export function HomeCompareTable({ className }: { className?: string }) {
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border">
+                <tbody>
                   {[
                     [
-                      "Investment",
+                      "Setup Cost",
                       ...cohort.brands.map((brand) => {
                         const range = getFranchiseInvestmentRange(brand);
                         return formatInvestmentRange(range.min, range.max);
                       }),
+                    ],
+                    [
+                      "Franchise Fee",
+                      ...cohort.brands.map((brand) =>
+                        brand.franchise_fee || brand.franchiseFee
+                          ? formatINR(brand.franchise_fee ?? brand.franchiseFee)
+                          : "Not provided"
+                      ),
                     ],
                     [
                       "Royalty",
@@ -154,7 +162,7 @@ export function HomeCompareTable({ className }: { className?: string }) {
                           : "Not provided"
                       ),
                     ],
-                    ["Area required", ...cohort.brands.map(areaLabel)],
+                    ["Space", ...cohort.brands.map(areaLabel)],
                     [
                       "Payback",
                       ...cohort.brands.map((brand) =>
@@ -164,20 +172,16 @@ export function HomeCompareTable({ className }: { className?: string }) {
                       ),
                     ],
                     ["Est. net margin", ...cohort.brands.map(marginLabel)],
-                    [
-                      "Unit revenue",
-                      ...cohort.brands.map((brand) => formatINR(brand.average_unit_revenue)),
-                    ],
                   ].map((row) => (
                     <tr key={row[0]}>
                       {row.map((cell, index) => (
                         <td
                           key={`${row[0]}-${index}`}
                           className={cn(
-                            "p-4",
+                            "p-4 border-b border-r last:border-r-0 border-border",
                             index === 0
-                              ? "text-muted-foreground font-medium"
-                              : "font-mono font-semibold"
+                              ? "text-muted-foreground font-medium sticky left-0 bg-card"
+                              : "font-mono font-semibold whitespace-nowrap"
                           )}
                         >
                           {cell}
@@ -195,12 +199,13 @@ export function HomeCompareTable({ className }: { className?: string }) {
                   type="button"
                   size="sm"
                   variant={isCompared(brand.id) ? "default" : "outline"}
+                  className="whitespace-nowrap"
                   onClick={() => toggleCompare(brand.id)}
                 >
                   {isCompared(brand.id) ? "In compare" : `Add ${brand.brand_name || brand.brandName}`}
                 </Button>
               ))}
-              <Button size="sm" onClick={openCompare}>
+              <Button size="sm" className="whitespace-nowrap" onClick={openCompare}>
                 Compare these brands
               </Button>
             </div>

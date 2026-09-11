@@ -1,15 +1,14 @@
 import {
   Heart,
-  MapPin,
   GitCompareArrows,
   CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Franchise } from "@/types/listings";
-import { formatINR } from "@/lib/format-currency";
 import {
   formatInvestmentRange,
+  formatStoreFormatSpace,
   getFranchiseInvestmentRange,
   getStoreFormatsFromFranchise,
 } from "@/lib/store-formats";
@@ -45,20 +44,35 @@ export function FranchiseCard({
   const coverUrl = listingCoverUrl(franchise);
   const formats = getStoreFormatsFromFranchise(franchise);
   const investRange = getFranchiseInvestmentRange(franchise);
-  const franchiseFee = franchise.franchise_fee ?? franchise.franchiseFee;
   const royalty = franchise.royalty_percentage ?? franchise.royaltyPercentage;
-  const breakEven =
-    (franchise as any).expected_break_even ||
-    (franchise as any).break_even_months ||
-    (franchise as any).payback_period;
-  const territories = franchise.territories || [];
+  const outlets = franchise.total_outlets ?? franchise.outlets;
+  const termYears =
+    (franchise as { franchise_term_years?: number }).franchise_term_years ??
+    (franchise as { term_years?: number }).term_years;
+  const spaceLabel = formats[0]
+    ? formatStoreFormatSpace(formats[0])
+    : franchise.min_area_sqft && franchise.max_area_sqft
+      ? `${franchise.min_area_sqft}–${franchise.max_area_sqft} sq ft`
+      : franchise.space_required_sqft
+        ? `${franchise.space_required_sqft} sq ft`
+        : "Not provided";
   const investmentLabel = formatInvestmentRange(investRange.min, investRange.max);
   const verified = franchise.verification_status === "verified";
+
+  const specs = [
+    { label: "Space", value: spaceLabel },
+    { label: "Royalty", value: royalty != null ? `${royalty}%` : "Not provided" },
+    { label: "Term", value: termYears ? `${termYears} Years` : "Not provided" },
+    {
+      label: "Outlets",
+      value: outlets ? `${outlets}+` : "Not provided",
+    },
+  ];
 
   return (
     <article
       className={cn(
-        "group border border-border bg-card p-0 cursor-pointer card-hover-lift overflow-hidden",
+        "group border border-border bg-card rounded-lg shadow-sm cursor-pointer card-hover-lift overflow-hidden",
         variant === "list" ? "flex flex-col sm:flex-row" : "flex flex-col",
         className
       )}
@@ -68,6 +82,7 @@ export function FranchiseCard({
         brandName={brandName}
         logoUrl={logoUrl}
         coverUrl={coverUrl}
+        industry={franchise.industry}
         variant={variant === "list" ? "list" : "card"}
       >
         <div className="absolute top-2 right-2 flex gap-1">
@@ -76,8 +91,8 @@ export function FranchiseCard({
               variant="ghost"
               size="icon"
               className={cn(
-                "h-9 w-9 bg-white/90 dark:bg-card/90 hover:bg-white shadow-sm",
-                isCompared && "text-trust-blue"
+                "h-9 w-9 rounded-lg bg-white/90 dark:bg-card/90 hover:bg-white shadow-sm",
+                isCompared && "text-growth-green"
               )}
               onClick={(e) => {
                 e.stopPropagation();
@@ -91,7 +106,7 @@ export function FranchiseCard({
           <Button
             variant="ghost"
             size="icon"
-            className="h-9 w-9 bg-white/90 dark:bg-card/90 hover:bg-white shadow-sm"
+            className="h-9 w-9 rounded-lg bg-white/90 dark:bg-card/90 hover:bg-white shadow-sm"
             onClick={(e) => {
               e.stopPropagation();
               onSave?.(franchise.id);
@@ -103,81 +118,50 @@ export function FranchiseCard({
         </div>
       </ListingBrandHero>
 
-      <div className="p-6 flex flex-col flex-1">
-        <div className="mb-8 min-w-0">
-          <h3 className="font-display text-xl md:text-2xl font-bold uppercase leading-snug line-clamp-2">
+      <div className="px-4 pt-3 pb-4 flex flex-col flex-1 gap-3">
+        <div className="min-w-0">
+          <h3 className="font-display text-lg font-bold uppercase leading-snug line-clamp-1">
             {brandName}
           </h3>
-          <p className="text-xs uppercase tracking-widest text-muted-foreground mt-1 line-clamp-1">
+          <p className="text-xs uppercase tracking-widest text-muted-foreground mt-0.5 line-clamp-1">
             {franchise.industry || "Franchise"}
-            {territories.length ? ` · ${territories.slice(0, 2).join(", ")}` : ""}
           </p>
-        </div>
-
-        <div className="mt-auto">
-          <div className="text-3xl md:text-4xl font-display font-bold font-mono tabular-nums tracking-tight leading-none mb-1 text-growth-green">
+          <div className="mt-1.5 font-mono text-lg sm:text-xl font-bold tabular-nums tracking-tight text-growth-green whitespace-nowrap overflow-hidden text-ellipsis">
             {investmentLabel}
           </div>
-          <div className="text-xs uppercase tracking-widest text-muted-foreground mb-6">
-            {formats.length > 1
-              ? `Investment · ${formats.length} formats`
-              : "Investment range"}
-          </div>
-
-          <div className="grid grid-cols-2 gap-4 border-t border-border pt-4 mb-6 text-sm">
-            <div>
-              <div className="text-xs uppercase tracking-widest text-muted-foreground mb-1">Fee</div>
-              <div className="font-bold font-mono tabular-nums">
-                {franchiseFee ? formatINR(franchiseFee) : "Not provided"}
-              </div>
-            </div>
-            <div>
-              <div className="text-xs uppercase tracking-widest text-muted-foreground mb-1">
-                Break-even
-              </div>
-              <div className="font-bold">
-                {breakEven
-                  ? typeof breakEven === "number"
-                    ? `${breakEven} mo`
-                    : breakEven
-                  : "Not provided"}
-              </div>
-            </div>
-            {royalty != null && (
-              <div>
-                <div className="text-xs uppercase tracking-widest text-muted-foreground mb-1">Royalty</div>
-                <div className="font-bold font-mono tabular-nums">{royalty}%</div>
-              </div>
-            )}
-            {territories.length > 0 && (
-              <div>
-                <div className="text-xs uppercase tracking-widest text-muted-foreground mb-1">Territory</div>
-                <div className="font-bold flex items-center gap-1 line-clamp-1">
-                  <MapPin className="h-3 w-3 shrink-0" />
-                  {territories[0]}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {verified && (
-            <div className="flex items-center gap-1 text-xs uppercase tracking-widest mb-4 text-trust-blue">
-              <CheckCircle2 className="h-3.5 w-3.5" />
-              Franchisor verified
-            </div>
-          )}
-
-          <Button
-            size="sm"
-            className="w-full"
-            onClick={(e) => {
-              e.stopPropagation();
-              onViewDetails?.(franchise.id);
-            }}
-          >
-            View Franchise
-          </Button>
         </div>
+
+        <div className="grid grid-cols-2 gap-1.5">
+          {specs.map((spec) => (
+            <div
+              key={spec.label}
+              className="rounded-lg border border-border bg-secondary/50 px-2.5 py-1.5"
+            >
+              <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                {spec.label}
+              </div>
+              <div className="text-xs font-semibold truncate">{spec.value}</div>
+            </div>
+          ))}
+        </div>
+
+        {verified && (
+          <div className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-growth-green">
+            <CheckCircle2 className="h-3.5 w-3.5" />
+            Franchisor verified
+          </div>
+        )}
+
+        <Button
+          size="sm"
+          className="w-full mt-auto"
+          onClick={(e) => {
+            e.stopPropagation();
+            onViewDetails?.(franchise.id);
+          }}
+        >
+          View Franchise
+        </Button>
       </div>
     </article>
   );

@@ -35,6 +35,7 @@ import {
   HomeIcon,
   GitCompareArrows,
   Scale,
+  XIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FRANCHISE_CATEGORIES, getCategoryBySlug } from "@/data/categories";
@@ -292,6 +293,26 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
         );
       }
 
+      if (filters.spaceRange && (filters.spaceRange[0] > 0 || filters.spaceRange[1] < 5000)) {
+        filtered = filtered.filter((franchise) => {
+          const min = franchise.min_area_sqft ?? franchise.space_required_sqft ?? 0;
+          const max = franchise.max_area_sqft ?? min;
+          if (!min && !max) return true;
+          return filters.spaceRange[0] <= max && min <= filters.spaceRange[1];
+        });
+      }
+
+      if (filters.formatModel?.length) {
+        filtered = filtered.filter((franchise) => {
+          const ownerOp = franchise.owner_operator_required;
+          if (ownerOp == null) return true;
+          const models: string[] = [];
+          if (ownerOp === true) models.push("FOFO");
+          if (ownerOp === false) models.push("FOCO");
+          return filters.formatModel.some((m) => models.includes(m));
+        });
+      }
+
       // Financing filter
       if (filters.financing) {
         filtered = filtered.filter((franchise) =>
@@ -433,7 +454,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
   // Loading state
   if (loading) {
     return (
-      <div className={cn("min-h-screen bg-background", className)}>
+      <div className={cn("bg-background overflow-x-hidden", className)}>
         <div className="container mx-auto px-4 py-8">
           <h1 className="font-display text-3xl md:text-5xl font-bold uppercase tracking-tight mb-6">
             Franchise Opportunities
@@ -447,7 +468,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
   // Error state
   if (!loading && error) {
     return (
-      <div className={cn("min-h-screen bg-background", className)}>
+      <div className={cn("bg-background overflow-x-hidden", className)}>
         <div className="container mx-auto px-4 py-8">
           <EmptyState
             type="error"
@@ -471,7 +492,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
   );
   if (!loading && !error && franchises.length === 0 && !hasActiveQuery) {
     return (
-      <div className={cn("min-h-screen bg-background", className)}>
+      <div className={cn("bg-background overflow-x-hidden", className)}>
         <div className="container mx-auto px-4 py-8">
           <EmptyState
             type="no-data"
@@ -486,7 +507,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
   }
 
   return (
-    <div className={cn("min-h-screen bg-background", className)}>
+    <div className={cn("bg-background overflow-x-hidden", className)}>
       <div className="border-b border-border bg-card">
         <div className="container mx-auto px-4 py-6 md:py-8">
           {(currentCategory || currentSubcategory) && (
@@ -659,8 +680,8 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
                     </Button>
                     <Separator orientation="vertical" className="h-6" />
 
-                    <div className="text-sm text-muted-foreground">
-                      {filteredFranchises.length} franchises found
+                    <div className="text-sm font-medium">
+                      Showing {filteredFranchises.length} {filteredFranchises.length === 1 ? "Opportunity" : "Opportunities"}
                     </div>
                   </div>
 
@@ -696,12 +717,17 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
                     </div>
 
                     {/* View Mode */}
-                    <div className="flex items-center border rounded-md">
+                    <div className="flex items-center rounded-lg border border-border overflow-hidden">
                       <Button
                         variant={viewMode === "grid" ? "default" : "ghost"}
                         size="sm"
                         onClick={() => setViewMode("grid")}
-                        className="rounded-r-none"
+                        className={cn(
+                          "rounded-none h-9 w-9",
+                          viewMode === "grid" ? "bg-growth-green text-white" : "text-muted-foreground"
+                        )}
+                        aria-pressed={viewMode === "grid"}
+                        aria-label="Grid view"
                       >
                         <GridIcon className="h-4 w-4" />
                       </Button>
@@ -709,7 +735,12 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
                         variant={viewMode === "list" ? "default" : "ghost"}
                         size="sm"
                         onClick={() => setViewMode("list")}
-                        className="rounded-none"
+                        className={cn(
+                          "rounded-none h-9 w-9 border-x border-border",
+                          viewMode === "list" ? "bg-growth-green text-white" : "text-muted-foreground"
+                        )}
+                        aria-pressed={viewMode === "list"}
+                        aria-label="List view"
                       >
                         <ListIcon className="h-4 w-4" />
                       </Button>
@@ -717,7 +748,12 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
                         variant={viewMode === "map" ? "default" : "ghost"}
                         size="sm"
                         onClick={() => setViewMode("map")}
-                        className="rounded-l-none"
+                        className={cn(
+                          "rounded-none h-9 w-9",
+                          viewMode === "map" ? "bg-growth-green text-white" : "text-muted-foreground"
+                        )}
+                        aria-pressed={viewMode === "map"}
+                        aria-label="Map view"
                       >
                         <MapIcon className="h-4 w-4" />
                       </Button>
@@ -728,22 +764,38 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
             </Card>
 
             {/* Active Filters */}
-            {(filters || selectedInvestmentRange) && (
-              <div className="flex flex-wrap gap-2">
+            {(filters || selectedInvestmentRange || urlCity || currentCategory) && (
+              <div className="flex flex-wrap items-center gap-2">
                 {selectedInvestmentRange && (
-                  <Badge variant="secondary">
+                  <Badge variant="secondary" className="gap-1 rounded-lg">
                     Investment: {selectedInvestmentRange}
+                    <button type="button" aria-label="Remove investment filter" onClick={() => setSelectedInvestmentRange("")}>
+                      <XIcon className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                )}
+                {urlCity && (
+                  <Badge variant="secondary" className="gap-1 rounded-lg">
+                    City: {urlCity}
+                  </Badge>
+                )}
+                {currentCategory && (
+                  <Badge variant="secondary" className="gap-1 rounded-lg">
+                    Industry: {currentCategory.name}
+                    <Link to="/franchises" aria-label="Remove industry filter">
+                      <XIcon className="h-3 w-3" />
+                    </Link>
                   </Badge>
                 )}
                 {filters?.industry.map((industry) => (
-                  <Badge key={industry} variant="secondary">
+                  <Badge key={industry} variant="secondary" className="rounded-lg">
                     Industry: {industry}
                   </Badge>
                 ))}
                 {filters &&
                   (filters.franchiseFee[0] > 0 ||
                     filters.franchiseFee[1] < 5000000) && (
-                    <Badge variant="secondary">
+                    <Badge variant="secondary" className="rounded-lg">
                       Investment: ₹
                       {(filters.franchiseFee[0] / 100000).toFixed(1)}L - ₹
                       {(filters.franchiseFee[1] / 100000).toFixed(1)}L
@@ -752,11 +804,35 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
                 {filters &&
                   (filters.royaltyPercentage[0] > 0 ||
                     filters.royaltyPercentage[1] < 20) && (
-                    <Badge variant="secondary">
+                    <Badge variant="secondary" className="rounded-lg">
                       Royalty: {filters.royaltyPercentage[0]}% -{" "}
                       {filters.royaltyPercentage[1]}%
                     </Badge>
                   )}
+                {filters?.city.map((city) => (
+                  <Badge key={city} variant="secondary" className="rounded-lg">
+                    City: {city}
+                  </Badge>
+                ))}
+                {filters?.state.map((state) => (
+                  <Badge key={state} variant="secondary" className="rounded-lg">
+                    State: {state}
+                  </Badge>
+                ))}
+                {(filters || selectedInvestmentRange || currentCategory) && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2 text-xs"
+                    onClick={() => {
+                      setSelectedInvestmentRange("");
+                      setFilters(null);
+                      if (currentCategory || urlCity) navigate("/franchises");
+                    }}
+                  >
+                    Clear All
+                  </Button>
+                )}
               </div>
             )}
 
@@ -794,7 +870,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
                     ))}
                     {paginatedFranchises.length === 0 && (
                       <div className="flex-none w-80 p-8 text-center text-muted-foreground">
-                        No franchises match your criteria
+                        No details found in the table.
                       </div>
                     )}
                   </div>

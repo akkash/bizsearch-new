@@ -217,13 +217,14 @@ export function HomeBusinessInventory({ className }: { className?: string }) {
                 return (
                   <article
                     key={b.id}
-                    className="group border border-border bg-card p-0 flex flex-col cursor-pointer card-hover-lift overflow-hidden"
+                    className="group border border-border bg-card rounded-lg shadow-sm p-0 flex flex-col cursor-pointer card-hover-lift overflow-hidden"
                     onClick={() => navigate(`/business/${id}`)}
                   >
                     <ListingBrandHero
                       brandName={b.name || "Business"}
                       logoUrl={listingLogoUrl(b)}
                       coverUrl={listingCoverUrl(b)}
+                      industry={b.industry}
                     />
                     <div className="p-6 flex flex-col flex-1">
                     <h3 className="font-display text-2xl font-bold uppercase mb-2 leading-snug line-clamp-1">
@@ -460,13 +461,14 @@ export function HomeFranchiseInventory({ className }: { className?: string }) {
                 return (
                   <article
                     key={f.id}
-                    className="group border border-border bg-card p-0 flex flex-col cursor-pointer card-hover-lift overflow-hidden"
+                    className="group border border-border bg-card rounded-lg shadow-sm p-0 flex flex-col cursor-pointer card-hover-lift overflow-hidden"
                     onClick={() => navigate(`/franchise/${id}`)}
                   >
                     <ListingBrandHero
                       brandName={brand}
                       logoUrl={listingLogoUrl(f)}
                       coverUrl={listingCoverUrl(f)}
+                      industry={f.industry}
                     />
                     <div className="p-6 flex flex-col flex-1">
                     <div className="mb-2 min-w-0">

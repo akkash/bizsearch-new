@@ -41,9 +41,9 @@
   --secondary-foreground: 0 0% 4%;
 
   --muted: 220 14% 96%;
-  --muted-foreground: 215 16% 34%; /* #4B5563 — WCAG AA on white */
+  --muted-foreground: 215 19% 27%; /* #374151 — WCAG AA on white */
 
-  --accent: 226 65% 33%;
+  --accent: 175 84% 26%; /* growth teal — no navy bars */
   --accent-foreground: 0 0% 100%;
 
   --destructive: 0 72% 51%;
@@ -56,7 +56,7 @@
   --input: 220 13% 91%;
   --ring: 175 84% 26%;
 
-  --radius: 0px;
+  --radius: 8px;
 
   --chart-1: 175 84% 26%;
   --chart-2: 226 65% 33%;
@@ -171,6 +171,11 @@ p,
 /* ===================================
    BASE STYLES
    =================================== */
+html,
+body {
+  overflow-x: hidden;
+}
+
 body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
@@ -179,14 +184,16 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-
-.rounded-sm,
-.rounded,
-.rounded-md,
-.rounded-lg,
-.rounded-xl,
-.rounded-2xl {
-  border-radius: 0;
+.listing-hero-pattern {
+  background-color: hsl(var(--muted));
+  background-image:
+    radial-gradient(circle at 18% 22%, hsl(var(--growth-green) / 0.14) 0 26%, transparent 28%),
+    radial-gradient(circle at 86% 8%, hsl(var(--growth-green) / 0.1) 0 22%, transparent 24%),
+    repeating-linear-gradient(
+      135deg,
+      hsl(var(--border) / 0.7) 0 1px,
+      transparent 1px 14px
+    );
 }
 
 /* ===================================
@@ -211,7 +218,7 @@ button:active:not(:disabled) {
 *:focus-visible {
   outline: 2px solid hsl(var(--ring));
   outline-offset: 2px;
-  border-radius: 0;
+  border-radius: var(--radius);
 }
 
 ::selection {

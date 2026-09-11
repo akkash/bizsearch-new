@@ -82,7 +82,7 @@ export function MainLayout({ children }: MainLayoutProps) {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen flex flex-col overflow-x-hidden bg-background">
       <header className="sticky top-0 z-50 w-full border-b border-border bg-background/90 backdrop-blur-md">
         <div className="container mx-auto px-6">
           <div className="flex h-16 md:h-20 items-center justify-between gap-4">

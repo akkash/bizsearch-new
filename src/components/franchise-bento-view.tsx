@@ -28,6 +28,7 @@ import {
     MapIcon,
     AlertCircle,
     HelpCircle,
+    ExternalLink,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatINR } from '@/lib/format-currency';
@@ -40,9 +41,8 @@ import {
     getListingRequirements,
     getStoreFormatsFromFranchise,
 } from '@/lib/store-formats';
-import { VabgoSiteLink } from '@/components/vabgo-site-link';
-import { VabgoSitePanel } from '@/components/vabgo-site-panel';
-import { hasSearchableIntent } from '@/lib/vabgo-client';
+import { VabgoClient, hasSearchableIntent } from '@/lib/vabgo-client';
+import { listingImageUrl } from '@/lib/listing-media';
 
 interface FranchiseBentoViewProps {
     franchise: any;
@@ -70,6 +70,8 @@ export function FranchiseBentoView({
 }: FranchiseBentoViewProps) {
     const [brandSlideIndex, setBrandSlideIndex] = useState(0);
     const [territorySearch, setTerritorySearch] = useState('');
+    const [territorySubmitted, setTerritorySubmitted] = useState(false);
+    const [galleryIndex, setGalleryIndex] = useState(0);
 
     const formats = getStoreFormatsFromFranchise(franchise);
     const selectedFormat = findStoreFormat(formats, selectedFormatId);
@@ -230,6 +232,10 @@ export function FranchiseBentoView({
         totalInvestmentMin != null ? Number(totalInvestmentMin) : null,
         totalInvestmentMax != null ? Number(totalInvestmentMax) : null
     );
+    const gallery = (Array.isArray(franchise.images) ? franchise.images : [])
+        .map((item: unknown) => listingImageUrl(item))
+        .filter((url: string | null): url is string => Boolean(url));
+    const galleryPhoto = gallery[Math.min(galleryIndex, Math.max(gallery.length - 1, 0))];
 
     return (
         <div className={cn("space-y-6", className)}>
@@ -240,7 +246,7 @@ export function FranchiseBentoView({
                         {logoUrl ? (
                             <img src={logoUrl} alt={`${brandName} logo`} className="h-full w-full object-contain" />
                         ) : (
-                            <span className="font-display text-2xl font-bold text-trust-blue">{brandName.charAt(0)}</span>
+                            <Building2 className="h-8 w-8 text-growth-green" />
                         )}
                     </div>
                     <div className="min-w-0 flex-1">
@@ -280,6 +286,7 @@ export function FranchiseBentoView({
                             onChange={onFormatChange}
                             label="Outlet formats"
                             required={formats.length > 1}
+                            variant="tabs"
                         />
                     </div>
                 )}
@@ -327,38 +334,78 @@ export function FranchiseBentoView({
                     </div>
                 </div>
                 {(spaceReq || listingReqs.propertyType || listingReqs.preferredCities.length > 0) && (
-                    <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <p className="mt-4 text-sm text-muted-foreground">
                         {spaceReq ? (
-                            <p className="text-sm text-muted-foreground">
+                            <>
                                 Space requirement:{' '}
                                 <span className="text-foreground font-medium">
                                     {typeof spaceReq === 'number' ? `${spaceReq} sq ft` : spaceReq}
                                 </span>
-                            </p>
+                            </>
                         ) : (
-                            <p className="text-sm text-muted-foreground">
-                                Need a commercial site for this format?
-                            </p>
+                            'Need a commercial site for this format?'
                         )}
-                        <VabgoSiteLink intent={vabgoIntent} />
-                    </div>
+                    </p>
                 )}
-                {hasSearchableIntent(vabgoIntent) && (
-                    <VabgoSitePanel
-                        className="mt-4"
-                        intent={vabgoIntent}
-                        heading="Matching commercial sites"
-                    />
+                {VabgoClient.isEnabled() && hasSearchableIntent(vabgoIntent) && (
+                    <a
+                        href={VabgoClient.buildSearchUrl(vabgoIntent)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl border border-growth-green/30 bg-growth-green/10 p-4 hover:bg-growth-green/15 transition-colors duration-150"
+                    >
+                        <div>
+                            <p className="font-display text-lg font-bold uppercase tracking-tight">
+                                Looking for a Commercial Space?
+                            </p>
+                            <p className="text-sm text-muted-foreground mt-1">
+                                Find verified retail outlets suitable for {brandName}
+                                {selectedFormat
+                                  ? ` (${formatStoreFormatSpace(selectedFormat)})`
+                                  : listingReqs.minAreaSqft
+                                    ? ` (${listingReqs.minAreaSqft}${listingReqs.maxAreaSqft ? `–${listingReqs.maxAreaSqft}` : ''} sq.ft)`
+                                    : ''}{' '}
+                                on Vabgo
+                            </p>
+                        </div>
+                        <span className="inline-flex items-center gap-1 text-sm font-bold uppercase tracking-widest text-growth-green whitespace-nowrap">
+                            Open Vabgo
+                            <ExternalLink className="h-4 w-4" />
+                        </span>
+                    </a>
                 )}
             </div>
 
-            {(franchise.images?.[0]) && (
-                <div className="relative aspect-[21/9] rounded-lg overflow-hidden bg-muted">
+            {galleryPhoto && (
+                <div className="relative aspect-video md:aspect-[21/9] rounded-xl overflow-hidden bg-muted">
                     <img
-                        src={franchise.images[0]}
-                        alt={brandName}
+                        src={galleryPhoto}
+                        alt={`${brandName} outlet ${galleryIndex + 1}`}
                         className="w-full h-full object-cover"
                     />
+                    {gallery.length > 1 && (
+                        <>
+                            <div className="absolute top-3 right-3 rounded-lg bg-foreground/80 text-background text-xs font-mono px-2 py-1">
+                                {galleryIndex + 1}/{gallery.length} Photos
+                            </div>
+                            <div className="absolute bottom-3 left-3 right-3 flex gap-2 overflow-x-auto">
+                                {gallery.slice(0, 8).map((url, i) => (
+                                    <button
+                                        key={url + i}
+                                        type="button"
+                                        onClick={() => setGalleryIndex(i)}
+                                        className={cn(
+                                            'h-12 w-16 shrink-0 rounded-lg overflow-hidden border-2 cursor-pointer',
+                                            i === galleryIndex ? 'border-white' : 'border-transparent opacity-80'
+                                        )}
+                                        aria-label={`Photo ${i + 1}`}
+                                    >
+                                        <img src={url} alt="" className="h-full w-full object-cover" />
+                                    </button>
+                                ))}
+                            </div>
+                        </>
+                    )}
                 </div>
             )}
 
@@ -626,14 +673,16 @@ export function FranchiseBentoView({
                             {/* Pre-Opening */}
                             <div className="mb-4">
                                 <div className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">Pre-Opening</div>
-                                <div className="grid grid-cols-2 gap-2">
+                                <div className="grid grid-cols-2 gap-3">
                                     {preOpeningSupport.map((item) => {
                                         const Icon = item.icon;
                                         return (
-                                            <div key={item.name} className="flex items-center gap-2 bg-secondary p-2 rounded-md">
-                                                <Icon className="h-4 w-4 text-primary flex-shrink-0" />
-                                                <span className="text-sm truncate">{item.name}</span>
-                                                <CheckCircle className="h-3 w-3 text-growth-green ml-auto flex-shrink-0" />
+                                            <div key={item.name} className="rounded-xl border border-border bg-card p-3 shadow-sm">
+                                                <div className="flex items-start justify-between gap-2 mb-2">
+                                                    <Icon className="h-5 w-5 text-growth-green" />
+                                                    <CheckCircle className="h-4 w-4 text-growth-green" />
+                                                </div>
+                                                <span className="text-sm font-medium leading-snug">{item.name}</span>
                                             </div>
                                         );
                                     })}
@@ -643,14 +692,16 @@ export function FranchiseBentoView({
                             {/* Post-Opening */}
                             <div>
                                 <div className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">Post-Opening</div>
-                                <div className="grid grid-cols-2 gap-2">
+                                <div className="grid grid-cols-2 gap-3">
                                     {postOpeningSupport.map((item) => {
                                         const Icon = item.icon;
                                         return (
-                                            <div key={item.name} className="flex items-center gap-2 bg-accent/50 p-2 rounded-md">
-                                                <Icon className="h-4 w-4 text-accent-foreground flex-shrink-0" />
-                                                <span className="text-sm truncate">{item.name}</span>
-                                                <CheckCircle className="h-3 w-3 text-growth-green ml-auto flex-shrink-0" />
+                                            <div key={item.name} className="rounded-xl border border-border bg-card p-3 shadow-sm">
+                                                <div className="flex items-start justify-between gap-2 mb-2">
+                                                    <Icon className="h-5 w-5 text-growth-green" />
+                                                    <CheckCircle className="h-4 w-4 text-growth-green" />
+                                                </div>
+                                                <span className="text-sm font-medium leading-snug">{item.name}</span>
                                             </div>
                                         );
                                     })}
@@ -667,19 +718,36 @@ export function FranchiseBentoView({
 
                             {hasTerritoriesData ? (
                                 <>
-                                    {/* Search Input */}
-                                    <div className="relative mb-4">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                        <Input
-                                            placeholder="Enter your city..."
-                                            value={territorySearch}
-                                            onChange={(e) => setTerritorySearch(e.target.value)}
-                                            className="pl-9"
-                                        />
-                                    </div>
+                                    <form
+                                        className="flex gap-2 mb-4"
+                                        onSubmit={(e) => {
+                                            e.preventDefault();
+                                            setTerritorySubmitted(true);
+                                        }}
+                                    >
+                                        <div className="relative flex-1">
+                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                            <Input
+                                                placeholder="Pincode or city"
+                                                value={territorySearch}
+                                                onChange={(e) => {
+                                                    setTerritorySearch(e.target.value);
+                                                    setTerritorySubmitted(false);
+                                                }}
+                                                className="pl-9"
+                                            />
+                                        </div>
+                                        <Button type="submit" size="sm" className="whitespace-nowrap">
+                                            Check Availability
+                                        </Button>
+                                    </form>
 
-                                    {/* Results */}
                                     <div className="space-y-2 min-h-[140px]">
+                                        {!territorySubmitted && !territorySearch.trim() && (
+                                            <p className="text-sm text-muted-foreground">
+                                                Enter a city or pincode to check if {brandName} is expanding there.
+                                            </p>
+                                        )}
                                         {territoryResult.found && territoryResult.found.status === 'available' && (
                                             <div className="flex items-center gap-2 p-3 rounded-lg bg-accent border border-accent-foreground/20">
                                                 <CheckCircle className="h-5 w-5 text-growth-green" />
@@ -722,13 +790,40 @@ export function FranchiseBentoView({
                                     </div>
                                 </>
                             ) : (
-                                <div className="min-h-[140px] flex items-center justify-center text-muted-foreground">
-                                    <div className="text-center">
-                                        <MapPin className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                                        <p>Territory data not available</p>
-                                        <p className="text-xs mt-1">Contact franchise for availability</p>
+                                <form
+                                    className="space-y-3"
+                                    onSubmit={(e) => {
+                                        e.preventDefault();
+                                        setTerritorySubmitted(true);
+                                    }}
+                                >
+                                    <div className="flex gap-2">
+                                        <div className="relative flex-1">
+                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                            <Input
+                                                placeholder="Pincode or city"
+                                                value={territorySearch}
+                                                onChange={(e) => {
+                                                    setTerritorySearch(e.target.value);
+                                                    setTerritorySubmitted(false);
+                                                }}
+                                                className="pl-9"
+                                            />
+                                        </div>
+                                        <Button type="submit" size="sm" className="whitespace-nowrap">
+                                            Check Availability
+                                        </Button>
                                     </div>
-                                </div>
+                                    {territorySubmitted && territorySearch.trim() ? (
+                                        <p className="text-sm text-muted-foreground">
+                                            Territory table has no mapped cities for this brand. Contact the franchisor to confirm {territorySearch}.
+                                        </p>
+                                    ) : (
+                                        <p className="text-sm text-muted-foreground">
+                                            No territory rows in the table yet. Submit a city or pincode to request a check.
+                                        </p>
+                                    )}
+                                </form>
                             )}
 
                             {/* Summary */}

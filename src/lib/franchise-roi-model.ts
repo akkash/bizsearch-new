@@ -48,7 +48,8 @@ export type FranchiseEconomics = {
 export function estimateFranchiseEconomics(
   franchise: Franchise,
   spaceSqft: number | null,
-  tier: CityTier
+  tier: CityTier,
+  setupCostOverride?: number | null
 ): FranchiseEconomics {
   const formats = getStoreFormatsFromFranchise(franchise);
   const range = getFranchiseInvestmentRange(franchise);
@@ -72,6 +73,10 @@ export function estimateFranchiseEconomics(
     } else if (pts.length === 1) {
       investment = pts[0].inv;
     }
+  }
+
+  if (setupCostOverride != null && setupCostOverride > 0) {
+    investment = setupCostOverride;
   }
 
   const multiplier = TIER[tier];
