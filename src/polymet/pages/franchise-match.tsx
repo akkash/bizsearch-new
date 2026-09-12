@@ -7,7 +7,7 @@ export function FranchiseMatchPage() {
       <PageHero
         eyebrow="Franchise match"
         title="Match my profile"
-        description="Score active franchise listings against your investment, territory, and experience. Enquire writes to your inquiry pipeline."
+        description="Score active franchise listings against your investment, territory, and experience. Enquire writes to My Enquiries."
       />
       <div className="container mx-auto px-4 py-10 md:py-14">
         <FranchiseeMatcher />

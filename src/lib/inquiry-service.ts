@@ -1,10 +1,13 @@
 import { supabase } from './supabase';
+import { MessagingService } from './messaging-service';
+import { NotificationService } from './notification-service';
 import type {
   FranchiseInquiry,
   InquiryPriority,
   InquiryStatus,
   LeadQualification,
 } from '@/types/franchise-domain';
+import { scoreLeadQualification } from '@/lib/lead-qualification-score';
 
 function mapInquiry(
   row: Record<string, unknown>,
@@ -72,6 +75,9 @@ function mapInquiry(
       (row.selected_store_format_snapshot as Record<string, unknown>) ||
       (meta.selected_store_format_snapshot as Record<string, unknown>) ||
       null,
+    conversationId: row.conversation_id ? String(row.conversation_id) : null,
+    meetingAt: row.meeting_at ? String(row.meeting_at) : null,
+    meetingNotes: row.meeting_notes ? String(row.meeting_notes) : null,
     sender: sender
       ? {
           displayName: String(
@@ -211,6 +217,9 @@ export class InquiryService {
     if (q?.openingTimeline) row.opening_timeline = q.openingTimeline;
     if (q?.fundsAvailable) row.funds_available = q.fundsAvailable;
     if (q?.relevantExperience) row.relevant_experience = q.relevantExperience;
+    if (q) {
+      row.match_score = scoreLeadQualification(q).score;
+    }
     if (fmt?.id) {
       row.selected_store_format_id = fmt.id;
       row.selected_store_format_name = fmt.name;
@@ -220,7 +229,7 @@ export class InquiryService {
     const { data, error } = await supabase
       .from('inquiries')
       .insert(row)
-      .select('id')
+      .select('id, conversation_id')
       .single();
 
     if (error) {
@@ -246,15 +255,106 @@ export class InquiryService {
             contact_phone: input.contactPhone || null,
             status: 'new',
           })
-          .select('id')
+          .select('id, conversation_id')
           .single();
         if (err2) throw err2;
+        await this.ensureEnquirySideEffects({
+          inquiryId: String(fallback.id),
+          senderId: input.senderId,
+          recipientId,
+          listingId: input.listingId,
+          listingType: input.listingType,
+          message: input.message,
+          conversationId: (fallback as { conversation_id?: string }).conversation_id,
+        });
         return String(fallback.id);
       }
       throw error;
     }
 
+    await this.ensureEnquirySideEffects({
+      inquiryId: String(data.id),
+      senderId: input.senderId,
+      recipientId,
+      listingId: input.listingId,
+      listingType: input.listingType,
+      message: input.message,
+      conversationId: data.conversation_id,
+    });
+
     return String(data.id);
+  }
+
+  private static async ensureEnquirySideEffects(input: {
+    inquiryId: string;
+    senderId: string;
+    recipientId: string;
+    listingId: string;
+    listingType: 'business' | 'franchise';
+    message: string;
+    conversationId?: string | null;
+  }): Promise<void> {
+    let conversationId = input.conversationId || null;
+    if (!conversationId) {
+      const { data: fresh } = await supabase
+        .from('inquiries')
+        .select('conversation_id')
+        .eq('id', input.inquiryId)
+        .maybeSingle();
+      conversationId = fresh?.conversation_id ? String(fresh.conversation_id) : null;
+    }
+    if (conversationId) return;
+
+    try {
+      if (!conversationId) {
+        conversationId = await MessagingService.getOrCreateConversation(
+          input.senderId,
+          input.recipientId,
+          input.listingId,
+          input.listingType
+        );
+        if (conversationId) {
+          await MessagingService.sendMessage(
+            conversationId,
+            input.senderId,
+            input.message
+          );
+          const { error } = await supabase
+            .from('inquiries')
+            .update({ conversation_id: conversationId })
+            .eq('id', input.inquiryId);
+          if (error && !error.message?.includes('conversation_id')) {
+            console.warn('Could not persist inquiry conversation_id:', error);
+          }
+        }
+      }
+
+      const pipelinePath =
+        input.listingType === 'franchise' ? '/pipeline' : '/leads';
+      await NotificationService.createNotification(
+        input.recipientId,
+        'new_inquiry',
+        'New enquiry received',
+        'You have a new enquiry on BizSearch.',
+        pipelinePath,
+        { inquiry_id: input.inquiryId, listing_id: input.listingId }
+      ).catch((error) => {
+        console.warn('Recipient enquiry notification skipped:', error);
+      });
+
+      await NotificationService.createNotification(
+        input.senderId,
+        'inquiry',
+        'Enquiry sent',
+        'Your enquiry was sent. Track it in My Enquiries.',
+        `/my-enquiries?inquiry=${input.inquiryId}`,
+        { inquiry_id: input.inquiryId, listing_id: input.listingId }
+      ).catch((error) => {
+        console.warn('Sender enquiry notification skipped:', error);
+      });
+    } catch (error) {
+      console.warn('Enquiry side effects skipped:', error);
+    }
   }
 
   /** Franchise pipeline leads for franchisor */
@@ -355,6 +455,8 @@ export class InquiryService {
       priority: InquiryPriority;
       notes: string;
       match_score: number;
+      meeting_at: string | null;
+      meeting_notes: string | null;
     }>
   ): Promise<void> {
     const { error } = await supabase
@@ -363,6 +465,69 @@ export class InquiryService {
       .eq('id', inquiryId);
 
     if (error) throw error;
+  }
+
+  static async scheduleMeeting(
+    inquiryId: string,
+    meetingAt: string,
+    notes?: string
+  ): Promise<void> {
+    await this.updateInquiry(inquiryId, {
+      status: 'meeting',
+      meeting_at: meetingAt,
+      meeting_notes: notes || null,
+    });
+
+    const { data } = await supabase
+      .from('inquiries')
+      .select('sender_id, listing_id')
+      .eq('id', inquiryId)
+      .maybeSingle();
+
+    if (data?.sender_id) {
+      await NotificationService.createNotification(
+        String(data.sender_id),
+        'inquiry_response',
+        'Meeting scheduled',
+        'A brand scheduled a meeting for your enquiry.',
+        `/my-enquiries?inquiry=${inquiryId}`,
+        { inquiry_id: inquiryId, meeting_at: meetingAt }
+      ).catch((error) => {
+        console.warn('Meeting notification skipped:', error);
+      });
+    }
+  }
+
+  static async getCandidate(
+    inquiryId: string,
+    userId: string
+  ): Promise<FranchiseInquiry | null> {
+    const { franchiseIds } = await this.getOwnedListingIds(userId);
+    const { data, error } = await supabase
+      .from('inquiries')
+      .select(`
+        *,
+        sender:public_profiles!inquiries_sender_id_fkey(display_name, avatar_url)
+      `)
+      .eq('id', inquiryId)
+      .eq('listing_type', 'franchise')
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) return null;
+
+    const owned =
+      data.recipient_id === userId ||
+      (data.listing_id && franchiseIds.includes(String(data.listing_id)));
+    if (!owned) return null;
+
+    const listingNames = await this.resolveListingNames([data]);
+    const appMap = await this.resolveLinkedApplications([inquiryId]);
+    return mapInquiry(
+      data as Record<string, unknown>,
+      listingNames.get(String(data.listing_id)),
+      appMap.get(inquiryId) || null
+    );
   }
 
   /** Mark inquiry as application stage when linked app is created */

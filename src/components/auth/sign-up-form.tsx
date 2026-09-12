@@ -41,7 +41,7 @@ export function SignUpForm() {
     password: '',
     confirmPassword: '',
     displayName: '',
-    role: 'buyer' as UserRole,
+    role: 'franchisee' as UserRole,
     acceptTerms: false,
   });
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -375,12 +375,12 @@ export function SignUpForm() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="buyer">Buyer - Looking to buy a business</SelectItem>
-                <SelectItem value="seller">Seller - Looking to sell my business</SelectItem>
-                <SelectItem value="franchisee">Franchisee - Looking for franchise opportunities</SelectItem>
-                <SelectItem value="franchisor">Franchisor - Offering franchise opportunities</SelectItem>
-                <SelectItem value="advisor">Advisor - Business consultant</SelectItem>
-                <SelectItem value="broker">Broker - Business broker</SelectItem>
+                <SelectItem value="franchisee">Franchisee — looking for a franchise</SelectItem>
+                <SelectItem value="franchisor">Franchisor — listing my brand</SelectItem>
+                <SelectItem value="buyer">Buyer — I want to buy a business</SelectItem>
+                <SelectItem value="seller">Seller — I want to sell a business</SelectItem>
+                <SelectItem value="advisor">Advisor — business consultant</SelectItem>
+                <SelectItem value="broker">Broker — business broker</SelectItem>
               </SelectContent>
             </Select>
           </div>

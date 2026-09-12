@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +26,8 @@ const MESSAGES_POLL_INTERVAL = 5000; // 5 seconds for active messages
 
 export function MessagesPage() {
     const { user } = useAuth();
+    const [searchParams] = useSearchParams();
+    const requestedConversation = searchParams.get('conversation');
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [selectedConv, setSelectedConv] = useState<Conversation | null>(null);
     const [messages, setMessages] = useState<Message[]>([]);
@@ -48,7 +50,7 @@ export function MessagesPage() {
         if (user) {
             loadConversations();
         }
-    }, [user]);
+    }, [user, requestedConversation]);
 
     // Load messages when conversation changes
     useEffect(() => {
@@ -103,6 +105,10 @@ export function MessagesPage() {
         setLoading(true);
         const data = await MessagingService.getConversations(user.id);
         setConversations(data);
+        if (requestedConversation) {
+            const match = data.find((conv) => conv.id === requestedConversation);
+            if (match) setSelectedConv(match);
+        }
         setLastPolled(new Date());
         setLoading(false);
     };

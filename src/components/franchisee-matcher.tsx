@@ -186,7 +186,7 @@ export function FranchiseeMatcher({ onClose, className }: FranchiseeMatcherProps
         brandName: match.franchise.brandName,
       });
       toast.success(`Enquiry sent for ${match.franchise.brandName}`);
-      navigate(`/buyer-inquiries?inquiry=${inquiryId}`);
+      navigate(`/my-enquiries?inquiry=${inquiryId}`);
     } catch (error) {
       console.error('Error creating match enquiry:', error);
       toast.error('Failed to send enquiry');
@@ -485,7 +485,7 @@ export function FranchiseeMatcher({ onClose, className }: FranchiseeMatcherProps
                 <Card>
                   <CardContent className="p-8 text-center text-muted-foreground">
                     <Target className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                    <p>No details found in the table.</p>
+                    <p>No franchises matched your profile. Try a wider budget or city.</p>
                   </CardContent>
                 </Card>
               )}

@@ -49,6 +49,9 @@ export interface FranchiseInquiry {
   selectedStoreFormatId?: string | null;
   selectedStoreFormatName?: string | null;
   selectedStoreFormatSnapshot?: Record<string, unknown> | null;
+  conversationId?: string | null;
+  meetingAt?: string | null;
+  meetingNotes?: string | null;
   sender?: {
     displayName: string;
     email: string;
@@ -68,6 +71,20 @@ export const PIPELINE_STATUS_ORDER: InquiryStatus[] = [
   'opened',
   'lost',
 ];
+
+export const FRANCHISEE_INQUIRY_STATUS_LABELS: Record<InquiryStatus, string> = {
+  new: 'Sent',
+  contacted: 'Brand viewed',
+  qualified: 'Qualified',
+  information_sent: 'Information sent',
+  meeting: 'Meeting',
+  application: 'Application',
+  negotiation: 'Approved',
+  agreement: 'Agreement',
+  opened: 'Opened',
+  converted: 'Converted',
+  lost: 'Closed',
+};
 
 export const INQUIRY_STATUS_LABELS: Record<InquiryStatus, string> = {
   new: 'New Lead',

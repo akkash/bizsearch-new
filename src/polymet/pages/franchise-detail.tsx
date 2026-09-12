@@ -15,6 +15,7 @@ import {
   FileTextIcon,
   GitCompareArrows,
   Download,
+  MessageSquare,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { InquiryDialog } from "@/components/inquiry-dialog";
@@ -149,6 +150,16 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
       await navigator.clipboard.writeText(url);
       toast.success("Link copied to clipboard");
     }
+  };
+
+  const handleEnquire = () => {
+    if (!franchise) return;
+    if (!user) {
+      toast.info("Sign in to enquire about this franchise");
+      navigate(`/login?redirect=/franchise/${identifier}?contact=true`);
+      return;
+    }
+    setShowContactForm(true);
   };
 
   const handleApply = () => {
@@ -295,6 +306,10 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
                   <Download className="h-4 w-4 mr-2" />
                   Download Pitch Deck
                 </Button>
+                <Button variant="outline" size="sm" onClick={handleEnquire}>
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  Enquire
+                </Button>
                 <Button size="sm" onClick={handleApply}>
                   Apply for Franchise
                 </Button>
@@ -304,10 +319,15 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
         </div>
       </div>
 
-      <div className="fixed bottom-16 left-0 right-0 z-20 p-3 md:hidden border-t border-border bg-background/95 backdrop-blur-md">
-        <Button className="w-full" onClick={handleApply}>
-          Apply for Franchise
-        </Button>
+      <div className="fixed bottom-16 left-0 right-0 z-20 p-3 md:hidden border-t border-border bg-background/95">
+        <div className="flex gap-2">
+          <Button className="flex-1" variant="outline" onClick={handleEnquire}>
+            Enquire
+          </Button>
+          <Button className="flex-1" variant="secondary" onClick={handleApply}>
+            Apply
+          </Button>
+        </div>
       </div>
 
       <div className="container mx-auto px-4 py-6 pb-24 md:pb-6">

@@ -1262,7 +1262,7 @@ export function ListingWizard({
           />
 
           <Label htmlFor="featuredListing">
-            Make this a featured listing (+₹2,999/month)
+            Request featured placement (billing is not enabled yet)
           </Label>
         </div>
       </div>

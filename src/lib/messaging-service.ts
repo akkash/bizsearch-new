@@ -163,13 +163,21 @@ export class MessagingService {
         listingType?: 'business' | 'franchise'
     ): Promise<string | null> {
         // Check if conversation already exists
-        const { data: existing } = await supabase
+        let existingQuery = supabase
             .from('conversations')
             .select('id')
             .or(
                 `and(participant_1.eq.${userId1},participant_2.eq.${userId2}),and(participant_1.eq.${userId2},participant_2.eq.${userId1})`
-            )
-            .single();
+            );
+
+        if (listingId) {
+            existingQuery = existingQuery.eq('listing_id', listingId);
+        }
+
+        const { data: existing } = await existingQuery
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
 
         if (existing) return existing.id;
 

@@ -367,6 +367,7 @@ export class FranchiseService {
           'parking_required',
           'max_rent',
           'frontage_ft',
+          'documents',
         ].some((col) => error.message?.includes(col)))
     ) {
       const fallback = { ...payload } as Record<string, unknown>;
@@ -381,6 +382,7 @@ export class FranchiseService {
       delete fallback.parking_required;
       delete fallback.max_rent;
       delete fallback.frontage_ft;
+      delete fallback.documents;
       const retry = await supabase.from('franchises').insert(fallback).select().single();
       if (retry.error) throw retry.error;
       return retry.data;

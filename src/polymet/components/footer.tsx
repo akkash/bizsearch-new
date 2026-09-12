@@ -165,8 +165,8 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link to="/franchise-map" className="text-sm text-background/60 hover:text-white transition-colors duration-150">
-                  Franchise Map
+                <Link to="/match" className="text-sm text-background/60 hover:text-white transition-colors duration-150">
+                  Franchise Match
                 </Link>
               </li>
             </ul>
@@ -210,8 +210,8 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link to="/franchise-map" className="text-sm text-background/60 hover:text-white transition-colors duration-150">
-                  Territory Map
+                <Link to="/franchises" className="text-sm text-background/60 hover:text-white transition-colors duration-150">
+                  Browse by city
                 </Link>
               </li>
               <li>
@@ -309,7 +309,7 @@ export function Footer() {
               id: 'franchises', title: 'Franchises', links: [
                 { to: '/franchises', label: 'Franchise Opportunities' },
                 { to: '/franchises', label: 'Browse Franchises' },
-                { to: '/franchise-map', label: 'Franchise Map' },
+                { to: '/match', label: 'Franchise Match' },
               ]
             },
             {
@@ -327,7 +327,7 @@ export function Footer() {
             {
               id: 'tools', title: 'Tools', links: [
                 { to: '/smart-search', label: 'Franchise Matching' },
-                { to: '/franchise-map', label: 'Territory Map' },
+                { to: '/franchises', label: 'Browse by city' },
                 { to: '/business-valuation', label: 'Investment / ROI' },
               ]
             },

@@ -7,15 +7,34 @@ const corsHeaders = {
     "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
 };
 
-// Qualification criteria weights
-const QUALIFICATION_WEIGHTS = {
-    has_email: 15,
-    has_phone: 20,
-    has_name: 10,
-    message_length: 15,
-    specific_questions: 20,
-    urgency_signals: 10,
-    experience_mentioned: 10,
+const INVESTMENT_POINTS: Record<string, number> = {
+    above_1cr: 20,
+    "50l_1cr": 16,
+    "25l_50l": 12,
+    "10l_25l": 8,
+    below_10l: 4,
+};
+
+const TIMELINE_POINTS: Record<string, number> = {
+    immediate: 20,
+    "1_3_months": 16,
+    "3_6_months": 12,
+    "6_12_months": 8,
+    exploring: 4,
+};
+
+const FUNDS_POINTS: Record<string, number> = {
+    yes_ready: 20,
+    partial: 12,
+    raising: 8,
+    not_yet: 4,
+};
+
+const EXPERIENCE_POINTS: Record<string, number> = {
+    owner_operator: 20,
+    management: 16,
+    industry: 12,
+    first_time: 8,
 };
 
 serve(async (req: Request) => {
@@ -111,13 +130,12 @@ function isInternalCaller(req: Request): boolean {
 }
 
 async function isAdminUser(supabase: SupabaseClient, userId: string): Promise<boolean> {
-    const { data } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", userId)
-        .single();
+    const [{ data: profile }, { data: roles }] = await Promise.all([
+        supabase.from("profiles").select("role").eq("id", userId).maybeSingle(),
+        supabase.from("profile_roles").select("role").eq("profile_id", userId).eq("role", "admin").maybeSingle(),
+    ]);
 
-    return data?.role === "admin";
+    return profile?.role === "admin" || Boolean(roles);
 }
 
 async function processInquiry(supabase: SupabaseClient, inquiryId: string) {
@@ -165,6 +183,11 @@ async function processInquiry(supabase: SupabaseClient, inquiryId: string) {
     };
 
     const qualificationResult = qualifyLead(inquiryForScoring);
+
+    await supabase
+        .from("inquiries")
+        .update({ match_score: qualificationResult.score })
+        .eq("id", inquiryId);
 
     const { data: lead, error: leadError } = await supabase
         .from("lead_queue")
@@ -235,58 +258,41 @@ async function processInquiry(supabase: SupabaseClient, inquiryId: string) {
     });
 }
 
-function qualifyLead(inquiry: Record<string, unknown>): { score: number; notes: Record<string, boolean> } {
+function qualifyLead(inquiry: Record<string, unknown>): { score: number; notes: Record<string, boolean | string> } {
+    const notes: Record<string, boolean | string> = {};
     let score = 0;
-    const notes: Record<string, boolean> = {};
 
-    const email = typeof inquiry.email === "string" ? inquiry.email : "";
-    const phone = typeof inquiry.phone === "string" ? inquiry.phone : "";
-    const name = typeof inquiry.name === "string" ? inquiry.name : "";
-    const message = typeof inquiry.message === "string" ? inquiry.message : "";
-
-    if (email.includes("@")) {
-        score += QUALIFICATION_WEIGHTS.has_email;
-        notes.has_email = true;
+    const investment = String(inquiry.investment_capacity || "");
+    if (investment) {
+        score += INVESTMENT_POINTS[investment] ?? 6;
+        notes.has_investment_capacity = true;
     }
 
-    if (phone.length >= 10) {
-        score += QUALIFICATION_WEIGHTS.has_phone;
-        notes.has_phone = true;
+    const location = String(inquiry.preferred_location || "").trim();
+    if (location.length >= 2) {
+        score += 20;
+        notes.has_preferred_location = true;
     }
 
-    if (name.length > 2) {
-        score += QUALIFICATION_WEIGHTS.has_name;
-        notes.has_name = true;
+    const timeline = String(inquiry.opening_timeline || "");
+    if (timeline) {
+        score += TIMELINE_POINTS[timeline] ?? 6;
+        notes.has_opening_timeline = true;
     }
 
-    if (message.length > 100) {
-        score += QUALIFICATION_WEIGHTS.message_length;
-        notes.detailed_message = true;
-    } else if (message.length > 50) {
-        score += QUALIFICATION_WEIGHTS.message_length / 2;
-        notes.moderate_message = true;
+    const funds = String(inquiry.funds_available || "");
+    if (funds) {
+        score += FUNDS_POINTS[funds] ?? 6;
+        notes.has_funds_available = true;
     }
 
-    const lowerMessage = message.toLowerCase();
-    const specificKeywords = ["price", "cost", "revenue", "profit", "terms", "timeline", "financing", "training", "support", "roi", "investment"];
-    if (specificKeywords.some((kw) => lowerMessage.includes(kw))) {
-        score += QUALIFICATION_WEIGHTS.specific_questions;
-        notes.asks_specifics = true;
+    const experience = String(inquiry.relevant_experience || "");
+    if (experience) {
+        score += EXPERIENCE_POINTS[experience] ?? 6;
+        notes.has_relevant_experience = true;
     }
 
-    const urgencyKeywords = ["asap", "urgent", "immediately", "soon", "quickly", "this week", "this month"];
-    if (urgencyKeywords.some((kw) => lowerMessage.includes(kw))) {
-        score += QUALIFICATION_WEIGHTS.urgency_signals;
-        notes.shows_urgency = true;
-    }
-
-    const experienceKeywords = ["experience", "background", "years", "currently", "business owner", "entrepreneur"];
-    if (experienceKeywords.some((kw) => lowerMessage.includes(kw))) {
-        score += QUALIFICATION_WEIGHTS.experience_mentioned;
-        notes.mentions_experience = true;
-    }
-
-    return { score: Math.min(score, 100), notes };
+    return { score: Math.min(100, Math.round(score)), notes };
 }
 
 function generateAutoResponse(inquiry: Record<string, unknown>, qualificationScore: number): string {

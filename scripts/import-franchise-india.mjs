@@ -436,8 +436,14 @@ async function ensureCatalogUser() {
 }
 
 async function upsertListing(franchisorId, listing) {
+  const { website, ...rest } = listing;
+  const publicWebsite =
+    website && !String(website).toLowerCase().includes('franchiseindia.com')
+      ? website
+      : null;
   const row = {
-    ...listing,
+    ...rest,
+    website: publicWebsite,
     franchisor_id: franchisorId,
     headquarters_country: 'India',
     status: 'active',

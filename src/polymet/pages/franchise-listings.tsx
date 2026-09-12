@@ -4,6 +4,9 @@ import { FranchiseCard } from "@/polymet/components/franchise-card";
 import { Filters, FilterState } from "@/polymet/components/filters";
 import { ComparisonFeature } from "@/polymet/components/comparison-feature";
 import { FranchiseService, type FranchiseFilters } from "@/lib/franchise-service";
+import { sortFranchisesByBestMatch } from "@/lib/franchise-best-match";
+import { SavedSearchService } from "@/lib/saved-search-service";
+import { useFeatureFlag } from "@/contexts/FeatureFlagsContext";
 import { SkeletonLoader } from "@/polymet/components/skeleton-loader";
 import { EmptyState } from "@/polymet/components/empty-state";
 import type { Franchise } from "@/types/listings";
@@ -26,7 +29,6 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
   GridIcon,
   ListIcon,
-  MapIcon,
   FilterIcon,
   SortAscIcon,
   SearchIcon,
@@ -36,6 +38,7 @@ import {
   GitCompareArrows,
   Scale,
   XIcon,
+  Bell,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FRANCHISE_CATEGORIES, getCategoryBySlug } from "@/data/categories";
@@ -65,6 +68,8 @@ const investmentRanges = [
 export function FranchiseListings({ className }: FranchiseListingsProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const savedSearchesEnabled = useFeatureFlag("saved_searches");
+  const [savingSearch, setSavingSearch] = useState(false);
   const { isListingSaved, toggleSave } = useSavedListings();
   const { compareIds, toggleCompare, removeCompare, clearCompare, isCompared, maxCompare } =
     useFranchiseCompare();
@@ -369,8 +374,10 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
         });
         break;
       default:
-        // Keep original order for relevance
-        break;
+        return sortFranchisesByBestMatch(filtered, {
+          city: urlCity || filters.city[0] || undefined,
+          budgetMax: Number.isFinite(urlBudget) && urlBudget > 0 ? urlBudget : undefined,
+        });
     }
 
     return filtered;
@@ -427,6 +434,36 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
     const url = `${window.location.origin}/franchise/${identifier}`;
     navigator.clipboard.writeText(url);
     toast.success("Franchise link copied");
+  };
+
+  const handleSaveSearch = async () => {
+    if (!user) {
+      toast.info("Sign in to get alerts when new franchises match this search.");
+      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+      return;
+    }
+    setSavingSearch(true);
+    try {
+      const city = urlCity || filters.city[0] || undefined;
+      const nameParts = [
+        currentCategory?.name,
+        city,
+        searchQuery.trim() || urlSearchQuery,
+      ].filter(Boolean);
+      await SavedSearchService.create(user.id, {
+        name: nameParts.join(" · ") || "Franchise search",
+        query: searchQuery.trim() || urlSearchQuery || undefined,
+        industry: currentCategory?.name,
+        city,
+        budgetMax: Number.isFinite(urlBudget) && urlBudget > 0 ? urlBudget : undefined,
+      });
+      toast.success("Search saved. We will notify you when a matching franchise goes live.");
+    } catch (error) {
+      console.error("Failed to save search:", error);
+      toast.error("Could not save this search.");
+    } finally {
+      setSavingSearch(false);
+    }
   };
 
   const handleContact = (franchiseId: string) => {
@@ -683,6 +720,17 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
                     <div className="text-sm font-medium">
                       Showing {filteredFranchises.length} {filteredFranchises.length === 1 ? "Opportunity" : "Opportunities"}
                     </div>
+                    {savedSearchesEnabled && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleSaveSearch}
+                        disabled={savingSearch}
+                      >
+                        <Bell className="h-4 w-4 mr-1" />
+                        Alert me
+                      </Button>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-4">
@@ -736,26 +784,13 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
                         size="sm"
                         onClick={() => setViewMode("list")}
                         className={cn(
-                          "rounded-none h-9 w-9 border-x border-border",
+                          "rounded-none h-9 w-9",
                           viewMode === "list" ? "bg-growth-green text-white" : "text-muted-foreground"
                         )}
                         aria-pressed={viewMode === "list"}
                         aria-label="List view"
                       >
                         <ListIcon className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant={viewMode === "map" ? "default" : "ghost"}
-                        size="sm"
-                        onClick={() => setViewMode("map")}
-                        className={cn(
-                          "rounded-none h-9 w-9",
-                          viewMode === "map" ? "bg-growth-green text-white" : "text-muted-foreground"
-                        )}
-                        aria-pressed={viewMode === "map"}
-                        aria-label="Map view"
-                      >
-                        <MapIcon className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
@@ -870,7 +905,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
                     ))}
                     {paginatedFranchises.length === 0 && (
                       <div className="flex-none w-80 p-8 text-center text-muted-foreground">
-                        No details found in the table.
+                        No franchises match this search.
                       </div>
                     )}
                   </div>
@@ -933,29 +968,19 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
               </div>
             )}
 
-            {viewMode === "map" && (
-              <Card className="h-96">
-                <CardContent className="p-6 flex items-center justify-center">
-                  <div className="text-center">
-                    <MapIcon className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-
-                    <h3 className="font-semibold mb-2">Territory Map</h3>
-                    <p className="text-muted-foreground">
-                      Interactive territory availability map coming soon
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
             {filteredFranchises.length === 0 && (
               <Card>
                 <CardContent className="p-12 text-center">
                   <SearchIcon className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-
-                  <h3 className="font-display text-xl font-bold uppercase tracking-tight mb-2">No details found in the table.</h3>
+                  <h3 className="font-display text-xl font-bold uppercase tracking-tight mb-2">
+                    {franchises.length === 0
+                      ? "No details found in the table."
+                      : "No franchises match this search"}
+                  </h3>
                   <p className="text-muted-foreground mb-4">
-                    Try a broader search or clear filters.
+                    {franchises.length === 0
+                      ? "Listings will appear here when they are published."
+                      : "Try a broader city, budget, or industry filter."}
                   </p>
                   <Button
                     variant="outline"

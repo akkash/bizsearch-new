@@ -17,7 +17,11 @@ export const franchiseListingSchema = z.object({
     companyOutlets: z.number().min(0, "Company outlets cannot be negative"),
     franchiseOutlets: z.number().min(0, "Franchise outlets cannot be negative"),
     territories: z.array(z.string()).min(1, "Select at least one territory"),
-    website: z.string().url("Invalid website URL").optional(),
+    website: z
+      .string()
+      .url("Invalid website URL")
+      .optional()
+      .or(z.literal("")),
     // NEW: Countries where franchise operates
     countriesOperating: z.number().min(1).optional(),
     // NEW: Awards and recognition
@@ -103,25 +107,26 @@ export const franchiseListingSchema = z.object({
         )
         .optional(),
     }),
-    investmentBreakdown: z.array(
-      z.object({
-        id: z.string(),
-        category: z.string(),
-        name: z.string(),
-        amount: z.number(),
-        isRequired: z.boolean(),
-        description: z.string().optional(),
-        financingAvailable: z.boolean().optional(),
-        paymentTiming: z
-          .enum(["upfront", "monthly", "quarterly", "annual"])
-          .optional(),
-      })
-    ),
-    breakEvenPeriod: z
-      .number()
-      .min(1, "Break-even period must be at least 1 month"),
-    averageROI: z.number().min(0).max(100, "ROI cannot exceed 100%"),
-    financingOptions: z.array(z.string()),
+    investmentBreakdown: z
+      .array(
+        z.object({
+          id: z.string(),
+          category: z.string(),
+          name: z.string(),
+          amount: z.number(),
+          isRequired: z.boolean(),
+          description: z.string().optional(),
+          financingAvailable: z.boolean().optional(),
+          paymentTiming: z
+            .enum(["upfront", "monthly", "quarterly", "annual"])
+            .optional(),
+        })
+      )
+      .optional()
+      .default([]),
+    breakEvenPeriod: z.number().min(0).optional(),
+    averageROI: z.number().min(0).max(100, "ROI cannot exceed 100%").optional(),
+    financingOptions: z.array(z.string()).optional().default([]),
     roiProjections: z
       .object({
         scenarios: z.array(
@@ -164,18 +169,12 @@ export const franchiseListingSchema = z.object({
 
   // Support & Training
   support: z.object({
-    initialTrainingDuration: z.number().min(1, "Training duration required"),
-    ongoingSupport: z.array(z.string()).min(3, "Add at least 3 support types"),
-    marketingSupport: z
-      .array(z.string())
-      .min(2, "Add at least 2 marketing support types"),
-    operationalSupport: z
-      .array(z.string())
-      .min(2, "Add at least 2 operational support types"),
-    technologySupport: z.array(z.string()),
-    qualityAssurance: z
-      .string()
-      .min(50, "Quality assurance description required"),
+    initialTrainingDuration: z.number().min(0).optional(),
+    ongoingSupport: z.array(z.string()).optional().default([]),
+    marketingSupport: z.array(z.string()).optional().default([]),
+    operationalSupport: z.array(z.string()).optional().default([]),
+    technologySupport: z.array(z.string()).optional().default([]),
+    qualityAssurance: z.string().optional(),
   }),
 
   // Territory & Requirements
@@ -206,14 +205,13 @@ export const franchiseListingSchema = z.object({
           exclusivityRadius: z.number().optional(),
         })
       )
-      .min(1, "Select at least one territory"),
-    protectedTerritoryEnabled: z.boolean(),
-    territorySize: z.string().min(1, "Territory size required"),
-    populationRequirement: z
-      .number()
-      .min(0, "Population requirement cannot be negative"),
-    demographicProfile: z.string().min(50, "Demographic profile required"),
-    competitionAnalysis: z.string().min(50, "Competition analysis required"),
+      .optional()
+      .default([]),
+    protectedTerritoryEnabled: z.boolean().optional().default(false),
+    territorySize: z.string().optional(),
+    populationRequirement: z.number().min(0).optional(),
+    demographicProfile: z.string().optional(),
+    competitionAnalysis: z.string().optional(),
     multiUnitDevelopment: z
       .object({
         enabled: z.boolean(),
@@ -263,7 +261,8 @@ export const franchiseListingSchema = z.object({
           size: z.number(),
         })
       )
-      .min(1, "Brand logo is required"),
+      .optional()
+      .default([]),
     outletPhotos: z
       .array(
         z.object({
@@ -274,7 +273,8 @@ export const franchiseListingSchema = z.object({
           size: z.number(),
         })
       )
-      .min(3, "At least 3 outlet photos required"),
+      .optional()
+      .default([]),
     marketingMaterials: z.array(
       z.object({
         id: z.string(),
@@ -294,7 +294,8 @@ export const franchiseListingSchema = z.object({
           size: z.number(),
         })
       )
-      .min(1, "FDD is required"),
+      .optional()
+      .default([]),
     financialStatements: z.array(
       z.object({
         id: z.string(),
@@ -327,22 +328,20 @@ export const franchiseListingSchema = z.object({
       phone: z.string().min(10, "Valid phone number required"),
     }),
     companyAddress: z.object({
-      street: z.string().min(5, "Street address required"),
+      street: z.string().optional(),
       city: z.string().min(2, "City required"),
       state: z.string().min(2, "State required"),
-      zipCode: z.string().min(5, "Valid zip code required"),
+      zipCode: z.string().optional(),
       country: z.string().min(2, "Country required"),
     }),
-    legalStructure: z.string().min(1, "Legal structure required"),
-    registrationNumber: z.string().min(5, "Registration number required"),
-    franchiseRegistration: z.string().min(5, "Franchise registration required"),
+    legalStructure: z.string().optional(),
+    registrationNumber: z.string().optional(),
+    franchiseRegistration: z.string().optional(),
   }),
 
   // Publishing Settings
   publishing: z.object({
-    listingTitle: z
-      .string()
-      .min(10, "Listing title must be at least 10 characters"),
+    listingTitle: z.string().optional(),
     visibility: z.enum(["public", "private", "verified_only"]),
     featuredListing: z.boolean(),
     urgentListing: z.boolean(),

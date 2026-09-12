@@ -49,6 +49,27 @@ serve(async (req: Request) => {
     }
 
     const body = await req.json();
+    const featureFlag =
+      typeof body.featureFlag === "string" ? body.featureFlag : "ai_features";
+    const { data: flags } = await supabase
+      .from("feature_flags")
+      .select("key, enabled")
+      .in("key", ["ai_features", featureFlag]);
+    const flagMap = new Map((flags || []).map((row) => [row.key, row.enabled]));
+    if (flagMap.get("ai_features") === false || flagMap.get(featureFlag) === false) {
+      return jsonResponse({ error: "This AI feature is turned off." }, 403);
+    }
+
+    const { data: quotaOk, error: quotaError } = await supabase.rpc(
+      "consume_gemini_quota",
+      { p_max: 20 }
+    );
+    if (quotaError) {
+      console.error("Gemini quota check failed:", quotaError);
+    } else if (quotaOk === false) {
+      return jsonResponse({ error: "Daily AI limit reached. Try again tomorrow." }, 429);
+    }
+
     const action = body.action as string;
     const modelName = typeof body.model === "string" ? body.model : "gemini-pro";
     const generationConfig = body.generationConfig ?? {

@@ -1,4 +1,8 @@
-import { generateGeminiContent } from './gemini-proxy-client';
+import { generateGeminiContent as generateGeminiRaw } from './gemini-proxy-client';
+
+function generateGeminiContent(prompt: string) {
+  return generateGeminiRaw(prompt, { featureFlag: 'ai_document_analyzer' });
+}
 
 
 export interface DocumentAnalysis {

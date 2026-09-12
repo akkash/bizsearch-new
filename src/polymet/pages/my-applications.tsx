@@ -217,9 +217,11 @@ export function MyApplicationsPage() {
                                                     </Link>
                                                 </Button>
                                                 {['submitted', 'under_review'].includes(app.status) && (
-                                                    <Button size="sm" variant="ghost">
-                                                        <MessageSquare className="h-4 w-4 mr-1" />
-                                                        Contact
+                                                    <Button size="sm" variant="ghost" asChild>
+                                                        <Link to="/my-enquiries">
+                                                            <MessageSquare className="h-4 w-4 mr-1" />
+                                                            Contact
+                                                        </Link>
                                                     </Button>
                                                 )}
                                             </div>

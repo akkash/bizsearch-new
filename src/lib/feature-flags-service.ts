@@ -23,6 +23,7 @@ export const DEFAULT_FEATURE_FLAGS: Omit<FeatureFlag, 'id' | 'created_at' | 'upd
     { key: 'territory_analytics', name: 'Territory Analytics', description: 'AI-powered territory analysis and recommendations', enabled: true, category: 'maps' },
 
     // AI Features
+    { key: 'ai_features', name: 'AI Features master', description: 'Master switch checked before any Gemini call', enabled: true, category: 'ai_features' },
     { key: 'ai_matching', name: 'AI Business Matching', description: 'AI-powered matching between buyers and businesses', enabled: true, category: 'ai_features' },
     { key: 'ai_fraud_detection', name: 'AI Fraud Detection', description: 'AI system to detect fraudulent listings', enabled: true, category: 'security' },
     { key: 'ai_valuation', name: 'AI Business Valuation', description: 'Automated business valuation using AI', enabled: false, category: 'ai_features' },

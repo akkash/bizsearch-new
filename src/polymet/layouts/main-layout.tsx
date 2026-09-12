@@ -34,6 +34,7 @@ import { AIChat } from "@/polymet/components/ai-chat";
 import { Footer } from "@/polymet/components/footer";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
+import { profileHasAnyRole, profileHasRole } from "@/lib/profile-roles";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -42,13 +43,12 @@ interface MainLayoutProps {
 const NAV_LINKS = [
   { name: "Franchises", href: "/franchises" },
   { name: "Match", href: "/match" },
-  { name: "Businesses", href: "/businesses" },
-  { name: "Franchise Map", href: "/franchise-map" },
 ];
 
 const TOOLS_LINKS = [
   { name: "Franchise Pipeline", href: "/pipeline", icon: Users },
   { name: "Franchise Match", href: "/match", icon: Search },
+  { name: "Businesses for sale", href: "/businesses", icon: Store },
   { name: "Smart Search", href: "/smart-search", icon: Search },
   { name: "Franchise Map", href: "/franchise-map", icon: Store },
   { name: "Business Valuation", href: "/business-valuation", icon: Calculator },
@@ -61,7 +61,17 @@ export function MainLayout({ children }: MainLayoutProps) {
   const { user, profile, signOut } = useAuth();
   const { savedCount } = useSavedListings();
   const { unreadCount } = useNotifications();
+  const isFranchiseMapEnabled = useFeatureFlag("franchise_map");
   const isAIChatEnabled = useFeatureFlag("ai_chat_advisor");
+  const toolsLinks = TOOLS_LINKS.filter((tool) => {
+    if (tool.href === "/pipeline") {
+      return profileHasAnyRole(profile, ["franchisor", "seller"]);
+    }
+    if (tool.href === "/franchise-map") {
+      return isFranchiseMapEnabled;
+    }
+    return true;
+  });
 
   const handleSignOut = async () => {
     try {
@@ -83,7 +93,7 @@ export function MainLayout({ children }: MainLayoutProps) {
 
   return (
     <div className="min-h-screen flex flex-col overflow-x-hidden bg-background">
-      <header className="sticky top-0 z-50 w-full border-b border-border bg-background/90 backdrop-blur-md">
+      <header className="sticky top-0 z-50 w-full border-b border-border bg-background">
         <div className="container mx-auto px-6">
           <div className="flex h-16 md:h-20 items-center justify-between gap-4">
             <Link to="/" className="flex items-center shrink-0" id="nav-home-link">
@@ -124,7 +134,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-52">
-                  {TOOLS_LINKS.map((tool) => (
+                  {toolsLinks.map((tool) => (
                     <Link key={tool.href} to={tool.href}>
                       <DropdownMenuItem className="cursor-pointer">
                         <tool.icon className="mr-2 h-4 w-4" />
@@ -201,11 +211,8 @@ export function MainLayout({ children }: MainLayoutProps) {
                       </>
                     )}
                     {(() => {
-                      const userRoles: string[] =
-                        (profile as any)?.roles?.map((r: any) => r.role) || [
-                          profile?.role,
-                        ];
-                      const hasRole = (role: string) => userRoles.includes(role);
+                      const hasRole = (role: string) =>
+                        profileHasRole(profile, role as Parameters<typeof profileHasRole>[1]);
                       return (
                         <>
                           {hasRole("admin") && (
@@ -220,7 +227,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                             <Link to="/advisor/dashboard">
                               <DropdownMenuItem>
                                 <Briefcase className="mr-2 h-4 w-4" />
-                                Advisor
+                                Advisor (legacy)
                               </DropdownMenuItem>
                             </Link>
                           )}
@@ -233,12 +240,30 @@ export function MainLayout({ children }: MainLayoutProps) {
                         Dashboard
                       </DropdownMenuItem>
                     </Link>
-                    <Link to="/my-listings">
-                      <DropdownMenuItem>
-                        <Store className="mr-2 h-4 w-4" />
-                        My Listings
-                      </DropdownMenuItem>
-                    </Link>
+                    {profileHasAnyRole(profile, ["franchisee", "buyer"]) && (
+                      <>
+                        <Link to="/my-enquiries">
+                          <DropdownMenuItem>
+                            <Mail className="mr-2 h-4 w-4" />
+                            My Enquiries
+                          </DropdownMenuItem>
+                        </Link>
+                        <Link to="/my-applications">
+                          <DropdownMenuItem>
+                            <Briefcase className="mr-2 h-4 w-4" />
+                            My Applications
+                          </DropdownMenuItem>
+                        </Link>
+                      </>
+                    )}
+                    {profileHasAnyRole(profile, ["franchisor", "seller"]) && (
+                      <Link to="/my-listings">
+                        <DropdownMenuItem>
+                          <Store className="mr-2 h-4 w-4" />
+                          My Listings
+                        </DropdownMenuItem>
+                      </Link>
+                    )}
                     <Link to="/messages">
                       <DropdownMenuItem>
                         <Mail className="mr-2 h-4 w-4" />

@@ -159,21 +159,27 @@ export class NotificationService {
     actionUrl?: string,
     metadata?: any
   ): Promise<Notification> {
-    const { data, error } = await supabase
-      .from('notifications')
-      .insert({
-        user_id: userId,
-        type,
-        title,
-        message,
-        action_url: actionUrl,
-        metadata,
-      })
-      .select()
-      .single();
+    const { data, error } = await supabase.rpc('create_notification', {
+      p_user_id: userId,
+      p_type: type,
+      p_title: title,
+      p_message: message,
+      p_action_url: actionUrl ?? null,
+      p_metadata: metadata ?? {},
+    });
 
     if (error) throw error;
-    return data;
+    return {
+      id: String(data),
+      user_id: userId,
+      type,
+      title,
+      message,
+      read: false,
+      action_url: actionUrl,
+      metadata,
+      created_at: new Date().toISOString(),
+    };
   }
 
   /**

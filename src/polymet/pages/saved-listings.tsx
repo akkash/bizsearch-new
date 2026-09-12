@@ -2,7 +2,9 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSavedListings } from "@/contexts/SavedListingsContext";
+import { useFeatureFlag } from "@/contexts/FeatureFlagsContext";
 import { SavedListingsService, SavedListingWithDetails } from "@/lib/saved-listings-service";
+import { SavedSearchService, type SavedSearch } from "@/lib/saved-search-service";
 import { BusinessCard } from "@/polymet/components/business-card";
 import { FranchiseCard } from "@/polymet/components/franchise-card";
 import { Button } from "@/components/ui/button";
@@ -23,8 +25,11 @@ import {
   Heart,
   Building2,
   Store,
+  Bell,
+  Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface SavedListingsPageProps {
   className?: string;
@@ -38,7 +43,9 @@ export function SavedListingsPage({ className }: SavedListingsPageProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toggleSave } = useSavedListings();
+  const savedSearchesEnabled = useFeatureFlag("saved_searches");
   const [savedListings, setSavedListings] = useState<SavedListingWithDetails[]>([]);
+  const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [sortBy, setSortBy] = useState<SortOption>("recent");
@@ -53,10 +60,17 @@ export function SavedListingsPage({ className }: SavedListingsPageProps) {
       setSavedListings(listings);
     } catch (error) {
       console.error('Error fetching saved listings:', error);
-    } finally {
-      setLoading(false);
     }
-  }, [user]);
+    if (savedSearchesEnabled) {
+      try {
+        const searches = await SavedSearchService.list(user.id);
+        setSavedSearches(searches);
+      } catch (error) {
+        console.error('Error fetching saved searches:', error);
+      }
+    }
+    setLoading(false);
+  }, [user, savedSearchesEnabled]);
 
   useEffect(() => {
     if (user) {
@@ -80,6 +94,17 @@ export function SavedListingsPage({ className }: SavedListingsPageProps) {
 
   const handleViewDetails = (listingType: 'business' | 'franchise', listingId: string) => {
     navigate(`/${listingType}/${listingId}`);
+  };
+
+  const handleRemoveSearch = async (id: string) => {
+    try {
+      await SavedSearchService.remove(id);
+      setSavedSearches((prev) => prev.filter((search) => search.id !== id));
+      toast.success('Search alert removed.');
+    } catch (error) {
+      console.error('Error removing saved search:', error);
+      toast.error('Could not remove this search alert.');
+    }
   };
 
   // Filter listings
@@ -188,6 +213,53 @@ export function SavedListingsPage({ className }: SavedListingsPageProps) {
       </div>
 
       <div className="container mx-auto px-4 py-6">
+        {savedSearchesEnabled && (
+          <Card className="mb-6" id="search-alerts">
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="font-semibold flex items-center gap-2">
+                    <Bell className="h-4 w-4" />
+                    Search alerts
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    We notify you when a new franchise matches a search you saved.
+                  </p>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => navigate('/franchises')}>
+                  Browse franchises
+                </Button>
+              </div>
+              {savedSearches.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No details found in the table.
+                </p>
+              ) : (
+                <ul className="divide-y divide-border border border-border">
+                  {savedSearches.map((search) => (
+                    <li key={search.id} className="flex items-center justify-between gap-3 px-3 py-2">
+                      <div className="min-w-0">
+                        <p className="font-medium truncate">{search.name}</p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {[search.industry, search.city, search.query].filter(Boolean).join(' · ') || 'All franchises'}
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label={`Remove ${search.name}`}
+                        onClick={() => handleRemoveSearch(search.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
         {/* Controls */}
         <Card className="mb-6">
           <CardContent className="p-4">

@@ -364,6 +364,14 @@ export function LeadManagementPage() {
                         )}
                       </div>
                     </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      asChild
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Link to={`/pipeline/candidate/${lead.id}`}>Candidate</Link>
+                    </Button>
                     <Select
                       value={lead.status}
                       onValueChange={(v) => {
@@ -478,9 +486,15 @@ export function LeadManagementPage() {
                   <p className="flex items-center gap-2">
                     <Mail className="h-3.5 w-3.5" /> {selectedLead.contactEmail}
                   </p>
-                  {selectedLead.contactPhone && (
+                  {selectedLead.contactPhone &&
+                    selectedLead.status !== 'new' && (
                     <p className="flex items-center gap-2">
                       <Phone className="h-3.5 w-3.5" /> {selectedLead.contactPhone}
+                    </p>
+                  )}
+                  {selectedLead.status === 'new' && (
+                    <p className="text-xs text-muted-foreground">
+                      Phone is hidden until you mark this enquiry as contacted.
                     </p>
                   )}
                 </div>
@@ -539,6 +553,11 @@ export function LeadManagementPage() {
                 </div>
 
                 <div className="flex flex-wrap gap-2 pt-2">
+                  <Button size="sm" asChild>
+                    <Link to={`/pipeline/candidate/${selectedLead.id}`}>
+                      Open candidate
+                    </Link>
+                  </Button>
                   {selectedLead.linkedApplicationId ? (
                     <Button size="sm" variant="outline" asChild>
                       <Link to={`/franchisor/applications?inquiry=${selectedLead.id}`}>

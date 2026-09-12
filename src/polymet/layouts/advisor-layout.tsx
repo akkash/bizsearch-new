@@ -32,8 +32,10 @@ export function AdvisorLayout() {
                         </Link>
                     </div>
                     <div className="p-4">
-                        <h2 className="font-semibold text-lg mb-1">Advisor Dashboard</h2>
-                        <p className="text-sm text-muted-foreground">Manage your clients & deals</p>
+                        <h2 className="font-semibold text-lg mb-1">Advisor workspace</h2>
+                        <p className="text-sm text-muted-foreground">
+                            Legacy CRM. Franchise pipeline lives at /pipeline.
+                        </p>
                     </div>
                     <nav className="px-2 py-4 space-y-1">
                         {sidebarItems.map((item) => {
@@ -66,8 +68,11 @@ export function AdvisorLayout() {
                     </div>
                 </aside>
 
-                {/* Main Content */}
                 <main className="flex-1 p-6">
+                    <div className="mb-4 rounded-none border border-border bg-muted/40 px-4 py-3 text-sm">
+                        This advisor CRM is deprecated. Use franchise pipeline and applications
+                        for marketplace leads.
+                    </div>
                     <Outlet />
                 </main>
             </div>

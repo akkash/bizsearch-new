@@ -58,7 +58,7 @@ const DEFAULTS = {
         listingApprovalRequired: true,
         maxImagesPerListing: 10,
         listingFee: 0,
-        featuredListingFee: 999,
+        featuredListingFee: 0,
     } as ListingSettings,
     notifications: {
         emailNotifications: true,

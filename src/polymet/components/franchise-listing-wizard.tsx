@@ -50,9 +50,11 @@ import { RoyaltyScheduler } from "@/polymet/components/royalty-scheduler";
 import { InvestmentBreakdown } from "@/polymet/components/investment-breakdown";
 import { StickyActionBar } from "@/polymet/components/sticky-action-bar";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface FranchiseListingWizardProps {
   initialData?: Partial<FranchiseListingFormValues>;
+  mode?: "create" | "edit";
   onSave?: (
     data: Partial<FranchiseListingFormValues>,
     isDraft: boolean
@@ -92,6 +94,7 @@ const steps = [
 
 export function FranchiseListingWizard({
   initialData,
+  mode = "create",
   onSave,
   onSubmit,
   onPreview,
@@ -105,13 +108,69 @@ export function FranchiseListingWizard({
 
   const form = useForm<FranchiseListingFormValues>({
     resolver: zodResolver(franchiseListingSchema),
-    defaultValues: initialData || {},
+    defaultValues: {
+      brandOverview: {
+        industry: [],
+        subcategory: [],
+        territories: [],
+        businessModel: "traditional",
+      },
+      support: {
+        ongoingSupport: [],
+        marketingSupport: [],
+        operationalSupport: [],
+        technologySupport: [],
+      },
+      territory: {
+        selectedTerritories: [],
+        protectedTerritoryEnabled: false,
+        territorySize: "city",
+        populationRequirement: 0,
+      },
+      media: {
+        brandLogo: [],
+        outletPhotos: [],
+        marketingMaterials: [],
+        franchiseDisclosureDocument: [],
+        financialStatements: [],
+        videos: [],
+      },
+      contact: {
+        companyAddress: {
+          country: "India",
+        },
+      },
+      publishing: {
+        visibility: "public",
+        featuredListing: false,
+        urgentListing: false,
+        contactPreferences: {
+          allowDirectContact: true,
+          requireNDA: false,
+          screeningQuestions: [],
+        },
+        termsAccepted: false,
+        verificationConsent: false,
+      },
+      ...initialData,
+    },
     mode: "onChange",
   });
 
+  useEffect(() => {
+    if (initialData) {
+      form.reset({
+        ...form.getValues(),
+        ...initialData,
+      });
+    }
+    // initialData is replaced as a whole object when an existing listing loads
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialData]);
+
   const {
     watch,
-    formState: { errors, isValid },
+    formState: { errors },
   } = form;
   const watchedData = watch();
 
@@ -158,9 +217,12 @@ export function FranchiseListingWizard({
   };
 
   const handleSubmit = () => {
-    if (isValid && onSubmit) {
-      onSubmit(watchedData as FranchiseListingFormValues);
-    }
+    void form.handleSubmit(
+      (data) => onSubmit?.(data),
+      () => {
+        toast.error("Please complete the required fields before submitting.");
+      }
+    )();
   };
 
   const handleNDAAccept = (ndaData: any) => {
@@ -932,33 +994,69 @@ export function FranchiseListingWizard({
             </div>
 
             <div className="space-y-4">
-              <Label>Ongoing Support Types *</Label>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                {supportTypes.map((support) => (
-                  <div key={support} className="flex items-center space-x-2">
-                    <Checkbox id={support} />
-
-                    <Label htmlFor={support} className="text-sm">
-                      {support}
-                    </Label>
-                  </div>
-                ))}
-              </div>
+              <Label>Ongoing Support Types</Label>
+              <Controller
+                control={form.control}
+                name="support.ongoingSupport"
+                render={({ field }) => {
+                  const selected = field.value || [];
+                  return (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                      {supportTypes.map((support) => (
+                        <div key={support} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`support-${support}`}
+                            checked={selected.includes(support)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                field.onChange([...selected, support]);
+                              } else {
+                                field.onChange(selected.filter((item) => item !== support));
+                              }
+                            }}
+                          />
+                          <Label htmlFor={`support-${support}`} className="text-sm font-normal">
+                            {support}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                }}
+              />
             </div>
 
             <div className="space-y-4">
-              <Label>Marketing Support *</Label>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                {marketingSupportTypes.map((support) => (
-                  <div key={support} className="flex items-center space-x-2">
-                    <Checkbox id={support} />
-
-                    <Label htmlFor={support} className="text-sm">
-                      {support}
-                    </Label>
-                  </div>
-                ))}
-              </div>
+              <Label>Marketing Support</Label>
+              <Controller
+                control={form.control}
+                name="support.marketingSupport"
+                render={({ field }) => {
+                  const selected = field.value || [];
+                  return (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                      {marketingSupportTypes.map((support) => (
+                        <div key={support} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`marketing-${support}`}
+                            checked={selected.includes(support)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                field.onChange([...selected, support]);
+                              } else {
+                                field.onChange(selected.filter((item) => item !== support));
+                              }
+                            }}
+                          />
+                          <Label htmlFor={`marketing-${support}`} className="text-sm font-normal">
+                            {support}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                }}
+              />
             </div>
 
             <div className="space-y-2">
@@ -1276,7 +1374,7 @@ export function FranchiseListingWizard({
               <CardContent className="space-y-6">
                 <div className="space-y-4">
                   <div>
-                    <Label className="mb-2 block">Brand Logo *</Label>
+                    <Label className="mb-2 block">Brand Logo</Label>
                     <Controller
                       name="media.brandLogo"
                       control={form.control}
@@ -1307,9 +1405,9 @@ export function FranchiseListingWizard({
                   <Separator />
 
                   <div>
-                    <Label className="mb-2 block">Outlet Photos *</Label>
+                    <Label className="mb-2 block">Outlet Photos</Label>
                     <p className="text-sm text-muted-foreground mb-4">
-                      Upload at least 3 photos of existing outlets (interior/exterior)
+                      Upload photos of existing outlets (interior/exterior)
                     </p>
                     <Controller
                       name="media.outletPhotos"
@@ -1381,10 +1479,10 @@ export function FranchiseListingWizard({
 
                   <div>
                     <Label className="mb-2 block">
-                      Franchise Disclosure Document (FDD) *
+                      Franchise Disclosure Document (FDD)
                     </Label>
                     <p className="text-sm text-muted-foreground mb-4">
-                      Required for verification
+                      Uploaded files are stored with your listing for review. This does not make the listing verified.
                     </p>
                     <Controller
                       name="media.franchiseDisclosureDocument"
@@ -1473,13 +1571,6 @@ export function FranchiseListingWizard({
                 </div>
               </CardContent>
             </Card>
-          </div>
-        );
-
-
-      default:
-        return (
-          <div className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="text-xl flex items-center gap-2">
@@ -1693,8 +1784,64 @@ export function FranchiseListingWizard({
                 </div>
               </CardContent>
             </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl">Publish for review</CardTitle>
+                <CardDescription>
+                  Your listing stays unpublished and unverified until BizSearch reviews it.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-start space-x-2">
+                  <Controller
+                    control={form.control}
+                    name="publishing.termsAccepted"
+                    render={({ field }) => (
+                      <Checkbox
+                        id="termsAccepted"
+                        checked={field.value === true}
+                        onCheckedChange={(checked) => field.onChange(checked === true)}
+                      />
+                    )}
+                  />
+                  <Label htmlFor="termsAccepted" className="font-normal leading-relaxed">
+                    I confirm these details are accurate and I have authority to list this brand.
+                  </Label>
+                </div>
+                {form.formState.errors.publishing?.termsAccepted && (
+                  <p className="text-sm text-destructive">
+                    {form.formState.errors.publishing.termsAccepted.message}
+                  </p>
+                )}
+                <div className="flex items-start space-x-2">
+                  <Controller
+                    control={form.control}
+                    name="publishing.verificationConsent"
+                    render={({ field }) => (
+                      <Checkbox
+                        id="verificationConsent"
+                        checked={field.value === true}
+                        onCheckedChange={(checked) => field.onChange(checked === true)}
+                      />
+                    )}
+                  />
+                  <Label htmlFor="verificationConsent" className="font-normal leading-relaxed">
+                    I understand this listing is not verified until BizSearch reviews submitted documents.
+                  </Label>
+                </div>
+                {form.formState.errors.publishing?.verificationConsent && (
+                  <p className="text-sm text-destructive">
+                    {form.formState.errors.publishing.verificationConsent.message}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
           </div>
         );
+
+      default:
+        return null;
     }
   };
 
@@ -1706,7 +1853,7 @@ export function FranchiseListingWizard({
           <div className="flex items-center justify-between mb-4">
             <div>
               <CardTitle className="text-2xl">
-                Create Franchise Listing
+                {mode === "edit" ? "Edit Franchise Listing" : "Create Franchise Listing"}
               </CardTitle>
               <CardDescription>
                 Step {currentStep + 1} of {steps.length}:{" "}
@@ -1824,7 +1971,7 @@ export function FranchiseListingWizard({
         isLastStep={currentStep === steps.length - 1}
         isSaving={false}
         lastSaved={lastSaved}
-        isValid={isValid}
+        isValid
         onSubmit={handleSubmit}
       />
 

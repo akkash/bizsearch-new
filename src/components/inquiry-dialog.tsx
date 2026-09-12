@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -69,8 +69,10 @@ export function InquiryDialog({
   initialFormatId = null,
 }: InquiryDialogProps) {
   const { user, profile } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [submittedInquiryId, setSubmittedInquiryId] = useState<string | null>(null);
   const [selectedFormatId, setSelectedFormatId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -134,7 +136,7 @@ export function InquiryDialog({
     setLoading(true);
     try {
       const format = findStoreFormat(storeFormats, selectedFormatId);
-      await InquiryService.createInquiry({
+      const inquiryId = await InquiryService.createInquiry({
         senderId: user.id,
         listingId,
         listingType,
@@ -182,14 +184,24 @@ export function InquiryDialog({
       }
 
       setSubmitted(true);
+      setSubmittedInquiryId(inquiryId);
       toast.success(
         listingType === 'franchise'
           ? 'Qualified enquiry sent to the brand'
           : 'Inquiry sent successfully'
       );
 
+      if (listingType === 'franchise') {
+        setTimeout(() => {
+          onOpenChange(false);
+          navigate(`/my-enquiries?inquiry=${inquiryId}`);
+        }, 1200);
+        return;
+      }
+
       setTimeout(() => {
         setSubmitted(false);
+        setSubmittedInquiryId(null);
         onOpenChange(false);
         setFormData({
           name: profile?.display_name || '',
@@ -225,9 +237,16 @@ export function InquiryDialog({
             <h3 className="text-xl font-semibold mb-2">Enquiry Sent</h3>
             <p className="text-muted-foreground">
               {listingType === 'franchise'
-                ? 'The franchisor will review your qualification and respond.'
+                ? 'The franchisor will review your qualification in BizSearch. Your phone number is not shown until they accept the enquiry.'
                 : 'The seller will contact you soon.'}
             </p>
+            {listingType === 'franchise' && submittedInquiryId && (
+              <Button className="mt-4" asChild>
+                <Link to={`/my-enquiries?inquiry=${submittedInquiryId}`}>
+                  View My Enquiries
+                </Link>
+              </Button>
+            )}
           </div>
         </DialogContent>
       </Dialog>

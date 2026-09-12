@@ -18,6 +18,7 @@ import {
 } from "@/polymet/data/listing-data";
 import { useAuth } from "@/contexts/AuthContext";
 import { BusinessService, type BusinessCreateInput } from "@/lib/business-service";
+import { toast } from "sonner";
 
 interface AddBusinessListingPageProps {
   className?: string;
@@ -122,7 +123,7 @@ export function AddBusinessListingPage({
 
   const handleSubmit = async (data: BusinessListingFormValues) => {
     if (!user) {
-      alert("You must be logged in to submit a listing.");
+      toast.error("You must be signed in to submit a listing.");
       return;
     }
 
@@ -189,23 +190,17 @@ export function AddBusinessListingPage({
         // For now, let's keep it simple: we don't aggressively delete logic here to avoid errors
       }
 
-      alert(
-        "Listing submitted successfully! Your listing is now under review. You'll be notified once it's approved."
-      );
-
-      // Redirect to profile
-      setTimeout(() => {
-        navigate('/profile');
-      }, 1500);
+      toast.success("Listing submitted for review.");
+      navigate("/listing-submitted?type=business");
     } catch (error: any) {
       console.error("Submission error:", error);
-      alert(`Failed to submit listing: ${error.message || "Please try again."}`);
+      toast.error(error.message || "Could not submit the listing. Please try again.");
     }
   };
 
   const handlePreview = (data: Partial<BusinessListingFormValues>) => {
     console.log("Preview data:", data);
-    alert("Preview functionality - would show listing preview");
+    toast.info("Preview is not available yet. Submit the listing to send it for review.");
   };
 
   if (showWizard) {
@@ -269,8 +264,7 @@ export function AddBusinessListingPage({
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground">
-              Our AI analyzes buyer profiles and requirements to
-              connect you with the most suitable candidates.
+              Buyers enquire on BizSearch. You review them in your pipeline.
             </p>
           </CardContent>
         </Card>

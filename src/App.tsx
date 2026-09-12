@@ -48,12 +48,13 @@ import { AdminFeatureFlags } from "@/polymet/pages/admin/admin-feature-flags";
 import { AdminVerification } from "@/polymet/pages/admin/admin-verification";
 import { FranchiseApplicationPage } from "@/polymet/pages/franchise-application";
 import { MyApplicationsPage } from "@/polymet/pages/my-applications";
+import { MyApplicationDetailPage } from "@/polymet/pages/my-application-detail";
+import { MyEnquiriesPage } from "@/polymet/pages/my-enquiries";
+import { ListingSubmittedPage } from "@/polymet/pages/listing-submitted";
 import { FranchisorApplicationsPage } from "@/polymet/pages/franchisor-applications";
-import { FinancingOptionsPage } from "@/polymet/pages/financing-options";
 import { FinancingComingSoonPage } from "@/polymet/pages/financing-coming-soon";
 import { MessagesPage } from "@/polymet/pages/messages";
 import { BusinessValuationPage } from "@/polymet/pages/business-valuation";
-import { BuyerInquiriesPage } from "@/polymet/pages/buyer-inquiries";
 import { NDAManagementPage } from "@/polymet/pages/nda-management";
 import { DealRoomPage } from "@/polymet/pages/deal-room";
 import { SellerAnalyticsPage } from "@/polymet/pages/seller-analytics";
@@ -64,6 +65,7 @@ import { CommissionTrackingPage } from "@/polymet/pages/commission-tracking";
 import { AdvisorDirectoryPage } from "@/polymet/pages/advisor-directory";
 import { ReportGeneratorPage } from "@/polymet/pages/report-generator";
 import { LeadManagementPage } from "@/polymet/pages/lead-management";
+import { PipelineCandidatePage } from "@/polymet/pages/pipeline-candidate";
 import { OnboardingPage } from "@/pages/onboarding";
 import { ProfileSetupPage } from "@/polymet/pages/profile-setup";
 import { NotFoundPage } from "@/pages/404";
@@ -475,6 +477,26 @@ export default function BizSearchApp() {
                         </ProtectedRoute>
                       }
                     />
+                    <Route
+                      path="/franchise/edit/:franchiseId"
+                      element={
+                        <ProtectedRoute requiredRole="franchisor">
+                          <MainLayout>
+                            <AddFranchiseListingPage />
+                          </MainLayout>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/listing-submitted"
+                      element={
+                        <ProtectedRoute requiredRoles={['franchisor', 'seller']}>
+                          <MainLayout>
+                            <ListingSubmittedPage />
+                          </MainLayout>
+                        </ProtectedRoute>
+                      }
+                    />
 
                     {/* Admin Dashboard Routes */}
                     <Route
@@ -522,6 +544,26 @@ export default function BizSearchApp() {
                         </ProtectedRoute>
                       }
                     />
+                    <Route
+                      path="/my-applications/:id"
+                      element={
+                        <ProtectedRoute requiredRoles={['buyer', 'franchisee']}>
+                          <MainLayout>
+                            <MyApplicationDetailPage />
+                          </MainLayout>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/my-enquiries"
+                      element={
+                        <ProtectedRoute requiredRoles={['buyer', 'franchisee']}>
+                          <MainLayout>
+                            <MyEnquiriesPage />
+                          </MainLayout>
+                        </ProtectedRoute>
+                      }
+                    />
 
                     {/* Franchisor Applications Review - Protected */}
                     <Route
@@ -540,7 +582,7 @@ export default function BizSearchApp() {
                       path="/financing"
                       element={
                         <MainLayout>
-                          <FinancingOptionsPage />
+                          <FinancingComingSoonPage />
                         </MainLayout>
                       }
                     />
@@ -581,7 +623,7 @@ export default function BizSearchApp() {
                       element={
                         <ProtectedRoute requiredRoles={['buyer', 'franchisee']}>
                           <MainLayout>
-                            <BuyerInquiriesPage />
+                            <MyEnquiriesPage />
                           </MainLayout>
                         </ProtectedRoute>
                       }
@@ -704,6 +746,16 @@ export default function BizSearchApp() {
                         <ProtectedRoute requiredRoles={['franchisor', 'seller']}>
                           <MainLayout>
                             <LeadManagementPage />
+                          </MainLayout>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/pipeline/candidate/:inquiryId"
+                      element={
+                        <ProtectedRoute requiredRoles={['franchisor', 'seller']}>
+                          <MainLayout>
+                            <PipelineCandidatePage />
                           </MainLayout>
                         </ProtectedRoute>
                       }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -20,7 +21,11 @@ import {
   type FranchiseListingFormValues,
 } from "@/polymet/data/franchise-listing-data";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/lib/supabase";
 import { FranchiseService, type FranchiseCreateInput } from "@/lib/franchise-service";
+import { mapFranchiseFromDb } from "@/lib/franchise-mapper";
+import { mapFranchiseToListingForm } from "@/lib/franchise-listing-form-map";
+import { sanitizePublicWebsite } from "@/lib/public-website";
 import {
   aggregateInvestmentFromFormats,
   normalizeStoreFormats,
@@ -34,8 +39,11 @@ export function AddFranchiseListingPage({
   className,
 }: AddFranchiseListingPageProps) {
   const navigate = useNavigate();
+  const { franchiseId } = useParams<{ franchiseId?: string }>();
   const { user } = useAuth();
+  const isEditing = Boolean(franchiseId);
   const [showWizard, setShowWizard] = useState(false);
+  const [loadingListing, setLoadingListing] = useState(isEditing);
   const [savedDrafts, setSavedDrafts] = useState<any[]>([]);
   const [currentDraft, setCurrentDraft] =
     useState<Partial<FranchiseListingFormValues> | null>(null);
@@ -43,9 +51,46 @@ export function AddFranchiseListingPage({
   // Redirect if not logged in
   useEffect(() => {
     if (!user) {
-      navigate('/login?redirect=/add-franchise-listing');
+      navigate(
+        `/login?redirect=${franchiseId ? `/franchise/edit/${franchiseId}` : "/add-franchise-listing"}`
+      );
     }
-  }, [user, navigate]);
+  }, [user, navigate, franchiseId]);
+
+  useEffect(() => {
+    if (!user || !franchiseId) {
+      setLoadingListing(false);
+      return;
+    }
+
+    let cancelled = false;
+    const loadListing = async () => {
+      setLoadingListing(true);
+      const { data, error } = await supabase
+        .from("franchises")
+        .select("*")
+        .eq("id", franchiseId)
+        .eq("franchisor_id", user.id)
+        .maybeSingle();
+
+      if (cancelled) return;
+      if (error || !data) {
+        console.error("Failed to load franchise for edit:", error);
+        toast.error("No details found in the table.");
+        navigate("/my-listings");
+        return;
+      }
+
+      setCurrentDraft(mapFranchiseToListingForm(mapFranchiseFromDb(data)));
+      setShowWizard(true);
+      setLoadingListing(false);
+    };
+
+    loadListing();
+    return () => {
+      cancelled = true;
+    };
+  }, [user, franchiseId, navigate]);
 
   // Load saved drafts for the current user only
   useEffect(() => {
@@ -104,7 +149,7 @@ export function AddFranchiseListingPage({
 
   const handleSubmit = async (data: FranchiseListingFormValues) => {
     if (!user) {
-      alert("You must be logged in to submit a listing.");
+      toast.error("You must be signed in to submit a listing.");
       return;
     }
 
@@ -118,38 +163,38 @@ export function AddFranchiseListingPage({
     const hqState = data.contact?.companyAddress?.state?.trim();
 
     if (!brandName || brandName.length < 2) {
-      alert("Brand name is required.");
+      toast.error("Brand name is required.");
       return;
     }
     if (!industry) {
-      alert("Industry is required.");
+      toast.error("Industry is required.");
       return;
     }
     if (!description || description.length < 40) {
-      alert("Please provide a brand description (at least 40 characters).");
+      toast.error("Please provide a brand description (at least 40 characters).");
       return;
     }
     if (fee == null || fee < 0) {
-      alert("Franchise fee is required.");
+      toast.error("Franchise fee is required.");
       return;
     }
     if (investMin == null || investMax == null || investMin <= 0 || investMax < investMin) {
-      alert("Valid investment range (min and max) is required.");
+      toast.error("Valid investment range (min and max) is required.");
       return;
     }
     if (!hqCity || !hqState) {
-      alert("Headquarters city and state are required.");
+      toast.error("Headquarters city and state are required.");
       return;
     }
 
     const formats = normalizeStoreFormats(data.investment?.storeFormats || []);
     if (!formats.length) {
-      alert("Add at least one outlet format (size/investment option).");
+      toast.error("Add at least one outlet format (size/investment option).");
       return;
     }
     for (const f of formats) {
       if (!f.investmentMin || f.investmentMin <= 0) {
-        alert(`Set investment for format "${f.name}".`);
+        toast.error(`Set investment for format "${f.name}".`);
         return;
       }
     }
@@ -224,7 +269,17 @@ export function AddFranchiseListingPage({
         contact_email: data.contact?.primaryContact?.email,
         contact_phone: data.contact?.primaryContact?.phone,
         contact_person: data.contact?.primaryContact?.name,
-        website: data.brandOverview?.website,
+        website: sanitizePublicWebsite(data.brandOverview?.website),
+        documents: [
+          ...(data.media?.franchiseDisclosureDocument || []).map((doc) => ({
+            ...doc,
+            kind: "fdd",
+          })),
+          ...(data.media?.financialStatements || []).map((doc) => ({
+            ...doc,
+            kind: "financial",
+          })),
+        ],
         // Description fields
         highlights: data.description?.uniqueSellingPoints || [],
         target_market: data.description?.targetMarket,
@@ -247,28 +302,25 @@ export function AddFranchiseListingPage({
         available_territories_count: data.territory?.availableTerritoriesCount,
       };
 
-      // Create franchise listing
-      const response = await FranchiseService.createFranchise(user.id, franchiseInput);
+      if (franchiseId) {
+        await FranchiseService.updateFranchise(franchiseId, {
+          ...franchiseInput,
+          status: "pending_review",
+        });
+      } else {
+        await FranchiseService.createFranchise(user.id, franchiseInput);
+      }
 
-      console.log('✅ Franchise listing created:', response);
-
-      alert(
-        "Franchise listing submitted successfully! Your listing is now under review. You'll be notified once it's approved."
-      );
-
-      // Redirect to profile
-      setTimeout(() => {
-        navigate('/profile');
-      }, 1500);
+      navigate("/listing-submitted?type=franchise");
     } catch (error: any) {
       console.error('Error submitting franchise listing:', error);
-      alert(`Failed to submit franchise listing: ${error.message || 'Please try again.'}`);
+      toast.error(error.message || "Could not submit the listing. Please try again.");
     }
   };
 
   const handlePreview = (data: Partial<FranchiseListingFormValues>) => {
     console.log("Previewing franchise listing:", data);
-    alert("Preview functionality - would show franchise listing preview");
+    toast.info("Preview is not available yet. Submit the listing to send it for review.");
   };
 
   const calculateCompletionPercentage = (
@@ -293,11 +345,20 @@ export function AddFranchiseListingPage({
     return Math.round((completedSections / sections.length) * 100);
   };
 
+  if (loadingListing) {
+    return (
+      <div className="container mx-auto px-4 py-16 text-center text-muted-foreground">
+        Loading listing...
+      </div>
+    );
+  }
+
   if (showWizard) {
     return (
       <div className="container mx-auto px-4 py-8">
         <FranchiseListingWizard
           initialData={currentDraft || undefined}
+          mode={isEditing ? "edit" : "create"}
           onSave={handleSave}
           onSubmit={handleSubmit}
           onPreview={handlePreview}
@@ -358,8 +419,8 @@ export function AddFranchiseListingPage({
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground">
-              Our AI analyzes franchisee profiles and investment capacity to
-              connect you with the most suitable candidates.
+              Our matcher scores franchisee profiles and investment capacity to
+              connect you with suitable candidates.
             </p>
           </CardContent>
         </Card>
@@ -492,7 +553,7 @@ export function AddFranchiseListingPage({
               step: 3,
               title: "Get Matched",
               description:
-                "AI matches your opportunity with qualified franchisees in your target markets.",
+                "Qualified franchisees enquire on BizSearch. You review them in your pipeline.",
               icon: Users,
             },
             {
@@ -531,7 +592,7 @@ export function AddFranchiseListingPage({
             {
               question: "How much does it cost to list my franchise?",
               answer:
-                "Basic listings are completely free. We offer premium features like featured placement and enhanced visibility for additional fees.",
+                "Basic listings are free. Featured placement is not billed yet.",
             },
             {
               question: "How long does the approval process take?",

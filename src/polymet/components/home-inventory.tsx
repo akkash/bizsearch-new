@@ -432,9 +432,8 @@ export function HomeFranchiseInventory({ className }: { className?: string }) {
           </div>
         ) : items.length === 0 ? (
           <EmptyInventory
-            title="No details found in the table."
+            title="No franchises are live yet"
             suggestions={[
-              { label: "Food franchise under ₹50L", href: "/franchises?q=Food+franchise+under+50L" },
               { label: "School franchise", href: "/franchises?q=school" },
               { label: "Low-investment Bangalore", href: "/franchises?q=Bangalore" },
             ]}

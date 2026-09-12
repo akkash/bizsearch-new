@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import FeatureFlagsService from './feature-flags-service';
 
 const GEMINI_PROXY_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/gemini-proxy`;
 
@@ -20,6 +21,11 @@ interface GeminiProxyResponse {
 }
 
 async function callGeminiProxy(body: Record<string, unknown>): Promise<string> {
+  const featureFlag = typeof body.featureFlag === 'string' ? body.featureFlag : 'ai_features';
+  if (!FeatureFlagsService.isEnabled('ai_features') || !FeatureFlagsService.isEnabled(featureFlag)) {
+    throw new Error('This AI feature is turned off.');
+  }
+
   const { data: { session } } = await supabase.auth.getSession();
 
   if (!session?.access_token) {
@@ -55,6 +61,7 @@ export async function generateGeminiContent(
   options?: {
     model?: string;
     generationConfig?: GeminiGenerationConfig;
+    featureFlag?: string;
   }
 ): Promise<string> {
   return callGeminiProxy({
@@ -62,6 +69,7 @@ export async function generateGeminiContent(
     prompt,
     model: options?.model ?? 'gemini-pro',
     generationConfig: options?.generationConfig,
+    featureFlag: options?.featureFlag ?? 'ai_matching',
   });
 }
 
@@ -72,6 +80,7 @@ export async function sendGeminiChat(
     history?: GeminiChatMessage[];
     model?: string;
     generationConfig?: GeminiGenerationConfig;
+    featureFlag?: string;
   }
 ): Promise<string> {
   return callGeminiProxy({
@@ -81,5 +90,6 @@ export async function sendGeminiChat(
     history: options?.history ?? [],
     model: options?.model ?? 'gemini-pro',
     generationConfig: options?.generationConfig,
+    featureFlag: options?.featureFlag ?? 'ai_chat_advisor',
   });
 }

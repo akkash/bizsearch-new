@@ -2,6 +2,7 @@ import {
   Heart,
   GitCompareArrows,
   CheckCircle2,
+  MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -32,6 +33,7 @@ interface FranchiseCardProps {
 export function FranchiseCard({
   franchise,
   onSave,
+  onContact,
   onViewDetails,
   onCompare,
   isSaved = false,
@@ -152,16 +154,32 @@ export function FranchiseCard({
           </div>
         )}
 
-        <Button
-          size="sm"
-          className="w-full mt-auto"
-          onClick={(e) => {
-            e.stopPropagation();
-            onViewDetails?.(franchise.id);
-          }}
-        >
-          View Franchise
-        </Button>
+        <div className="flex gap-2 mt-auto">
+          {onContact && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="flex-1"
+              onClick={(e) => {
+                e.stopPropagation();
+                onContact(franchise.id);
+              }}
+            >
+              <MessageSquare className="h-4 w-4 mr-1" />
+              Enquire
+            </Button>
+          )}
+          <Button
+            size="sm"
+            className={onContact ? "flex-1" : "w-full"}
+            onClick={(e) => {
+              e.stopPropagation();
+              onViewDetails?.(franchise.id);
+            }}
+          >
+            View
+          </Button>
+        </div>
       </div>
     </article>
   );

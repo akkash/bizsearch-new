@@ -1,5 +1,6 @@
 import type { Franchise } from '@/types/listings';
 import { normalizeStoreFormats } from '@/lib/store-formats';
+import { sanitizePublicWebsite } from '@/lib/public-website';
 
 /** Raw row shape from Supabase `franchises` table */
 export type FranchiseDbRow = Record<string, unknown>;
@@ -162,7 +163,8 @@ export function mapFranchiseFromDb(raw: FranchiseDbRow): Franchise {
     contact_email: str(raw.contact_email),
     contactPhone: str(raw.contact_phone),
     contact_phone: str(raw.contact_phone),
-    website: str(raw.website),
+    website: sanitizePublicWebsite(str(raw.website)),
+    documents: Array.isArray(raw.documents) ? raw.documents : [],
   } as Franchise;
 }
 

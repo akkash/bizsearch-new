@@ -103,20 +103,17 @@ export function FileUploader({
         if (onUpload) {
           const uploadedFile = await onUpload(file);
           return uploadedFile;
-        } else {
-          // Mock upload for demo
-          const mockFile: UploadedFile = {
-            id: fileId,
-            url: URL.createObjectURL(file),
-            filename: file.name,
-            size: file.size,
-            type: file.type,
-            preview: file.type.startsWith("image/")
-              ? URL.createObjectURL(file)
-              : undefined,
-          };
-          return mockFile;
         }
+        const { uploadListingAsset } = await import("@/lib/listing-upload-service");
+        const uploaded = await uploadListingAsset(file);
+        return {
+          id: uploaded.id,
+          url: uploaded.url,
+          filename: uploaded.filename,
+          size: uploaded.size,
+          type: uploaded.type,
+          preview: uploaded.preview,
+        };
       } catch (error) {
         console.error("Upload failed:", error);
         alert(`Failed to upload ${file.name}`);

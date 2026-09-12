@@ -180,6 +180,9 @@ export function ClientManagementPage() {
 
     return (
         <div className="container max-w-6xl mx-auto py-8 px-4">
+            <div className="mb-4 rounded-none border border-border bg-muted/40 px-4 py-3 text-sm">
+                This advisor CRM is deprecated. Use franchise pipeline for marketplace leads.
+            </div>
             <div className="flex items-center justify-between mb-8">
                 <div>
                     <h1 className="text-2xl font-bold flex items-center gap-2">

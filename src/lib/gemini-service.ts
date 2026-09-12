@@ -125,7 +125,7 @@ Provide:
 Format the response clearly with specific numbers in Indian Rupees (₹).`;
 
     try {
-      return await generateGeminiContent(prompt);
+      return await generateGeminiContent(prompt, { featureFlag: 'ai_valuation' });
     } catch (error) {
       console.error('Valuation generation error:', error);
       throw new Error('Failed to generate valuation analysis');

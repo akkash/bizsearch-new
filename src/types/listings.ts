@@ -118,6 +118,13 @@ export interface Franchise {
     images?: string[] | any;
     logo?: string;
     logo_url?: string;
+    documents?: Array<{
+      id?: string;
+      name?: string;
+      url?: string;
+      type?: string;
+      kind?: string;
+    }>;
     verification?: {
         verified: boolean;
         documentsVerified: boolean;
@@ -157,5 +164,7 @@ export interface Franchise {
     verified_at?: string;
     verification_status?: 'verified' | 'pending' | 'unverified' | 'rejected';
     data_completeness_score?: number;
+    dataCompletenessScore?: number;
+    headquartersCity?: string;
     last_activity_at?: string;
 }

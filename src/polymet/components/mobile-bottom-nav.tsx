@@ -1,131 +1,68 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Search, Heart, MessageCircle, User } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Home, Search, Bookmark, Inbox } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useSavedListings } from "@/contexts/SavedListingsContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNotifications } from "@/contexts/NotificationsContext";
 
-interface MobileBottomNavProps {
-  className?: string;
-}
+const tabs = [
+  { href: "/", label: "Home", icon: Home, match: (p: string) => p === "/" },
+  {
+    href: "/franchises",
+    label: "Search",
+    icon: Search,
+    match: (p: string) => p.startsWith("/franchises") || p.startsWith("/franchise/"),
+  },
+  {
+    href: "/saved",
+    label: "Saved",
+    icon: Bookmark,
+    match: (p: string) => p.startsWith("/saved"),
+  },
+  {
+    href: "/messages",
+    label: "Inbox",
+    icon: Inbox,
+    match: (p: string) =>
+      p.startsWith("/messages") || p.startsWith("/my-enquiries") || p.startsWith("/my-applications"),
+  },
+] as const;
 
-export function MobileBottomNav({
-  className,
-}: MobileBottomNavProps) {
+export function MobileBottomNav() {
   const location = useLocation();
-  const { savedCount } = useSavedListings();
-
-  // Hide on admin and auth pages
-  const hiddenPaths = ['/admin', '/login', '/signup', '/forgot-password', '/reset-password', '/onboarding'];
-  const shouldHide = hiddenPaths.some(path => location.pathname.startsWith(path));
-
-  if (shouldHide) return null;
-
-  const navItems = [
-    {
-      name: "Home",
-      href: "/",
-      icon: Home,
-      isActive: location.pathname === "/",
-    },
-    {
-      name: "Search",
-      href: "/franchises",
-      icon: Search,
-      isActive:
-        location.pathname.startsWith("/businesses") ||
-        location.pathname.startsWith("/franchises") ||
-        location.pathname.startsWith("/search") ||
-        location.pathname.startsWith("/smart-search") ||
-        location.pathname.startsWith("/franchise-map") ||
-        location.pathname.startsWith("/match"),
-    },
-    {
-      name: "Saved",
-      href: "/saved",
-      icon: Heart,
-      isActive: location.pathname === "/saved",
-      badge: savedCount > 0 ? savedCount : undefined,
-    },
-    {
-      name: "Messages",
-      href: "/messages",
-      icon: MessageCircle,
-      isActive: location.pathname.startsWith("/messages"),
-    },
-    {
-      name: "Profile",
-      href: "/profile",
-      icon: User,
-      isActive: location.pathname.startsWith("/profile"),
-    },
-  ];
+  const { user } = useAuth();
+  const { unreadCount } = useNotifications();
 
   return (
-    <div className={cn("md:hidden", className)}>
-      {/* Bottom Navigation - App-like Thumb Zone Design */}
-      <nav
-        className="fixed bottom-0 left-0 right-0 z-50 safe-area-bottom"
-        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
-      >
-        {/* Glass background */}
-        <div className="absolute inset-0 bg-background/80 backdrop-blur-xl border-t border-border/50 dark:bg-background/90" />
-
-        {/* Navigation Items */}
-        <div className="relative flex items-center justify-around py-2 px-2">
-          {navItems.map((item) => {
-            const IconComponent = item.icon;
-            const isActive = item.isActive;
-
-            return (
-              <Link
-                key={item.name}
-                to={item.href}
-                className={cn(
-                  "flex flex-col items-center justify-center gap-0.5 py-2 px-4 rounded-2xl transition-all duration-200 min-w-[64px]",
-                  isActive
-                    ? "bg-primary/10 dark:bg-primary/20"
-                    : "active:scale-95"
+    <nav
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background md:hidden"
+      aria-label="Primary"
+    >
+      <div className="mx-auto grid h-14 max-w-lg grid-cols-4">
+        {tabs.map((tab) => {
+          const active = tab.match(location.pathname);
+          const showBadge = tab.href === "/messages" && user && unreadCount > 0;
+          return (
+            <Link
+              key={tab.href}
+              to={tab.href}
+              className={cn(
+                "flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium",
+                active ? "text-foreground" : "text-muted-foreground"
+              )}
+            >
+              <span className="relative">
+                <tab.icon className="h-5 w-5" strokeWidth={active ? 2.25 : 1.75} />
+                {showBadge && (
+                  <span className="absolute -right-2 -top-1 min-w-[14px] rounded-none bg-foreground px-1 text-center text-[9px] font-semibold text-background">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
                 )}
-              >
-                <div className="relative">
-                  <IconComponent
-                    className={cn(
-                      "h-6 w-6 transition-colors",
-                      isActive
-                        ? "text-primary"
-                        : "text-muted-foreground"
-                    )}
-                    strokeWidth={isActive ? 2.5 : 2}
-                  />
-
-                  {/* Badge */}
-                  {item.badge && (
-                    <Badge
-                      className="absolute -top-2 -right-2 h-4 min-w-4 flex items-center justify-center p-0 text-[10px] font-semibold bg-growth-green text-white border-0"
-                    >
-                      {item.badge > 9 ? '9+' : item.badge}
-                    </Badge>
-                  )}
-                </div>
-
-                <span
-                  className={cn(
-                    "text-[10px] font-medium transition-colors",
-                    isActive
-                      ? "text-primary"
-                      : "text-muted-foreground"
-                  )}
-                >
-                  {item.name}
-                </span>
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
-
-      {/* Bottom padding to prevent content from being hidden behind nav */}
-      <div className="h-20" />
-    </div>
+              </span>
+              {tab.label}
+            </Link>
+          );
+        })}
+      </div>
+    </nav>
   );
 }

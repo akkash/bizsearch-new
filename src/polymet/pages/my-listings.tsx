@@ -168,9 +168,11 @@ export function MyListingsPage({ className }: MyListingsPageProps) {
               View
             </Button>
           </Link>
-          <Button variant="outline" size="sm" disabled>
-            <Edit className="h-4 w-4 mr-2" />
-            Edit
+          <Button variant="outline" size="sm" asChild>
+            <Link to={`/business/edit/${business.id}`}>
+              <Edit className="h-4 w-4 mr-2" />
+              Edit
+            </Link>
           </Button>
         </div>
       </CardContent>
@@ -232,9 +234,11 @@ export function MyListingsPage({ className }: MyListingsPageProps) {
               View
             </Button>
           </Link>
-          <Button variant="outline" size="sm" disabled>
-            <Edit className="h-4 w-4 mr-2" />
-            Edit
+          <Button variant="outline" size="sm" asChild>
+            <Link to={`/franchise/edit/${franchise.id}`}>
+              <Edit className="h-4 w-4 mr-2" />
+              Edit
+            </Link>
           </Button>
         </div>
       </CardContent>

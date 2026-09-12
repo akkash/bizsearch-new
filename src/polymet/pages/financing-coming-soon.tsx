@@ -65,10 +65,8 @@ export function FinancingComingSoonPage() {
         }
 
         setIsLoading(true);
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        toast.info('Financing waitlist is not open yet. Use Contact instead.');
         setIsLoading(false);
-        setIsSubscribed(true);
-        toast.success("You're on the list. We'll notify you when financing tools launch.");
     };
 
     return (

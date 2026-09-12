@@ -518,8 +518,8 @@ export function FranchisorApplicationsPage() {
                                         <div className="flex items-center gap-2">
                                             {app.inquiry_id && (
                                                 <Button variant="outline" size="sm" asChild>
-                                                    <Link to={`/pipeline?lead=${app.inquiry_id}`}>
-                                                        Pipeline
+                                                    <Link to={`/pipeline/candidate/${app.inquiry_id}`}>
+                                                        Candidate
                                                     </Link>
                                                 </Button>
                                             )}
@@ -703,7 +703,7 @@ export function FranchisorApplicationsPage() {
                     <DialogFooter>
                         {selectedApp?.inquiry_id && (
                             <Button variant="outline" asChild>
-                                <Link to={`/pipeline?lead=${selectedApp.inquiry_id}`}>
+                                <Link to={`/pipeline/candidate/${selectedApp.inquiry_id}`}>
                                     Open in pipeline
                                 </Link>
                             </Button>
