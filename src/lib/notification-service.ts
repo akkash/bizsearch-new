@@ -30,72 +30,35 @@ export class NotificationService {
    * Get all notifications for a user
    */
   static async getNotifications(userId: string, limit = 50): Promise<Notification[]> {
-    try {
-      console.log('📥 Fetching notifications for user:', userId);
-      
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-      
-      const response = await fetch(
-        `${supabaseUrl}/rest/v1/notifications?user_id=eq.${userId}&select=*&order=created_at.desc&limit=${limit}`,
-        {
-          headers: {
-            'apikey': supabaseKey,
-            'Authorization': `Bearer ${supabaseKey}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const notifications = await response.json();
-      console.log('✅ Notifications fetched:', notifications.length);
-      
-      return notifications;
-    } catch (error) {
-      console.error('❌ Error fetching notifications:', error);
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error('Error fetching notifications:', error);
       throw error;
     }
+    return (data || []) as Notification[];
   }
 
   /**
    * Get unread notifications count
    */
   static async getUnreadCount(userId: string): Promise<number> {
-    try {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-      
-      const response = await fetch(
-        `${supabaseUrl}/rest/v1/notifications?user_id=eq.${userId}&read=eq.false&select=count`,
-        {
-          headers: {
-            'apikey': supabaseKey,
-            'Authorization': `Bearer ${supabaseKey}`,
-            'Content-Type': 'application/json',
-            'Prefer': 'count=exact'
-          }
-        }
-      );
-      
-      if (!response.ok) {
-        return 0;
-      }
-      
-      const countHeader = response.headers.get('content-range');
-      if (countHeader) {
-        const count = parseInt(countHeader.split('/')[1] || '0');
-        return count;
-      }
-      
-      return 0;
-    } catch (error) {
-      console.error('❌ Error fetching unread count:', error);
+    const { count, error } = await supabase
+      .from('notifications')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('read', false);
+
+    if (error) {
+      console.error('Error fetching unread count:', error);
       return 0;
     }
+    return count || 0;
   }
 
   /**

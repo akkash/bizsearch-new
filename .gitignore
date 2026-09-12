@@ -18,6 +18,13 @@ supabase/.temp
 .vscode/
 .idea/
 
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+e2e/.generated-ids.json
+
 # graft's local graph cache — regenerable, not committed (run `graft build`).
 /graft/
 
