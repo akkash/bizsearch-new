@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { isProdE2E } from './helpers/env';
 
 test.describe('Guest discovery', () => {
   test('home is franchise-first', async ({ page }) => {
@@ -9,7 +10,19 @@ test.describe('Guest discovery', () => {
     await expect(page.getByRole('link', { name: 'Match' }).first()).toBeVisible();
   });
 
+  test('franchise catalog renders', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    await page.goto('/franchises');
+    await expect(page.getByRole('heading', { name: /Franchise/i }).first()).toBeVisible({
+      timeout: 20_000,
+    });
+    await expect(page.locator('body')).not.toHaveText(/^\s*$/);
+    expect(errors, `page errors: ${errors.join(' | ')}`).toEqual([]);
+  });
+
   test('browse franchises and open a live listing', async ({ page }) => {
+    test.skip(isProdE2E(), 'Test listings are unpublished on production');
     await page.goto('/franchise/phase1-test-franchise-a');
     await expect(page.getByRole('heading', { name: /Phase1 Test Franchise A/i }).first()).toBeVisible({
       timeout: 20_000,
@@ -18,6 +31,7 @@ test.describe('Guest discovery', () => {
   });
 
   test('guest enquire prompts sign in', async ({ page }) => {
+    test.skip(isProdE2E(), 'Test listings are unpublished on production');
     await page.goto('/franchise/phase1-test-franchise-a');
     await page.getByRole('button', { name: 'Enquire' }).first().click();
     await expect(

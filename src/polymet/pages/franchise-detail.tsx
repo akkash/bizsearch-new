@@ -21,6 +21,8 @@ import { cn } from "@/lib/utils";
 import { InquiryDialog } from "@/components/inquiry-dialog";
 import { FranchiseBentoView } from "@/components/franchise-bento-view";
 import { ComparisonFeature } from "@/polymet/components/comparison-feature";
+import { SEOHead } from "@/components/seo-head";
+import { FranchiseSchema } from "@/components/schema-markup";
 import {
   Tooltip,
   TooltipContent,
@@ -236,6 +238,28 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
 
   return (
     <div className={cn("bg-background overflow-x-hidden", className)}>
+      <SEOHead
+        title={brandName}
+        description={franchise.description || `Explore the ${brandName} franchise opportunity on BizSearch.`}
+        canonicalUrl={`/franchise/${franchise.slug || franchise.id}`}
+        ogImage={franchise.logo_url || franchise.logoUrl}
+      />
+      <FranchiseSchema
+        franchise={{
+          id: franchise.id,
+          brand_name: brandName,
+          description: franchise.description,
+          industry: franchise.industry,
+          investment_range_min: franchise.total_investment_min ?? franchise.investmentMin,
+          investment_range_max: franchise.total_investment_max ?? franchise.investmentMax,
+          franchise_fee: franchise.franchise_fee ?? franchise.franchiseFee,
+          established_year: franchise.established_year ?? franchise.establishedYear,
+          total_outlets: franchise.total_outlets ?? franchise.totalOutlets,
+          logo_url: franchise.logo_url || franchise.logoUrl,
+          slug: franchise.slug,
+          verified_at: franchise.verified_at || franchise.verifiedAt,
+        }}
+      />
       <div className="bg-background/95 backdrop-blur-md border-b border-border sticky top-16 md:top-20 z-10">
         <div className="container mx-auto px-4 py-3">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
@@ -254,7 +278,7 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
                   </div>
                 )}
                 <div className="min-w-0">
-                  <h1 className="font-display text-xl sm:text-2xl font-bold uppercase tracking-tight truncate">{brandName}</h1>
+                  <p className="font-display text-xl sm:text-2xl font-bold uppercase tracking-tight truncate">{brandName}</p>
                   <p className="text-sm text-muted-foreground truncate">
                     {franchise.industry}
                     {franchise.establishedYear || franchise.established_year

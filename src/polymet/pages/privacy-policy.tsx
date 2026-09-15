@@ -19,7 +19,7 @@ import { Link } from "react-router-dom";
 import { PageHero } from "@/components/page-hero";
 
 export function PrivacyPolicyPage({ className }: { className?: string }) {
-    const lastUpdated = "December 29, 2024";
+    const lastUpdated = "September 16, 2026";
 
     const highlights = [
         {
@@ -171,10 +171,8 @@ export function PrivacyPolicyPage({ className }: { className?: string }) {
                 {
                     subtitle: "Types of Cookies We Use",
                     items: [
-                        "Essential cookies - Required for platform functionality",
-                        "Analytics cookies - Help us understand how you use our site",
-                        "Preference cookies - Remember your settings and choices",
-                        "Marketing cookies - Used to show relevant advertisements (with consent)",
+                        "Essential cookies - Required for platform functionality (session and preferences)",
+                        "We do not currently set analytics or advertising cookies",
                     ],
                 },
                 {

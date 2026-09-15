@@ -23,6 +23,7 @@ import { HomeCompareTable } from "@/polymet/components/home-compare-table";
 import { TrustVerificationSection } from "@/polymet/components/trust-verification-section";
 import { SellerCtaSection } from "@/polymet/components/seller-cta-section";
 import { cn } from "@/lib/utils";
+import { SEOHead } from "@/components/seo-head";
 
 interface HomePageProps {
   className?: string;
@@ -31,6 +32,11 @@ interface HomePageProps {
 export function HomePage({ className }: HomePageProps) {
   return (
     <div className={cn("bg-background", className)} data-homepage="franchise-first">
+      <SEOHead
+        title="BizSearch — Find the right franchise"
+        description="Discover franchises in India by investment, location, industry and expected returns. Compare opportunities and connect with brands."
+        canonicalUrl="/"
+      />
       <MarketplaceHero />
       <HomeFranchiseInventory />
       <HomeBusinessInventory />

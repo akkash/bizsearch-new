@@ -1,4 +1,5 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { lazy, Suspense } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SavedListingsProvider } from "@/contexts/SavedListingsContext";
 import { NotificationsProvider } from "@/contexts/NotificationsContext";
@@ -12,7 +13,6 @@ import { FranchiseListings } from "@/polymet/pages/franchise-listings";
 import { BusinessDetail } from "@/polymet/pages/business-detail";
 import { FranchiseDetail } from "@/polymet/pages/franchise-detail";
 import { FranchiseLocationsPage } from "@/polymet/pages/franchise-locations";
-import { FranchiseMapDiscoveryPage } from "@/polymet/pages/franchise-map-discovery";
 import { AboutPage } from "@/polymet/pages/about";
 import { ContactPage } from "@/polymet/pages/contact";
 import { ProfilePage } from "@/polymet/pages/profile";
@@ -40,7 +40,6 @@ import { AdminUserDetail } from "@/polymet/pages/admin/admin-user-detail";
 import { AdminListings } from "@/polymet/pages/admin/admin-listings";
 import { AdminListingDetail } from "@/polymet/pages/admin/admin-listing-detail";
 import { AdminDocuments } from "@/polymet/pages/admin/admin-documents";
-import { AdminAnalytics } from "@/polymet/pages/admin/admin-analytics";
 import { AdminFraudAlerts } from "@/polymet/pages/admin/admin-fraud-alerts";
 import { AdminContentManagement } from "@/polymet/pages/admin/admin-content";
 import { AdminSettings } from "@/polymet/pages/admin/admin-settings";
@@ -54,16 +53,13 @@ import { ListingSubmittedPage } from "@/polymet/pages/listing-submitted";
 import { FranchisorApplicationsPage } from "@/polymet/pages/franchisor-applications";
 import { FinancingComingSoonPage } from "@/polymet/pages/financing-coming-soon";
 import { MessagesPage } from "@/polymet/pages/messages";
-import { BusinessValuationPage } from "@/polymet/pages/business-valuation";
 import { NDAManagementPage } from "@/polymet/pages/nda-management";
 import { DealRoomPage } from "@/polymet/pages/deal-room";
-import { SellerAnalyticsPage } from "@/polymet/pages/seller-analytics";
 import { ListingOptimizerPage } from "@/polymet/pages/listing-optimizer";
 import { ClientManagementPage } from "@/polymet/pages/client-management";
 import { DealPipelinePage } from "@/polymet/pages/deal-pipeline";
 import { CommissionTrackingPage } from "@/polymet/pages/commission-tracking";
 import { AdvisorDirectoryPage } from "@/polymet/pages/advisor-directory";
-import { ReportGeneratorPage } from "@/polymet/pages/report-generator";
 import { LeadManagementPage } from "@/polymet/pages/lead-management";
 import { PipelineCandidatePage } from "@/polymet/pages/pipeline-candidate";
 import { OnboardingPage } from "@/pages/onboarding";
@@ -81,7 +77,6 @@ import { RefundPolicyPage } from "@/polymet/pages/refund-policy";
 import { DisclaimerPage } from "@/polymet/pages/disclaimer";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { HelpCenterPage } from "@/polymet/pages/help-center";
-import { ApiDocsPage } from "@/polymet/pages/api-docs";
 import { SmartSearchPage } from "@/polymet/pages/smart-search";
 import { FranchiseMatchPage } from "@/polymet/pages/franchise-match";
 
@@ -92,18 +87,38 @@ import { AdvisorClients } from "@/polymet/pages/advisor/advisor-clients";
 import { AdvisorDeals } from "@/polymet/pages/advisor/advisor-deals";
 import { AdvisorCommissions } from "@/polymet/pages/advisor/advisor-commissions";
 
+const FranchiseMapDiscoveryPage = lazy(() =>
+  import("@/polymet/pages/franchise-map-discovery").then((m) => ({ default: m.FranchiseMapDiscoveryPage }))
+);
+const ApiDocsPage = lazy(() =>
+  import("@/polymet/pages/api-docs").then((m) => ({ default: m.ApiDocsPage }))
+);
+const AdminAnalytics = lazy(() =>
+  import("@/polymet/pages/admin/admin-analytics").then((m) => ({ default: m.AdminAnalytics }))
+);
+const BusinessValuationPage = lazy(() =>
+  import("@/polymet/pages/business-valuation").then((m) => ({ default: m.BusinessValuationPage }))
+);
+const SellerAnalyticsPage = lazy(() =>
+  import("@/polymet/pages/seller-analytics").then((m) => ({ default: m.SellerAnalyticsPage }))
+);
+const ReportGeneratorPage = lazy(() =>
+  import("@/polymet/pages/report-generator").then((m) => ({ default: m.ReportGeneratorPage }))
+);
+
 export default function BizSearchApp() {
   return (
-    <ErrorBoundary>
-      <ThemeProvider>
-        <FeatureFlagsProvider>
-          <Router>
+    <ThemeProvider>
+      <FeatureFlagsProvider>
+        <Router>
+          <ErrorBoundary>
             <AuthProvider>
               <BannedAccountGate>
               <SavedListingsProvider>
                 <NotificationsProvider>
                   <ScrollToTop />
                   <WebsiteSchema />
+                  <Suspense fallback={<div className="min-h-[40vh] bg-background" />}>
                   <Routes>
                     {/* Homepage */}
                     <Route
@@ -264,8 +279,9 @@ export default function BizSearchApp() {
                     />
 
                     {/* API Documentation */}
+                    <Route path="/api/docs" element={<Navigate to="/docs" replace />} />
                     <Route
-                      path="/api/docs"
+                      path="/docs"
                       element={
                         <ApiDocsPage />
                       }
@@ -434,14 +450,7 @@ export default function BizSearchApp() {
                     />
 
                     {/* Additional Routes */}
-                    <Route
-                      path="/search"
-                      element={
-                        <MainLayout>
-                          <BusinessListings />
-                        </MainLayout>
-                      }
-                    />
+                    <Route path="/search" element={<Navigate to="/businesses" replace />} />
 
                     {/* Add Business Listing - Protected */}
                     <Route
@@ -780,14 +789,15 @@ export default function BizSearchApp() {
                     {/* Catch-all route - 404 page */}
                     <Route path="*" element={<NotFoundPage />} />
                   </Routes>
+                  </Suspense>
                   <Toaster />
                 </NotificationsProvider>
               </SavedListingsProvider>
               </BannedAccountGate>
             </AuthProvider>
-          </Router>
-        </FeatureFlagsProvider>
-      </ThemeProvider>
-    </ErrorBoundary>
+          </ErrorBoundary>
+        </Router>
+      </FeatureFlagsProvider>
+    </ThemeProvider>
   );
 }

@@ -133,7 +133,7 @@ Return ONLY the JSON:`;
       let franchises: any[] = [];
 
       if (!isFranchiseQuery) {
-        let dbQuery = supabase.from('businesses').select('*').eq('status', 'active');
+        let dbQuery = supabase.from('business_public').select('*');
 
         if (intent.industries && intent.industries.length > 0) {
           const industryFilters = intent.industries
@@ -164,7 +164,7 @@ Return ONLY the JSON:`;
         businesses = data || [];
       }
 
-      let franchiseQuery = supabase.from('franchises').select('*').eq('status', 'active');
+      let franchiseQuery = supabase.from('franchise_public').select('*');
 
       if (intent.industries?.length) {
         const industryFilters = intent.industries
@@ -276,16 +276,14 @@ Provide ONLY the suggestions, one per line:`;
     try {
       // Get businesses matching the partial query
       const { data: businesses } = await supabase
-        .from('businesses')
+        .from('business_public')
         .select('name, industry, city')
-        .eq('status', 'active')
         .or(`name.ilike.%${partial}%,industry.ilike.%${partial}%,city.ilike.%${partial}%`)
         .limit(5);
 
       const { data: franchises } = await supabase
-        .from('franchises')
+        .from('franchise_public')
         .select('brand_name, industry, headquarters_city')
-        .eq('status', 'active')
         .or(`brand_name.ilike.%${partial}%,industry.ilike.%${partial}%`)
         .limit(5);
 

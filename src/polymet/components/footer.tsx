@@ -17,6 +17,7 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { CONTACT_EMAIL, CONTACT_OFFICE, CONTACT_PHONE } from "@/lib/site-config";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -259,16 +260,18 @@ export function Footer() {
             <ul className="space-y-3 mt-6">
               <li className="flex items-center gap-2 text-sm text-background/60">
                 <Mail className="h-4 w-4 flex-shrink-0 text-background" />
-                <a href="mailto:support@bizsearch.in" className="hover:text-white transition-colors duration-150">
-                  support@bizsearch.in
+                <a href={`mailto:${CONTACT_EMAIL}`} className="hover:text-white transition-colors duration-150">
+                  {CONTACT_EMAIL}
                 </a>
               </li>
-              <li className="flex items-center gap-2 text-sm text-background/60">
-                <Phone className="h-4 w-4 flex-shrink-0 text-background" />
-                <a href="tel:+911800123456" className="hover:text-white transition-colors duration-150">
-                  +91 1800 123 456
-                </a>
-              </li>
+              {CONTACT_PHONE ? (
+                <li className="flex items-center gap-2 text-sm text-background/60">
+                  <Phone className="h-4 w-4 flex-shrink-0 text-background" />
+                  <a href={`tel:${CONTACT_PHONE.replace(/\s/g, "")}`} className="hover:text-white transition-colors duration-150">
+                    {CONTACT_PHONE}
+                  </a>
+                </li>
+              ) : null}
             </ul>
           </div>
         </div>
@@ -385,17 +388,30 @@ export function Footer() {
             {expandedSection === 'contact' && (
               <ul className="space-y-3 pb-3">
                 <li className="flex items-start gap-2 text-sm text-background/60">
-                  <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0 text-background" />
-                  <span>123 Business Hub, MG Road, Bangalore 560001</span>
+                  {CONTACT_OFFICE ? (
+                    <>
+                      <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0 text-background" />
+                      <span>{CONTACT_OFFICE}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Mail className="h-4 w-4 mt-0.5 flex-shrink-0 text-background" />
+                      <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+                    </>
+                  )}
                 </li>
-                <li className="flex items-center gap-2 text-sm text-background/60">
-                  <Mail className="h-4 w-4 flex-shrink-0 text-background" />
-                  <a href="mailto:support@bizsearch.in">support@bizsearch.in</a>
-                </li>
-                <li className="flex items-center gap-2 text-sm text-background/60">
-                  <Phone className="h-4 w-4 flex-shrink-0 text-background" />
-                  <a href="tel:+911800123456">+91 1800 123 456</a>
-                </li>
+                {CONTACT_OFFICE ? (
+                  <li className="flex items-center gap-2 text-sm text-background/60">
+                    <Mail className="h-4 w-4 flex-shrink-0 text-background" />
+                    <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+                  </li>
+                ) : null}
+                {CONTACT_PHONE ? (
+                  <li className="flex items-center gap-2 text-sm text-background/60">
+                    <Phone className="h-4 w-4 flex-shrink-0 text-background" />
+                    <a href={`tel:${CONTACT_PHONE.replace(/\s/g, "")}`}>{CONTACT_PHONE}</a>
+                  </li>
+                ) : null}
               </ul>
             )}
           </div>

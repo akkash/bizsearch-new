@@ -30,6 +30,8 @@ import { AIInsights } from "@/polymet/components/ai-insights";
 import { InquiryDialog } from "@/components/inquiry-dialog";
 
 import { BusinessBentoView } from "@/components/business-bento-view";
+import { SEOHead } from "@/components/seo-head";
+import { BusinessSchema } from "@/components/schema-markup";
 interface BusinessDetailProps {
   className?: string;
 }
@@ -141,6 +143,29 @@ export function BusinessDetail({ className }: BusinessDetailProps) {
 
   return (
     <div className={cn("min-h-screen bg-background", className)}>
+      <SEOHead
+        title={business.name}
+        description={business.description || `View ${business.name} listed for sale on BizSearch.`}
+        canonicalUrl={`/business/${business.slug || business.id}`}
+        ogImage={business.logo_url || business.logo}
+      />
+      <BusinessSchema
+        business={{
+          id: business.id,
+          name: business.name,
+          description: business.description,
+          industry: business.industry,
+          location: business.location,
+          city: business.city,
+          state: business.state,
+          price: business.price,
+          revenue: business.revenue,
+          established_year: business.established_year ?? business.establishedYear,
+          images: business.images,
+          slug: business.slug,
+          verified_at: business.verified_at || business.verifiedAt,
+        }}
+      />
       {/* Header */}
       <div className="bg-background/95 backdrop-blur-md border-b border-border sticky top-0 z-10">
         <div className="container mx-auto px-4 py-3">

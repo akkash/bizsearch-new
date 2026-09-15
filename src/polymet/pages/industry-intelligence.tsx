@@ -34,8 +34,8 @@ export function IndustryIntelligencePage() {
             <StructuredData
                 type="BreadcrumbList"
                 items={[
-                    { name: 'Home', url: 'https://bizsearch.in' },
-                    { name: 'Industries', url: 'https://bizsearch.in/industries' }
+                    { name: 'Home', url: '/' },
+                    { name: 'Industries', url: '/industries' }
                 ]}
             />
 
@@ -93,7 +93,7 @@ export function IndustryIntelligencePage() {
                                     <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
                                         <div>
                                             <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                                                Market size
+                                                Market size (indicative)
                                             </p>
                                             <p className="font-medium font-mono tabular-nums">
                                                 {industry.stats.marketSize}

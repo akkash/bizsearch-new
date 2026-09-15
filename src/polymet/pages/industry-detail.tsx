@@ -58,15 +58,15 @@ export function IndustryDetailPage() {
                 title={industry.seoTitle.replace(' | BizSearch', '')}
                 description={industry.seoDescription}
                 keywords={[industry.name, 'franchise', 'business opportunity', 'india', 'investment']}
-                canonicalUrl={`https://bizsearch.in/industry/${industry.slug}`}
+                canonicalUrl={`/industry/${industry.slug}`}
             />
 
             <StructuredData
                 type="BreadcrumbList"
                 items={[
-                    { name: 'Home', url: 'https://bizsearch.in' },
-                    { name: 'Industries', url: 'https://bizsearch.in/industries' },
-                    { name: industry.name, url: `https://bizsearch.in/industry/${industry.slug}` }
+                    { name: 'Home', url: '/' },
+                    { name: 'Industries', url: '/industries' },
+                    { name: industry.name, url: `/industry/${industry.slug}` }
                 ]}
             />
 
@@ -88,7 +88,7 @@ export function IndustryDetailPage() {
                     {industry.stats.growthRate && (
                         <Badge variant="secondary" className="text-growth-green">
                             <TrendingUp className="h-3 w-3 mr-1" />
-                            {industry.stats.growthRate} growth
+                            {industry.stats.growthRate}
                         </Badge>
                     )}
                     {industry.stats.totalBrands != null && (

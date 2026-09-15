@@ -719,9 +719,8 @@ Provide analysis in EXACT JSON format (no markdown):
     try {
       // Fetch available franchises from database
       const { data: franchises, error } = await supabase
-        .from('franchises')
+        .from('franchise_public')
         .select('*')
-        .eq('status', 'active')
         .order('created_at', { ascending: false });
 
       if (error) throw error;

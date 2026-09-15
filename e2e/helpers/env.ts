@@ -26,6 +26,23 @@ export const ACCOUNTS = {
 
 export const PASSWORD = process.env.TEST_ACCOUNT_PASSWORD || 'TestPass123!';
 
+export function isProdE2E(): boolean {
+  const base = process.env.E2E_BASE_URL || '';
+  return /bizsearch\.in/i.test(base);
+}
+
+export function isProductionSupabase(): boolean {
+  const url = process.env.VITE_SUPABASE_URL || '';
+  return url.includes('suiexvkyakjvexnldvmr');
+}
+
+/** Never seed or mutate Auth/listings against www or the live Supabase project. */
+export function allowE2EMutation(): boolean {
+  if (isProdE2E()) return false;
+  if (isProductionSupabase() && process.env.E2E_ALLOW_PROD_SEED !== 'true') return false;
+  return process.env.E2E_ALLOW_DB_SEED !== 'false';
+}
+
 export type GeneratedIds = {
   franchiseAId: string;
   franchiseeId: string;

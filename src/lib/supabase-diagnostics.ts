@@ -295,7 +295,7 @@ export function withTiming<T>(
 }
 
 // Expose to window for console access
-if (typeof window !== 'undefined') {
+if (typeof window !== 'undefined' && import.meta.env.DEV) {
     (window as any).runSupabaseDiagnostics = runFullDiagnostics;
     (window as any).quickSupabaseCheck = quickConnectivityCheck;
 

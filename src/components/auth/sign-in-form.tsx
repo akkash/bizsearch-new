@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Mail, Eye, EyeOff, Lock, ArrowRight } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { safeInternalPath } from '@/lib/site-config';
 
 export function SignInForm() {
   const navigate = useNavigate();
@@ -28,7 +29,10 @@ export function SignInForm() {
 
   // Get the redirect path from query params OR location state (set by ProtectedRoute)
   const redirectParam = searchParams.get('redirect');
-  const from = redirectParam || (location.state as any)?.from?.pathname || '/';
+  const from =
+    safeInternalPath(redirectParam) ||
+    safeInternalPath((location.state as { from?: { pathname?: string } } | null)?.from?.pathname) ||
+    '/';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -111,12 +111,21 @@ export function FranchiseBentoView({
           franchise.min_area_sqft ||
           franchise.spaceRequirement ||
           franchise.space_required_sqft;
+    const propertyUrl =
+        typeof franchise.vabgo_property_url === 'string'
+            ? franchise.vabgo_property_url
+            : typeof franchise.property_url === 'string'
+              ? franchise.property_url
+              : typeof franchise.vabgoUrl === 'string'
+                ? franchise.vabgoUrl
+                : null;
     const vabgoIntent = {
         city: listingReqs.preferredCities[0] || franchise.city || franchise.headquarters_city,
         propertyType: selectedFormat?.propertyType || listingReqs.propertyType,
         minAreaSqft: selectedFormat?.minSqft ?? listingReqs.minAreaSqft,
         maxAreaSqft: selectedFormat?.maxSqft ?? listingReqs.maxAreaSqft,
         listingType: 'Rent' as const,
+        propertyUrl,
     };
     const verificationStatus =
         franchise.verificationStatus || franchise.verification_status;
@@ -347,9 +356,9 @@ export function FranchiseBentoView({
                         )}
                     </p>
                 )}
-                {VabgoClient.isEnabled() && hasSearchableIntent(vabgoIntent) && (
+                {VabgoClient.isEnabled() && hasSearchableIntent(vabgoIntent) && vabgoIntent.propertyUrl && (
                     <a
-                        href={VabgoClient.buildSearchUrl(vabgoIntent)}
+                        href={vabgoIntent.propertyUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl border border-growth-green/30 bg-growth-green/10 p-4 hover:bg-growth-green/15 transition-colors duration-150"

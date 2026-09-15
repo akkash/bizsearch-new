@@ -27,6 +27,8 @@ import {
   HelpCircle,
 } from "lucide-react";
 import { PageHero } from "@/components/page-hero";
+import { SEOHead } from "@/components/seo-head";
+import { CONTACT_EMAIL, CONTACT_OFFICE, CONTACT_PHONE } from "@/lib/site-config";
 
 export function ContactPage({ className }: { className?: string }) {
   const [formData, setFormData] = useState({
@@ -75,6 +77,11 @@ export function ContactPage({ className }: { className?: string }) {
 
   return (
     <div className={`min-h-screen bg-background ${className ?? ""}`}>
+      <SEOHead
+        title="Contact BizSearch"
+        description="Questions about buying, selling, or franchising? Email support@bizsearch.in and we will reply within one business day."
+        canonicalUrl="/contact"
+      />
       <PageHero
         eyebrow="Contact"
         title="Get in touch"
@@ -230,43 +237,47 @@ export function ContactPage({ className }: { className?: string }) {
                   <CardTitle className="text-base">Direct contact</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4 text-sm">
-                  <div className="flex items-start gap-3">
-                    <Phone className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                    <div>
-                      <p className="font-medium">Phone</p>
-                      <a
-                        href="tel:+919876543210"
-                        className="text-muted-foreground hover:text-foreground"
-                      >
-                        +91 98765 43210
-                      </a>
-                      <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        Mon–Sat, 9 AM – 7 PM
-                      </p>
+                  {CONTACT_PHONE ? (
+                    <div className="flex items-start gap-3">
+                      <Phone className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                      <div>
+                        <p className="font-medium">Phone</p>
+                        <a
+                          href={`tel:${CONTACT_PHONE.replace(/\s/g, "")}`}
+                          className="text-muted-foreground hover:text-foreground"
+                        >
+                          {CONTACT_PHONE}
+                        </a>
+                        <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          Mon–Sat, 9 AM – 7 PM
+                        </p>
+                      </div>
                     </div>
-                  </div>
+                  ) : null}
                   <div className="flex items-start gap-3">
                     <Mail className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                     <div>
                       <p className="font-medium">Email</p>
                       <a
-                        href="mailto:support@bizsearch.in"
+                        href={`mailto:${CONTACT_EMAIL}`}
                         className="text-muted-foreground hover:text-foreground"
                       >
-                        support@bizsearch.in
+                        {CONTACT_EMAIL}
                       </a>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3">
-                    <MapPin className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                    <div>
-                      <p className="font-medium">Office</p>
-                      <p className="text-muted-foreground leading-relaxed">
-                        Mumbai, Maharashtra, India
-                      </p>
+                  {CONTACT_OFFICE ? (
+                    <div className="flex items-start gap-3">
+                      <MapPin className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                      <div>
+                        <p className="font-medium">Office</p>
+                        <p className="text-muted-foreground leading-relaxed">
+                          {CONTACT_OFFICE}
+                        </p>
+                      </div>
                     </div>
-                  </div>
+                  ) : null}
                 </CardContent>
               </Card>
             </div>

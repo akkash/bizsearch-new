@@ -1,8 +1,11 @@
 import { test, expect } from '@playwright/test';
-import { ACCOUNTS } from './helpers/env';
+import { ACCOUNTS, isProdE2E } from './helpers/env';
 import { expectAccessDenied, login } from './helpers/auth';
 
 test.describe('Buyer and seller secondary journeys', () => {
+  test.beforeEach(() => {
+    test.skip(isProdE2E(), 'Authenticated e2e runs against staging only');
+  });
   test('buyer can open enquiries and is blocked from pipeline', async ({ page }) => {
     await login(page, ACCOUNTS.buyer);
     await page.goto('/my-enquiries');

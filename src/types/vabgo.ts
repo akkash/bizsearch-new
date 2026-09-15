@@ -27,6 +27,8 @@ export type VabgoLocationIntent = {
   lat?: number | null;
   lng?: number | null;
   limit?: number;
+  /** Direct vabgo.com property URL. Required before we advertise Open Vabgo. */
+  propertyUrl?: string | null;
 };
 
 export type VabgoSiteMatch = {

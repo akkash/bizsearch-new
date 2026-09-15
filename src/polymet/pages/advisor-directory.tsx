@@ -25,6 +25,7 @@ import {
     Loader2,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { SEOHead } from '@/components/seo-head';
 
 interface Advisor {
     id: string;
@@ -75,7 +76,7 @@ export function AdvisorDirectoryPage() {
                     featured,
                     years_experience,
                     bio,
-                    profile:profiles(display_name, avatar_url)
+                    profile:profiles!advisor_profiles_profile_fk(display_name, avatar_url)
                 `)
                 .order('featured', { ascending: false })
                 .order('rating', { ascending: false });
@@ -137,10 +138,20 @@ export function AdvisorDirectoryPage() {
 
     return (
         <div className="container max-w-6xl mx-auto py-8 px-4">
+            <SEOHead
+                title="Business advisors"
+                description="Advisor directory on BizSearch."
+                canonicalUrl="/advisors"
+                noIndex={advisors.length === 0}
+            />
             <div className="text-center mb-8">
-                <h1 className="text-3xl font-bold mb-2">Find a Business Advisor</h1>
+                <h1 className="text-3xl font-bold mb-2">
+                    {advisors.length > 0 ? 'Find a Business Advisor' : 'Advisor directory'}
+                </h1>
                 <p className="text-muted-foreground max-w-2xl mx-auto">
-                    Connect with verified brokers and advisors to help you buy, sell, or invest in businesses and franchises
+                    {advisors.length > 0
+                        ? 'Connect with advisors listed on BizSearch for franchise and business transactions.'
+                        : 'No details found in the table.'}
                 </p>
             </div>
 

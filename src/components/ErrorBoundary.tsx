@@ -1,7 +1,6 @@
 import React, { Component, ErrorInfo, ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, RefreshCw, Home } from "lucide-react";
-import { Link } from "react-router-dom";
 
 interface Props {
   children: ReactNode;
@@ -98,7 +97,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 <RefreshCw className="h-5 w-5" />
                 Reload Page
               </Button>
-              <Link to="/">
+              <a href="/">
                 <Button
                   size="lg"
                   variant="outline"
@@ -107,18 +106,18 @@ export class ErrorBoundary extends Component<Props, State> {
                   <Home className="h-5 w-5" />
                   Go to Homepage
                 </Button>
-              </Link>
+              </a>
             </div>
 
             <div className="mt-12 pt-8 border-t border-border">
               <p className="text-sm text-muted-foreground">
                 If this problem persists, please{" "}
-                <Link
-                  to="/contact"
+                <a
+                  href="/contact"
                   className="text-growth-green hover:underline font-medium"
                 >
                   contact our support team
-                </Link>
+                </a>
                 .
               </p>
             </div>

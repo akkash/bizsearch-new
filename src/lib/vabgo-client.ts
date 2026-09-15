@@ -114,14 +114,7 @@ function usesSearchUi(intent: VabgoLocationIntent): boolean {
 }
 
 export function hasSearchableIntent(intent: VabgoLocationIntent): boolean {
-  return Boolean(
-    citySlug(intent.city) ||
-      intent.locality ||
-      intent.propertyType ||
-      intent.minAreaSqft != null ||
-      intent.maxAreaSqft != null ||
-      intent.areaSqft != null
-  );
+  return Boolean(intent.propertyUrl);
 }
 
 function toAbsolute(url?: string | null): string | null {

@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import { isUUID, sanitizeSlug } from './slug-utils';
+import { BUSINESS_PUBLIC_COLUMNS } from './public-listing-columns';
 
 export interface BusinessFilters {
   industry?: string[];
@@ -76,9 +77,8 @@ export class BusinessService {
     const to = from + pageSize - 1;
 
     let query = supabase
-      .from('businesses')
-      .select('*', { count: 'exact' })
-      .eq('status', 'active');
+      .from('business_public')
+      .select(BUSINESS_PUBLIC_COLUMNS, { count: 'exact' });
 
     if (filters?.search?.trim()) {
       const search = filters.search.trim();
@@ -156,7 +156,7 @@ export class BusinessService {
     console.log('🔍 Fetching business by ID:', id);
 
     const response = await fetch(
-      `${supabaseUrl}/rest/v1/businesses?id=eq.${id}&select=*,profiles(*)`,
+      `${supabaseUrl}/rest/v1/business_public?id=eq.${id}&select=${BUSINESS_PUBLIC_COLUMNS}`,
       {
         headers: {
           'apikey': supabaseKey,
@@ -193,7 +193,7 @@ export class BusinessService {
     // Use limit=1 to avoid 300 Multiple Choices error when duplicates exist
     // Removed profiles(*) join as it causes 300 error with ambiguous FK
     const response = await fetch(
-      `${supabaseUrl}/rest/v1/businesses?slug=eq.${encodeURIComponent(sanitized)}&select=*&limit=1`,
+      `${supabaseUrl}/rest/v1/business_public?slug=eq.${encodeURIComponent(sanitized)}&select=${BUSINESS_PUBLIC_COLUMNS}&limit=1`,
       {
         headers: {
           'apikey': supabaseKey,
@@ -252,7 +252,7 @@ export class BusinessService {
     console.log('🌟 Fetching featured businesses...');
 
     const response = await fetch(
-      `${supabaseUrl}/rest/v1/businesses?select=*&status=eq.active&featured=eq.true&order=created_at.desc&limit=${limit}`,
+      `${supabaseUrl}/rest/v1/business_public?select=${BUSINESS_PUBLIC_COLUMNS}&featured=eq.true&order=created_at.desc&limit=${limit}`,
       {
         headers: {
           'apikey': supabaseKey,
@@ -276,9 +276,8 @@ export class BusinessService {
    */
   static async getTrendingBusinesses(limit = 10) {
     const { data, error } = await supabase
-      .from('businesses')
-      .select('*')
-      .eq('status', 'active')
+      .from('business_public')
+      .select(BUSINESS_PUBLIC_COLUMNS)
       .eq('trending', true)
       .order('views_count', { ascending: false })
       .limit(limit);

@@ -19,7 +19,7 @@ export interface FeatureFlag {
  */
 export const DEFAULT_FEATURE_FLAGS: Omit<FeatureFlag, 'id' | 'created_at' | 'updated_at'>[] = [
     // Maps
-    { key: 'franchise_map', name: 'Franchise Map Discovery', description: 'Interactive map for discovering franchise locations', enabled: true, category: 'maps' },
+    { key: 'franchise_map', name: 'Franchise Map Discovery', description: 'Interactive map for discovering franchise locations', enabled: false, category: 'maps' },
     { key: 'territory_analytics', name: 'Territory Analytics', description: 'AI-powered territory analysis and recommendations', enabled: true, category: 'maps' },
 
     // AI Features

@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "node scripts/generate-sitemap.mjs && vite build",
+    "unpublish:test-listings": "node scripts/unpublish-test-listings.mjs",
+    "disable:test-accounts": "node scripts/disable-test-accounts.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "test:e2e": "playwright test",
@@ -102,7 +104,6 @@
     "react-pdf": "latest",
     "react-plotly.js": "latest",
     "react-resizable-panels": "latest",
-    "react-router": "6.22.3",
     "react-router-dom": "6.22.3",
     "react-syntax-highlighter": "latest",
     "react-type-animation": "latest",
@@ -124,8 +125,7 @@
   "overrides": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "6.22.3",
-    "react-router": "6.22.3"
+    "react-router-dom": "6.22.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",

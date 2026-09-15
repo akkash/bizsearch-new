@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SMERGERS_BUSINESS_CATEGORIES, getBusinessCategoryBySlug } from "@/data/categories";
+import { SEOHead } from "@/components/seo-head";
 
 interface BusinessListingsProps {
   className?: string;
@@ -262,6 +263,11 @@ export function BusinessListings({ className }: BusinessListingsProps) {
   if (loading) {
     return (
       <div className={cn("min-h-screen bg-background", className)}>
+        <SEOHead
+          title="Businesses for sale in India"
+          description="Browse businesses for sale by industry, location, and asking price."
+          canonicalUrl="/businesses"
+        />
         <div className="container mx-auto px-4 py-8">
           <h1 className="text-3xl font-bold mb-6">Businesses for Sale</h1>
           <SkeletonLoader type="card" count={6} />
@@ -290,6 +296,11 @@ export function BusinessListings({ className }: BusinessListingsProps) {
   if (!loading && filteredBusinesses.length === 0 && businesses.length === 0) {
     return (
       <div className={cn("min-h-screen bg-background", className)}>
+        <SEOHead
+          title="Businesses for sale in India"
+          description="Browse businesses for sale by industry, location, and asking price."
+          canonicalUrl="/businesses"
+        />
         <div className="border-b border-border bg-card">
           <div className="container mx-auto px-4 py-6 md:py-8">
             {currentCategory && (
@@ -352,6 +363,11 @@ export function BusinessListings({ className }: BusinessListingsProps) {
 
   return (
     <div className={cn("min-h-screen bg-background", className)}>
+      <SEOHead
+        title="Businesses for sale in India"
+        description="Browse businesses for sale by industry, location, and asking price."
+        canonicalUrl="/businesses"
+      />
       <div className="border-b border-border bg-card">
         <div className="container mx-auto px-4 py-6 md:py-8">
           {(currentCategory || currentSubcategory) && (

@@ -20,7 +20,7 @@ import { Link } from "react-router-dom";
 import { PageHero } from "@/components/page-hero";
 
 export function RefundPolicyPage({ className }: { className?: string }) {
-    const lastUpdated = "December 29, 2024";
+    const lastUpdated = "September 16, 2026";
 
     const highlights = [
         {

@@ -21,6 +21,8 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { PageHero } from "@/components/page-hero";
+import { SEOHead } from "@/components/seo-head";
+import { CONTACT_EMAIL, CONTACT_OFFICE, CONTACT_PHONE } from "@/lib/site-config";
 
 export function AboutPage({ className }: { className?: string }) {
   const howSteps = [
@@ -75,6 +77,11 @@ export function AboutPage({ className }: { className?: string }) {
 
   return (
     <div className={`min-h-screen bg-background ${className ?? ""}`}>
+      <SEOHead
+        title="About BizSearch"
+        description="BizSearch is a franchise and business marketplace in India. Browse listings, compare opportunities, and connect with brands."
+        canonicalUrl="/about"
+      />
       <PageHero
         eyebrow="About BizSearch"
         title="A marketplace for businesses and franchises"
@@ -243,18 +250,22 @@ export function AboutPage({ className }: { className?: string }) {
       <section className="py-8 border-t border-border">
         <div className="container mx-auto px-4">
           <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
-            <a href="tel:+919876543210" className="flex items-center gap-2 hover:text-foreground">
-              <Phone className="h-4 w-4" />
-              +91 98765 43210
-            </a>
-            <a href="mailto:contact@bizsearch.in" className="flex items-center gap-2 hover:text-foreground">
+            {CONTACT_PHONE ? (
+              <a href={`tel:${CONTACT_PHONE.replace(/\s/g, "")}`} className="flex items-center gap-2 hover:text-foreground">
+                <Phone className="h-4 w-4" />
+                {CONTACT_PHONE}
+              </a>
+            ) : null}
+            <a href={`mailto:${CONTACT_EMAIL}`} className="flex items-center gap-2 hover:text-foreground">
               <Mail className="h-4 w-4" />
-              contact@bizsearch.in
+              {CONTACT_EMAIL}
             </a>
-            <div className="flex items-center gap-2">
-              <MapPin className="h-4 w-4" />
-              Mumbai, Maharashtra, India
-            </div>
+            {CONTACT_OFFICE ? (
+              <div className="flex items-center gap-2">
+                <MapPin className="h-4 w-4" />
+                {CONTACT_OFFICE}
+              </div>
+            ) : null}
           </div>
         </div>
       </section>

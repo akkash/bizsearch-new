@@ -19,6 +19,8 @@ import {
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { PageHero } from "@/components/page-hero";
+import { SEOHead } from "@/components/seo-head";
+import { CONTACT_EMAIL, CONTACT_PHONE } from "@/lib/site-config";
 
 export function HelpCenterPage({ className }: { className?: string }) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -136,6 +138,11 @@ export function HelpCenterPage({ className }: { className?: string }) {
 
   return (
     <div className={`min-h-screen bg-background ${className ?? ""}`}>
+      <SEOHead
+        title="Help Center"
+        description="Answers for buying, selling, and franchising on BizSearch. Email support@bizsearch.in if you need more help."
+        canonicalUrl="/help"
+      />
       <PageHero
         eyebrow="Help"
         title="Help center"
@@ -262,18 +269,20 @@ export function HelpCenterPage({ className }: { className?: string }) {
                   </Button>
                 </CardContent>
               </Card>
-              <Card className="border-border">
-                <CardContent className="pt-6 space-y-3">
-                  <Phone className="h-5 w-5 text-primary" />
-                  <h3 className="font-medium">Phone</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Mon–Sat, 9 AM – 7 PM
-                  </p>
-                  <Button variant="outline" className="w-full" asChild>
-                    <a href="tel:+919876543210">+91 98765 43210</a>
-                  </Button>
-                </CardContent>
-              </Card>
+              {CONTACT_PHONE ? (
+                <Card className="border-border">
+                  <CardContent className="pt-6 space-y-3">
+                    <Phone className="h-5 w-5 text-primary" />
+                    <h3 className="font-medium">Phone</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Mon–Sat, 9 AM – 7 PM
+                    </p>
+                    <Button variant="outline" className="w-full" asChild>
+                      <a href={`tel:${CONTACT_PHONE.replace(/\s/g, "")}`}>{CONTACT_PHONE}</a>
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : null}
             </div>
           </div>
         </div>

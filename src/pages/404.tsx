@@ -2,10 +2,16 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Home, Search, ArrowLeft } from "lucide-react";
+import { SEOHead } from "@/components/seo-head";
 
 export function NotFoundPage() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
+      <SEOHead
+        title="Page not found"
+        description="This page does not exist on BizSearch."
+        noIndex
+      />
       <div className="max-w-2xl text-center">
         <h1 className="text-8xl font-bold text-growth-green mb-4 font-mono tabular-nums">404</h1>
         <h2 className="text-3xl font-semibold text-foreground mb-4">
@@ -23,14 +29,14 @@ export function NotFoundPage() {
               Go to Homepage
             </Button>
           </Link>
-          <Link to="/businesses">
+          <Link to="/franchises">
             <Button
               size="lg"
               variant="outline"
               className="gap-2 w-full sm:w-auto"
             >
               <Search className="h-5 w-5" />
-              Browse Businesses
+              Browse Franchises
             </Button>
           </Link>
         </div>

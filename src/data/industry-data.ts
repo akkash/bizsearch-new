@@ -46,7 +46,7 @@ export const INDUSTRY_INSIGHTS: IndustryInsight[] = [
         ],
         stats: {
             marketSize: '₹5,99,000 Cr',
-            growthRate: '11% CAGR',
+            growthRate: '11% CAGR (est.)',
             totalBrands: 3500,
             totalOutlets: '7,50,000+',
             avgInvestment: { min: 500000, max: 5000000 },
@@ -88,7 +88,7 @@ export const INDUSTRY_INSIGHTS: IndustryInsight[] = [
         ],
         stats: {
             marketSize: '₹1,17,000 Cr',
-            growthRate: '10.4% CAGR',
+            growthRate: '10.4% CAGR (est.)',
             totalBrands: 1200,
             totalOutlets: '1,50,000+',
             avgInvestment: { min: 300000, max: 3000000 },
@@ -130,7 +130,7 @@ export const INDUSTRY_INSIGHTS: IndustryInsight[] = [
         ],
         stats: {
             marketSize: '₹1,46,000 Cr',
-            growthRate: '12% CAGR',
+            growthRate: '12% CAGR (est.)',
             totalBrands: 800,
             totalOutlets: '3,00,000+',
             avgInvestment: { min: 1000000, max: 10000000 },
@@ -172,7 +172,7 @@ export const INDUSTRY_INSIGHTS: IndustryInsight[] = [
         ],
         stats: {
             marketSize: '₹76,00,000 Cr',
-            growthRate: '9% CAGR',
+            growthRate: '9% CAGR (est.)',
             totalBrands: 2500,
             totalOutlets: '15,00,000+',
             avgInvestment: { min: 1500000, max: 15000000 },
@@ -214,7 +214,7 @@ export const INDUSTRY_INSIGHTS: IndustryInsight[] = [
         ],
         stats: {
             marketSize: '₹7,50,000 Cr',
-            growthRate: '8.7% CAGR',
+            growthRate: '8.7% CAGR (est.)',
             totalBrands: 600,
             totalOutlets: '2,00,000+',
             avgInvestment: { min: 2000000, max: 50000000 },
@@ -256,7 +256,7 @@ export const INDUSTRY_INSIGHTS: IndustryInsight[] = [
         ],
         stats: {
             marketSize: '₹25,00,000 Cr',
-            growthRate: '14% CAGR',
+            growthRate: '14% CAGR (est.)',
             totalBrands: 400,
             totalOutlets: '50,000+',
             avgInvestment: { min: 500000, max: 5000000 },
@@ -298,7 +298,7 @@ export const INDUSTRY_INSIGHTS: IndustryInsight[] = [
         ],
         stats: {
             marketSize: '₹15,00,000 Cr',
-            growthRate: '13% CAGR',
+            growthRate: '13% CAGR (est.)',
             totalBrands: 350,
             totalOutlets: '75,000+',
             avgInvestment: { min: 5000000, max: 100000000 },
@@ -340,7 +340,7 @@ export const INDUSTRY_INSIGHTS: IndustryInsight[] = [
         ],
         stats: {
             marketSize: '₹6,00,000 Cr',
-            growthRate: '10% CAGR',
+            growthRate: '10% CAGR (est.)',
             totalBrands: 1500,
             totalOutlets: '4,00,000+',
             avgInvestment: { min: 1000000, max: 20000000 },
@@ -382,7 +382,7 @@ export const INDUSTRY_INSIGHTS: IndustryInsight[] = [
         ],
         stats: {
             marketSize: '₹45,00,000 Cr',
-            growthRate: '7% CAGR',
+            growthRate: '7% CAGR (est.)',
             totalBrands: 2000,
             totalOutlets: '10,00,000+',
             avgInvestment: { min: 1000000, max: 10000000 },
@@ -424,7 +424,7 @@ export const INDUSTRY_INSIGHTS: IndustryInsight[] = [
         ],
         stats: {
             marketSize: '₹50,000 Cr',
-            growthRate: '18% CAGR',
+            growthRate: '18% CAGR (est.)',
             totalBrands: 500,
             totalOutlets: '5,00,000+',
             avgInvestment: { min: 50000, max: 500000 },
@@ -466,7 +466,7 @@ export const INDUSTRY_INSIGHTS: IndustryInsight[] = [
         ],
         stats: {
             marketSize: '₹35,000 Cr',
-            growthRate: '15% CAGR',
+            growthRate: '15% CAGR (est.)',
             totalBrands: 450,
             totalOutlets: '50,000+',
             avgInvestment: { min: 2000000, max: 20000000 },

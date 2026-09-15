@@ -18,6 +18,7 @@ import {
 import { toast } from 'sonner';
 import { PageHero } from '@/components/page-hero';
 import { Link } from 'react-router-dom';
+import { supabase } from '@/lib/supabase';
 
 const upcomingFeatures = [
     {
@@ -65,8 +66,26 @@ export function FinancingComingSoonPage() {
         }
 
         setIsLoading(true);
-        toast.info('Financing waitlist is not open yet. Use Contact instead.');
+        const trimmed = email.trim().toLowerCase();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+            toast.error('Please enter a valid email address');
+            setIsLoading(false);
+            return;
+        }
+        const { error } = await supabase.from('financing_waitlist').insert({ email: trimmed });
         setIsLoading(false);
+        if (error) {
+            if (error.code === '23505') {
+                toast.success('You are already on the waitlist.');
+                setIsSubscribed(true);
+                return;
+            }
+            console.error('Financing waitlist error:', error);
+            toast.error('Could not join the waitlist. Please try again.');
+            return;
+        }
+        setIsSubscribed(true);
+        toast.success('You are on the financing waitlist.');
     };
 
     return (

@@ -1,6 +1,6 @@
 import { writeFileSync } from 'fs';
 import { createClient } from '@supabase/supabase-js';
-import { ACCOUNTS, PASSWORD, loadEnv } from './helpers/env';
+import { ACCOUNTS, PASSWORD, allowE2EMutation, loadEnv } from './helpers/env';
 
 loadEnv();
 
@@ -13,6 +13,12 @@ const PERSONAS = [
 ] as const;
 
 export default async function globalSetup() {
+  if (!allowE2EMutation()) {
+    console.warn('Skipping e2e seed — production target or E2E_ALLOW_DB_SEED=false');
+    writeFileSync('e2e/.generated-ids.json', JSON.stringify({}));
+    return;
+  }
+
   const url = process.env.VITE_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE;
   if (!url || !serviceKey) {

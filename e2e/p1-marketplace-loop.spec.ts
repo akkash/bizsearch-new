@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { ACCOUNTS, adminClient, readIds } from './helpers/env';
+import { ACCOUNTS, adminClient, isProdE2E, readIds } from './helpers/env';
 import { chooseSelect, login } from './helpers/auth';
 
 const ALERT_SLUG = `p1-alert-${Date.now()}`;
@@ -8,6 +8,9 @@ const ALERT_BRAND = `P1 Alert ${ALERT_SLUG.slice(-6)}`;
 test.describe.configure({ mode: 'serial' });
 
 test.describe('P1 marketplace loop', () => {
+  test.beforeEach(() => {
+    test.skip(isProdE2E(), 'Marketplace loop seeds test listings — staging only');
+  });
   test('franchisee enquire with five fields → My Enquiries → messages', async ({ page }) => {
     const ids = readIds();
     await adminClient()

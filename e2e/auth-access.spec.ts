@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { ACCOUNTS } from './helpers/env';
+import { ACCOUNTS, isProdE2E } from './helpers/env';
 import { expectLoginRedirect, login } from './helpers/auth';
 
 test.describe('Auth and access control', () => {
@@ -13,6 +13,7 @@ test.describe('Auth and access control', () => {
   });
 
   test('invalid password stays on login', async ({ page }) => {
+    test.skip(isProdE2E(), 'Test accounts are disabled on production');
     await page.goto('/login');
     await page.locator('#email').fill(ACCOUNTS.franchisee);
     await page.locator('#password').fill('WrongPass999!');
@@ -24,6 +25,7 @@ test.describe('Auth and access control', () => {
   });
 
   test('valid franchisee login reaches the app', async ({ page }) => {
+    test.skip(isProdE2E(), 'Test accounts are disabled on production');
     await login(page, ACCOUNTS.franchisee);
     await expect(page).not.toHaveURL(/\/login/);
     await page.goto('/dashboard');
@@ -42,6 +44,7 @@ test.describe('Auth and access control', () => {
   });
 
   test('password field is required', async ({ page }) => {
+    test.skip(isProdE2E(), 'Test accounts are disabled on production');
     await page.goto('/login');
     await page.locator('#email').fill(ACCOUNTS.franchisee);
     await page.getByRole('button', { name: 'Sign In' }).click();

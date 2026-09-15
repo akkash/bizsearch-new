@@ -42,7 +42,7 @@ export function BusinessSchema({ business }: BusinessSchemaProps) {
     const schema = {
         '@context': 'https://schema.org',
         '@type': 'LocalBusiness',
-        '@id': `https://bizsearch.in/business/${business.slug || business.id}`,
+        '@id': `https://www.bizsearch.in/business/${business.slug || business.id}`,
         name: business.name,
         description: business.description,
         image: business.images?.[0],
@@ -87,7 +87,7 @@ export function FranchiseSchema({ franchise }: FranchiseSchemaProps) {
     const schema = {
         '@context': 'https://schema.org',
         '@type': 'Organization',
-        '@id': `https://bizsearch.in/franchise/${franchise.slug || franchise.id}`,
+        '@id': `https://www.bizsearch.in/franchise/${franchise.slug || franchise.id}`,
         name: franchise.brand_name,
         description: franchise.description,
         logo: franchise.logo_url,

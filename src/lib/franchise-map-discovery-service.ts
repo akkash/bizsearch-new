@@ -126,15 +126,8 @@ export class FranchiseMapDiscoveryService {
     static async getAvailableFilters(): Promise<AvailableFilters> {
         // Get franchises with location counts
         const { data: franchisesData, error: franchisesError } = await supabase
-            .from('franchises')
-            .select(`
-        id,
-        brand_name,
-        slug,
-        industry,
-        franchise_locations (count)
-      `)
-            .eq('status', 'active');
+            .from('franchise_public')
+            .select('id, brand_name, slug, industry');
 
         if (franchisesError) {
             console.error('Error fetching franchises for filters:', franchisesError);
@@ -156,13 +149,27 @@ export class FranchiseMapDiscoveryService {
         // Extract unique categories
         const uniqueCategories = [...new Set((franchisesData || []).map((f: any) => f.industry))].filter(Boolean).sort();
 
-        // Format franchises with location counts
+        const { data: locationRows, error: locationCountError } = await supabase
+            .from('franchise_locations')
+            .select('franchise_id');
+
+        if (locationCountError) {
+            console.error('Error fetching location counts for filters:', locationCountError);
+        }
+
+        const locationCounts = new Map<string, number>();
+        for (const row of locationRows || []) {
+            const franchiseId = (row as { franchise_id?: string }).franchise_id;
+            if (!franchiseId) continue;
+            locationCounts.set(franchiseId, (locationCounts.get(franchiseId) || 0) + 1);
+        }
+
         const franchises = (franchisesData || []).map((f: any) => ({
             id: f.id,
             brand_name: f.brand_name,
             slug: f.slug,
             industry: f.industry,
-            locationCount: f.franchise_locations?.[0]?.count || 0,
+            locationCount: locationCounts.get(f.id) || 0,
         })).filter(f => f.locationCount > 0);
 
         return {

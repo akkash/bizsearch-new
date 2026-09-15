@@ -41,6 +41,7 @@ import {
   Bell,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SEOHead } from "@/components/seo-head";
 import { FRANCHISE_CATEGORIES, getCategoryBySlug } from "@/data/categories";
 import { franchiseMatchesCity } from "@/lib/franchise-search";
 
@@ -375,7 +376,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
         break;
       default:
         return sortFranchisesByBestMatch(filtered, {
-          city: urlCity || filters.city[0] || undefined,
+          city: urlCity || filters?.city?.[0] || undefined,
           budgetMax: Number.isFinite(urlBudget) && urlBudget > 0 ? urlBudget : undefined,
         });
     }
@@ -444,7 +445,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
     }
     setSavingSearch(true);
     try {
-      const city = urlCity || filters.city[0] || undefined;
+      const city = urlCity || filters?.city?.[0] || undefined;
       const nameParts = [
         currentCategory?.name,
         city,
@@ -492,6 +493,11 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
   if (loading) {
     return (
       <div className={cn("bg-background overflow-x-hidden", className)}>
+        <SEOHead
+          title="Franchise opportunities in India"
+          description="Browse public franchise listings by industry, investment, and location. Compare brands and enquire when you find a fit."
+          canonicalUrl="/franchises"
+        />
         <div className="container mx-auto px-4 py-8">
           <h1 className="font-display text-3xl md:text-5xl font-bold uppercase tracking-tight mb-6">
             Franchise Opportunities
@@ -506,6 +512,11 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
   if (!loading && error) {
     return (
       <div className={cn("bg-background overflow-x-hidden", className)}>
+        <SEOHead
+          title="Franchise opportunities in India"
+          description="Browse public franchise listings by industry, investment, and location."
+          canonicalUrl="/franchises"
+        />
         <div className="container mx-auto px-4 py-8">
           <EmptyState
             type="error"
@@ -530,6 +541,11 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
   if (!loading && !error && franchises.length === 0 && !hasActiveQuery) {
     return (
       <div className={cn("bg-background overflow-x-hidden", className)}>
+        <SEOHead
+          title="Franchise opportunities in India"
+          description="Browse public franchise listings by industry, investment, and location."
+          canonicalUrl="/franchises"
+        />
         <div className="container mx-auto px-4 py-8">
           <EmptyState
             type="no-data"
@@ -545,6 +561,11 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
 
   return (
     <div className={cn("bg-background overflow-x-hidden", className)}>
+      <SEOHead
+        title={currentCategory ? `${currentCategory.name} franchises` : "Franchise opportunities in India"}
+        description="Browse public franchise listings by industry, investment, and location. Compare brands and enquire when you find a fit."
+        canonicalUrl="/franchises"
+      />
       <div className="border-b border-border bg-card">
         <div className="container mx-auto px-4 py-6 md:py-8">
           {(currentCategory || currentSubcategory) && (
@@ -844,12 +865,12 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
                       {filters.royaltyPercentage[1]}%
                     </Badge>
                   )}
-                {filters?.city.map((city) => (
+                {filters?.city?.map((city) => (
                   <Badge key={city} variant="secondary" className="rounded-lg">
                     City: {city}
                   </Badge>
                 ))}
-                {filters?.state.map((state) => (
+                {filters?.state?.map((state) => (
                   <Badge key={state} variant="secondary" className="rounded-lg">
                     State: {state}
                   </Badge>

@@ -1,9 +1,10 @@
 import { test, expect } from '@playwright/test';
-import { ACCOUNTS } from './helpers/env';
+import { ACCOUNTS, isProdE2E } from './helpers/env';
 import { chooseSelect, expectAccessDenied, login } from './helpers/auth';
 
 test.describe('Franchisee journeys', () => {
   test.beforeEach(async ({ page }) => {
+    test.skip(isProdE2E(), 'Authenticated e2e runs against staging only');
     await login(page, ACCOUNTS.franchisee);
   });
 

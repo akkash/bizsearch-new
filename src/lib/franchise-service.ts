@@ -2,7 +2,7 @@ import { supabase } from './supabase';
 import { isUUID, sanitizeSlug } from './slug-utils';
 import { mapFranchiseFromDb, mapFranchisesFromDb } from './franchise-mapper';
 import type { Franchise } from '@/types/listings';
-import { franchiseMatchesCity } from './franchise-search';
+import { FRANCHISE_PUBLIC_COLUMNS } from './public-listing-columns';
 
 export { mapFranchiseFromDb, mapFranchisesFromDb } from './franchise-mapper';
 
@@ -95,7 +95,7 @@ export class FranchiseService {
   private static buildPublicFranchisesQuery(filters?: FranchiseFilters): string {
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     const params = new URLSearchParams();
-    params.set('select', '*');
+    params.set('select', FRANCHISE_PUBLIC_COLUMNS);
     params.set('status', 'eq.active');
     params.set('order', 'created_at.desc');
 
@@ -131,7 +131,7 @@ export class FranchiseService {
       params.set('or', `(brand_name.ilike.${term},description.ilike.${term},industry.ilike.${term})`);
     }
 
-    return `${supabaseUrl}/rest/v1/franchises?${params.toString()}`;
+    return `${supabaseUrl}/rest/v1/franchise_public?${params.toString()}`;
   }
 
   static async getFranchises(filters?: FranchiseFilters): Promise<Franchise[]> {
@@ -188,7 +188,7 @@ export class FranchiseService {
     console.log('🔍 Fetching franchise by ID:', id);
 
     const response = await fetch(
-      `${supabaseUrl}/rest/v1/franchises?id=eq.${id}&select=*`,
+      `${supabaseUrl}/rest/v1/franchise_public?id=eq.${id}&select=${FRANCHISE_PUBLIC_COLUMNS}`,
       {
         headers: {
           'apikey': supabaseKey,
@@ -223,7 +223,7 @@ export class FranchiseService {
     console.log('🔍 Fetching franchise by slug:', sanitized);
 
     const response = await fetch(
-      `${supabaseUrl}/rest/v1/franchises?slug=eq.${encodeURIComponent(sanitized)}&select=*`,
+      `${supabaseUrl}/rest/v1/franchise_public?slug=eq.${encodeURIComponent(sanitized)}&select=${FRANCHISE_PUBLIC_COLUMNS}`,
       {
         headers: {
           'apikey': supabaseKey,
@@ -280,13 +280,21 @@ export class FranchiseService {
   ): Promise<Franchise | null> {
     try {
       const franchise = (await this.getFranchiseByIdOrSlug(identifier)) as Franchise;
-      if (franchise.status === 'active') return franchise;
-      const ownerId = franchise.franchisorId || franchise.franchisor_id || franchise.owner_id;
-      if (viewerUserId && ownerId === viewerUserId) return franchise;
-      return null;
+      if (franchise) return franchise;
     } catch {
-      return null;
+      /* not in public catalog */
     }
+
+    if (!viewerUserId) return null;
+
+    const query = isUUID(identifier)
+      ? supabase.from('franchises').select('*').eq('id', identifier)
+      : supabase.from('franchises').select('*').eq('slug', sanitizeSlug(identifier));
+    const { data } = await query.maybeSingle();
+    if (!data) return null;
+    const franchise = mapFranchiseFromDb(data);
+    const ownerId = franchise.franchisorId || franchise.franchisor_id || franchise.owner_id;
+    return ownerId === viewerUserId ? franchise : null;
   }
 
   /**
@@ -299,7 +307,7 @@ export class FranchiseService {
     console.log('🌟 Fetching featured franchises...');
 
     const response = await fetch(
-      `${supabaseUrl}/rest/v1/franchises?select=*&status=eq.active&featured=eq.true&order=created_at.desc&limit=${limit}`,
+      `${supabaseUrl}/rest/v1/franchise_public?select=${FRANCHISE_PUBLIC_COLUMNS}&featured=eq.true&order=created_at.desc&limit=${limit}`,
       {
         headers: {
           'apikey': supabaseKey,
@@ -318,7 +326,7 @@ export class FranchiseService {
 
     if (rows.length === 0) {
       const fallback = await fetch(
-        `${supabaseUrl}/rest/v1/franchises?select=*&status=eq.active&order=created_at.desc&limit=${limit}`,
+        `${supabaseUrl}/rest/v1/franchise_public?select=${FRANCHISE_PUBLIC_COLUMNS}&order=created_at.desc&limit=${limit}`,
         {
           headers: {
             apikey: supabaseKey,

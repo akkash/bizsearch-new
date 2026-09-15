@@ -20,6 +20,7 @@ import {
 } from '@/utils/validation';
 import type { UserRole } from '@/types/auth.types';
 import { supabase } from '@/lib/supabase';
+import { isSafeInternalPath } from '@/lib/site-config';
 
 export function SignUpForm() {
   const navigate = useNavigate();
@@ -27,7 +28,9 @@ export function SignUpForm() {
   const { } = useAuth();
 
   // Get redirect param to use after signup
-  const redirectParam = searchParams.get('redirect');
+  const redirectParam = isSafeInternalPath(searchParams.get('redirect'))
+    ? searchParams.get('redirect')
+    : null;
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const [error, setError] = useState<string | null>(null);

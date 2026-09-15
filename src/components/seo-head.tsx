@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { DEFAULT_OG_IMAGE, SITE_ORIGIN, siteUrl } from '@/lib/site-config';
 
 interface SEOHeadProps {
     title?: string;
@@ -10,19 +11,19 @@ interface SEOHeadProps {
     noIndex?: boolean;
 }
 
-const DEFAULT_TITLE = 'BizSearch - India\'s #1 Business & Franchise Marketplace';
-const DEFAULT_DESCRIPTION = 'Find verified businesses for sale and franchise opportunities in India. Connect with sellers, get valuations, and make informed investment decisions.';
-const DEFAULT_OG_IMAGE = '/og-image.png';
+const DEFAULT_TITLE = 'BizSearch — Find the right franchise';
+const DEFAULT_DESCRIPTION =
+    'Discover franchises in India by investment, location, industry and expected returns. Compare opportunities and connect with brands. Businesses for sale also available.';
+
+function toAbsolute(url: string): string {
+    if (!url) return DEFAULT_OG_IMAGE;
+    if (/^https?:\/\//i.test(url)) return url;
+    return siteUrl(url.startsWith('/') ? url : `/${url}`);
+}
 
 /**
  * SEO Head Component
  * Updates document head with meta tags for SEO
- * 
- * Usage:
- * <SEOHead 
- *   title="Food Franchise Opportunities" 
- *   description="Explore 500+ food franchise opportunities..." 
- * />
  */
 export function SEOHead({
     title,
@@ -33,13 +34,19 @@ export function SEOHead({
     canonicalUrl,
     noIndex = false,
 }: SEOHeadProps) {
-    const fullTitle = title ? `${title} | BizSearch` : DEFAULT_TITLE;
+    const fullTitle = title
+        ? title.includes('BizSearch')
+            ? title
+            : `${title} | BizSearch`
+        : DEFAULT_TITLE;
+    const absoluteImage = toAbsolute(ogImage);
+    const absoluteCanonical = canonicalUrl
+        ? toAbsolute(canonicalUrl)
+        : `${SITE_ORIGIN}${typeof window !== 'undefined' ? window.location.pathname : '/'}`;
 
     useEffect(() => {
-        // Update document title
         document.title = fullTitle;
 
-        // Helper to update or create meta tag
         const setMetaTag = (name: string, content: string, isProperty = false) => {
             const attr = isProperty ? 'property' : 'name';
             let element = document.querySelector(`meta[${attr}="${name}"]`);
@@ -52,51 +59,38 @@ export function SEOHead({
             element.setAttribute('content', content);
         };
 
-        // Basic meta tags
         setMetaTag('description', description);
 
         if (keywords.length > 0) {
             setMetaTag('keywords', keywords.join(', '));
         }
 
-        if (noIndex) {
-            setMetaTag('robots', 'noindex, nofollow');
-        } else {
-            setMetaTag('robots', 'index, follow');
-        }
+        setMetaTag('robots', noIndex ? 'noindex, nofollow' : 'index, follow');
 
-        // Open Graph tags
         setMetaTag('og:title', fullTitle, true);
         setMetaTag('og:description', description, true);
-        setMetaTag('og:image', ogImage, true);
+        setMetaTag('og:image', absoluteImage, true);
         setMetaTag('og:type', ogType, true);
         setMetaTag('og:site_name', 'BizSearch', true);
+        setMetaTag('og:url', absoluteCanonical, true);
 
-        if (canonicalUrl) {
-            setMetaTag('og:url', canonicalUrl, true);
-
-            // Update or create canonical link
-            let canonical = document.querySelector('link[rel="canonical"]');
-            if (!canonical) {
-                canonical = document.createElement('link');
-                canonical.setAttribute('rel', 'canonical');
-                document.head.appendChild(canonical);
-            }
-            canonical.setAttribute('href', canonicalUrl);
+        let canonical = document.querySelector('link[rel="canonical"]');
+        if (!canonical) {
+            canonical = document.createElement('link');
+            canonical.setAttribute('rel', 'canonical');
+            document.head.appendChild(canonical);
         }
+        canonical.setAttribute('href', absoluteCanonical);
 
-        // Twitter Card tags
         setMetaTag('twitter:card', 'summary_large_image');
         setMetaTag('twitter:title', fullTitle);
         setMetaTag('twitter:description', description);
-        setMetaTag('twitter:image', ogImage);
+        setMetaTag('twitter:image', absoluteImage);
 
-        // Cleanup function
         return () => {
-            // Reset to defaults when component unmounts
             document.title = DEFAULT_TITLE;
         };
-    }, [fullTitle, description, keywords, ogImage, ogType, canonicalUrl, noIndex]);
+    }, [fullTitle, description, keywords, absoluteImage, ogType, absoluteCanonical, noIndex]);
 
-    return null; // This component doesn't render anything
+    return null;
 }
