@@ -138,7 +138,7 @@ export function FranchiseBentoView({
                   amount: franchiseFee,
                   color: 'bg-trust-blue',
               },
-              setupCost != null && {
+              setupCost != null && setupCost > 0 && {
                   label: 'Setup',
                   amount: setupCost,
                   color: 'bg-growth-green',
@@ -239,7 +239,8 @@ export function FranchiseBentoView({
     const logoUrl = franchise.logo || franchise.logo_url;
     const investmentLabel = formatInvestmentRange(
         totalInvestmentMin != null ? Number(totalInvestmentMin) : null,
-        totalInvestmentMax != null ? Number(totalInvestmentMax) : null
+        totalInvestmentMax != null ? Number(totalInvestmentMax) : null,
+        franchiseFee != null ? Number(franchiseFee) : null
     );
     const gallery = (Array.isArray(franchise.images) ? franchise.images : [])
         .map((item: unknown) => listingImageUrl(item))

@@ -30,3 +30,4 @@ e2e/.generated-ids.json
 
 # Superdesign temp templates (init + design-system stay tracked)
 .superdesign/tmp/
+.vercel

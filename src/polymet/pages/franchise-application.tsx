@@ -21,10 +21,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { InquiryService } from '@/lib/inquiry-service';
 import { FranchiseService } from '@/lib/franchise-service';
-import { formatINR } from '@/lib/format-currency';
 import { StoreFormatPicker } from '@/components/store-format-picker';
 import {
     findStoreFormat,
+    formatInvestmentRange,
     getStoreFormatsFromFranchise,
     type StoreFormat,
 } from '@/lib/store-formats';
@@ -35,6 +35,7 @@ interface FranchiseInfo {
     logo_url: string | null;
     total_investment_min: number | null;
     total_investment_max: number | null;
+    franchise_fee: number | null;
     store_formats?: unknown;
 }
 
@@ -111,6 +112,7 @@ export function FranchiseApplicationPage() {
                             row.investmentMin ?? row.total_investment_min ?? null,
                         total_investment_max:
                             row.investmentMax ?? row.total_investment_max ?? null,
+                        franchise_fee: row.franchiseFee ?? row.franchise_fee ?? null,
                         store_formats: row.storeFormats ?? row.store_formats,
                     };
                     setFranchise(info);
@@ -316,16 +318,11 @@ export function FranchiseApplicationPage() {
                             Investment:{' '}
                             {(() => {
                               const fmt = findStoreFormat(formats, selectedFormatId);
-                              if (fmt?.investmentMin != null || fmt?.investmentMax != null) {
-                                return `${formatINR(fmt.investmentMin)} – ${formatINR(fmt.investmentMax)}`;
-                              }
-                              if (
-                                franchise.total_investment_min != null ||
-                                franchise.total_investment_max != null
-                              ) {
-                                return `${formatINR(franchise.total_investment_min)} – ${formatINR(franchise.total_investment_max)}`;
-                              }
-                              return 'Not provided';
+                              return formatInvestmentRange(
+                                fmt?.investmentMin ?? franchise.total_investment_min,
+                                fmt?.investmentMax ?? franchise.total_investment_max,
+                                fmt?.franchiseFee ?? franchise.franchise_fee
+                              );
                             })()}
                         </p>
                     </div>

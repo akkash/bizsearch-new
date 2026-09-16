@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, type ComponentType } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SavedListingsProvider } from "@/contexts/SavedListingsContext";
@@ -15,17 +15,6 @@ import { FranchiseDetail } from "@/polymet/pages/franchise-detail";
 import { FranchiseLocationsPage } from "@/polymet/pages/franchise-locations";
 import { AboutPage } from "@/polymet/pages/about";
 import { ContactPage } from "@/polymet/pages/contact";
-import { ProfilePage } from "@/polymet/pages/profile";
-import { ProfileEditPage } from "@/polymet/pages/profile-edit";
-import { ProfileDocumentsPage } from "@/polymet/pages/profile-documents";
-import { ProfileSettingsPage } from "@/polymet/pages/profile-settings";
-import { ProfileSettingsEnhancedPage } from "@/polymet/pages/profile-settings-enhanced";
-import { AddBusinessListingPage } from "@/polymet/pages/add-business-listing";
-import { EditBusinessListingPage } from "@/polymet/pages/edit-business-listing";
-import { AddFranchiseListingPage } from "@/polymet/pages/add-franchise-listing";
-import { MyListingsPage } from "@/polymet/pages/my-listings";
-import { SavedListingsPage } from "@/polymet/pages/saved-listings";
-import { NotificationsPage } from "@/polymet/pages/notifications";
 import { LoginPage } from "@/pages/auth/login";
 import { SignUpPage } from "@/pages/auth/signup";
 import { ForgotPasswordPage } from "@/pages/auth/forgot-password";
@@ -33,44 +22,12 @@ import { ResetPasswordPage } from "@/pages/auth/reset-password";
 import { ProtectedRoute } from "@/components/auth/protected-route";
 import { AdminRouteGuard } from "@/components/auth/admin-route-guard";
 import { BannedAccountGate } from "@/components/auth/banned-account-gate";
-import { AdminLayout } from "@/polymet/layouts/admin-layout";
-import { AdminDashboard } from "@/polymet/pages/admin/admin-dashboard";
-import { AdminUsers } from "@/polymet/pages/admin/admin-users";
-import { AdminUserDetail } from "@/polymet/pages/admin/admin-user-detail";
-import { AdminListings } from "@/polymet/pages/admin/admin-listings";
-import { AdminListingDetail } from "@/polymet/pages/admin/admin-listing-detail";
-import { AdminDocuments } from "@/polymet/pages/admin/admin-documents";
-import { AdminFraudAlerts } from "@/polymet/pages/admin/admin-fraud-alerts";
-import { AdminContentManagement } from "@/polymet/pages/admin/admin-content";
-import { AdminSettings } from "@/polymet/pages/admin/admin-settings";
-import { AdminFeatureFlags } from "@/polymet/pages/admin/admin-feature-flags";
-import { AdminVerification } from "@/polymet/pages/admin/admin-verification";
-import { FranchiseApplicationPage } from "@/polymet/pages/franchise-application";
-import { MyApplicationsPage } from "@/polymet/pages/my-applications";
-import { MyApplicationDetailPage } from "@/polymet/pages/my-application-detail";
-import { MyEnquiriesPage } from "@/polymet/pages/my-enquiries";
-import { ListingSubmittedPage } from "@/polymet/pages/listing-submitted";
-import { FranchisorApplicationsPage } from "@/polymet/pages/franchisor-applications";
 import { FinancingComingSoonPage } from "@/polymet/pages/financing-coming-soon";
-import { MessagesPage } from "@/polymet/pages/messages";
-import { NDAManagementPage } from "@/polymet/pages/nda-management";
-import { DealRoomPage } from "@/polymet/pages/deal-room";
-import { ListingOptimizerPage } from "@/polymet/pages/listing-optimizer";
-import { ClientManagementPage } from "@/polymet/pages/client-management";
-import { DealPipelinePage } from "@/polymet/pages/deal-pipeline";
-import { CommissionTrackingPage } from "@/polymet/pages/commission-tracking";
-import { AdvisorDirectoryPage } from "@/polymet/pages/advisor-directory";
-import { LeadManagementPage } from "@/polymet/pages/lead-management";
-import { PipelineCandidatePage } from "@/polymet/pages/pipeline-candidate";
-import { OnboardingPage } from "@/pages/onboarding";
-import { ProfileSetupPage } from "@/polymet/pages/profile-setup";
 import { NotFoundPage } from "@/pages/404";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { IndustryIntelligencePage } from "@/polymet/pages/industry-intelligence";
 import { IndustryDetailPage } from "@/polymet/pages/industry-detail";
 import { WebsiteSchema } from "@/components/structured-data";
-import { DashboardPage } from "@/polymet/pages/dashboard/overview";
-import { BuyerMandatePage } from "@/polymet/pages/buyer-mandate";
 import { PrivacyPolicyPage } from "@/polymet/pages/privacy-policy";
 import { TermsOfServicePage } from "@/polymet/pages/terms-of-service";
 import { RefundPolicyPage } from "@/polymet/pages/refund-policy";
@@ -80,31 +37,66 @@ import { HelpCenterPage } from "@/polymet/pages/help-center";
 import { SmartSearchPage } from "@/polymet/pages/smart-search";
 import { FranchiseMatchPage } from "@/polymet/pages/franchise-match";
 
-// Advisor Dashboard
-import { AdvisorLayout } from "@/polymet/layouts/advisor-layout";
-import { AdvisorDashboard } from "@/polymet/pages/advisor/advisor-dashboard";
-import { AdvisorClients } from "@/polymet/pages/advisor/advisor-clients";
-import { AdvisorDeals } from "@/polymet/pages/advisor/advisor-deals";
-import { AdvisorCommissions } from "@/polymet/pages/advisor/advisor-commissions";
+function lazyExport<M extends Record<string, ComponentType<any>>>(
+  loader: () => Promise<M>,
+  name: keyof M
+) {
+  return lazy(() => loader().then((mod) => ({ default: mod[name] })));
+}
 
-const FranchiseMapDiscoveryPage = lazy(() =>
-  import("@/polymet/pages/franchise-map-discovery").then((m) => ({ default: m.FranchiseMapDiscoveryPage }))
-);
-const ApiDocsPage = lazy(() =>
-  import("@/polymet/pages/api-docs").then((m) => ({ default: m.ApiDocsPage }))
-);
-const AdminAnalytics = lazy(() =>
-  import("@/polymet/pages/admin/admin-analytics").then((m) => ({ default: m.AdminAnalytics }))
-);
-const BusinessValuationPage = lazy(() =>
-  import("@/polymet/pages/business-valuation").then((m) => ({ default: m.BusinessValuationPage }))
-);
-const SellerAnalyticsPage = lazy(() =>
-  import("@/polymet/pages/seller-analytics").then((m) => ({ default: m.SellerAnalyticsPage }))
-);
-const ReportGeneratorPage = lazy(() =>
-  import("@/polymet/pages/report-generator").then((m) => ({ default: m.ReportGeneratorPage }))
-);
+const FranchiseMapDiscoveryPage = lazyExport(() => import("@/polymet/pages/franchise-map-discovery"), "FranchiseMapDiscoveryPage");
+const ApiDocsPage = lazyExport(() => import("@/polymet/pages/api-docs"), "ApiDocsPage");
+const BusinessValuationPage = lazyExport(() => import("@/polymet/pages/business-valuation"), "BusinessValuationPage");
+const SellerAnalyticsPage = lazyExport(() => import("@/polymet/pages/seller-analytics"), "SellerAnalyticsPage");
+const ReportGeneratorPage = lazyExport(() => import("@/polymet/pages/report-generator"), "ReportGeneratorPage");
+const DealRoomPage = lazyExport(() => import("@/polymet/pages/deal-room"), "DealRoomPage");
+const ListingOptimizerPage = lazyExport(() => import("@/polymet/pages/listing-optimizer"), "ListingOptimizerPage");
+const NDAManagementPage = lazyExport(() => import("@/polymet/pages/nda-management"), "NDAManagementPage");
+const AdminLayout = lazyExport(() => import("@/polymet/layouts/admin-layout"), "AdminLayout");
+const AdminDashboard = lazyExport(() => import("@/polymet/pages/admin/admin-dashboard"), "AdminDashboard");
+const AdminUsers = lazyExport(() => import("@/polymet/pages/admin/admin-users"), "AdminUsers");
+const AdminUserDetail = lazyExport(() => import("@/polymet/pages/admin/admin-user-detail"), "AdminUserDetail");
+const AdminListings = lazyExport(() => import("@/polymet/pages/admin/admin-listings"), "AdminListings");
+const AdminListingDetail = lazyExport(() => import("@/polymet/pages/admin/admin-listing-detail"), "AdminListingDetail");
+const AdminDocuments = lazyExport(() => import("@/polymet/pages/admin/admin-documents"), "AdminDocuments");
+const AdminAnalytics = lazyExport(() => import("@/polymet/pages/admin/admin-analytics"), "AdminAnalytics");
+const AdminFraudAlerts = lazyExport(() => import("@/polymet/pages/admin/admin-fraud-alerts"), "AdminFraudAlerts");
+const AdminContentManagement = lazyExport(() => import("@/polymet/pages/admin/admin-content"), "AdminContentManagement");
+const AdminSettings = lazyExport(() => import("@/polymet/pages/admin/admin-settings"), "AdminSettings");
+const AdminFeatureFlags = lazyExport(() => import("@/polymet/pages/admin/admin-feature-flags"), "AdminFeatureFlags");
+const AdminVerification = lazyExport(() => import("@/polymet/pages/admin/admin-verification"), "AdminVerification");
+const AdvisorLayout = lazyExport(() => import("@/polymet/layouts/advisor-layout"), "AdvisorLayout");
+const AdvisorDashboard = lazyExport(() => import("@/polymet/pages/advisor/advisor-dashboard"), "AdvisorDashboard");
+const AdvisorClients = lazyExport(() => import("@/polymet/pages/advisor/advisor-clients"), "AdvisorClients");
+const AdvisorDeals = lazyExport(() => import("@/polymet/pages/advisor/advisor-deals"), "AdvisorDeals");
+const AdvisorCommissions = lazyExport(() => import("@/polymet/pages/advisor/advisor-commissions"), "AdvisorCommissions");
+const ClientManagementPage = lazyExport(() => import("@/polymet/pages/client-management"), "ClientManagementPage");
+const DealPipelinePage = lazyExport(() => import("@/polymet/pages/deal-pipeline"), "DealPipelinePage");
+const CommissionTrackingPage = lazyExport(() => import("@/polymet/pages/commission-tracking"), "CommissionTrackingPage");
+const LeadManagementPage = lazyExport(() => import("@/polymet/pages/lead-management"), "LeadManagementPage");
+const PipelineCandidatePage = lazyExport(() => import("@/polymet/pages/pipeline-candidate"), "PipelineCandidatePage");
+const AddBusinessListingPage = lazyExport(() => import("@/polymet/pages/add-business-listing"), "AddBusinessListingPage");
+const EditBusinessListingPage = lazyExport(() => import("@/polymet/pages/edit-business-listing"), "EditBusinessListingPage");
+const AddFranchiseListingPage = lazyExport(() => import("@/polymet/pages/add-franchise-listing"), "AddFranchiseListingPage");
+const MessagesPage = lazyExport(() => import("@/polymet/pages/messages"), "MessagesPage");
+const DashboardPage = lazyExport(() => import("@/polymet/pages/dashboard/overview"), "DashboardPage");
+const ProfilePage = lazyExport(() => import("@/polymet/pages/profile"), "ProfilePage");
+const ProfileEditPage = lazyExport(() => import("@/polymet/pages/profile-edit"), "ProfileEditPage");
+const ProfileDocumentsPage = lazyExport(() => import("@/polymet/pages/profile-documents"), "ProfileDocumentsPage");
+const ProfileSettingsPage = lazyExport(() => import("@/polymet/pages/profile-settings"), "ProfileSettingsPage");
+const ProfileSettingsEnhancedPage = lazyExport(() => import("@/polymet/pages/profile-settings-enhanced"), "ProfileSettingsEnhancedPage");
+const MyListingsPage = lazyExport(() => import("@/polymet/pages/my-listings"), "MyListingsPage");
+const SavedListingsPage = lazyExport(() => import("@/polymet/pages/saved-listings"), "SavedListingsPage");
+const NotificationsPage = lazyExport(() => import("@/polymet/pages/notifications"), "NotificationsPage");
+const OnboardingPage = lazyExport(() => import("@/pages/onboarding"), "OnboardingPage");
+const ProfileSetupPage = lazyExport(() => import("@/polymet/pages/profile-setup"), "ProfileSetupPage");
+const FranchiseApplicationPage = lazyExport(() => import("@/polymet/pages/franchise-application"), "FranchiseApplicationPage");
+const MyApplicationsPage = lazyExport(() => import("@/polymet/pages/my-applications"), "MyApplicationsPage");
+const MyApplicationDetailPage = lazyExport(() => import("@/polymet/pages/my-application-detail"), "MyApplicationDetailPage");
+const MyEnquiriesPage = lazyExport(() => import("@/polymet/pages/my-enquiries"), "MyEnquiriesPage");
+const ListingSubmittedPage = lazyExport(() => import("@/polymet/pages/listing-submitted"), "ListingSubmittedPage");
+const FranchisorApplicationsPage = lazyExport(() => import("@/polymet/pages/franchisor-applications"), "FranchisorApplicationsPage");
+const BuyerMandatePage = lazyExport(() => import("@/polymet/pages/buyer-mandate"), "BuyerMandatePage");
 
 export default function BizSearchApp() {
   return (
@@ -721,14 +713,7 @@ export default function BizSearchApp() {
                         </ProtectedRoute>
                       }
                     />
-                    <Route
-                      path="/advisors"
-                      element={
-                        <MainLayout>
-                          <AdvisorDirectoryPage />
-                        </MainLayout>
-                      }
-                    />
+                    <Route path="/advisors" element={<Navigate to="/franchises" replace />} />
                     <Route
                       path="/report-generator"
                       element={

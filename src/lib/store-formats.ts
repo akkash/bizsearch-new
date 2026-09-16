@@ -77,6 +77,25 @@ export function getStoreFormatsFromFranchise(franchise: {
 }
 
 /** Aggregate investment band across all formats (and optional listing-level fallback) */
+export function sanitizeInvestmentRange(
+  min: number | null | undefined,
+  max: number | null | undefined,
+  franchiseFee?: number | null
+): { min: number | null; max: number | null } {
+  const fee =
+    franchiseFee != null && Number.isFinite(Number(franchiseFee)) && Number(franchiseFee) > 0
+      ? Number(franchiseFee)
+      : null;
+  let lo = min != null && Number.isFinite(Number(min)) && Number(min) > 0 ? Number(min) : null;
+  let hi = max != null && Number.isFinite(Number(max)) && Number(max) > 0 ? Number(max) : null;
+
+  if (fee != null && lo != null && lo < fee) lo = fee;
+  if (fee != null && hi != null && hi < fee) hi = fee;
+  if (lo != null && hi != null && lo > hi) hi = lo;
+
+  return { min: lo, max: hi };
+}
+
 export function getFranchiseInvestmentRange(
   franchise: {
     storeFormats?: unknown;
@@ -85,6 +104,8 @@ export function getFranchiseInvestmentRange(
     investmentMax?: number;
     total_investment_min?: number;
     total_investment_max?: number;
+    franchiseFee?: number;
+    franchise_fee?: number;
   }
 ): { min: number | null; max: number | null } {
   const formats = getStoreFormatsFromFranchise(franchise);
@@ -94,31 +115,33 @@ export function getFranchiseInvestmentRange(
   const maxs = formats
     .map((f) => f.investmentMax ?? f.investmentMin)
     .filter((n): n is number => n != null && n > 0);
+  const fee = franchise.franchiseFee ?? franchise.franchise_fee ?? null;
 
   if (mins.length || maxs.length) {
-    return {
-      min: mins.length ? Math.min(...mins) : null,
-      max: maxs.length ? Math.max(...maxs) : null,
-    };
+    return sanitizeInvestmentRange(
+      mins.length ? Math.min(...mins) : null,
+      maxs.length ? Math.max(...maxs) : null,
+      fee
+    );
   }
 
   const min = franchise.investmentMin ?? franchise.total_investment_min ?? null;
   const max = franchise.investmentMax ?? franchise.total_investment_max ?? min;
-  return {
-    min: min != null && Number(min) > 0 ? Number(min) : null,
-    max: max != null && Number(max) > 0 ? Number(max) : null,
-  };
+  return sanitizeInvestmentRange(min, max, fee);
 }
 
 export function formatInvestmentRange(
   min: number | null | undefined,
-  max: number | null | undefined
+  max: number | null | undefined,
+  franchiseFee?: number | null
 ): string {
-  if (min == null && max == null) return 'Not provided';
-  if (min != null && max != null && max !== min) {
-    return `${formatINR(min)}–${formatINR(max)}`;
+  const range = sanitizeInvestmentRange(min, max, franchiseFee);
+  if (range.min == null && range.max == null) return 'Not provided';
+  if (range.min != null && range.max != null && range.max !== range.min) {
+    return `${formatINR(range.min)}–${formatINR(range.max)}`;
   }
-  return formatINR(min ?? max);
+  if (range.min != null && range.max == null) return `from ${formatINR(range.min)}`;
+  return formatINR(range.min ?? range.max);
 }
 
 export function formatStoreFormatSpace(format: StoreFormat): string {
@@ -132,7 +155,8 @@ export function formatStoreFormatSpace(format: StoreFormat): string {
 export function formatStoreFormatInvestment(format: StoreFormat): string {
   return formatInvestmentRange(
     format.investmentMin ?? null,
-    format.investmentMax ?? null
+    format.investmentMax ?? null,
+    format.franchiseFee ?? null
   );
 }
 

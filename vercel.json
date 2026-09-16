@@ -1,8 +1,270 @@
 {
+  "redirects": [
+    {
+      "source": "/api/docs",
+      "destination": "/docs",
+      "permanent": true
+    },
+    {
+      "source": "/search",
+      "destination": "/businesses",
+      "permanent": true
+    },
+    {
+      "source": "/advisors",
+      "destination": "/franchises",
+      "permanent": false
+    },
+    {
+      "source": "/franchise-map",
+      "destination": "/franchises",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
-      "source": "/((?!api/|robots\\.txt|sitemap\\.xml|og-image\\.jpg|og-image\\.png|favicon\\.ico|site\\.webmanifest|\\.well-known/).*)",
-      "destination": "/index.html"
+      "source": "/",
+      "destination": "/api/prerender?type=page&path=home"
+    },
+    {
+      "source": "/franchise/:slug/apply",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/franchise/:slug/locations",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/franchise/edit/:id",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/business/edit/:id",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/franchise/:slug",
+      "destination": "/api/prerender?type=franchise&slug=:slug"
+    },
+    {
+      "source": "/business/:slug",
+      "destination": "/api/prerender?type=business&slug=:slug"
+    },
+    {
+      "source": "/franchises",
+      "destination": "/api/prerender?type=page&path=franchises"
+    },
+    {
+      "source": "/businesses",
+      "destination": "/api/prerender?type=page&path=businesses"
+    },
+    {
+      "source": "/docs",
+      "destination": "/api/prerender?type=page&path=docs"
+    },
+    {
+      "source": "/about",
+      "destination": "/api/prerender?type=page&path=about"
+    },
+    {
+      "source": "/contact",
+      "destination": "/api/prerender?type=page&path=contact"
+    },
+    {
+      "source": "/login",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/signup",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/forgot-password",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/reset-password",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/onboarding",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/dashboard",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/admin",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/admin/:path*",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/profile",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/profile/:path*",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/my-listings",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/saved",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/notifications",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/messages",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/add-business-listing",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/add-franchise-listing",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/listing-submitted",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/my-applications",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/my-applications/:path*",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/my-enquiries",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/franchisor/:path*",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/financing",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/financing-options",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/business-valuation",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/buyer-inquiries",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/nda-management",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/deal-room/:path*",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/seller-analytics",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/listing-optimizer/:path*",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/buyer/:path*",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/clients",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/deal-pipeline",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/commissions",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/report-generator",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/leads",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/pipeline",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/pipeline/:path*",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/advisor",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/advisor/:path*",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/smart-search",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/match",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/industries",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/industry/:path*",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/help",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/privacy",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/terms",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/refund-policy",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/disclaimer",
+      "destination": "/api/prerender?type=spa"
+    },
+    {
+      "source": "/((?!api/|robots\\.txt|sitemap\\.xml|og-image\\.jpg|og-image\\.png|favicon\\.ico|favicon\\.svg|index\\.html|site\\.webmanifest|polymet-logo\\.svg|assets/|\\.well-known/).*)",
+      "destination": "/api/prerender?type=notfound"
     }
   ],
   "headers": [
@@ -16,6 +278,7 @@
         { "key": "X-Frame-Options", "value": "DENY" },
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Cross-Origin-Resource-Policy", "value": "same-origin" },
         {
           "key": "Permissions-Policy",
           "value": "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
