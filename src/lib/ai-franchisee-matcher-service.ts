@@ -730,11 +730,25 @@ Provide analysis in EXACT JSON format (no markdown):
         const reqs = getListingRequirements(f);
         const investmentMin = reqs.minInvestment ?? f.franchise_fee ?? 0;
         const investmentMax = reqs.maxInvestment ?? investmentMin;
-        const territories =
-          f.expansion_territories ||
-          f.operating_locations ||
-          f.territories_available ||
-          [];
+        const cityRows = Array.isArray(f.territory_availability)
+          ? f.territory_availability
+              .map((row: unknown) => {
+                if (typeof row === 'string') return row;
+                if (row && typeof row === 'object') {
+                  const record = row as { city?: string; name?: string };
+                  return record.city || record.name;
+                }
+                return null;
+              })
+              .filter((value: string | null | undefined): value is string => Boolean(value))
+          : [];
+        const territories = [
+          ...cityRows,
+          ...(Array.isArray(f.preferred_cities) ? f.preferred_cities : []),
+          ...(Array.isArray(f.expansion_territories) ? f.expansion_territories : []),
+          ...(Array.isArray(f.operating_locations) ? f.operating_locations : []),
+          ...(Array.isArray(f.territories_available) ? f.territories_available : []),
+        ];
 
         return {
           franchiseId: f.id,
@@ -748,7 +762,7 @@ Provide analysis in EXACT JSON format (no markdown):
           idealFranchiseeProfile: f.ideal_franchisee,
           supportProvided: f.support_provided || [],
           trainingDuration: f.training_duration_days || f.training_duration,
-          territoriesAvailable: Array.isArray(territories) ? territories : [],
+          territoriesAvailable: [...new Set(territories.map(String).filter(Boolean))],
           preferredCities: reqs.preferredCities,
           ownerOperatorRequired: reqs.ownerOperatorRequired,
           minAreaSqft: reqs.minAreaSqft,

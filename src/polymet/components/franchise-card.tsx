@@ -15,6 +15,7 @@ import {
 } from "@/lib/store-formats";
 import { ListingBrandHero } from "@/components/listing-brand-hero";
 import { listingCoverUrl, listingLogoUrl } from "@/lib/listing-media";
+import { isPlatformVerified } from "@/lib/listing-trust";
 
 interface FranchiseCardProps {
   franchise: Franchise;
@@ -59,7 +60,7 @@ export function FranchiseCard({
         ? `${franchise.space_required_sqft} sq ft`
         : "Not provided";
   const investmentLabel = formatInvestmentRange(investRange.min, investRange.max);
-  const verified = franchise.verification_status === "verified";
+  const verified = isPlatformVerified(franchise);
 
   const specs = [
     { label: "Space", value: spaceLabel },
@@ -150,7 +151,7 @@ export function FranchiseCard({
         {verified && (
           <div className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-growth-green">
             <CheckCircle2 className="h-3.5 w-3.5" />
-            Franchisor verified
+            Platform verified
           </div>
         )}
 

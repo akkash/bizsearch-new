@@ -78,6 +78,8 @@ export function mapFranchiseToListingForm(
         max: franchise.total_investment_max || franchise.investmentMax || 1,
       },
       liquidCapitalRequired: franchise.minimum_liquid_capital || 0,
+      averageUnitRevenue: franchise.average_unit_revenue || franchise.averageUnitRevenue || undefined,
+      averageUnitProfit: franchise.average_unit_profit || franchise.averageUnitProfit || undefined,
       royaltyStructure: {
         type: 'fixed',
         baseTiers: [

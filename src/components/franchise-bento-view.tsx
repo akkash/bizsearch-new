@@ -43,6 +43,8 @@ import {
 } from '@/lib/store-formats';
 import { VabgoClient, hasSearchableIntent } from '@/lib/vabgo-client';
 import { listingImageUrl } from '@/lib/listing-media';
+import { hasUnitEconomics, isPlatformVerified, mappedTerritoryCount } from '@/lib/listing-trust';
+import { fieldProvenanceNote } from '@/lib/opportunity-record';
 
 interface FranchiseBentoViewProps {
     franchise: any;
@@ -127,8 +129,20 @@ export function FranchiseBentoView({
         listingType: 'Rent' as const,
         propertyUrl,
     };
-    const verificationStatus =
-        franchise.verificationStatus || franchise.verification_status;
+    const platformVerified = isPlatformVerified(franchise);
+    const unitEconomicsKnown = hasUnitEconomics(franchise);
+    const investmentProvenance = fieldProvenanceNote(
+        franchise as Record<string, unknown>,
+        'total_investment',
+        platformVerified
+    );
+    const economicsProvenance = fieldProvenanceNote(
+        franchise as Record<string, unknown>,
+        'unit_revenue',
+        platformVerified
+    );
+    const verifiedAt = franchise.verified_at || franchise.verifiedAt;
+    const nextReviewAt = franchise.verification_next_review_at || franchise.verificationNextReviewAt;
 
     const hasInvestmentData = franchiseFee || totalInvestmentMax || totalInvestmentMin;
     const investmentBreakdown = hasInvestmentData
@@ -184,9 +198,9 @@ export function FranchiseBentoView({
         { name: 'Support Helpline', icon: Headphones },
     ];
 
-    // Territories - from database
+    // Territories - from database. Hide the checker unless mapped cities exist.
     const allTerritories = franchise.territories || franchise.territory_availability || [];
-    const hasTerritoriesData = allTerritories.length > 0;
+    const hasTerritoriesData = mappedTerritoryCount(franchise) > 0;
 
     // Territory search
     const territoryResult = useMemo(() => {
@@ -264,10 +278,14 @@ export function FranchiseBentoView({
                             <Badge variant="outline" className="border-electric-blue/30 text-electric-blue text-[10px]">
                                 Franchise
                             </Badge>
-                            {verificationStatus === 'verified' && (
+                            {platformVerified ? (
                                 <Badge className="bg-growth-green/15 text-growth-green border-0">
                                     <Shield className="h-3 w-3 mr-1" />
-                                    Verified
+                                    Platform verified
+                                </Badge>
+                            ) : (
+                                <Badge variant="outline" className="text-[10px] text-muted-foreground">
+                                    Franchisor-provided listing
                                 </Badge>
                             )}
                             {franchise.industry && (
@@ -285,6 +303,12 @@ export function FranchiseBentoView({
                             {totalOutlets ? ` · ${totalOutlets} outlets` : ''}
                             {selectedFormat ? ` · ${selectedFormat.name}` : ''}
                         </p>
+                        {platformVerified && (verifiedAt || nextReviewAt) && (
+                            <p className="text-[11px] text-muted-foreground mt-1">
+                                {verifiedAt ? `Verified ${String(verifiedAt).slice(0, 10)}` : 'Platform verified'}
+                                {nextReviewAt ? ` · next review ${String(nextReviewAt).slice(0, 10)}` : ''}
+                            </p>
+                        )}
                     </div>
                 </div>
 
@@ -339,8 +363,11 @@ export function FranchiseBentoView({
                             Break-even
                         </div>
                         <div className="text-xl md:text-2xl font-semibold">
-                            {breakeven || '—'}
+                            {unitEconomicsKnown ? (breakeven || '—') : '—'}
                         </div>
+                        {!unitEconomicsKnown && (breakeven || projectedRoi) && (
+                            <p className="text-[10px] text-muted-foreground mt-1">Claim only — no unit P&amp;L</p>
+                        )}
                     </div>
                 </div>
                 {(spaceReq || listingReqs.propertyType || listingReqs.preferredCities.length > 0) && (
@@ -435,9 +462,10 @@ export function FranchiseBentoView({
                                 <Wallet className="h-4 w-4 text-trust-blue" />
                                 <span className="text-sm font-medium text-muted-foreground">Total investment</span>
                             </div>
-                            <div className="text-3xl font-bold font-mono tabular-nums text-foreground mb-4">
+                            <div className="text-3xl font-bold font-mono tabular-nums text-foreground mb-1">
                                 {investmentLabel}
                             </div>
+                            <p className="text-[11px] text-muted-foreground mb-4">{investmentProvenance}</p>
 
                             {investmentBreakdown && investmentBreakdown.length > 0 ? (
                                 <div className="grid grid-cols-2 gap-3">
@@ -464,46 +492,55 @@ export function FranchiseBentoView({
                             </div>
                         </div>
 
-                        {/* RIGHT: ROI & Break-even */}
+                        {/* RIGHT: ROI & Break-even — never as fact without unit P&L */}
                         <div className="p-6 bg-accent/30">
                             <div className="flex items-center gap-2 mb-4">
                                 <TrendingUp className="h-4 w-4 text-growth-green" />
-                                <span className="text-sm font-medium text-muted-foreground">Return on Investment</span>
+                                <span className="text-sm font-medium text-muted-foreground">Returns</span>
                             </div>
 
-                            {/* Break-even - PROMINENT BADGE */}
-                            <div className="bg-accent rounded-xl p-4 mb-4 text-center border border-accent-foreground/20">
-                                {breakeven ? (
-                                    <>
-                                        <Badge className="bg-growth-green text-white text-lg px-4 py-1 mb-2">
-                                            <Clock className="h-4 w-4 mr-2" />
-                                            Break-even: {breakeven}
-                                        </Badge>
-                                        <p className="text-xs text-accent-foreground">
-                                            Recover your investment and start profiting
+                            {unitEconomicsKnown ? (
+                                <>
+                                    <div className="bg-accent rounded-xl p-4 mb-4 text-center border border-accent-foreground/20">
+                                        {breakeven ? (
+                                            <>
+                                                <Badge className="bg-growth-green text-white text-lg px-4 py-1 mb-2">
+                                                    <Clock className="h-4 w-4 mr-2" />
+                                                    Break-even: {breakeven}
+                                                </Badge>
+                                                <p className="text-xs text-accent-foreground">
+                                                    From unit revenue/profit in this listing
+                                                </p>
+                                            </>
+                                        ) : (
+                                            <p className="text-sm text-muted-foreground">Break-even not specified</p>
+                                        )}
+                                    </div>
+                                    {projectedRoi ? (
+                                        <div className="text-center">
+                                            <div className="text-4xl font-bold text-growth-green">{projectedRoi}%</div>
+                                            <div className="text-sm text-muted-foreground">Stated annual ROI (with unit economics)</div>
+                                        </div>
+                                    ) : (
+                                        <p className="text-sm text-muted-foreground text-center">ROI not specified</p>
+                                    )}
+                                </>
+                            ) : (
+                                <div className="space-y-3 text-sm">
+                                    <p className="text-muted-foreground">
+                                        Unit revenue and P&amp;L are not in this listing. ROI and break-even are not shown as economics.
+                                    </p>
+                                    {(projectedRoi || breakeven) && (
+                                        <p className="rounded-lg border border-border bg-background p-3 text-muted-foreground">
+                                            Franchisor claim
+                                            {projectedRoi ? `: ${projectedRoi}% ROI` : ''}
+                                            {breakeven ? `${projectedRoi ? ',' : ':'} break-even ${breakeven}` : ''}.
+                                            Treat as unverified until unit numbers are published.
                                         </p>
-                                    </>
-                                ) : (
-                                    <div className="text-muted-foreground">
-                                        <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                                        <p>Break-even period not specified</p>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* ROI Percentage */}
-                            <div className="text-center">
-                                {projectedRoi ? (
-                                    <>
-                                        <div className="text-4xl font-bold text-growth-green">{projectedRoi}%</div>
-                                        <div className="text-sm text-muted-foreground">Expected Annual ROI (Year 3+)</div>
-                                    </>
-                                ) : (
-                                    <div className="text-muted-foreground">
-                                        <p>ROI projections not available</p>
-                                    </div>
-                                )}
-                            </div>
+                                    )}
+                                </div>
+                            )}
+                            <p className="text-[11px] text-muted-foreground mt-4">{economicsProvenance}</p>
                         </div>
                     </div>
                 </CardContent>
@@ -677,7 +714,9 @@ export function FranchiseBentoView({
                             <div className="flex items-center gap-2 mb-3">
                                 <GraduationCap className="h-4 w-4 text-growth-green" />
                                 <span className="font-medium">Support & Training</span>
-                                <Badge variant="secondary" className="ml-auto text-xs bg-accent text-accent-foreground">Standard</Badge>
+                                <Badge variant="outline" className="ml-auto text-xs text-muted-foreground">
+                                    Typical categories — not verified
+                                </Badge>
                             </div>
 
                             {/* Pre-Opening */}
@@ -719,11 +758,13 @@ export function FranchiseBentoView({
                             </div>
                         </div>
 
-                        {/* RIGHT: Territory Search Tool */}
+                        {/* RIGHT: Territory Search Tool — hidden unless mapped cities exist */}
                         <div className="p-6">
                             <div className="flex items-center gap-2 mb-3">
                                 <MapPin className="h-4 w-4 text-growth-green" />
-                                <span className="font-medium">Check Territory Availability</span>
+                                <span className="font-medium">
+                                    {hasTerritoriesData ? 'Check Territory Availability' : 'Territory'}
+                                </span>
                             </div>
 
                             {hasTerritoriesData ? (
@@ -800,49 +841,19 @@ export function FranchiseBentoView({
                                     </div>
                                 </>
                             ) : (
-                                <form
-                                    className="space-y-3"
-                                    onSubmit={(e) => {
-                                        e.preventDefault();
-                                        setTerritorySubmitted(true);
-                                    }}
-                                >
-                                    <div className="flex gap-2">
-                                        <div className="relative flex-1">
-                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                            <Input
-                                                placeholder="Pincode or city"
-                                                value={territorySearch}
-                                                onChange={(e) => {
-                                                    setTerritorySearch(e.target.value);
-                                                    setTerritorySubmitted(false);
-                                                }}
-                                                className="pl-9"
-                                            />
-                                        </div>
-                                        <Button type="submit" size="sm" className="whitespace-nowrap">
-                                            Check Availability
-                                        </Button>
-                                    </div>
-                                    {territorySubmitted && territorySearch.trim() ? (
-                                        <p className="text-sm text-muted-foreground">
-                                            Territory table has no mapped cities for this brand. Contact the franchisor to confirm {territorySearch}.
-                                        </p>
-                                    ) : (
-                                        <p className="text-sm text-muted-foreground">
-                                            No territory rows in the table yet. Submit a city or pincode to request a check.
-                                        </p>
-                                    )}
-                                </form>
+                                <p className="text-sm text-muted-foreground">
+                                    This brand has not published city-level availability. We do not guess whether you can open in a given city.
+                                </p>
                             )}
 
-                            {/* Summary */}
+                            {hasTerritoriesData && (
                             <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-sm">
-                                <span className="text-muted-foreground">Total available:</span>
+                                <span className="text-muted-foreground">Mapped available cities:</span>
                                 <span className="font-semibold text-growth-green">
-                                    {availableTerritories ? `${availableTerritories} cities` : 'Contact for details'}
+                                    {availableTerritories ? `${availableTerritories} cities` : `${mappedTerritoryCount(franchise)} listed`}
                                 </span>
                             </div>
+                            )}
                         </div>
                     </div>
                 </CardContent>

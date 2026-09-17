@@ -311,7 +311,7 @@ export function SignUpForm() {
         </div>
         <CardTitle className="text-2xl font-bold text-foreground">Create Your Account</CardTitle>
         <CardDescription className="text-base">
-          Join <span className="font-semibold text-foreground">BizSearch</span> to browse listings and save opportunities
+          Join <span className="font-semibold text-foreground">BizSearch</span> to send a qualified enquiry and track the brand&apos;s response
         </CardDescription>
       </CardHeader>
       <CardContent>

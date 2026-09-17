@@ -156,11 +156,6 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
 
   const handleEnquire = () => {
     if (!franchise) return;
-    if (!user) {
-      toast.info("Sign in to enquire about this franchise");
-      navigate(`/login?redirect=/franchise/${identifier}?contact=true`);
-      return;
-    }
     setShowContactForm(true);
   };
 

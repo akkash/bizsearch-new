@@ -52,6 +52,9 @@ export interface FranchiseInquiry {
   conversationId?: string | null;
   meetingAt?: string | null;
   meetingNotes?: string | null;
+  notifiedAt?: string | null;
+  firstViewedAt?: string | null;
+  firstRespondedAt?: string | null;
   sender?: {
     displayName: string;
     email: string;

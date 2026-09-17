@@ -25,6 +25,7 @@ import {
 import { ListingBrandHero } from "@/components/listing-brand-hero";
 import { listingCoverUrl, listingLogoUrl } from "@/lib/listing-media";
 import { formatINR } from "@/lib/format-currency";
+import { hasUnitEconomics, isPlatformVerified, mappedTerritoryCount } from "@/lib/listing-trust";
 
 interface ComparisonItem {
   id: string;
@@ -228,6 +229,55 @@ export function ComparisonFeature({
     return "Not provided";
   };
 
+  const getTerritoryLabel = (item: ComparisonItem) => {
+    if (item.type !== "franchise") return "—";
+    const franchise = item.data as Franchise;
+    const count = mappedTerritoryCount(franchise);
+    if (count === 0) return "No city-level rows";
+    const available = Array.isArray(franchise.territory_availability || franchise.territoryAvailability)
+      ? (franchise.territory_availability || franchise.territoryAvailability || []).filter(
+          (row: unknown) =>
+            row &&
+            typeof row === "object" &&
+            String((row as { status?: string }).status || "").toLowerCase() === "available"
+        ).length
+      : 0;
+    return available > 0 ? `${count} cities · ${available} available` : `${count} city rows`;
+  };
+
+  const getVerificationLabel = (item: ComparisonItem) => {
+    if (item.type !== "franchise") return "—";
+    const franchise = item.data as Franchise;
+    if (isPlatformVerified(franchise)) {
+      const verifiedAt = franchise.verified_at || franchise.verifiedAt;
+      return verifiedAt ? `Platform verified ${String(verifiedAt).slice(0, 10)}` : "Platform verified";
+    }
+    return "Franchisor-provided";
+  };
+
+  const getRiskFlags = (item: ComparisonItem): string[] => {
+    if (item.type !== "franchise") return [];
+    const franchise = item.data as Franchise;
+    const flags: string[] = [];
+    if (!isPlatformVerified(franchise)) flags.push("Not platform verified");
+    if (mappedTerritoryCount(franchise) === 0) flags.push("No city territory rows");
+    if (!hasUnitEconomics(franchise)) flags.push("Unit economics unpublished");
+    if (!Array.isArray(franchise.documents) || franchise.documents.length === 0) {
+      flags.push("No documents");
+    }
+    return flags;
+  };
+
+  const getRoiLabel = (item: ComparisonItem) => {
+    if (item.type !== "franchise") return "—";
+    const franchise = item.data as Franchise;
+    const roi = franchise.expected_roi_percentage ?? franchise.expectedRoiPercentage;
+    if (!hasUnitEconomics(franchise)) {
+      return roi ? `Unverified claim ${roi}%` : "Not shown without unit P&L";
+    }
+    return roi != null ? `${roi}%` : "Not provided";
+  };
+
   const getFinancing = (item: ComparisonItem) => {
     if (item.type !== "franchise") return "Not provided";
     const franchise = item.data as Franchise;
@@ -279,6 +329,14 @@ export function ComparisonFeature({
                   ))}
                 </tr>
                 <tr>
+                  <td className="p-3 text-muted-foreground">Franchise fee</td>
+                  {franchiseItems.map((item) => (
+                    <td key={`${item.id}-fee`} className="p-3 font-mono font-semibold">
+                      {formatOptionalCurrency(getFranchiseFee(item))}
+                    </td>
+                  ))}
+                </tr>
+                <tr>
                   <td className="p-3 text-muted-foreground">Royalty</td>
                   {franchiseItems.map((item) => (
                     <td key={`${item.id}-roy`} className="p-3 font-mono font-semibold">
@@ -295,23 +353,59 @@ export function ComparisonFeature({
                   ))}
                 </tr>
                 <tr>
-                  <td className="p-3 text-muted-foreground">Payback</td>
-                  {franchiseItems.map((item) => {
-                    const months = (item.data as Franchise).payback_period_months;
-                    return (
-                      <td key={`${item.id}-pay`} className="p-3 font-mono font-semibold">
-                        {months ? `${months} mo` : "Not provided"}
-                      </td>
-                    );
-                  })}
-                </tr>
-                <tr>
-                  <td className="p-3 text-muted-foreground">Unit revenue</td>
+                  <td className="p-3 text-muted-foreground">Expected revenue</td>
                   {franchiseItems.map((item) => (
                     <td key={`${item.id}-rev`} className="p-3 font-mono font-semibold">
                       {formatINR((item.data as Franchise).average_unit_revenue)}
                     </td>
                   ))}
+                </tr>
+                <tr>
+                  <td className="p-3 text-muted-foreground">Payback / ROI</td>
+                  {franchiseItems.map((item) => {
+                    const months = (item.data as Franchise).payback_period_months;
+                    return (
+                      <td key={`${item.id}-pay`} className="p-3 font-mono font-semibold">
+                        {months ? `${months} mo` : "Not provided"}
+                        {` · ${getRoiLabel(item)}`}
+                      </td>
+                    );
+                  })}
+                </tr>
+                <tr>
+                  <td className="p-3 text-muted-foreground">Territory</td>
+                  {franchiseItems.map((item) => (
+                    <td key={`${item.id}-ter`} className="p-3 font-semibold">
+                      {getTerritoryLabel(item)}
+                    </td>
+                  ))}
+                </tr>
+                <tr>
+                  <td className="p-3 text-muted-foreground">Verification</td>
+                  {franchiseItems.map((item) => (
+                    <td key={`${item.id}-ver`} className="p-3 font-semibold">
+                      {getVerificationLabel(item)}
+                    </td>
+                  ))}
+                </tr>
+                <tr>
+                  <td className="p-3 text-muted-foreground">Support</td>
+                  {franchiseItems.map((item) => (
+                    <td key={`${item.id}-sup`} className="p-3">
+                      {getSupport(item)}
+                    </td>
+                  ))}
+                </tr>
+                <tr>
+                  <td className="p-3 text-muted-foreground">Risk flags</td>
+                  {franchiseItems.map((item) => {
+                    const flags = getRiskFlags(item);
+                    return (
+                      <td key={`${item.id}-risk`} className="p-3 text-xs text-muted-foreground">
+                        {flags.length ? flags.join(" · ") : "None from published fields"}
+                      </td>
+                    );
+                  })}
                 </tr>
               </tbody>
             </table>

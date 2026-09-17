@@ -26,6 +26,7 @@ import { FranchiseService, type FranchiseCreateInput } from "@/lib/franchise-ser
 import { mapFranchiseFromDb } from "@/lib/franchise-mapper";
 import { mapFranchiseToListingForm } from "@/lib/franchise-listing-form-map";
 import { sanitizePublicWebsite } from "@/lib/public-website";
+import { franchisorFieldProvenance } from "@/lib/opportunity-record";
 import {
   aggregateInvestmentFromFormats,
   normalizeStoreFormats,
@@ -252,9 +253,16 @@ export function AddFranchiseListingPage({
           .filter(Boolean),
         min_area_sqft: fromFormats.min_area_sqft,
         max_area_sqft: fromFormats.max_area_sqft,
-        // Financial projections
-        average_unit_revenue: data.investment?.totalInvestment?.min,
-        average_unit_profit: data.investment?.averageROI,
+        // Financial projections — never copy investment/ROI into unit P&L
+        average_unit_revenue:
+          data.investment?.averageUnitRevenue && data.investment.averageUnitRevenue > 0
+            ? data.investment.averageUnitRevenue
+            : null,
+        average_unit_profit:
+          data.investment?.averageUnitProfit && data.investment.averageUnitProfit > 0
+            ? data.investment.averageUnitProfit
+            : null,
+        working_capital: data.investment?.liquidCapitalRequired || null,
         payback_period_months: data.investment?.breakEvenPeriod,
         expected_roi_percentage: data.investment?.averageROI,
         // Store formats for multiple outlet types
@@ -308,7 +316,17 @@ export function AddFranchiseListingPage({
           status: "pending_review",
         });
       } else {
-        await FranchiseService.createFranchise(user.id, franchiseInput);
+        await FranchiseService.createFranchise(user.id, {
+          ...franchiseInput,
+          field_provenance: franchisorFieldProvenance([
+            'franchise_fee',
+            'total_investment',
+            'working_capital',
+            'royalty',
+            'unit_revenue',
+            'territory',
+          ]),
+        });
       }
 
       navigate("/listing-submitted?type=franchise");

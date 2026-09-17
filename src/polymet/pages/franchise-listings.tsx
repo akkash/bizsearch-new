@@ -741,6 +741,11 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
                     <div className="text-sm font-medium">
                       Showing {filteredFranchises.length} {filteredFranchises.length === 1 ? "Opportunity" : "Opportunities"}
                     </div>
+                    {(urlCity || filters?.city?.length || filters?.state?.length) ? (
+                      <p className="text-xs text-muted-foreground max-w-md">
+                        Location filters use headquarters and listed expansion text, not confirmed open territories.
+                      </p>
+                    ) : null}
                     {savedSearchesEnabled && (
                       <Button
                         size="sm"

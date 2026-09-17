@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
 import {
   Store,
   Briefcase,
@@ -21,6 +22,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { listingCoverUrl, listingLogoUrl } from "@/lib/listing-media";
+import { evaluateOpportunityRecord } from "@/lib/opportunity-record";
 
 // Helper function to format currency
 const formatCurrency = (value: number) => {
@@ -185,6 +187,9 @@ export function MyListingsPage({ className }: MyListingsPageProps) {
     const cover = listingCoverUrl(franchise);
     const mark = logo || cover;
     const brand = franchise.brand_name || franchise.brandName || "Franchise";
+    const opportunity = evaluateOpportunityRecord(franchise as Record<string, unknown>, {
+      documentCount: Array.isArray(franchise.documents) ? franchise.documents.length : 0,
+    });
     return (
     <Card className="hover:shadow-md transition-shadow overflow-hidden">
       <CardContent className="p-4">
@@ -210,6 +215,23 @@ export function MyListingsPage({ className }: MyListingsPageProps) {
             </p>
           </div>
           <StatusBadge status={franchise.status} />
+        </div>
+
+        <div className="mb-3">
+          <div className="flex items-center justify-between text-xs mb-1">
+            <span className="text-muted-foreground">Opportunity completeness</span>
+            <span className="font-mono">{opportunity.score}%</span>
+          </div>
+          <Progress value={opportunity.score} className="h-1.5" />
+          {opportunity.readyForPlatformVerification ? (
+            <p className="text-[11px] text-muted-foreground mt-1">
+              Record is complete enough to request platform verification.
+            </p>
+          ) : (
+            <p className="text-[11px] text-amber-700 mt-1">
+              Missing: {opportunity.missingRequired.join(', ')}
+            </p>
+          )}
         </div>
 
         <div className="grid grid-cols-3 gap-2 text-sm text-muted-foreground mb-3">
@@ -260,6 +282,14 @@ export function MyListingsPage({ className }: MyListingsPageProps) {
   }
 
   const totalListings = businesses.length + franchises.length;
+  const incompleteFranchises = franchises
+    .map((franchise) => ({
+      franchise,
+      opportunity: evaluateOpportunityRecord(franchise as Record<string, unknown>, {
+        documentCount: Array.isArray(franchise.documents) ? franchise.documents.length : 0,
+      }),
+    }))
+    .filter((row) => !row.opportunity.readyForPlatformVerification);
 
   return (
     <div className={cn("container mx-auto px-4 py-8", className)}>
@@ -321,6 +351,32 @@ export function MyListingsPage({ className }: MyListingsPageProps) {
           </CardContent>
         </Card>
       </div>
+
+      {incompleteFranchises.length > 0 && (
+        <Card className="mb-8 border-amber-200 dark:border-amber-800">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Complete the opportunity record</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Platform verification stays off until investment, unit economics, city-level territory, format, and documents are present.
+            </p>
+            {incompleteFranchises.map(({ franchise, opportunity }) => (
+              <div key={franchise.id} className="flex flex-col sm:flex-row sm:items-center gap-2 border border-border rounded-md p-3">
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium truncate">{franchise.brand_name || franchise.brandName}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {opportunity.score}% complete · missing {opportunity.missingRequired.join(', ')}
+                  </p>
+                </div>
+                <Button variant="outline" size="sm" asChild>
+                  <Link to={`/franchise/edit/${franchise.id}`}>Fill missing fields</Link>
+                </Button>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Listings */}
       {totalListings === 0 ? (

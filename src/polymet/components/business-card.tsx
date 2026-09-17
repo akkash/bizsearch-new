@@ -46,10 +46,7 @@ export function BusinessCard({
     (business as any).ebitda ||
     (business as any).profit ||
     business.financials?.[0]?.profit;
-  const isVerified =
-    business.verification_status === "verified" ||
-    business.verification?.verified ||
-    business.verified;
+  const isVerified = business.verification_status === "verified";
   const hasFinancials =
     Boolean(business.revenue) ||
     Boolean(profit) ||

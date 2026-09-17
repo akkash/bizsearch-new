@@ -73,7 +73,6 @@ function VerificationStatus({ business }: { business: Business }) {
   const identity = business.verification?.identityVerified;
   const documents = business.verification?.documentsVerified;
   const status = business.verification_status;
-  const legacyVerified = business.verification?.verified || business.verified;
 
   const signals: string[] = [];
   if (identity) signals.push("Owner identity");
@@ -95,18 +94,18 @@ function VerificationStatus({ business }: { business: Business }) {
     );
   }
 
-  if (status === "verified" || legacyVerified) {
+  if (status === "verified") {
     return (
       <span className="inline-flex items-center gap-1 text-[11px] text-growth-green">
         <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
-        Business verified
+        Platform verified
       </span>
     );
   }
 
   if (status === "pending") {
     return (
-      <span className="text-[11px] text-muted-foreground">Verification available</span>
+      <span className="text-[11px] text-muted-foreground">Verification pending</span>
     );
   }
 

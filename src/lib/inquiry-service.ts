@@ -78,6 +78,9 @@ function mapInquiry(
     conversationId: row.conversation_id ? String(row.conversation_id) : null,
     meetingAt: row.meeting_at ? String(row.meeting_at) : null,
     meetingNotes: row.meeting_notes ? String(row.meeting_notes) : null,
+    notifiedAt: row.notified_at ? String(row.notified_at) : null,
+    firstViewedAt: row.first_viewed_at ? String(row.first_viewed_at) : null,
+    firstRespondedAt: row.first_responded_at ? String(row.first_responded_at) : null,
     sender: sender
       ? {
           displayName: String(
@@ -465,6 +468,39 @@ export class InquiryService {
       .eq('id', inquiryId);
 
     if (error) throw error;
+
+    if (updates.status && updates.status !== 'meeting' && updates.status !== 'new') {
+      const { data } = await supabase
+        .from('inquiries')
+        .select('sender_id, listing_id')
+        .eq('id', inquiryId)
+        .maybeSingle();
+      if (data?.sender_id) {
+        await NotificationService.createNotification(
+          String(data.sender_id),
+          'inquiry_response',
+          'Your enquiry moved',
+          `The brand updated your enquiry to ${updates.status}.`,
+          `/my-enquiries?inquiry=${inquiryId}`,
+          { inquiry_id: inquiryId, status: updates.status }
+        ).catch((notifyErr) => {
+          console.warn('Stage notification skipped:', notifyErr);
+        });
+      }
+    }
+  }
+
+  static async markViewed(inquiryId: string): Promise<void> {
+    const { error } = await supabase.rpc('mark_inquiry_viewed', { p_inquiry_id: inquiryId });
+    if (!error) return;
+    const { error: fallback } = await supabase
+      .from('inquiries')
+      .update({ first_viewed_at: new Date().toISOString() })
+      .eq('id', inquiryId)
+      .is('first_viewed_at', null);
+    if (fallback) {
+      console.warn('Could not stamp lead viewed:', fallback.message || error.message);
+    }
   }
 
   static async scheduleMeeting(
@@ -533,6 +569,24 @@ export class InquiryService {
   /** Mark inquiry as application stage when linked app is created */
   static async markApplicationStarted(inquiryId: string): Promise<void> {
     await this.updateInquiry(inquiryId, { status: 'application' });
+
+    const { data } = await supabase
+      .from('inquiries')
+      .select('recipient_id, listing_id')
+      .eq('id', inquiryId)
+      .maybeSingle();
+    if (data?.recipient_id) {
+      await NotificationService.createNotification(
+        String(data.recipient_id),
+        'new_inquiry',
+        'Franchise application received',
+        'A qualified seeker submitted an application. Review it in Applications.',
+        '/franchisor/applications',
+        { inquiry_id: inquiryId, listing_id: data.listing_id }
+      ).catch((error) => {
+        console.warn('Application notification skipped:', error);
+      });
+    }
   }
 
   /** Latest non-lost franchise inquiry from this sender for this listing */

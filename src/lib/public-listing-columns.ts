@@ -76,6 +76,9 @@ export const FRANCHISE_PUBLIC_COLUMNS = [
   'founder_bio',
   'countries_operating',
   'breakeven_period',
+  'working_capital',
+  'field_provenance',
+  'verification_next_review_at',
 ].join(',');
 
 export const BUSINESS_PUBLIC_COLUMNS = [

@@ -50,6 +50,8 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
+import { evaluateOpportunityRecord, stampPlatformProvenance } from '@/lib/opportunity-record';
+import type { FieldProvenance } from '@/lib/opportunity-record';
 
 interface Listing {
     id: string;
@@ -64,6 +66,8 @@ interface Listing {
     verifiedAt: string | null;
     isStale: boolean;
     ownerEmail: string;
+    readyForVerified: boolean;
+    missingRequired: string[];
 }
 
 function computeCompletenessScore(row: Record<string, unknown>, type: 'business' | 'franchise'): number {
@@ -81,7 +85,8 @@ function computeCompletenessScore(row: Record<string, unknown>, type: 'business'
 function mapRowToListing(
     row: Record<string, unknown>,
     type: 'business' | 'franchise',
-    ownerEmail = '—'
+    ownerEmail = '—',
+    extras?: { mappedTerritories?: number }
 ): Listing {
     const updatedAt = String(row.updated_at || row.created_at || new Date().toISOString());
     const daysSinceUpdate = Math.floor(
@@ -93,6 +98,8 @@ function mapRowToListing(
             ? [row.headquarters_city, row.headquarters_state].filter(Boolean).join(', ')
             : [row.city, row.state].filter(Boolean).join(', ');
 
+    const opportunity =
+        type === 'franchise' ? evaluateOpportunityRecord(row, extras) : null;
     return {
         id: String(row.id),
         name: String(type === 'franchise' ? row.brand_name : row.name),
@@ -100,12 +107,15 @@ function mapRowToListing(
         industry: String(row.industry || '—'),
         location: location || '—',
         verificationStatus,
-        dataCompletenessScore: computeCompletenessScore(row, type),
+        dataCompletenessScore:
+            opportunity?.score ?? computeCompletenessScore(row, type),
         createdAt: String(row.created_at || updatedAt),
         updatedAt,
         verifiedAt: row.verified_at ? String(row.verified_at) : null,
         isStale: daysSinceUpdate >= 90,
         ownerEmail,
+        readyForVerified: opportunity ? opportunity.readyForPlatformVerification : true,
+        missingRequired: opportunity?.missingRequired || [],
     };
 }
 
@@ -183,12 +193,26 @@ export function AdminVerification() {
                     (franchises || []).map((row) => String(row.franchisor_id))
                 );
 
+                const franchiseIds = (franchises || []).map((row) => String(row.id));
+                const territoryCounts = new Map<string, number>();
+                if (franchiseIds.length > 0) {
+                    const { data: territoryRows } = await supabase
+                        .from('franchise_territories')
+                        .select('franchise_id')
+                        .in('franchise_id', franchiseIds);
+                    territoryRows?.forEach((territory) => {
+                        const id = String(territory.franchise_id);
+                        territoryCounts.set(id, (territoryCounts.get(id) || 0) + 1);
+                    });
+                }
+
                 franchises?.forEach((row) => {
                     results.push(
                         mapRowToListing(
                             row as Record<string, unknown>,
                             'franchise',
-                            ownerEmails.get(String(row.franchisor_id)) || '—'
+                            ownerEmails.get(String(row.franchisor_id)) || '—',
+                            { mappedTerritories: territoryCounts.get(String(row.id)) || 0 }
                         )
                     );
                 });
@@ -244,6 +268,12 @@ export function AdminVerification() {
     };
 
     const handleVerify = (listing: Listing) => {
+        if (listing.type === 'franchise' && !listing.readyForVerified) {
+            toast.error(
+                `Cannot platform-verify yet. Missing: ${listing.missingRequired.join(', ')}`
+            );
+            return;
+        }
         setSelectedListing(listing);
         setDialogAction('verify');
         setVerificationNotes('');
@@ -263,15 +293,28 @@ export function AdminVerification() {
         const newStatus = dialogAction === 'verify' ? 'verified' : 'rejected';
         const table = selectedListing.type === 'franchise' ? 'franchises' : 'businesses';
         const now = new Date().toISOString();
+        const nextReviewAt = new Date(Date.now() + 90 * 24 * 3600 * 1000).toISOString();
 
         try {
+            const payload: Record<string, unknown> = {
+                    verification_status: newStatus,
+                    verified: dialogAction === 'verify',
+                    verified_at: dialogAction === 'verify' ? now : null,
+                    verification_next_review_at:
+                        dialogAction === 'verify' ? nextReviewAt : null,
+                    updated_at: now,
+            };
+            if (dialogAction === 'verify' && selectedListing.type === 'franchise') {
+                payload.field_provenance = stampPlatformProvenance(
+                    undefined,
+                    now,
+                    nextReviewAt
+                ) as Record<string, FieldProvenance>;
+            }
+
             const { error } = await supabase
                 .from(table)
-                .update({
-                    verification_status: newStatus,
-                    verified_at: dialogAction === 'verify' ? now : null,
-                    updated_at: now,
-                })
+                .update(payload)
                 .eq('id', selectedListing.id);
 
             if (error) throw error;
@@ -548,6 +591,11 @@ export function AdminVerification() {
                                                             Low Data
                                                         </Badge>
                                                     )}
+                                                    {listing.type === 'franchise' && !listing.readyForVerified && (
+                                                        <Badge variant="outline" className="text-amber-700 border-amber-300">
+                                                            Incomplete record
+                                                        </Badge>
+                                                    )}
                                                 </div>
                                             </TableCell>
                                             <TableCell className="text-right">
@@ -559,7 +607,10 @@ export function AdminVerification() {
                                                         <Button
                                                             size="sm"
                                                             variant="outline"
-                                                            className="text-growth-green hover:bg-growth-green/10"
+                                                            className={cn(
+                                                                "text-growth-green hover:bg-growth-green/10",
+                                                                listing.type === 'franchise' && !listing.readyForVerified && "opacity-50"
+                                                            )}
                                                             onClick={() => handleVerify(listing)}
                                                         >
                                                             <CheckCircle className="h-4 w-4" />
@@ -604,10 +655,16 @@ export function AdminVerification() {
                     <div className="space-y-4">
                         {selectedListing && (
                             <div className="p-3 bg-muted rounded-lg">
-                                <div className="text-sm">
+                                <div className="text-sm space-y-1">
                                     <div><strong>Name:</strong> {selectedListing.name}</div>
                                     <div><strong>Type:</strong> {selectedListing.type}</div>
                                     <div><strong>Data Score:</strong> {selectedListing.dataCompletenessScore}%</div>
+                                    {selectedListing.missingRequired.length > 0 && (
+                                        <div>
+                                            <strong>Missing for platform verification:</strong>{' '}
+                                            {selectedListing.missingRequired.join(', ')}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         )}

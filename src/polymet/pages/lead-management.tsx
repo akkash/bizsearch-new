@@ -41,6 +41,7 @@ import {
   type FranchiseInquiry,
   type InquiryStatus,
 } from '@/types/franchise-domain';
+import { computeLeadSla, formatResponseHours, isUnanswered, leadSlaEvents } from '@/lib/lead-sla';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -155,19 +156,7 @@ export function LeadManagementPage() {
     return matchesSearch && matchesStatus;
   });
 
-  const metrics = useMemo(() => {
-    const newCount = leads.filter((l) => l.status === 'new').length;
-    const meeting = leads.filter((l) => l.status === 'meeting').length;
-    const applications = leads.filter(
-      (l) => l.status === 'application' || l.linkedApplicationId
-    ).length;
-    const won = leads.filter((l) =>
-      ['opened', 'converted', 'agreement'].includes(l.status)
-    ).length;
-    const conversion =
-      leads.length > 0 ? Math.round((won / leads.length) * 100) : 0;
-    return { newCount, meeting, applications, conversion, total: leads.length };
-  }, [leads]);
+  const sla = useMemo(() => computeLeadSla(leads), [leads]);
 
   const stageCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -208,17 +197,21 @@ export function LeadManagementPage() {
       </div>
 
       {/* Metrics */}
-      <div className="grid gap-3 grid-cols-2 md:grid-cols-5 mb-6">
+      <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-5 mb-6">
         {[
-          { label: 'Total leads', value: metrics.total },
-          { label: 'New', value: metrics.newCount },
-          { label: 'Meetings', value: metrics.meeting },
-          { label: 'Applications', value: metrics.applications },
-          { label: 'Win rate', value: `${metrics.conversion}%` },
+          { label: 'Leads', value: leads.length },
+          { label: 'Unanswered', value: sla.unanswered },
+          { label: 'Viewed', value: sla.viewed },
+          { label: 'Contact rate', value: `${sla.contactRate}%` },
+          { label: 'Meeting rate', value: `${sla.meetingRate}%` },
+          { label: 'Application rate', value: `${sla.applicationRate}%` },
+          { label: 'Agreement rate', value: `${sla.agreementRate}%` },
+          { label: 'Opening rate', value: `${sla.openingRate}%` },
+          { label: 'First response', value: formatResponseHours(sla.medianFirstResponseHours) },
         ].map((m) => (
           <Card key={m.label}>
             <CardContent className="p-3 text-center">
-              <p className="text-xl font-bold font-mono tabular-nums">{m.value}</p>
+              <p className="text-lg font-bold font-mono tabular-nums leading-tight">{m.value}</p>
               <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
                 {m.label}
               </p>
@@ -308,6 +301,16 @@ export function LeadManagementPage() {
                         <Badge className={statusColor[lead.status]}>
                           {INQUIRY_STATUS_LABELS[lead.status]}
                         </Badge>
+                        {isUnanswered(lead) && (
+                          <Badge variant="outline" className="text-[10px] text-amber-700 border-amber-700/40">
+                            Unanswered
+                          </Badge>
+                        )}
+                        {lead.firstViewedAt && lead.status === 'new' && (
+                          <Badge variant="outline" className="text-[10px]">
+                            Viewed
+                          </Badge>
+                        )}
                         {lead.linkedApplicationId && (
                           <Badge variant="outline" className="text-[10px]">
                             App linked
@@ -477,6 +480,22 @@ export function LeadManagementPage() {
                       <p className="font-mono font-bold">{selectedLead.matchScore}%</p>
                     </div>
                   )}
+                </div>
+
+                <div className="space-y-1">
+                  <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
+                    Lead timestamps
+                  </p>
+                  {leadSlaEvents(selectedLead).map((event) => (
+                    <div key={event.label} className="flex justify-between text-xs gap-4">
+                      <span className="text-muted-foreground">{event.label}</span>
+                      <span className="font-mono">
+                        {event.at
+                          ? formatDistanceToNow(new Date(event.at), { addSuffix: true })
+                          : '—'}
+                      </span>
+                    </div>
+                  ))}
                 </div>
 
                 <div className="space-y-1">

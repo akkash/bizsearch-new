@@ -67,6 +67,14 @@ export const franchiseListingSchema = z.object({
     liquidCapitalRequired: z
       .number()
       .min(0, "Liquid capital cannot be negative"),
+    averageUnitRevenue: z.preprocess(
+      (value) => (value === '' || value == null || Number.isNaN(value) ? undefined : value),
+      z.number().min(0).optional()
+    ),
+    averageUnitProfit: z.preprocess(
+      (value) => (value === '' || value == null || Number.isNaN(value) ? undefined : value),
+      z.number().min(0).optional()
+    ),
     royaltyStructure: z.object({
       type: z.enum(["fixed", "tiered", "performance_based"]),
       baseTiers: z.array(

@@ -167,4 +167,16 @@ export interface Franchise {
     dataCompletenessScore?: number;
     headquartersCity?: string;
     last_activity_at?: string;
+    workingCapital?: number;
+    working_capital?: number;
+    fieldProvenance?: Record<string, unknown>;
+    field_provenance?: Record<string, unknown>;
+    verificationNextReviewAt?: string;
+    verification_next_review_at?: string;
+    averageUnitRevenue?: number;
+    averageUnitProfit?: number;
+    territoryAvailability?: unknown;
+    territory_availability?: unknown;
+    breakevenPeriod?: string;
+    breakeven_period?: string;
 }

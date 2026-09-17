@@ -749,6 +749,31 @@ export function FranchiseListingWizard({
                       </div>
                     </div>
                   </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="averageUnitRevenue">Expected annual unit revenue (₹)</Label>
+                      <Input
+                        id="averageUnitRevenue"
+                        type="number"
+                        {...form.register("investment.averageUnitRevenue", {
+                          valueAsNumber: true,
+                        })}
+                        placeholder="Leave blank if not published"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="averageUnitProfit">Expected annual unit profit (₹)</Label>
+                      <Input
+                        id="averageUnitProfit"
+                        type="number"
+                        {...form.register("investment.averageUnitProfit", {
+                          valueAsNumber: true,
+                        })}
+                        placeholder="Leave blank if not published"
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 {/* Royalty Structure */}

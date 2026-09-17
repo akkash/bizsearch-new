@@ -403,7 +403,7 @@ export function Filters({
             <AccordionTrigger className="hover:no-underline py-3">
               <div className="flex items-center gap-2">
                 <MapPinIcon className="h-4 w-4" />
-                <span className="font-medium">State / City</span>
+                <span className="font-medium">HQ / mentioned locations</span>
                 {filters.state.length > 0 && (
                   <Badge variant="secondary" className="ml-2 text-xs">
                     {filters.state.length}
@@ -412,7 +412,9 @@ export function Filters({
               </div>
             </AccordionTrigger>
             <AccordionContent className="pb-4">
-              {/* Search Input */}
+              <p className="text-xs text-muted-foreground mb-3">
+                Filters headquarters and expansion text. This is not confirmed open-city availability.
+              </p>
               <div className="relative mb-3">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input

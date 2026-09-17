@@ -24,6 +24,7 @@ import {
   type FranchiseInquiry,
   type InquiryStatus,
 } from '@/types/franchise-domain';
+import { leadSlaEvents } from '@/lib/lead-sla';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -62,6 +63,12 @@ export function PipelineCandidatePage() {
       try {
         const row = await InquiryService.getCandidate(inquiryId, user.id);
         setInquiry(row);
+        if (row?.id) {
+          await InquiryService.markViewed(row.id);
+          if (!row.firstViewedAt) {
+            setInquiry({ ...row, firstViewedAt: new Date().toISOString() });
+          }
+        }
         if (row?.meetingAt) {
           setMeetingAt(row.meetingAt.slice(0, 16));
         }
@@ -197,6 +204,18 @@ export function PipelineCandidatePage() {
                 <p className="font-mono font-bold">{inquiry.matchScore}</p>
               </div>
             )}
+          </div>
+
+          <div className="space-y-1 border border-border p-3 text-sm">
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">Lead timestamps</p>
+            {leadSlaEvents(inquiry).map((event) => (
+              <div key={event.label} className="flex justify-between gap-4">
+                <span className="text-muted-foreground">{event.label}</span>
+                <span className="font-mono text-xs">
+                  {event.at ? format(new Date(event.at), 'dd MMM yyyy HH:mm') : '—'}
+                </span>
+              </div>
+            ))}
           </div>
 
           <div className="space-y-1 text-sm">

@@ -271,6 +271,17 @@ export function FranchisorApplicationsPage() {
             }
 
             toast.success(`Application ${newStatus.replace('_', ' ')}`);
+            if (selectedApp.user_id) {
+              const { NotificationService } = await import('@/lib/notification-service');
+              await NotificationService.createNotification(
+                selectedApp.user_id,
+                'inquiry_response',
+                'Application update',
+                `Your application is now ${newStatus.replace('_', ' ')}.`,
+                '/my-applications',
+                { application_id: selectedApp.id, status: newStatus }
+              ).catch((err) => console.warn('Applicant notification skipped:', err));
+            }
             setShowStatusDialog(false);
             setSelectedApp(null);
             setNewStatus('');

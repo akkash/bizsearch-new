@@ -165,6 +165,14 @@ export function mapFranchiseFromDb(raw: FranchiseDbRow): Franchise {
     contact_phone: str(raw.contact_phone),
     website: sanitizePublicWebsite(str(raw.website)),
     documents: Array.isArray(raw.documents) ? raw.documents : [],
+    workingCapital: num(raw.working_capital) ?? num(raw.workingCapital),
+    working_capital: num(raw.working_capital) ?? num(raw.workingCapital),
+    fieldProvenance: (raw.field_provenance || raw.fieldProvenance || {}) as Franchise['fieldProvenance'],
+    field_provenance: (raw.field_provenance || raw.fieldProvenance || {}) as Franchise['field_provenance'],
+    verificationNextReviewAt: str(raw.verification_next_review_at) || str(raw.verificationNextReviewAt),
+    verification_next_review_at: str(raw.verification_next_review_at) || str(raw.verificationNextReviewAt),
+    breakevenPeriod: str(raw.breakeven_period) || str(raw.breakevenPeriod),
+    breakeven_period: str(raw.breakeven_period) || str(raw.breakevenPeriod),
   } as Franchise;
 }
 

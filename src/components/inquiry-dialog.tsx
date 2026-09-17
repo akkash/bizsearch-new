@@ -44,6 +44,12 @@ import {
   type StoreFormat,
 } from '@/lib/store-formats';
 import { toast } from 'sonner';
+import { scoreLeadQualification } from '@/lib/lead-qualification-score';
+import {
+  clearEnquiryDraft,
+  readEnquiryDraft,
+  saveEnquiryDraft,
+} from '@/lib/intent-draft';
 
 interface InquiryDialogProps {
   open: boolean;
@@ -70,6 +76,7 @@ export function InquiryDialog({
 }: InquiryDialogProps) {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submittedInquiryId, setSubmittedInquiryId] = useState<string | null>(null);
@@ -88,30 +95,38 @@ export function InquiryDialog({
   });
 
   useEffect(() => {
-    if (open) {
-      setFormData((prev) => ({
-        ...prev,
-        name: profile?.display_name || prev.name,
-        email: user?.email || profile?.email || prev.email,
-        phone: profile?.phone || prev.phone,
-      }));
-      setSelectedFormatId(
-        initialFormatId || storeFormats[0]?.id || null
-      );
-    }
-  }, [open, user, profile, initialFormatId, storeFormats]);
+    if (!open) return;
+    const draft = readEnquiryDraft(listingId);
+    setFormData((prev) => ({
+      ...prev,
+      name: profile?.display_name || draft?.form.name || prev.name,
+      email: user?.email || profile?.email || draft?.form.email || prev.email,
+      phone: profile?.phone || draft?.form.phone || prev.phone,
+      investmentCapacity: draft?.form.investmentCapacity || prev.investmentCapacity,
+      preferredLocation: draft?.form.preferredLocation || prev.preferredLocation,
+      openingTimeline: draft?.form.openingTimeline || prev.openingTimeline,
+      fundsAvailable: draft?.form.fundsAvailable || prev.fundsAvailable,
+      relevantExperience: draft?.form.relevantExperience || prev.relevantExperience,
+      message: draft?.form.message || prev.message,
+      acceptNDA: draft?.form.acceptNDA || prev.acceptNDA,
+    }));
+    setSelectedFormatId(
+      draft?.selectedFormatId || initialFormatId || storeFormats[0]?.id || null
+    );
+  }, [open, user, profile, initialFormatId, storeFormats, listingId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (loading) return;
 
-    if (!user) {
-      toast.error('Please sign in to send an enquiry');
-      return;
-    }
+    const message =
+      formData.message.trim() ||
+      (listingType === 'franchise'
+        ? `Qualified enquiry for ${listingName}`
+        : '');
 
-    if (!formData.name || !formData.email || !formData.message) {
+    if (!formData.name || !formData.email || !message) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -133,6 +148,27 @@ export function InquiryDialog({
       }
     }
 
+    if (!user) {
+      const score = scoreLeadQualification({
+        investmentCapacity: formData.investmentCapacity,
+        preferredLocation: formData.preferredLocation.trim(),
+        openingTimeline: formData.openingTimeline,
+        fundsAvailable: formData.fundsAvailable,
+        relevantExperience: formData.relevantExperience,
+      }).score;
+      saveEnquiryDraft({
+        listingId,
+        listingType,
+        listingName,
+        form: formData,
+        selectedFormatId,
+        score,
+      });
+      const next = `${location.pathname}${location.search.includes('contact=true') ? location.search : '?contact=true'}`;
+      navigate(`/signup?redirect=${encodeURIComponent(next)}`);
+      return;
+    }
+
     setLoading(true);
     try {
       const format = findStoreFormat(storeFormats, selectedFormatId);
@@ -143,7 +179,7 @@ export function InquiryDialog({
         subject: format
           ? `Inquiry about ${listingName} (${format.name})`
           : `Inquiry about ${listingName}`,
-        message: formData.message,
+        message,
         contactEmail: formData.email,
         contactPhone: formData.phone,
         qualification:
@@ -185,6 +221,7 @@ export function InquiryDialog({
 
       setSubmitted(true);
       setSubmittedInquiryId(inquiryId);
+      clearEnquiryDraft();
       toast.success(
         listingType === 'franchise'
           ? 'Qualified enquiry sent to the brand'
@@ -253,81 +290,13 @@ export function InquiryDialog({
     );
   }
 
-  const location = useLocation();
-
-  if (!user) {
-    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <MessageSquare className="h-5 w-5" />
-              {listingType === 'franchise' ? 'Enquire about this franchise' : 'Contact Seller'}
-            </DialogTitle>
-            <DialogDescription>
-              Sign in to continue: <strong>{listingName}</strong>
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-4">
-            <p className="text-sm text-muted-foreground">
-              Create a free account to unlock these benefits:
-            </p>
-            <div className="space-y-3">
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <BarChart3 className="h-4 w-4 text-primary" />
-                </div>
-                <div>
-                  <div className="font-medium text-sm">Track enquiries</div>
-                  <div className="text-xs text-muted-foreground">
-                    Status and responses in one place
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-growth-green/10 flex items-center justify-center flex-shrink-0">
-                  <Bell className="h-4 w-4 text-foreground" />
-                </div>
-                <div>
-                  <div className="font-medium text-sm">Get notifications</div>
-                  <div className="text-xs text-muted-foreground">When the brand responds</div>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-trust-blue/100/10 flex items-center justify-center flex-shrink-0">
-                  <Shield className="h-4 w-4 text-trust-blue" />
-                </div>
-                <div>
-                  <div className="font-medium text-sm">Secure messaging</div>
-                  <div className="text-xs text-muted-foreground">Direct platform communication</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-2 pt-2">
-              <Button asChild className="w-full">
-                <Link
-                  to={`/login?redirect=${encodeURIComponent(location.pathname + '?contact=true')}`}
-                >
-                  <LogIn className="h-4 w-4 mr-2" />
-                  Sign In
-                </Link>
-              </Button>
-              <Button variant="outline" asChild className="w-full">
-                <Link
-                  to={`/signup?redirect=${encodeURIComponent(location.pathname + '?contact=true')}`}
-                >
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Create Free Account
-                </Link>
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
+  const qualificationScore = scoreLeadQualification({
+    investmentCapacity: formData.investmentCapacity,
+    preferredLocation: formData.preferredLocation.trim(),
+    openingTimeline: formData.openingTimeline,
+    fundsAvailable: formData.fundsAvailable,
+    relevantExperience: formData.relevantExperience,
+  }).score;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -339,7 +308,7 @@ export function InquiryDialog({
           </DialogTitle>
           <DialogDescription>
             {listingType === 'franchise'
-              ? 'Answer a few questions so the brand can assess fit.'
+              ? 'Answer a few questions to see fit. Sending to the brand requires an account.'
               : 'Inquiring about:'}{' '}
             <strong>{listingName}</strong>
             {askingPrice != null && listingType === 'business' && (
@@ -397,9 +366,14 @@ export function InquiryDialog({
 
           {listingType === 'franchise' && (
             <div className="space-y-3 rounded-md border border-border p-3 bg-secondary/20">
-              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Qualification
-              </p>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Qualification
+                </p>
+                <p className="text-xs tabular-nums text-foreground">
+                  Fit score {qualificationScore}/100
+                </p>
+              </div>
 
               <div className="space-y-2">
                 <Label>How much are you prepared to invest? *</Label>
@@ -557,7 +531,7 @@ export function InquiryDialog({
                   : "I'm interested in buying this business..."
               }
               rows={3}
-              required
+              required={listingType !== 'franchise'}
             />
           </div>
 
@@ -585,7 +559,7 @@ export function InquiryDialog({
                 Sending...
               </>
             ) : listingType === 'franchise' ? (
-              'Submit qualified enquiry'
+              user ? 'Submit qualified enquiry' : 'See score and continue to send'
             ) : (
               'Send Inquiry'
             )}
