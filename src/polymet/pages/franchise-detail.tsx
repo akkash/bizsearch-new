@@ -7,12 +7,10 @@ import { useFranchiseCompare } from "@/hooks/use-franchise-compare";
 import type { Franchise } from "@/types/listings";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import {
   ArrowLeftIcon,
   HeartIcon,
   ShareIcon,
-  FileTextIcon,
   GitCompareArrows,
   Download,
   MessageSquare,
@@ -108,7 +106,6 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
   }, [compareIds]);
 
   const brandName = franchise?.brandName || franchise?.brand_name || "Franchise";
-  const logo = franchise?.logo || franchise?.logo_url;
   const identifier = franchise?.slug || franchise?.id || id;
   const isSaved = franchise ? isListingSaved("franchise", franchise.id) : false;
   const compared = franchise ? isCompared(franchise.id) : false;
@@ -255,40 +252,23 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
           verified_at: franchise.verified_at || franchise.verifiedAt,
         }}
       />
-      <div className="bg-background/95 backdrop-blur-md border-b border-border sticky top-16 md:top-20 z-10">
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-            <div className="flex items-center gap-4 min-w-0">
-              <Button variant="ghost" size="sm" onClick={() => navigate("/franchises")}>
-                <ArrowLeftIcon className="h-4 w-4 mr-2" />
-                Back
-              </Button>
-              <Separator orientation="vertical" className="h-6 hidden sm:block" />
-              <div className="flex items-center gap-3 min-w-0">
-                {logo ? (
-                  <img src={logo} alt={`${brandName} logo`} className="w-12 h-12 object-contain rounded-lg border border-border bg-white dark:bg-card p-1" />
-                ) : (
-                  <div className="w-12 h-12 rounded-lg border border-border listing-hero-pattern flex items-center justify-center">
-                    <FileTextIcon className="h-5 w-5 text-growth-green" />
-                  </div>
-                )}
-                <div className="min-w-0">
-                  <p className="font-display text-xl sm:text-2xl font-bold uppercase tracking-tight truncate">{brandName}</p>
-                  <p className="text-sm text-muted-foreground truncate">
-                    {franchise.industry}
-                    {franchise.establishedYear || franchise.established_year
-                      ? ` • Est. ${franchise.establishedYear || franchise.established_year}`
-                      : ""}
-                  </p>
-                </div>
-              </div>
-            </div>
+      <div className="border-b border-border bg-background">
+        <div className="container mx-auto px-4 py-2">
+          <div className="flex items-center justify-between gap-2">
+            <Button
+              variant="ghost"
+              className="min-h-11 shrink-0 px-2"
+              onClick={() => navigate("/franchises")}
+            >
+              <ArrowLeftIcon className="h-4 w-4 mr-2" />
+              Back
+            </Button>
 
             <TooltipProvider delayDuration={200}>
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center justify-end gap-2">
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="outline" size="icon" className="h-9 w-9" onClick={handleSave} aria-label={isSaved ? "Saved" : "Save"}>
+                    <Button variant="outline" size="icon" className="h-11 w-11 min-h-11 min-w-11" onClick={handleSave} aria-label={isSaved ? "Saved" : "Save"}>
                       <HeartIcon className={cn("h-4 w-4", isSaved && "fill-current text-red-500")} />
                     </Button>
                   </TooltipTrigger>
@@ -299,7 +279,7 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
                     <Button
                       variant="outline"
                       size="icon"
-                      className={cn("h-9 w-9", compared && "border-growth-green text-growth-green")}
+                      className={cn("h-11 w-11 min-h-11 min-w-11", compared && "border-growth-green text-growth-green")}
                       onClick={handleCompare}
                       aria-label={compared ? "In compare" : "Compare"}
                     >
@@ -310,26 +290,26 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
                 </Tooltip>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="outline" size="icon" className="h-9 w-9" onClick={handleShare} aria-label="Share">
+                    <Button variant="outline" size="icon" className="h-11 w-11 min-h-11 min-w-11" onClick={handleShare} aria-label="Share">
                       <ShareIcon className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>Share</TooltipContent>
                 </Tooltip>
                 {compareIds.length > 0 && (
-                  <Button size="sm" variant="secondary" onClick={() => setShowComparePanel(true)}>
+                  <Button size="sm" variant="secondary" className="hidden min-h-11 md:inline-flex" onClick={() => setShowComparePanel(true)}>
                     Compare ({compareIds.length})
                   </Button>
                 )}
-                <Button variant="ghost" size="sm" onClick={handlePitchDeck}>
+                <Button variant="ghost" size="sm" className="hidden min-h-11 md:inline-flex" onClick={handlePitchDeck}>
                   <Download className="h-4 w-4 mr-2" />
                   Download Pitch Deck
                 </Button>
-                <Button variant="outline" size="sm" onClick={handleEnquire}>
+                <Button variant="outline" size="sm" className="hidden min-h-11 md:inline-flex" onClick={handleEnquire}>
                   <MessageSquare className="h-4 w-4 mr-2" />
                   Enquire
                 </Button>
-                <Button size="sm" onClick={handleApply}>
+                <Button size="sm" className="hidden min-h-11 md:inline-flex" onClick={handleApply}>
                   Apply for Franchise
                 </Button>
               </div>
@@ -338,20 +318,27 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
         </div>
       </div>
 
-      <div className="fixed bottom-16 left-0 right-0 z-20 p-3 md:hidden border-t border-border bg-background/95">
+      <div className="fixed bottom-14 left-0 right-0 z-20 border-t border-border bg-background/95 p-3 md:hidden">
         <div className="flex gap-2">
-          <Button className="flex-1" variant="outline" onClick={handleEnquire}>
+          <Button className="min-h-11 flex-1" variant="outline" onClick={handleEnquire}>
             Enquire
           </Button>
-          <Button className="flex-1" variant="secondary" onClick={handleApply}>
+          <Button className="min-h-11 flex-1" onClick={handleApply}>
             Apply
           </Button>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6 pb-24 md:pb-6">
+      <div className="container mx-auto px-4 py-4 pb-36 md:py-6 md:pb-6">
         <FranchiseBentoView
           franchise={franchise}
+          onEnquire={handleEnquire}
+          pitchDeckAction={
+            <Button variant="ghost" className="min-h-11 md:hidden" onClick={handlePitchDeck}>
+              <Download className="h-4 w-4 mr-2" />
+              Download pitch deck
+            </Button>
+          }
           selectedFormatId={selectedFormatId}
           onFormatChange={setSelectedFormatId}
         />

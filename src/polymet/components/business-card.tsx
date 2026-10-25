@@ -112,34 +112,56 @@ export function BusinessCard({
             <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
               Asking price
             </div>
-            <div className="text-2xl md:text-[1.75rem] font-bold font-mono tabular-nums text-foreground tracking-tight">
-              {formatINR(business.price)}
-            </div>
+            {business.price != null ? (
+              <div className="text-2xl md:text-[1.75rem] font-bold font-mono tabular-nums text-foreground tracking-tight">
+                {formatINR(business.price)}
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="inline-flex min-h-11 items-center text-sm font-semibold text-trust-blue underline-offset-4 hover:underline"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onContact?.(business.id);
+                }}
+              >
+                Ask seller
+              </button>
+            )}
           </div>
 
-          {/* Financial metrics grid */}
+          {(business.revenue || profit || established || employees != null) && (
           <div className="grid grid-cols-2 gap-x-4 gap-y-2 py-2 border-y border-border">
+            {business.revenue ? (
             <div>
               <div className="text-[11px] text-muted-foreground">Revenue</div>
               <div className="text-sm font-semibold font-mono tabular-nums">
-                {business.revenue ? formatINR(business.revenue) : "—"}
+                {formatINR(business.revenue)}
               </div>
             </div>
+            ) : null}
+            {profit ? (
             <div>
               <div className="text-[11px] text-muted-foreground">EBITDA / Profit</div>
               <div className="text-sm font-semibold font-mono tabular-nums text-growth-green">
-                {profit ? formatINR(profit) : "—"}
+                {formatINR(profit)}
               </div>
             </div>
+            ) : null}
+            {established ? (
             <div>
               <div className="text-[11px] text-muted-foreground">Established</div>
-              <div className="text-sm font-medium">{established || "—"}</div>
+              <div className="text-sm font-medium">{established}</div>
             </div>
+            ) : null}
+            {employees != null ? (
             <div>
               <div className="text-[11px] text-muted-foreground">Employees</div>
-              <div className="text-sm font-medium">{employees ?? "—"}</div>
+              <div className="text-sm font-medium">{employees}</div>
             </div>
+            ) : null}
           </div>
+          )}
 
           {/* Verification */}
           <div className="flex flex-wrap items-center gap-2 text-xs">

@@ -387,6 +387,7 @@ export function SavedListingsPage({ className }: SavedListingsPageProps) {
                     key={saved.id}
                     business={saved.listing}
                     onSave={() => handleUnsave('business', saved.listing_id)}
+                    onContact={() => navigate(`/business/${saved.listing.slug || saved.listing_id}?contact=true`)}
                     onViewDetails={() => handleViewDetails('business', saved.listing_id)}
                     isSaved={true}
                   />
@@ -397,6 +398,7 @@ export function SavedListingsPage({ className }: SavedListingsPageProps) {
                     key={saved.id}
                     franchise={saved.listing}
                     onSave={() => handleUnsave('franchise', saved.listing_id)}
+                    onContact={() => navigate(`/franchise/${saved.listing.slug || saved.listing_id}?contact=true`)}
                     onViewDetails={() => handleViewDetails('franchise', saved.listing_id)}
                     isSaved={true}
                   />

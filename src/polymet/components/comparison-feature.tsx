@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +27,39 @@ import { ListingBrandHero } from "@/components/listing-brand-hero";
 import { listingCoverUrl, listingLogoUrl } from "@/lib/listing-media";
 import { formatINR } from "@/lib/format-currency";
 import { hasUnitEconomics, isPlatformVerified, mappedTerritoryCount } from "@/lib/listing-trust";
+
+function enquireHref(item: ComparisonItem): string {
+  const data = item.data as { slug?: string; id?: string };
+  const id = data.slug || data.id || item.id;
+  return item.type === "franchise" ? `/franchise/${id}?contact=true` : `/business/${id}?contact=true`;
+}
+
+function isEmptyCompareValue(value: unknown): boolean {
+  if (value == null) return true;
+  const text = String(value).trim();
+  return (
+    text === "" ||
+    text === "Not provided" ||
+    text === "N/A" ||
+    text === "—" ||
+    text === "Space not provided" ||
+    text === "Not shown without unit P&L"
+  );
+}
+
+function ValueOrAsk({ item, value }: { item: ComparisonItem; value: unknown }) {
+  if (!isEmptyCompareValue(value)) {
+    return <>{String(value)}</>;
+  }
+  return (
+    <Link
+      to={enquireHref(item)}
+      className="inline-flex min-h-11 items-center font-semibold text-trust-blue underline-offset-4 hover:underline"
+    >
+      {item.type === "franchise" ? "Ask franchisor" : "Ask seller"}
+    </Link>
+  );
+}
 
 interface ComparisonItem {
   id: string;
@@ -268,16 +302,6 @@ export function ComparisonFeature({
     return flags;
   };
 
-  const getRoiLabel = (item: ComparisonItem) => {
-    if (item.type !== "franchise") return "—";
-    const franchise = item.data as Franchise;
-    const roi = franchise.expected_roi_percentage ?? franchise.expectedRoiPercentage;
-    if (!hasUnitEconomics(franchise)) {
-      return roi ? `Unverified claim ${roi}%` : "Not shown without unit P&L";
-    }
-    return roi != null ? `${roi}%` : "Not provided";
-  };
-
   const getFinancing = (item: ComparisonItem) => {
     if (item.type !== "franchise") return "Not provided";
     const franchise = item.data as Franchise;
@@ -324,7 +348,7 @@ export function ComparisonFeature({
                   <td className="p-3 text-muted-foreground">Investment</td>
                   {franchiseItems.map((item) => (
                     <td key={`${item.id}-inv`} className="p-3 font-mono font-semibold">
-                      {getFranchiseInvestmentLabel(item)}
+                      <ValueOrAsk item={item} value={getFranchiseInvestmentLabel(item)} />
                     </td>
                   ))}
                 </tr>
@@ -332,7 +356,7 @@ export function ComparisonFeature({
                   <td className="p-3 text-muted-foreground">Franchise fee</td>
                   {franchiseItems.map((item) => (
                     <td key={`${item.id}-fee`} className="p-3 font-mono font-semibold">
-                      {formatOptionalCurrency(getFranchiseFee(item))}
+                      <ValueOrAsk item={item} value={formatOptionalCurrency(getFranchiseFee(item))} />
                     </td>
                   ))}
                 </tr>
@@ -340,7 +364,7 @@ export function ComparisonFeature({
                   <td className="p-3 text-muted-foreground">Royalty</td>
                   {franchiseItems.map((item) => (
                     <td key={`${item.id}-roy`} className="p-3 font-mono font-semibold">
-                      {getRoyalty(item) != null ? `${getRoyalty(item)}%` : "Not provided"}
+                      <ValueOrAsk item={item} value={getRoyalty(item) != null ? `${getRoyalty(item)}%` : null} />
                     </td>
                   ))}
                 </tr>
@@ -348,7 +372,7 @@ export function ComparisonFeature({
                   <td className="p-3 text-muted-foreground">Area required</td>
                   {franchiseItems.map((item) => (
                     <td key={`${item.id}-area`} className="p-3 font-mono font-semibold">
-                      {getSpaceRequirement(item)}
+                      <ValueOrAsk item={item} value={getSpaceRequirement(item)} />
                     </td>
                   ))}
                 </tr>
@@ -356,18 +380,21 @@ export function ComparisonFeature({
                   <td className="p-3 text-muted-foreground">Expected revenue</td>
                   {franchiseItems.map((item) => (
                     <td key={`${item.id}-rev`} className="p-3 font-mono font-semibold">
-                      {formatINR((item.data as Franchise).average_unit_revenue)}
+                      <ValueOrAsk item={item} value={(item.data as Franchise).average_unit_revenue != null ? formatINR((item.data as Franchise).average_unit_revenue) : null} />
                     </td>
                   ))}
                 </tr>
                 <tr>
                   <td className="p-3 text-muted-foreground">Payback / ROI</td>
                   {franchiseItems.map((item) => {
-                    const months = (item.data as Franchise).payback_period_months;
+                    const franchise = item.data as Franchise;
+                    const months = franchise.payback_period_months;
+                    const breakeven = franchise.breakeven_period || franchise.breakevenPeriod;
+                    const roi = franchise.expected_roi_percentage ?? franchise.expectedRoiPercentage;
                     return (
                       <td key={`${item.id}-pay`} className="p-3 font-mono font-semibold">
-                        {months ? `${months} mo` : "Not provided"}
-                        {` · ${getRoiLabel(item)}`}
+                        <ValueOrAsk item={item} value={months ? `${months} mo` : breakeven || null} />
+                        {roi != null && roi !== "" ? ` · ${roi}%` : null}
                       </td>
                     );
                   })}
@@ -392,7 +419,7 @@ export function ComparisonFeature({
                   <td className="p-3 text-muted-foreground">Support</td>
                   {franchiseItems.map((item) => (
                     <td key={`${item.id}-sup`} className="p-3">
-                      {getSupport(item)}
+                      <ValueOrAsk item={item} value={getSupport(item)} />
                     </td>
                   ))}
                 </tr>
@@ -514,9 +541,12 @@ export function ComparisonFeature({
                             : "Investment Required"}
                         </div>
                         <div className="font-semibold text-lg text-primary">
-                          {item.type === "franchise"
-                            ? getFranchiseInvestmentLabel(item)
-                            : formatOptionalCurrency(getPrice(item))}
+                          <ValueOrAsk
+                            item={item}
+                            value={item.type === "franchise"
+                              ? getFranchiseInvestmentLabel(item)
+                              : formatOptionalCurrency(getPrice(item))}
+                          />
                         </div>
                       </div>
 
@@ -538,7 +568,7 @@ export function ComparisonFeature({
                             : "Avg. Unit Revenue"}
                         </div>
                         <div className="font-semibold text-lg text-foreground">
-                          {formatOptionalCurrency(getRevenue(item))}
+                          <ValueOrAsk item={item} value={formatOptionalCurrency(getRevenue(item))} />
                         </div>
                       </div>
 
@@ -549,7 +579,7 @@ export function ComparisonFeature({
                               Franchise Fee
                             </div>
                             <div className="font-medium">
-                              {formatOptionalCurrency(getFranchiseFee(item))}
+                              <ValueOrAsk item={item} value={formatOptionalCurrency(getFranchiseFee(item))} />
                             </div>
                           </div>
                           <div>
@@ -557,7 +587,7 @@ export function ComparisonFeature({
                               Royalty
                             </div>
                             <div className="font-medium">
-                              {getRoyalty(item) != null ? `${getRoyalty(item)}%` : "Not provided"}
+                              <ValueOrAsk item={item} value={getRoyalty(item) != null ? `${getRoyalty(item)}%` : null} />
                             </div>
                           </div>
                           <div>
@@ -565,7 +595,7 @@ export function ComparisonFeature({
                               Marketing Fee
                             </div>
                             <div className="font-medium">
-                              {getMarketingFee(item) != null ? `${getMarketingFee(item)}%` : "Not provided"}
+                              <ValueOrAsk item={item} value={getMarketingFee(item) != null ? `${getMarketingFee(item)}%` : null} />
                             </div>
                           </div>
                         </>
@@ -581,15 +611,18 @@ export function ComparisonFeature({
                             {item.type === "business" ? "Employees" : "Outlets"}
                           </div>
                           <div className="font-medium">
-                            {getEmployees(item)}
+                            <ValueOrAsk item={item} value={getEmployees(item)} />
                           </div>
                         </div>
                         <div>
                           <div className="text-muted-foreground">Type</div>
                           <div className="font-medium">
-                            {item.type === "business"
-                              ? (item.data as Business).businessType || (item.data as Business).business_type || "N/A"
-                              : (item.data as Franchise).experience_required || (item.data as Record<string, unknown>).experienceRequired || "N/A"}
+                            <ValueOrAsk
+                              item={item}
+                              value={item.type === "business"
+                                ? (item.data as Business).businessType || (item.data as Business).business_type || null
+                                : (item.data as Franchise).experience_required || (item.data as Record<string, unknown>).experienceRequired || null}
+                            />
                           </div>
                         </div>
                       </div>
@@ -600,14 +633,14 @@ export function ComparisonFeature({
                             <div className="text-muted-foreground text-sm">
                               Space Requirement
                             </div>
-                            <div className="font-medium">{getSpaceRequirement(item)}</div>
+                            <div className="font-medium"><ValueOrAsk item={item} value={getSpaceRequirement(item)} /></div>
                           </div>
                           <div>
                             <div className="text-muted-foreground text-sm">
                               Liquid Capital
                             </div>
                             <div className="font-medium">
-                              {formatOptionalCurrency(getLiquidCapital(item))}
+                              <ValueOrAsk item={item} value={formatOptionalCurrency(getLiquidCapital(item))} />
                             </div>
                           </div>
                           <div>
@@ -615,29 +648,32 @@ export function ComparisonFeature({
                               Experience
                             </div>
                             <div className="font-medium">
-                              {formatOptionalText(
-                                (item.data as Franchise).experienceRequired ??
-                                  (item.data as Franchise).experience_required
-                              )}
+                              <ValueOrAsk
+                                item={item}
+                                value={formatOptionalText(
+                                  (item.data as Franchise).experienceRequired ??
+                                    (item.data as Franchise).experience_required
+                                )}
+                              />
                             </div>
                           </div>
                           <div>
                             <div className="text-muted-foreground text-sm">
                               Training
                             </div>
-                            <div className="font-medium">{getTraining(item)}</div>
+                            <div className="font-medium"><ValueOrAsk item={item} value={getTraining(item)} /></div>
                           </div>
                           <div>
                             <div className="text-muted-foreground text-sm">
                               Support
                             </div>
-                            <div className="font-medium">{getSupport(item)}</div>
+                            <div className="font-medium"><ValueOrAsk item={item} value={getSupport(item)} /></div>
                           </div>
                           <div>
                             <div className="text-muted-foreground text-sm">
                               Financing
                             </div>
-                            <div className="font-medium">{getFinancing(item)}</div>
+                            <div className="font-medium"><ValueOrAsk item={item} value={getFinancing(item)} /></div>
                           </div>
                         </>
                       )}

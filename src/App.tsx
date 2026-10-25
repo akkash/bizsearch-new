@@ -14,6 +14,7 @@ import { BusinessDetail } from "@/polymet/pages/business-detail";
 import { FranchiseDetail } from "@/polymet/pages/franchise-detail";
 import { FranchiseLocationsPage } from "@/polymet/pages/franchise-locations";
 import { AboutPage } from "@/polymet/pages/about";
+import { ListYourFranchisePage } from "@/polymet/pages/list-your-franchise";
 import { ContactPage } from "@/polymet/pages/contact";
 import { LoginPage } from "@/pages/auth/login";
 import { SignUpPage } from "@/pages/auth/signup";
@@ -178,6 +179,15 @@ export default function BizSearchApp() {
                       element={
                         <MainLayout>
                           <FranchiseMapDiscoveryPage />
+                        </MainLayout>
+                      }
+                    />
+
+                    <Route
+                      path="/list-your-franchise"
+                      element={
+                        <MainLayout>
+                          <ListYourFranchisePage />
                         </MainLayout>
                       }
                     />

@@ -168,13 +168,18 @@ export function HomeCompareTable({ className }: { className?: string }) {
                       ...cohort.brands.map((brand) =>
                         brand.payback_period_months
                           ? `${brand.payback_period_months} mo`
-                          : "Not provided"
+                          : brand.breakeven_period || brand.breakevenPeriod || "Not provided"
                       ),
                     ],
                     ["Est. net margin", ...cohort.brands.map(marginLabel)],
                   ].map((row) => (
                     <tr key={row[0]}>
-                      {row.map((cell, index) => (
+                      {row.map((cell, index) => {
+                        const brand = index > 0 ? cohort.brands[index - 1] : null;
+                        const blank =
+                          index > 0 &&
+                          (!cell || cell === "Not provided" || cell === "Space not provided");
+                        return (
                         <td
                           key={`${row[0]}-${index}`}
                           className={cn(
@@ -184,9 +189,19 @@ export function HomeCompareTable({ className }: { className?: string }) {
                               : "font-mono font-semibold whitespace-nowrap"
                           )}
                         >
-                          {cell}
+                          {blank && brand ? (
+                            <Link
+                              to={`/franchise/${brand.slug || brand.id}?contact=true`}
+                              className="inline-flex min-h-11 items-center font-sans text-sm font-semibold text-trust-blue underline-offset-4 hover:underline"
+                            >
+                              Ask franchisor
+                            </Link>
+                          ) : (
+                            cell
+                          )}
                         </td>
-                      ))}
+                        );
+                      })}
                     </tr>
                   ))}
                 </tbody>

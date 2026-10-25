@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -63,9 +63,67 @@ interface FiltersProps {
   type: "business" | "franchise";
   initialCategory?: string; // Category name from URL
   initialSubcategory?: string; // Subcategory name from URL
+  /** Restores panel state when this component remounts (mobile sheet). */
+  initialValue?: FilterState | null;
   onFiltersChange?: (filters: FilterState) => void;
+  onActiveCountChange?: (count: number) => void;
   onApplyFilters?: (filters: FilterState) => void;
   className?: string;
+}
+
+export function createFilterState(
+  type: "business" | "franchise",
+  options?: { category?: string; subcategory?: string }
+): FilterState {
+  return {
+    searchType: type,
+    industry: options?.category ? [options.category] : [],
+    subcategory: options?.subcategory ? [options.subcategory] : [],
+    state: [],
+    city: [],
+    priceRange: [0, 10000000],
+    revenueRange: [0, 50000000],
+    businessAge: "",
+    employees: "",
+    businessType: [],
+    financing: false,
+    verification: [],
+    franchiseFee: [0, 5000000],
+    royaltyPercentage: [0, 20],
+    trainingDuration: "",
+    outlets: "",
+    multiUnit: false,
+    spaceRange: [0, 5000],
+    formatModel: [],
+  };
+}
+
+export function countActiveFilters(
+  filters: FilterState,
+  type: "business" | "franchise"
+): number {
+  let count = 0;
+  if (filters.industry.length > 0) count++;
+  if (filters.subcategory.length > 0) count++;
+  if (filters.state.length > 0) count++;
+  if (filters.city.length > 0) count++;
+  if (filters.priceRange[0] > 0 || filters.priceRange[1] < 10000000) count++;
+  if (filters.revenueRange[0] > 0 || filters.revenueRange[1] < 50000000) count++;
+  if (filters.businessAge) count++;
+  if (filters.employees) count++;
+  if (filters.businessType.length > 0) count++;
+  if (filters.financing) count++;
+  if (filters.verification.length > 0) count++;
+  if (type === "franchise") {
+    if (filters.franchiseFee[0] > 0 || filters.franchiseFee[1] < 5000000) count++;
+    if (filters.royaltyPercentage[0] > 0 || filters.royaltyPercentage[1] < 20) count++;
+    if (filters.spaceRange[0] > 0 || filters.spaceRange[1] < 5000) count++;
+    if (filters.formatModel.length > 0) count++;
+    if (filters.trainingDuration) count++;
+    if (filters.outlets) count++;
+    if (filters.multiUnit) count++;
+  }
+  return count;
 }
 
 // Indian states with major cities
@@ -115,37 +173,20 @@ export function Filters({
   type,
   initialCategory,
   initialSubcategory,
+  initialValue,
   onFiltersChange,
+  onActiveCountChange,
   onApplyFilters: _onApplyFilters, // Kept in interface for future use
   className,
 }: FiltersProps) {
-  const [filters, setFilters] = useState<FilterState>(() => {
-    // Initialize with URL category if provided
-    const initialIndustry = initialCategory ? [initialCategory] : [];
-    const initialSub = initialSubcategory ? [initialSubcategory] : [];
-
-    return {
-      searchType: type,
-      industry: initialIndustry,
-      subcategory: initialSub,
-      state: [],
-      city: [],
-      priceRange: [0, 10000000],
-      revenueRange: [0, 50000000],
-      businessAge: "",
-      employees: "",
-      businessType: [],
-      financing: false,
-      verification: [],
-      franchiseFee: [0, 5000000],
-      royaltyPercentage: [0, 20],
-      trainingDuration: "",
-      outlets: "",
-      multiUnit: false,
-      spaceRange: [0, 5000],
-      formatModel: [],
-    };
-  });
+  const [filters, setFilters] = useState<FilterState>(
+    () =>
+      initialValue ??
+      createFilterState(type, {
+        category: initialCategory,
+        subcategory: initialSubcategory,
+      })
+  );
 
   // Search states for filters
   const [stateSearch, setStateSearch] = useState("");
@@ -213,27 +254,7 @@ export function Filters({
   };
 
   const clearAllFilters = () => {
-    const clearedFilters: FilterState = {
-      searchType: type,
-      industry: [],
-      subcategory: [],
-      state: [],
-      city: [],
-      priceRange: [0, 10000000],
-      revenueRange: [0, 50000000],
-      businessAge: "",
-      employees: "",
-      businessType: [],
-      financing: false,
-      verification: [],
-      franchiseFee: [0, 5000000],
-      royaltyPercentage: [0, 20],
-      trainingDuration: "",
-      outlets: "",
-      multiUnit: false,
-      spaceRange: [0, 5000],
-      formatModel: [],
-    };
+    const clearedFilters = createFilterState(type);
     setFilters(clearedFilters);
     setStateSearch("");
     setCitySearch("");
@@ -241,30 +262,11 @@ export function Filters({
     onFiltersChange?.(clearedFilters);
   };
 
-  const getActiveFiltersCount = () => {
-    let count = 0;
-    if (filters.industry.length > 0) count++;
-    if (filters.subcategory.length > 0) count++;
-    if (filters.state.length > 0) count++;
-    if (filters.city.length > 0) count++;
-    if (filters.priceRange[0] > 0 || filters.priceRange[1] < 10000000) count++;
-    if (filters.revenueRange[0] > 0 || filters.revenueRange[1] < 50000000) count++;
-    if (filters.businessAge) count++;
-    if (filters.employees) count++;
-    if (filters.businessType.length > 0) count++;
-    if (filters.financing) count++;
-    if (filters.verification.length > 0) count++;
-    if (type === "franchise") {
-      if (filters.franchiseFee[0] > 0 || filters.franchiseFee[1] < 5000000) count++;
-      if (filters.royaltyPercentage[0] > 0 || filters.royaltyPercentage[1] < 20) count++;
-      if (filters.spaceRange[0] > 0 || filters.spaceRange[1] < 5000) count++;
-      if (filters.formatModel.length > 0) count++;
-      if (filters.trainingDuration) count++;
-      if (filters.outlets) count++;
-      if (filters.multiUnit) count++;
-    }
-    return count;
-  };
+  const activeFilterCount = countActiveFilters(filters, type);
+
+  useEffect(() => {
+    onActiveCountChange?.(activeFilterCount);
+  }, [activeFilterCount, onActiveCountChange]);
 
   const formatCurrency = (value: number) => {
     if (value >= 10000000) return `₹${(value / 10000000).toFixed(1)}Cr`;
@@ -280,13 +282,13 @@ export function Filters({
           <CardTitle className="flex items-center gap-2">
             <FilterIcon className="h-5 w-5" />
             Filters
-            {getActiveFiltersCount() > 0 && (
+            {activeFilterCount > 0 && (
               <Badge variant="secondary" className="ml-2">
-                {getActiveFiltersCount()}
+                {activeFilterCount}
               </Badge>
             )}
           </CardTitle>
-          {getActiveFiltersCount() > 0 && (
+          {activeFilterCount > 0 && (
             <Button
               variant="ghost"
               size="sm"

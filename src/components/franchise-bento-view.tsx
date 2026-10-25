@@ -1,9 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
 import {
     MapPin,
     Building2,
@@ -11,7 +10,6 @@ import {
     ChevronRight,
     Wallet,
     TrendingUp,
-    Clock,
     CheckCircle,
     Shield,
     Star,
@@ -27,7 +25,6 @@ import {
     Award,
     MapIcon,
     AlertCircle,
-    HelpCircle,
     ExternalLink,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -44,31 +41,44 @@ import {
 import { VabgoClient, hasSearchableIntent } from '@/lib/vabgo-client';
 import { listingImageUrl } from '@/lib/listing-media';
 import { hasUnitEconomics, isPlatformVerified, mappedTerritoryCount } from '@/lib/listing-trust';
-import { fieldProvenanceNote } from '@/lib/opportunity-record';
+import { buyerReviewLine } from '@/lib/opportunity-record';
 
 interface FranchiseBentoViewProps {
     franchise: any;
     className?: string;
     selectedFormatId?: string | null;
     onFormatChange?: (formatId: string) => void;
+    onEnquire?: () => void;
+    pitchDeckAction?: ReactNode;
 }
 
-function formatCurrency(amount: number | null | undefined): string {
-    if (amount === null || amount === undefined) return '—';
-    return formatINR(amount);
+function filledMoney(amount: number | null | undefined): string | null {
+    if (amount === null || amount === undefined) return null;
+    const value = Number(amount);
+    if (!Number.isFinite(value)) return null;
+    return formatINR(value);
+}
+
+function AskFranchisor({ onEnquire }: { onEnquire?: () => void }) {
+    return (
+        <button
+            type="button"
+            onClick={onEnquire}
+            className="inline-flex min-h-11 items-center text-left text-sm font-semibold text-trust-blue underline-offset-4 hover:underline"
+        >
+            Ask franchisor
+        </button>
+    );
 }
 
 // Display value or N/A
-function displayValue(value: any, suffix: string = ''): string {
-    if (value === null || value === undefined || value === '') return 'N/A';
-    return `${value}${suffix}`;
-}
-
 export function FranchiseBentoView({
     franchise,
     className,
     selectedFormatId,
     onFormatChange,
+    onEnquire,
+    pitchDeckAction,
 }: FranchiseBentoViewProps) {
     const [brandSlideIndex, setBrandSlideIndex] = useState(0);
     const [territorySearch, setTerritorySearch] = useState('');
@@ -98,12 +108,16 @@ export function FranchiseBentoView({
         selectedFormat?.franchiseFee ??
         franchise.franchiseFee ??
         franchise.franchise_fee;
-    const royalty = franchise.royaltyPercentage || franchise.royalty_percentage;
+    const royaltyRaw = franchise.royaltyPercentage ?? franchise.royalty_percentage;
+    const royalty =
+        royaltyRaw == null || royaltyRaw === '' || !Number.isFinite(Number(royaltyRaw))
+            ? null
+            : Number(royaltyRaw);
 
     const setupCost =
-        franchise.setup_cost ||
-        franchise.setupCost ||
-        (totalInvestmentMin && franchiseFee
+        franchise.setup_cost ??
+        franchise.setupCost ??
+        (totalInvestmentMin != null && franchiseFee != null
             ? Math.max(0, Number(totalInvestmentMin) - Number(franchiseFee))
             : null);
     const listingReqs = getListingRequirements(franchise);
@@ -131,16 +145,7 @@ export function FranchiseBentoView({
     };
     const platformVerified = isPlatformVerified(franchise);
     const unitEconomicsKnown = hasUnitEconomics(franchise);
-    const investmentProvenance = fieldProvenanceNote(
-        franchise as Record<string, unknown>,
-        'total_investment',
-        platformVerified
-    );
-    const economicsProvenance = fieldProvenanceNote(
-        franchise as Record<string, unknown>,
-        'unit_revenue',
-        platformVerified
-    );
+    const reviewLine = buyerReviewLine(franchise as Record<string, unknown>, platformVerified);
     const verifiedAt = franchise.verified_at || franchise.verifiedAt;
     const nextReviewAt = franchise.verification_next_review_at || franchise.verificationNextReviewAt;
 
@@ -161,8 +166,18 @@ export function FranchiseBentoView({
         : null;
 
     // ROI data
-    const breakeven = franchise.breakevenPeriod || franchise.breakeven_period;
-    const projectedRoi = franchise.expectedRoiPercentage || franchise.expected_roi_percentage;
+    const breakevenRaw = franchise.breakevenPeriod || franchise.breakeven_period;
+    const paybackMonths = Number(franchise.paybackPeriodMonths ?? franchise.payback_period_months);
+    const breakEvenLabel = breakevenRaw
+        ? String(breakevenRaw)
+        : Number.isFinite(paybackMonths) && paybackMonths > 0
+          ? `${paybackMonths} months`
+          : null;
+    const projectedRoi = franchise.expectedRoiPercentage ?? franchise.expected_roi_percentage;
+    const roiLabel =
+        projectedRoi != null && projectedRoi !== '' && Number.isFinite(Number(projectedRoi))
+            ? `${projectedRoi}%`
+            : null;
 
     // Brand carousel slides - only add slides that have content
     const brandSlides = [
@@ -326,49 +341,44 @@ export function FranchiseBentoView({
                 )}
 
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6">
-                    <div className="col-span-2 md:col-span-1">
-                        <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
-                            {selectedFormat ? `${selectedFormat.name} investment` : 'Total investment'}
+                    {(
+                        [
+                            {
+                                label: selectedFormat ? `${selectedFormat.name} investment` : 'Total investment',
+                                value: investmentLabel === 'Not provided' ? null : investmentLabel,
+                                large: true,
+                            },
+                            { label: 'Franchise fee', value: filledMoney(franchiseFee) },
+                            { label: 'Setup', value: filledMoney(setupCost) },
+                            { label: 'Royalty', value: royalty != null ? `${royalty}%` : null },
+                            { label: 'Break-even', value: breakEvenLabel },
+                        ] as { label: string; value: string | null; large?: boolean }[]
+                    ).map((metric) => (
+                        <div key={metric.label} className={metric.large ? 'col-span-2 md:col-span-1' : undefined}>
+                            <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
+                                {metric.label}
+                            </div>
+                            {metric.value ? (
+                                <div
+                                    className={cn(
+                                        'font-semibold font-mono tabular-nums',
+                                        metric.large
+                                            ? 'text-3xl md:text-4xl font-bold tracking-tight'
+                                            : 'text-xl md:text-2xl'
+                                    )}
+                                >
+                                    {metric.value}
+                                </div>
+                            ) : (
+                                <AskFranchisor onEnquire={onEnquire} />
+                            )}
+                            {metric.label === 'Break-even' && metric.value && !unitEconomicsKnown && (
+                                <p className="text-[10px] text-muted-foreground mt-1">
+                                    Stated by the franchisor. Unit profit is not in this listing.
+                                </p>
+                            )}
                         </div>
-                        <div className="text-3xl md:text-4xl font-bold font-mono tabular-nums tracking-tight">
-                            {investmentLabel}
-                        </div>
-                    </div>
-                    <div>
-                        <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
-                            Franchise fee
-                        </div>
-                        <div className="text-xl md:text-2xl font-semibold font-mono tabular-nums">
-                            {formatCurrency(franchiseFee)}
-                        </div>
-                    </div>
-                    <div>
-                        <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
-                            Setup
-                        </div>
-                        <div className="text-xl md:text-2xl font-semibold font-mono tabular-nums">
-                            {formatCurrency(setupCost)}
-                        </div>
-                    </div>
-                    <div>
-                        <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
-                            Royalty
-                        </div>
-                        <div className="text-xl md:text-2xl font-semibold font-mono tabular-nums">
-                            {royalty != null ? `${royalty}%` : '—'}
-                        </div>
-                    </div>
-                    <div>
-                        <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
-                            Break-even
-                        </div>
-                        <div className="text-xl md:text-2xl font-semibold">
-                            {unitEconomicsKnown ? (breakeven || '—') : '—'}
-                        </div>
-                        {!unitEconomicsKnown && (breakeven || projectedRoi) && (
-                            <p className="text-[10px] text-muted-foreground mt-1">Claim only — no unit P&amp;L</p>
-                        )}
-                    </div>
+                    ))}
                 </div>
                 {(spaceReq || listingReqs.propertyType || listingReqs.preferredCities.length > 0) && (
                     <p className="mt-4 text-sm text-muted-foreground">
@@ -411,6 +421,7 @@ export function FranchiseBentoView({
                         </span>
                     </a>
                 )}
+                {pitchDeckAction}
             </div>
 
             {galleryPhoto && (
@@ -462,87 +473,74 @@ export function FranchiseBentoView({
                                 <Wallet className="h-4 w-4 text-trust-blue" />
                                 <span className="text-sm font-medium text-muted-foreground">Total investment</span>
                             </div>
-                            <div className="text-3xl font-bold font-mono tabular-nums text-foreground mb-1">
-                                {investmentLabel}
-                            </div>
-                            <p className="text-[11px] text-muted-foreground mb-4">{investmentProvenance}</p>
+                            {investmentLabel === 'Not provided' ? (
+                                <AskFranchisor onEnquire={onEnquire} />
+                            ) : (
+                                <div className="text-3xl font-bold font-mono tabular-nums text-foreground mb-1">
+                                    {investmentLabel}
+                                </div>
+                            )}
 
                             {investmentBreakdown && investmentBreakdown.length > 0 ? (
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="grid grid-cols-2 gap-3 mt-4">
                                     {investmentBreakdown.map((item) => (
                                         <div key={item.label} className="rounded-md border border-border p-3">
                                             <div className="text-[11px] text-muted-foreground">{item.label}</div>
                                             <div className="text-sm font-semibold font-mono tabular-nums">
-                                                {formatCurrency(item.amount)}
+                                                {filledMoney(item.amount)}
                                             </div>
                                         </div>
                                     ))}
                                 </div>
-                            ) : (
-                                <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                                    <HelpCircle className="h-4 w-4" />
-                                    <span>Detailed breakdown not available</span>
-                                </div>
-                            )}
+                            ) : null}
 
                             <div className="mt-4 pt-3 border-t border-border text-sm text-muted-foreground">
-                                {royalty != null
-                                    ? `${royalty}% royalty on gross sales`
-                                    : 'Royalty information not available'}
+                                {royalty != null ? (
+                                    `${royalty}% royalty on gross sales`
+                                ) : (
+                                    <AskFranchisor onEnquire={onEnquire} />
+                                )}
                             </div>
                         </div>
 
-                        {/* RIGHT: ROI & Break-even — never as fact without unit P&L */}
                         <div className="p-6 bg-accent/30">
                             <div className="flex items-center gap-2 mb-4">
                                 <TrendingUp className="h-4 w-4 text-growth-green" />
                                 <span className="text-sm font-medium text-muted-foreground">Returns</span>
                             </div>
 
-                            {unitEconomicsKnown ? (
-                                <>
-                                    <div className="bg-accent rounded-xl p-4 mb-4 text-center border border-accent-foreground/20">
-                                        {breakeven ? (
-                                            <>
-                                                <Badge className="bg-growth-green text-white text-lg px-4 py-1 mb-2">
-                                                    <Clock className="h-4 w-4 mr-2" />
-                                                    Break-even: {breakeven}
-                                                </Badge>
-                                                <p className="text-xs text-accent-foreground">
-                                                    From unit revenue/profit in this listing
-                                                </p>
-                                            </>
-                                        ) : (
-                                            <p className="text-sm text-muted-foreground">Break-even not specified</p>
-                                        )}
+                            <div className="space-y-4">
+                                <div>
+                                    <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
+                                        Break-even
                                     </div>
-                                    {projectedRoi ? (
-                                        <div className="text-center">
-                                            <div className="text-4xl font-bold text-growth-green">{projectedRoi}%</div>
-                                            <div className="text-sm text-muted-foreground">Stated annual ROI (with unit economics)</div>
-                                        </div>
+                                    {breakEvenLabel ? (
+                                        <div className="text-xl font-semibold">{breakEvenLabel}</div>
                                     ) : (
-                                        <p className="text-sm text-muted-foreground text-center">ROI not specified</p>
-                                    )}
-                                </>
-                            ) : (
-                                <div className="space-y-3 text-sm">
-                                    <p className="text-muted-foreground">
-                                        Unit revenue and P&amp;L are not in this listing. ROI and break-even are not shown as economics.
-                                    </p>
-                                    {(projectedRoi || breakeven) && (
-                                        <p className="rounded-lg border border-border bg-background p-3 text-muted-foreground">
-                                            Franchisor claim
-                                            {projectedRoi ? `: ${projectedRoi}% ROI` : ''}
-                                            {breakeven ? `${projectedRoi ? ',' : ':'} break-even ${breakeven}` : ''}.
-                                            Treat as unverified until unit numbers are published.
-                                        </p>
+                                        <AskFranchisor onEnquire={onEnquire} />
                                     )}
                                 </div>
-                            )}
-                            <p className="text-[11px] text-muted-foreground mt-4">{economicsProvenance}</p>
+                                <div>
+                                    <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
+                                        Stated annual ROI
+                                    </div>
+                                    {roiLabel ? (
+                                        <div className="text-xl font-semibold text-growth-green">{roiLabel}</div>
+                                    ) : (
+                                        <AskFranchisor onEnquire={onEnquire} />
+                                    )}
+                                </div>
+                                {(breakEvenLabel || roiLabel) && !unitEconomicsKnown && (
+                                    <p className="text-sm text-muted-foreground">
+                                        Stated by the franchisor. Unit revenue and profit are not in this listing.
+                                    </p>
+                                )}
+                            </div>
                         </div>
                     </div>
+                    <p className="px-6 py-4 border-t border-border text-sm text-muted-foreground">
+                        {reviewLine}
+                    </p>
                 </CardContent>
             </Card>
 

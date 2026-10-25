@@ -177,7 +177,7 @@ export function Footer() {
             <h3 className="text-sm font-bold uppercase tracking-widest text-background/60 mb-3">For Franchisors</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/add-franchise-listing" className="text-sm text-background/60 hover:text-white transition-colors duration-150">
+                <Link to="/list-your-franchise" className="text-sm text-background/60 hover:text-white transition-colors duration-150">
                   List Your Franchise
                 </Link>
               </li>
@@ -317,7 +317,7 @@ export function Footer() {
             },
             {
               id: 'franchisors', title: 'For Franchisors', links: [
-                { to: '/add-franchise-listing', label: 'List Your Franchise' },
+                { to: '/list-your-franchise', label: 'List Your Franchise' },
                 { to: '/franchisor/applications', label: 'Franchisee Applications' },
               ]
             },

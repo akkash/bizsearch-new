@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { FranchiseCard } from "@/polymet/components/franchise-card";
-import { Filters, FilterState } from "@/polymet/components/filters";
+import { Filters, FilterState, countActiveFilters, createFilterState } from "@/polymet/components/filters";
 import { ComparisonFeature } from "@/polymet/components/comparison-feature";
 import { FranchiseService, type FranchiseFilters } from "@/lib/franchise-service";
 import { sortFranchisesByBestMatch } from "@/lib/franchise-best-match";
@@ -26,6 +26,11 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import {
   GridIcon,
   ListIcon,
@@ -58,6 +63,9 @@ type SortOption =
   | "outlets-high"
   | "newest";
 
+const chipClass =
+  "shrink-0 inline-flex items-center justify-center min-h-11 rounded-full px-4 text-sm border transition-colors";
+
 const investmentRanges = [
   { label: "Under ₹10L", min: 0, max: 1000000 },
   { label: "₹10L - ₹25L", min: 1000000, max: 2500000 },
@@ -83,6 +91,10 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [sortBy, setSortBy] = useState<SortOption>("relevance");
   const [showFilters, setShowFilters] = useState(true);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [isDesktopFilters, setIsDesktopFilters] = useState(() =>
+    typeof window !== "undefined" ? window.matchMedia("(min-width: 1024px)").matches : false
+  );
   const [showComparePanel, setShowComparePanel] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedInvestmentRange, setSelectedInvestmentRange] =
@@ -104,6 +116,14 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
       setShowComparePanel(true);
     }
   }, [openCompare, compareIds.length]);
+
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 1024px)");
+    const onChange = () => setIsDesktopFilters(media.matches);
+    onChange();
+    media.addEventListener("change", onChange);
+    return () => media.removeEventListener("change", onChange);
+  }, []);
 
   // Initialize search query from URL if present
   useEffect(() => {
@@ -552,12 +572,31 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
             title="No details found in the table."
             description="Listings will appear here when they are published."
             actionText="List Your Franchise"
-            actionLink="/add-franchise-listing"
+            actionLink="/list-your-franchise"
           />
         </div>
       </div>
     );
   }
+
+  const panelFilters =
+    filters ??
+    createFilterState("franchise", {
+      category: currentCategory?.name,
+      subcategory: currentSubcategory?.name,
+    });
+  const listedFilterCount =
+    countActiveFilters(panelFilters, "franchise") + (selectedInvestmentRange ? 1 : 0);
+
+  const filtersPanel = (
+    <Filters
+      type="franchise"
+      initialCategory={currentCategory?.name}
+      initialSubcategory={currentSubcategory?.name}
+      initialValue={filters}
+      onFiltersChange={handleFiltersChange}
+    />
+  );
 
   return (
     <div className={cn("bg-background overflow-x-hidden", className)}>
@@ -567,9 +606,9 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
         canonicalUrl="/franchises"
       />
       <div className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-6 md:py-8">
+        <div className="container mx-auto px-4 py-2 md:py-8">
           {(currentCategory || currentSubcategory) && (
-            <nav className="flex items-center gap-2 text-sm mb-4">
+            <nav className="mb-2 flex items-center gap-2 text-xs md:mb-4 md:text-sm">
               <Link to="/" className="text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors">
                 <HomeIcon className="h-4 w-4" />
                 Home
@@ -598,8 +637,8 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
             </nav>
           )}
 
-          <div className="mb-6">
-            <h1 className="font-display text-3xl md:text-5xl font-bold uppercase tracking-tight mb-3 text-foreground">
+          <div className="mb-2 md:mb-6">
+            <h1 className="font-display text-2xl md:text-5xl font-bold normal-case md:uppercase tracking-tight md:mb-3 text-foreground">
               {(() => {
                 const categoryName = currentSubcategory?.name || currentCategory?.name || '';
                 const locationName = filters?.city?.length
@@ -618,77 +657,81 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
                 return 'Franchise opportunities';
               })()}
             </h1>
-            <p className="text-sm text-muted-foreground max-w-2xl">
+            <p className="hidden md:block text-sm text-muted-foreground max-w-2xl">
               {currentCategory
                 ? `Compare ${currentCategory.name.toLowerCase()} franchise investment, royalty, and outlet counts`
                 : "Compare franchise brands by investment range, industry, and location"}
             </p>
           </div>
 
-          {!currentCategory && (
-            <div className="flex flex-wrap gap-2 mb-4">
-              {FRANCHISE_CATEGORIES.slice(0, 8).map((cat) => (
+          <div className="-mx-4 flex items-center gap-2 overflow-x-auto px-4 pb-1 scrollbar-hide flex-nowrap lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0">
+            <Button
+              type="button"
+              variant="outline"
+              className="lg:hidden h-11 min-h-11 shrink-0 px-4 normal-case tracking-normal"
+              onClick={() => setMobileFiltersOpen(true)}
+            >
+              <FilterIcon className="h-4 w-4" />
+              {listedFilterCount > 0 ? `Filters (${listedFilterCount})` : "Filters"}
+            </Button>
+
+            {!currentCategory &&
+              FRANCHISE_CATEGORIES.map((cat) => (
                 <Link
                   key={cat.id}
                   to={`/franchises?category=${cat.slug}`}
-                  className="rounded-full px-3 py-1.5 text-sm border border-border hover:bg-foreground hover:text-background transition-colors"
+                  className={cn(
+                    chipClass,
+                    "border-border hover:bg-foreground hover:text-background"
+                  )}
                 >
                   {cat.name}
                 </Link>
               ))}
-            </div>
-          )}
 
-          {currentCategory && currentCategory.subcategories.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-4">
-              <Link
-                to={`/franchises?category=${currentCategory.slug}`}
-                className={cn(
-                  "rounded-full px-3 py-1.5 text-sm border transition-colors",
-                  !currentSubcategory
-                    ? "bg-growth-green text-white border-growth-green"
-                    : "border-border hover:bg-foreground hover:text-background"
-                )}
-              >
-                All {currentCategory.name}
-              </Link>
-              {currentCategory.subcategories.slice(0, 10).map((sub) => (
+            {currentCategory && currentCategory.subcategories.length > 0 && (
+              <>
                 <Link
-                  key={sub.id}
-                  to={`/franchises?category=${currentCategory.slug}&subcategory=${sub.slug}`}
+                  to={`/franchises?category=${currentCategory.slug}`}
                   className={cn(
-                    "rounded-full px-3 py-1.5 text-sm border transition-colors",
-                    currentSubcategory?.id === sub.id
+                    chipClass,
+                    !currentSubcategory
                       ? "bg-growth-green text-white border-growth-green"
                       : "border-border hover:bg-foreground hover:text-background"
                   )}
                 >
-                  {sub.name}
+                  All {currentCategory.name}
                 </Link>
-              ))}
-              {currentCategory.subcategories.length > 10 && (
-                <span className="px-3 py-1.5 text-sm text-muted-foreground">
-                  +{currentCategory.subcategories.length - 10} more
-                </span>
-              )}
-            </div>
-          )}
+                {currentCategory.subcategories.map((sub) => (
+                  <Link
+                    key={sub.id}
+                    to={`/franchises?category=${currentCategory.slug}&subcategory=${sub.slug}`}
+                    className={cn(
+                      chipClass,
+                      currentSubcategory?.id === sub.id
+                        ? "bg-growth-green text-white border-growth-green"
+                        : "border-border hover:bg-foreground hover:text-background"
+                    )}
+                  >
+                    {sub.name}
+                  </Link>
+                ))}
+              </>
+            )}
 
-          {/* Investment Range Quick Filters */}
-          <div>
-            <div className="flex items-center gap-2 mb-3">
+            <span className="hidden lg:inline-flex shrink-0 items-center gap-2 text-sm font-medium text-muted-foreground">
               <TrendingUpIcon className="h-4 w-4 text-growth-green" />
-              <span className="text-sm font-medium text-muted-foreground">Investment range</span>
-            </div>
+              Investment range
+            </span>
             <ToggleGroup
               type="single"
               value={selectedInvestmentRange}
               onValueChange={(value) => setSelectedInvestmentRange(value || "")}
-              className="flex flex-wrap justify-start gap-1"
+              className="flex shrink-0 flex-nowrap justify-start gap-2"
             >
               <ToggleGroupItem
                 value=""
-                className="rounded-full px-3 py-1.5 text-sm border border-border bg-transparent data-[state=on]:bg-growth-green data-[state=on]:text-white data-[state=on]:border-growth-green text-foreground hover:bg-foreground hover:text-background transition-colors"
+                className="h-11 min-h-11 shrink-0 rounded-full px-4 text-sm border border-border bg-transparent data-[state=on]:bg-growth-green data-[state=on]:text-white data-[state=on]:border-growth-green text-foreground hover:bg-foreground hover:text-background"
               >
                 All Ranges
               </ToggleGroupItem>
@@ -696,7 +739,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
                 <ToggleGroupItem
                   key={range.label}
                   value={range.label}
-                  className="rounded-full px-3 py-1.5 text-sm border border-border bg-transparent data-[state=on]:bg-growth-green data-[state=on]:text-white data-[state=on]:border-growth-green text-foreground hover:bg-foreground hover:text-background transition-colors"
+                  className="h-11 min-h-11 shrink-0 rounded-full px-4 text-sm border border-border bg-transparent data-[state=on]:bg-growth-green data-[state=on]:text-white data-[state=on]:border-growth-green text-foreground hover:bg-foreground hover:text-background"
                 >
                   {range.label}
                 </ToggleGroupItem>
@@ -706,43 +749,83 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6">
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Filters Sidebar */}
-          {showFilters && (
-            <div className="lg:w-80 space-y-6">
-              <Filters
-                type="franchise"
-                initialCategory={currentCategory?.name}
-                initialSubcategory={currentSubcategory?.name}
-                onFiltersChange={handleFiltersChange}
-              />
+      <div className="container mx-auto px-4 py-2 lg:py-6">
+        <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
+          {isDesktopFilters && showFilters && (
+            <div className="lg:w-80 shrink-0">
+              {filtersPanel}
             </div>
           )}
 
+          <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
+            <SheetContent
+              side="bottom"
+              className="max-h-[85vh] overflow-y-auto rounded-t-2xl px-4 pb-6 pt-8"
+            >
+              <SheetTitle className="sr-only">Filters</SheetTitle>
+              {!isDesktopFilters && filtersPanel}
+              <Button
+                className="sticky bottom-0 z-10 mt-4 min-h-11 w-full bg-background"
+                onClick={() => setMobileFiltersOpen(false)}
+              >
+                Show results
+              </Button>
+            </SheetContent>
+          </Sheet>
+
           {/* Main Content */}
-          <div className="flex-1 space-y-6">
+          <div className="flex-1 min-w-0 space-y-3 lg:space-y-6">
             {/* Controls Bar */}
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                  <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 md:hidden">
+              <p className="shrink-0 text-sm font-medium">
+                {filteredFranchises.length} {filteredFranchises.length === 1 ? "brand" : "brands"}
+              </p>
+              <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
+                <SelectTrigger className="h-11 min-h-11 min-w-0 flex-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="relevance">Best Match</SelectItem>
+                  <SelectItem value="investment-low">Lowest Investment</SelectItem>
+                  <SelectItem value="investment-high">Highest Investment</SelectItem>
+                  <SelectItem value="roi-high">Highest ROI</SelectItem>
+                  <SelectItem value="outlets-high">Most Outlets</SelectItem>
+                  <SelectItem value="newest">Newest Brands</SelectItem>
+                </SelectContent>
+              </Select>
+              {savedSearchesEnabled && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleSaveSearch}
+                  disabled={savingSearch}
+                  className="h-11 min-h-11 shrink-0 px-3"
+                  aria-label="Alert me"
+                >
+                  <Bell className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+            <Card className="hidden md:block">
+              <CardContent className="p-3 md:p-4">
+                <div className="flex w-full flex-wrap items-center justify-between gap-2">
+                  <div className="flex min-w-0 flex-wrap items-center gap-2">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => setShowFilters(!showFilters)}
-                      className="gap-2"
+                      className="hidden lg:inline-flex gap-2 min-h-11"
                     >
                       <FilterIcon className="h-4 w-4" />
                       {showFilters ? "Hide" : "Show"} Filters
                     </Button>
-                    <Separator orientation="vertical" className="h-6" />
+                    <Separator orientation="vertical" className="hidden h-6 lg:block" />
 
                     <div className="text-sm font-medium">
                       Showing {filteredFranchises.length} {filteredFranchises.length === 1 ? "Opportunity" : "Opportunities"}
                     </div>
                     {(urlCity || filters?.city?.length || filters?.state?.length) ? (
-                      <p className="text-xs text-muted-foreground max-w-md">
+                      <p className="basis-full text-xs text-muted-foreground sm:basis-auto sm:max-w-md">
                         Location filters use headquarters and listed expansion text, not confirmed open territories.
                       </p>
                     ) : null}
@@ -752,6 +835,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
                         variant="outline"
                         onClick={handleSaveSearch}
                         disabled={savingSearch}
+                        className="h-11 min-h-11 shrink-0"
                       >
                         <Bell className="h-4 w-4 mr-1" />
                         Alert me
@@ -759,16 +843,16 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-4">
+                  <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
                     {/* Sort */}
-                    <div className="flex items-center gap-2">
-                      <SortAscIcon className="h-4 w-4" />
+                    <div className="flex min-w-0 flex-1 items-center gap-2 sm:flex-none">
+                      <SortAscIcon className="h-4 w-4 shrink-0" />
 
                       <Select
                         value={sortBy}
                         onValueChange={(value: SortOption) => setSortBy(value)}
                       >
-                        <SelectTrigger className="w-48">
+                        <SelectTrigger className="w-full sm:w-48">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -791,13 +875,13 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
                     </div>
 
                     {/* View Mode */}
-                    <div className="flex items-center rounded-lg border border-border overflow-hidden">
+                    <div className="flex shrink-0 items-center rounded-lg border border-border overflow-hidden">
                       <Button
                         variant={viewMode === "grid" ? "default" : "ghost"}
                         size="sm"
                         onClick={() => setViewMode("grid")}
                         className={cn(
-                          "rounded-none h-9 w-9",
+                          "h-11 w-11 min-h-11 min-w-11 rounded-none",
                           viewMode === "grid" ? "bg-growth-green text-white" : "text-muted-foreground"
                         )}
                         aria-pressed={viewMode === "grid"}
@@ -810,7 +894,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
                         size="sm"
                         onClick={() => setViewMode("list")}
                         className={cn(
-                          "rounded-none h-9 w-9",
+                          "h-11 w-11 min-h-11 min-w-11 rounded-none",
                           viewMode === "list" ? "bg-growth-green text-white" : "text-muted-foreground"
                         )}
                         aria-pressed={viewMode === "list"}
@@ -826,7 +910,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
 
             {/* Active Filters */}
             {(filters || selectedInvestmentRange || urlCity || currentCategory) && (
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="hidden md:flex flex-nowrap items-center gap-2 overflow-x-auto scrollbar-hide lg:flex-wrap lg:overflow-visible">
                 {selectedInvestmentRange && (
                   <Badge variant="secondary" className="gap-1 rounded-lg">
                     Investment: {selectedInvestmentRange}
@@ -909,51 +993,25 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
               </Card>
             ) : viewMode === "grid" && (
               <>
-                {/* Mobile Horizontal Scroll */}
-                <div className="md:hidden">
-                  <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
-                    {paginatedFranchises.map((franchise) => (
-                      <div
-                        key={franchise.id}
-                        className="flex-none w-80 snap-start"
-                      >
-                        <FranchiseCard
-                          franchise={franchise}
-                          onSave={handleSave}
-                          onShare={handleShare}
-                          onContact={handleContact}
-                          onViewDetails={handleViewDetails}
-                          onCompare={handleCompare}
-                          isSaved={isListingSaved("franchise", franchise.id)}
-                          isCompared={isCompared(franchise.id)}
-                        />
-                      </div>
-                    ))}
-                    {paginatedFranchises.length === 0 && (
-                      <div className="flex-none w-80 p-8 text-center text-muted-foreground">
-                        No franchises match this search.
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Mobile Scroll Indicator */}
-                  <div className="flex justify-center gap-1 mt-4">
-                    {Array.from(
-                      {
-                        length: Math.min(
-                          5,
-                          Math.ceil(paginatedFranchises.length / 3)
-                        ),
-                      },
-                      (_, i) => (
-                        <div
-                          key={i}
-                          className={`w-2 h-2 rounded-full ${i === 0 ? "bg-primary" : "bg-muted"
-                            }`}
-                        />
-                      )
-                    )}
-                  </div>
+                <div className="grid grid-cols-1 gap-4 md:hidden">
+                  {paginatedFranchises.map((franchise) => (
+                    <FranchiseCard
+                      key={franchise.id}
+                      franchise={franchise}
+                      onSave={handleSave}
+                      onShare={handleShare}
+                      onContact={handleContact}
+                      onViewDetails={handleViewDetails}
+                      onCompare={handleCompare}
+                      isSaved={isListingSaved("franchise", franchise.id)}
+                      isCompared={isCompared(franchise.id)}
+                    />
+                  ))}
+                  {paginatedFranchises.length === 0 && (
+                    <p className="p-8 text-center text-muted-foreground">
+                      No franchises match this search.
+                    </p>
+                  )}
                 </div>
 
                 {/* Desktop Grid */}

@@ -112,6 +112,27 @@ export function provenanceLabel(p?: FieldProvenance | null, platformVerified = f
   return `${source} · ${verification}${when}${next}`;
 }
 
+/** One buyer-facing line. Unreviewed listings explain the wait; reviewed listings say so once. */
+export function buyerReviewLine(
+  row: Record<string, unknown>,
+  platformVerified = false
+): string {
+  const bag = (row.field_provenance || row.fieldProvenance || {}) as Record<string, FieldProvenance>;
+  const field = bag.total_investment || bag.unit_revenue;
+  const verifiedAt =
+    field?.verifiedAt ||
+    (platformVerified ? ((row.verified_at || row.verifiedAt) as string | undefined) : null);
+  const when = verifiedAt ? ` on ${String(verifiedAt).slice(0, 10)}` : '';
+
+  if (platformVerified || field?.verification === 'platform_verified') {
+    return `Platform verified${when}.`;
+  }
+  if (field?.verification === 'document_reviewed') {
+    return `Document reviewed${when}.`;
+  }
+  return 'These figures were submitted by the franchisor. BizSearch reviews them after the documents are in, usually within 24–48 hours.';
+}
+
 export function fieldProvenanceNote(
   row: Record<string, unknown>,
   field: string,

@@ -52,25 +52,26 @@ export function FranchiseCard({
   const termYears =
     (franchise as { franchise_term_years?: number }).franchise_term_years ??
     (franchise as { term_years?: number }).term_years;
-  const spaceLabel = formats[0]
+  const spaceText = formats[0]
     ? formatStoreFormatSpace(formats[0])
     : franchise.min_area_sqft && franchise.max_area_sqft
       ? `${franchise.min_area_sqft}–${franchise.max_area_sqft} sq ft`
       : franchise.space_required_sqft
         ? `${franchise.space_required_sqft} sq ft`
-        : "Not provided";
+        : null;
+  const spaceLabel = spaceText && spaceText !== "Space not provided" ? spaceText : null;
   const investmentLabel = formatInvestmentRange(investRange.min, investRange.max);
+  const investmentMissing = investmentLabel === "Not provided";
   const verified = isPlatformVerified(franchise);
 
   const specs = [
-    { label: "Space", value: spaceLabel },
-    { label: "Royalty", value: royalty != null ? `${royalty}%` : "Not provided" },
-    { label: "Term", value: termYears ? `${termYears} Years` : "Not provided" },
-    {
-      label: "Outlets",
-      value: outlets ? `${outlets}+` : "Not provided",
-    },
-  ];
+    spaceLabel ? { label: "Space", value: spaceLabel } : null,
+    royalty != null ? { label: "Royalty", value: `${royalty}%` } : null,
+    termYears != null && termYears !== 0
+      ? { label: "Term", value: `${termYears} Years` }
+      : null,
+    outlets != null ? { label: "Outlets", value: `${outlets}+` } : null,
+  ].filter((spec): spec is { label: string; value: string } => spec != null);
 
   return (
     <article
@@ -94,7 +95,7 @@ export function FranchiseCard({
               variant="ghost"
               size="icon"
               className={cn(
-                "h-9 w-9 rounded-lg bg-white/90 dark:bg-card/90 hover:bg-white shadow-sm",
+                "h-11 w-11 min-h-11 min-w-11 rounded-lg bg-white/90 dark:bg-card/90 hover:bg-white shadow-sm",
                 isCompared && "text-growth-green"
               )}
               onClick={(e) => {
@@ -109,7 +110,7 @@ export function FranchiseCard({
           <Button
             variant="ghost"
             size="icon"
-            className="h-9 w-9 rounded-lg bg-white/90 dark:bg-card/90 hover:bg-white shadow-sm"
+            className="h-11 w-11 min-h-11 min-w-11 rounded-lg bg-white/90 dark:bg-card/90 hover:bg-white shadow-sm"
             onClick={(e) => {
               e.stopPropagation();
               onSave?.(franchise.id);
@@ -129,11 +130,26 @@ export function FranchiseCard({
           <p className="text-xs uppercase tracking-widest text-muted-foreground mt-0.5 line-clamp-1">
             {franchise.industry || "Franchise"}
           </p>
-          <div className="mt-1.5 font-mono text-lg sm:text-xl font-bold tabular-nums tracking-tight text-growth-green whitespace-nowrap overflow-hidden text-ellipsis">
-            {investmentLabel}
-          </div>
+          {investmentMissing ? (
+            <button
+              type="button"
+              className="mt-1.5 inline-flex min-h-11 items-center text-left text-sm font-semibold text-trust-blue underline-offset-4 hover:underline"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onContact) onContact(franchise.id);
+                else onViewDetails?.(franchise.id);
+              }}
+            >
+              Ask franchisor
+            </button>
+          ) : (
+            <div className="mt-1.5 font-mono text-lg sm:text-xl font-bold tabular-nums tracking-tight text-growth-green whitespace-nowrap overflow-hidden text-ellipsis">
+              {investmentLabel}
+            </div>
+          )}
         </div>
 
+        {specs.length > 0 && (
         <div className="grid grid-cols-2 gap-1.5">
           {specs.map((spec) => (
             <div
@@ -147,6 +163,7 @@ export function FranchiseCard({
             </div>
           ))}
         </div>
+        )}
 
         {verified && (
           <div className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-growth-green">
@@ -160,7 +177,7 @@ export function FranchiseCard({
             <Button
               size="sm"
               variant="outline"
-              className="flex-1"
+              className="min-h-11 h-11 flex-1"
               onClick={(e) => {
                 e.stopPropagation();
                 onContact(franchise.id);
@@ -172,7 +189,7 @@ export function FranchiseCard({
           )}
           <Button
             size="sm"
-            className={onContact ? "flex-1" : "w-full"}
+            className={onContact ? "min-h-11 h-11 flex-1" : "min-h-11 h-11 w-full"}
             onClick={(e) => {
               e.stopPropagation();
               onViewDetails?.(franchise.id);

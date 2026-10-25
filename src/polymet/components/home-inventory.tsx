@@ -235,64 +235,67 @@ export function HomeBusinessInventory({ className }: { className?: string }) {
                     </p>
 
                     <div className="mt-auto pt-8">
-                      <div className="text-4xl font-display font-bold mb-1 font-mono tabular-nums tracking-tight leading-none">
-                        {formatINR(b.price)}
-                      </div>
-                      <div className="text-xs uppercase tracking-widest text-muted-foreground mb-6">
-                        Asking price
-                      </div>
+                      {b.price != null ? (
+                        <>
+                          <div className="text-4xl font-display font-bold mb-1 font-mono tabular-nums tracking-tight leading-none">
+                            {formatINR(b.price)}
+                          </div>
+                          <div className="text-xs uppercase tracking-widest text-muted-foreground mb-6">
+                            Asking price
+                          </div>
+                        </>
+                      ) : (
+                        <button
+                          type="button"
+                          className="mb-6 inline-flex min-h-11 items-center text-sm font-semibold text-trust-blue underline-offset-4 hover:underline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/business/${id}?contact=true`);
+                          }}
+                        >
+                          Ask seller
+                        </button>
+                      )}
                     </div>
 
                     {/* Data-aware financial strip — no broken dashes */}
                     <div className="mb-2.5 space-y-1.5">
+                      {(hasRevenue || ebitda != null) && (
                       <div className="grid grid-cols-2 gap-x-4 text-sm">
+                        {hasRevenue ? (
                         <div>
                           <span className="text-[11px] text-muted-foreground block">
                             Revenue
                           </span>
-                          {hasRevenue ? (
-                            <span className="font-semibold font-mono tabular-nums text-[0.9375rem] md:text-base">
-                              {formatINR(b.revenue)}
-                            </span>
-                          ) : (
-                            <span className="text-[13px] text-muted-foreground">
-                              Not provided
-                            </span>
-                          )}
+                          <span className="font-semibold font-mono tabular-nums text-[0.9375rem] md:text-base">
+                            {formatINR(b.revenue)}
+                          </span>
                         </div>
+                        ) : null}
+                        {ebitda != null ? (
                         <div>
                           <span className="text-[11px] text-muted-foreground block">
                             EBITDA
                           </span>
-                          {ebitda != null ? (
-                            <span className="font-semibold font-mono tabular-nums text-[0.9375rem] md:text-base text-growth-green">
-                              {formatINR(ebitda)}
-                            </span>
-                          ) : (
-                            <span className="text-[13px] text-muted-foreground">
-                              Not provided
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      {missingProfit && (
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-[11px] text-muted-foreground">
-                            Profitability data not provided
+                          <span className="font-semibold font-mono tabular-nums text-[0.9375rem] md:text-base text-growth-green">
+                            {formatINR(ebitda)}
                           </span>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-7 text-[11px] px-2"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate(`/business/${id}?contact=true`);
-                            }}
-                          >
-                            Request Financials
-                          </Button>
                         </div>
+                        ) : null}
+                      </div>
+                      )}
+
+                      {missingProfit && b.price != null && (
+                        <button
+                          type="button"
+                          className="inline-flex min-h-11 items-center text-sm font-semibold text-trust-blue underline-offset-4 hover:underline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/business/${id}?contact=true`);
+                          }}
+                        >
+                          Ask seller
+                        </button>
                       )}
 
                       {(margin || established || employees != null) && (
@@ -445,10 +448,14 @@ export function HomeFranchiseInventory({ className }: { className?: string }) {
               const formats = getStoreFormatsFromFranchise(f);
               const range = getFranchiseInvestmentRange(f);
               const fee = f.franchise_fee ?? f.franchiseFee;
+              const paybackMonths =
+                (f as { payback_period_months?: number; paybackPeriodMonths?: number }).payback_period_months ??
+                (f as { paybackPeriodMonths?: number }).paybackPeriodMonths;
               const breakEven =
-                (f as any).expected_break_even ||
-                (f as any).breakeven_period ||
-                (f as any).breakevenPeriod;
+                (f as { expected_break_even?: string }).expected_break_even ||
+                (f as { breakeven_period?: string }).breakeven_period ||
+                (f as { breakevenPeriod?: string }).breakevenPeriod ||
+                (paybackMonths ? `${paybackMonths} months` : null);
               const territories = f.territories || [];
                 const id = f.slug || f.id;
               const investLabel =
@@ -487,15 +494,24 @@ export function HomeFranchiseInventory({ className }: { className?: string }) {
                           {investLabel}
                         </div>
                       ) : (
-                        <div className="text-[13px] text-muted-foreground">
-                          Investment not provided
-                        </div>
+                        <button
+                          type="button"
+                          className="inline-flex min-h-11 items-center text-sm font-semibold text-trust-blue underline-offset-4 hover:underline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/franchise/${id}?contact=true`);
+                          }}
+                        >
+                          Ask franchisor
+                        </button>
                       )}
+                      {investLabel ? (
                       <div className="text-xs uppercase tracking-widest text-muted-foreground mb-6">
                         {formats.length > 1
                           ? `Investment · ${formats.length} formats`
                           : "Investment range"}
                       </div>
+                      ) : null}
                       {formats.length > 1 && (
                         <p className="text-[11px] text-muted-foreground mt-1 line-clamp-1">
                           {formats.map((fmt) => fmt.name).join(" · ")}
@@ -503,39 +519,33 @@ export function HomeFranchiseInventory({ className }: { className?: string }) {
                       )}
                     </div>
 
+                    {(fee || breakEven) && (
                     <div className="grid grid-cols-2 gap-x-4 text-sm mb-2.5">
+                      {fee ? (
                       <div>
                         <span className="text-[11px] text-muted-foreground block">
                           Franchise fee
                         </span>
-                        {fee ? (
-                          <span className="font-semibold font-mono tabular-nums text-[0.9375rem]">
-                            {formatINR(fee)}
-                          </span>
-                        ) : (
-                          <span className="text-[13px] text-muted-foreground">
-                            Not provided
-                          </span>
-                        )}
+                        <span className="font-semibold font-mono tabular-nums text-[0.9375rem]">
+                          {formatINR(fee)}
+                        </span>
                       </div>
+                      ) : null}
+                      {breakEven ? (
                       <div>
                         <span className="text-[11px] text-muted-foreground block">
                           Break-even
                         </span>
-                        {breakEven ? (
-                          <span className="font-semibold text-[0.9375rem]">{breakEven}</span>
-                        ) : (
-                          <span className="text-[13px] text-muted-foreground">
-                            Not provided
-                          </span>
-                        )}
+                        <span className="font-semibold text-[0.9375rem]">{breakEven}</span>
                       </div>
+                      ) : null}
                     </div>
+                    )}
 
                     <div className="flex gap-2 mt-auto">
                       <Button
                         size="sm"
-                        className="h-8 text-xs"
+                        className="h-11 min-h-11 text-xs"
                         onClick={(e) => {
                           e.stopPropagation();
                           navigate(`/franchise/${id}`);
@@ -546,7 +556,7 @@ export function HomeFranchiseInventory({ className }: { className?: string }) {
                       <Button
                         size="sm"
                         variant="outline"
-                        className="h-8 text-xs"
+                        className="h-11 min-h-11 text-xs"
                         onClick={(e) => {
                           e.stopPropagation();
                           navigate(`/franchises?compare=${f.id}`);
@@ -564,7 +574,7 @@ export function HomeFranchiseInventory({ className }: { className?: string }) {
             {items.length > 0 && items.length < 4 && (
               <div className="mt-6">
                 <Button variant="ghost" size="sm" asChild>
-                  <Link to="/add-franchise-listing">List your franchise</Link>
+                  <Link to="/list-your-franchise">List your franchise</Link>
                 </Button>
               </div>
             )}

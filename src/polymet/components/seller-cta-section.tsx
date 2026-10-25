@@ -11,7 +11,7 @@ export function SellerCtaSection({ className }: { className?: string }) {
           Expanding your franchise brand?
         </h2>
         <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-          <Link to="/add-franchise-listing">
+          <Link to="/list-your-franchise">
             <Button className="h-14 px-8">
               List Your Franchise
               <ArrowRight className="ml-1.5 h-3.5 w-3.5" />

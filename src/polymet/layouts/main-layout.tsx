@@ -152,7 +152,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="relative text-muted-foreground"
+                  className="relative h-11 w-11 min-h-11 min-w-11 text-muted-foreground"
                   aria-label="Saved listings"
                 >
                   <Bookmark className="h-4 w-4" />
@@ -168,7 +168,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="relative text-muted-foreground"
+                  className="relative h-11 w-11 min-h-11 min-w-11 text-muted-foreground"
                   aria-label="Notifications"
                 >
                   <Bell className="h-4 w-4" />
@@ -291,7 +291,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                 </div>
               )}
 
-              <Link to="/add-franchise-listing" className="hidden sm:block ml-1">
+              <Link to="/list-your-franchise" className="hidden sm:block ml-1">
                 <Button size="sm" className="px-6 py-3 h-auto">
                   List Your Franchise
                 </Button>
@@ -302,7 +302,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="lg:hidden ml-1 text-muted-foreground"
+                    className="lg:hidden ml-1 h-11 w-11 min-h-11 min-w-11 text-muted-foreground"
                     aria-label="Open menu"
                   >
                     <Menu className="h-5 w-5" />
@@ -340,7 +340,7 @@ export function MainLayout({ children }: MainLayoutProps) {
 
                       <div className="mt-6 px-4 space-y-3">
                         <Link
-                          to="/add-franchise-listing"
+                          to="/list-your-franchise"
                           onClick={() => setIsMobileMenuOpen(false)}
                         >
                           <Button className="w-full">

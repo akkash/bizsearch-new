@@ -29,10 +29,9 @@ const CITIES = [
 ];
 
 const PLACEHOLDERS = [
-  "Try 'Bakery in Coimbatore' or 'Salon under 25L'",
-  "Try 'Food franchise in Chennai under 50L'",
+  "Try 'Bakery in Coimbatore'",
   "Try 'Preschool in Hyderabad'",
-  "Try 'QSR under ₹40L in Bangalore'",
+  "Try 'QSR in Bengaluru'",
 ];
 
 const PROMPTS: { label: string; intent: FranchiseSearchIntent }[] = [
@@ -58,7 +57,7 @@ const INTENTS = [
   { id: "franchise" as const, label: "Find a Franchise", href: "/franchises" },
   { id: "match" as const, label: "Match My Profile", href: "/match" },
   { id: "compare" as const, label: "Compare Opportunities", href: "/franchises?compare=1" },
-  { id: "list" as const, label: "List Your Franchise", href: "/add-franchise-listing" },
+  { id: "list" as const, label: "List Your Franchise", href: "/list-your-franchise" },
 ];
 
 const BUDGET_MIN = 500000;
@@ -108,12 +107,8 @@ export function MarketplaceHero({ className }: MarketplaceHeroProps) {
   return (
     <section className={cn("bg-background border-b border-border pt-16 pb-14 md:pt-24 md:pb-20", className)}>
       <div className="container mx-auto px-4 md:px-6">
-        <h1 className="font-display text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-extrabold tracking-tight leading-[0.9] mb-8 md:mb-12 uppercase max-w-6xl">
-          Find the right
-          <br />
-          franchise to build
-          <br />
-          your next business.
+        <h1 className="font-display text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-extrabold tracking-tight leading-tight mb-8 md:mb-12 max-w-6xl">
+          Find the right franchise to build your next business.
         </h1>
 
         <form
@@ -209,7 +204,7 @@ export function MarketplaceHero({ className }: MarketplaceHeroProps) {
               key={item.label}
               type="button"
               onClick={() => applyIntent(item.intent)}
-              className="text-xs rounded-lg border border-border bg-card px-3 py-1.5 min-h-[32px] text-left text-foreground hover:border-foreground hover:bg-foreground hover:text-background transition-colors duration-150 cursor-pointer"
+              className="inline-flex min-h-11 items-center rounded-lg border border-border bg-card px-4 text-left text-sm text-foreground hover:border-foreground hover:bg-foreground hover:text-background transition-colors duration-150 cursor-pointer"
             >
               {item.label}
             </button>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Mail, Eye, EyeOff, Lock, ArrowRight } from 'lucide-react';
+import { Loader2, Mail, Eye, EyeOff, Lock, ArrowRight, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { safeInternalPath } from '@/lib/site-config';
 
@@ -26,6 +26,15 @@ export function SignInForm() {
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
+
+  const goBack = () => {
+    const idx = (window.history.state as { idx?: number } | null)?.idx ?? 0;
+    if (idx > 0) {
+      navigate(-1);
+      return;
+    }
+    navigate('/');
+  };
 
   // Get the redirect path from query params OR location state (set by ProtectedRoute)
   const redirectParam = searchParams.get('redirect');
@@ -197,12 +206,24 @@ export function SignInForm() {
     <Card className="w-full max-w-md mx-auto bg-card border border-border shadow-sm">
       <CardHeader className="text-center pb-2">
         {/* Brand Logo */}
-        <div className="flex justify-center mb-4">
-          <img
-            src="/logo.png"
-            alt="BizSearch"
-            className="h-12 w-auto"
-          />
+        <div className="mb-4 flex items-center justify-between">
+          <Button
+            type="button"
+            variant="ghost"
+            className="h-11 w-11 min-h-11 min-w-11"
+            onClick={goBack}
+            aria-label="Go back"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <Link to="/" aria-label="BizSearch home">
+            <img
+              src="/logo.png"
+              alt="BizSearch"
+              className="h-12 w-auto"
+            />
+          </Link>
+          <span className="h-11 w-11" aria-hidden="true" />
         </div>
         <CardTitle className="text-2xl font-bold text-foreground">Welcome Back</CardTitle>
         <CardDescription className="text-base">
@@ -251,7 +272,7 @@ export function SignInForm() {
               <Button
                 type="button"
                 variant="link"
-                className="p-0 h-auto text-xs text-primary hover:text-primary/80"
+                className="min-h-11 px-2 text-sm text-primary hover:text-primary/80"
                 onClick={() => setShowForgotPassword(true)}
               >
                 Forgot password?
@@ -296,20 +317,17 @@ export function SignInForm() {
           </div>
 
           {/* Remember Me */}
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="rememberMe"
-              checked={rememberMe}
-              onCheckedChange={(checked) => setRememberMe(checked as boolean)}
-              disabled={loading}
-            />
-            <Label
-              htmlFor="rememberMe"
-              className="text-sm font-normal text-muted-foreground cursor-pointer"
-            >
-              Remember me for 30 days
-            </Label>
-          </div>
+          <Label className="flex min-h-11 w-full cursor-pointer items-center gap-1 text-sm font-normal text-muted-foreground">
+            <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center">
+              <Checkbox
+                id="rememberMe"
+                checked={rememberMe}
+                onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+                disabled={loading}
+              />
+            </span>
+            Remember me for 30 days
+          </Label>
 
           {/* Sign In Button */}
           <Button
