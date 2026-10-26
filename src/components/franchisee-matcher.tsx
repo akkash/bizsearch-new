@@ -278,7 +278,7 @@ export function FranchiseeMatcher({ onClose, className }: FranchiseeMatcherProps
             Franchise Matcher
           </CardTitle>
           <CardDescription>
-            Score public listings against budget, location, and experience. Sending a lead requires an account.
+            Score live franchise listings with Command Code. Sending a lead still requires an account.
           </CardDescription>
         </CardHeader>
 
@@ -354,6 +354,22 @@ export function FranchiseeMatcher({ onClose, className }: FranchiseeMatcherProps
                     <option value="semi-absentee">Semi-absentee</option>
                     <option value="absentee">Absentee</option>
                   </select>
+                </div>
+                <div className="md:col-span-2">
+                  <Label>Preferred industries (optional)</Label>
+                  <Input
+                    placeholder="F&B, Education, Retail"
+                    value={(profileData.industries || []).join(', ')}
+                    onChange={(e) =>
+                      setProfileData({
+                        ...profileData,
+                        industries: e.target.value
+                          .split(',')
+                          .map((item) => item.trim())
+                          .filter(Boolean),
+                      })
+                    }
+                  />
                 </div>
                 <div className="md:col-span-2">
                   <Label>Preferred cities</Label>
@@ -432,6 +448,7 @@ export function FranchiseeMatcher({ onClose, className }: FranchiseeMatcherProps
                         </Badge>
                         <p className="text-xs text-muted-foreground mt-1">
                           {match.matchLevel}
+                          {match.scoredBy === 'command-code' ? ' · Command Code' : ''}
                         </p>
                       </div>
                     </div>

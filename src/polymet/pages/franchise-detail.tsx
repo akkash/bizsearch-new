@@ -4,6 +4,7 @@ import { FranchiseService } from "@/lib/franchise-service";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSavedListings } from "@/contexts/SavedListingsContext";
 import { useFranchiseCompare } from "@/hooks/use-franchise-compare";
+import { compareWorkspacePath } from "@/lib/franchise-compare";
 import type { Franchise } from "@/types/listings";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -18,7 +19,6 @@ import {
 import { cn } from "@/lib/utils";
 import { InquiryDialog } from "@/components/inquiry-dialog";
 import { FranchiseBentoView } from "@/components/franchise-bento-view";
-import { ComparisonFeature } from "@/polymet/components/comparison-feature";
 import { SEOHead } from "@/components/seo-head";
 import { FranchiseSchema } from "@/components/schema-markup";
 import {
@@ -47,8 +47,6 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
   const [franchise, setFranchise] = useState<Franchise | null>(null);
   const [loading, setLoading] = useState(true);
   const [showContactForm, setShowContactForm] = useState(false);
-  const [showComparePanel, setShowComparePanel] = useState(false);
-  const [compareFranchises, setCompareFranchises] = useState<Franchise[]>([]);
   const [selectedFormatId, setSelectedFormatId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -80,30 +78,6 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
       setShowContactForm(true);
     }
   }, [searchParams, loading, franchise]);
-
-  useEffect(() => {
-    const loadCompareFranchises = async () => {
-      if (compareIds.length === 0) {
-        setCompareFranchises([]);
-        return;
-      }
-      try {
-        const loaded = await Promise.all(
-          compareIds.map(async (compareId) => {
-            try {
-              return await FranchiseService.getPublicFranchiseByIdOrSlug(compareId);
-            } catch {
-              return null;
-            }
-          })
-        );
-        setCompareFranchises(loaded.filter(Boolean) as Franchise[]);
-      } catch (error) {
-        console.error("Error loading compare franchises:", error);
-      }
-    };
-    loadCompareFranchises();
-  }, [compareIds]);
 
   const brandName = franchise?.brandName || franchise?.brand_name || "Franchise";
   const identifier = franchise?.slug || franchise?.id || id;
@@ -193,13 +167,6 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
     investRange.min ??
     franchise?.investmentMin ??
     franchise?.total_investment_min;
-
-  const compareItems = [
-    ...(franchise && compared ? [{ id: franchise.id, type: "franchise" as const, data: franchise }] : []),
-    ...compareFranchises
-      .filter((f) => f.id !== franchise?.id)
-      .map((f) => ({ id: f.id, type: "franchise" as const, data: f })),
-  ].slice(0, maxCompare);
 
   if (loading) {
     return (
@@ -297,7 +264,12 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
                   <TooltipContent>Share</TooltipContent>
                 </Tooltip>
                 {compareIds.length > 0 && (
-                  <Button size="sm" variant="secondary" className="hidden min-h-11 md:inline-flex" onClick={() => setShowComparePanel(true)}>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="hidden min-h-11 md:inline-flex"
+                    onClick={() => navigate(compareWorkspacePath(compareIds))}
+                  >
                     Compare ({compareIds.length})
                   </Button>
                 )}
@@ -355,32 +327,6 @@ export function FranchiseDetail({ className }: FranchiseDetailProps) {
         storeFormats={formats}
         initialFormatId={selectedFormatId}
       />
-
-      {showComparePanel && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
-          <div className="container mx-auto max-w-6xl py-8">
-            <ComparisonFeature
-              items={compareItems}
-              onRemoveItem={(itemId) => {
-                removeCompare(itemId);
-                if (itemId === franchise.id) {
-                  setShowComparePanel(false);
-                }
-              }}
-              onAddMore={() => {
-                setShowComparePanel(false);
-                navigate("/franchises");
-              }}
-              className="bg-background"
-            />
-            <div className="mt-4 flex justify-end">
-              <Button variant="outline" onClick={() => setShowComparePanel(false)}>
-                Close
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

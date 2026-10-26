@@ -1,8 +1,9 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { FranchiseCard } from "@/polymet/components/franchise-card";
 import { Filters, FilterState, countActiveFilters, createFilterState } from "@/polymet/components/filters";
 import { ComparisonFeature } from "@/polymet/components/comparison-feature";
+import { InquiryDialog } from "@/components/inquiry-dialog";
 import { FranchiseService, type FranchiseFilters } from "@/lib/franchise-service";
 import { sortFranchisesByBestMatch } from "@/lib/franchise-best-match";
 import { SavedSearchService } from "@/lib/saved-search-service";
@@ -14,6 +15,18 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSavedListings } from "@/contexts/SavedListingsContext";
 import { useFranchiseCompare } from "@/hooks/use-franchise-compare";
+import { FranchiseeIntentService } from "@/lib/franchisee-intent-service";
+import { readMatchDraft, saveMatchDraft } from "@/lib/intent-draft";
+import { getStoreFormatsFromFranchise } from "@/lib/store-formats";
+import {
+  buildCompareSlots,
+  budgetToCapacity,
+  parseCompareParam,
+  searchFromParams,
+  serializeCompareParam,
+  timeToExperience,
+  type CompareSeeker,
+} from "@/lib/franchise-compare";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -40,7 +53,6 @@ import {
   TrendingUpIcon,
   ChevronRightIcon,
   HomeIcon,
-  GitCompareArrows,
   Scale,
   XIcon,
   Bell,
@@ -80,7 +92,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
   const savedSearchesEnabled = useFeatureFlag("saved_searches");
   const [savingSearch, setSavingSearch] = useState(false);
   const { isListingSaved, toggleSave } = useSavedListings();
-  const { compareIds, toggleCompare, removeCompare, clearCompare, isCompared, maxCompare } =
+  const { compareIds, toggleCompare, replaceCompare, removeCompare, clearCompare, isCompared, maxCompare } =
     useFranchiseCompare();
   const [searchParams] = useSearchParams();
   const [franchises, setFranchises] = useState<Franchise[]>([]);
@@ -95,7 +107,11 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
   const [isDesktopFilters, setIsDesktopFilters] = useState(() =>
     typeof window !== "undefined" ? window.matchMedia("(min-width: 1024px)").matches : false
   );
-  const [showComparePanel, setShowComparePanel] = useState(false);
+  const [shortlist, setShortlist] = useState<Franchise[]>([]);
+  const [enquireFranchise, setEnquireFranchise] = useState<Franchise | null>(null);
+  const [enquiringId, setEnquiringId] = useState<string | null>(null);
+  const [seekerIntent, setSeekerIntent] = useState<CompareSeeker>({ cities: [] });
+  const appliedCompareTokens = useRef("");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedInvestmentRange, setSelectedInvestmentRange] =
     useState<string>("");
@@ -107,15 +123,112 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
   const urlSearchQuery = searchParams.get('q');
   const urlCity = searchParams.get("city") || "";
   const urlBudget = Number(searchParams.get("budget") || "");
-  const openCompare = searchParams.get("compare") === "1";
+  const compareParsed = parseCompareParam(searchParams.get("compare"));
+  const workspaceOpen = compareParsed.openWorkspace;
   const currentCategory = categorySlug ? getCategoryBySlug(categorySlug) : null;
   const currentSubcategory = currentCategory?.subcategories.find(s => s.slug === subcategorySlug);
 
   useEffect(() => {
-    if (openCompare && compareIds.length >= 2) {
-      setShowComparePanel(true);
+    const key = compareParsed.tokens.join(",");
+    if (!compareParsed.tokens.length || key === appliedCompareTokens.current) return;
+    appliedCompareTokens.current = key;
+    let cancelled = false;
+    const hydrate = async () => {
+      const found = await FranchiseService.getFranchisesByTokens(compareParsed.tokens);
+      if (cancelled) return;
+      setShortlist(found);
+      replaceCompare(
+        compareParsed.tokens.map((token) => {
+          const match = found.find(
+            (row) => row.id === token || String(row.slug || "").toLowerCase() === token.toLowerCase()
+          );
+          return match?.id || token;
+        })
+      );
+    };
+    void hydrate();
+    return () => {
+      cancelled = true;
+    };
+  }, [compareParsed.tokens.join(","), replaceCompare]);
+
+  useEffect(() => {
+    if (!compareIds.length) {
+      if (!compareParsed.tokens.length) setShortlist([]);
+      return;
     }
-  }, [openCompare, compareIds.length]);
+    let cancelled = false;
+    void FranchiseService.getFranchisesByTokens(compareIds).then((found) => {
+      if (!cancelled) setShortlist(found);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [compareIds.join(",")]);
+
+  const applyListingSearch = (params: URLSearchParams, replace = false) => {
+    navigate({ pathname: "/franchises", search: searchFromParams(params) }, { replace });
+  };
+
+  const listingsHref = (patch: Record<string, string | null>) => {
+    const params = new URLSearchParams(searchParams);
+    Object.entries(patch).forEach(([key, value]) => {
+      if (!value) params.delete(key);
+      else params.set(key, value);
+    });
+    return `/franchises${searchFromParams(params)}`;
+  };
+
+  useEffect(() => {
+    if (!workspaceOpen) return;
+    if (
+      compareParsed.tokens.length &&
+      appliedCompareTokens.current !== compareParsed.tokens.join(",")
+    ) {
+      return;
+    }
+    const next = serializeCompareParam(compareIds, true);
+    const current = searchParams.get("compare");
+    if (!next || next === current) return;
+    const params = new URLSearchParams(searchParams);
+    params.set("compare", next);
+    applyListingSearch(params, true);
+  }, [compareIds.join(","), workspaceOpen, compareParsed.tokens.join(",")]);
+
+  useEffect(() => {
+    const draft = readMatchDraft();
+    const fromUrl = urlCity ? [urlCity] : [];
+    if (!user) {
+      setSeekerIntent({
+        cities: fromUrl.length ? fromUrl : draft?.preferredLocations || [],
+        budgetMax: draft?.budgetMax ?? (urlBudget || null),
+        timeCommitment: draft?.timeCommitment,
+        liquidCapital: draft?.liquidCapital,
+        netWorth: draft?.netWorth,
+      });
+      return;
+    }
+    let cancelled = false;
+    void FranchiseeIntentService.get(user.id).then((intent) => {
+      if (cancelled) return;
+      const cities =
+        fromUrl.length
+          ? fromUrl
+          : intent?.preferredCities?.length
+            ? intent.preferredCities
+            : draft?.preferredLocations || [];
+      setSeekerIntent({
+        cities,
+        budgetMax: intent?.investmentBudgetMax ?? draft?.budgetMax ?? (urlBudget || null),
+        timeCommitment: intent?.timeCommitment || draft?.timeCommitment,
+        liquidCapital: intent?.liquidCapital ?? draft?.liquidCapital,
+        netWorth: intent?.netWorth ?? draft?.netWorth,
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id, urlCity, urlBudget]);
 
   useEffect(() => {
     const media = window.matchMedia("(min-width: 1024px)");
@@ -427,6 +540,21 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
     await toggleSave("franchise", franchiseId);
   };
 
+  const openWorkspace = () => {
+    const params = new URLSearchParams(searchParams);
+    params.set("compare", serializeCompareParam(compareIds, true) || "1");
+    applyListingSearch(params);
+    window.requestAnimationFrame(() => {
+      document.getElementById("compare-workspace")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  };
+
+  const closeWorkspace = () => {
+    const params = new URLSearchParams(searchParams);
+    params.delete("compare");
+    applyListingSearch(params);
+  };
+
   const handleCompare = (franchiseId: string) => {
     if (isCompared(franchiseId)) {
       removeCompare(franchiseId);
@@ -435,19 +563,46 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
     const added = toggleCompare(franchiseId);
     if (!added) {
       toast.error(`You can compare up to ${maxCompare} franchises at a time`);
-      return;
     }
-    setShowComparePanel(true);
   };
 
-  const compareItems = compareIds
-    .map((id) => franchises.find((f) => f.id === id))
-    .filter(Boolean)
-    .map((franchise) => ({
-      id: franchise!.id,
-      type: "franchise" as const,
-      data: franchise!,
-    }));
+  const handleShareCompare = async () => {
+    const params = new URLSearchParams(searchParams);
+    params.set("compare", serializeCompareParam(compareIds, true) || "1");
+    const url = `${window.location.origin}/franchises${searchFromParams(params)}`;
+    await navigator.clipboard.writeText(url);
+    toast.success("Compare link copied");
+  };
+
+  const handleKeepFit = (franchise: Franchise) => {
+    const draft = readMatchDraft();
+    saveMatchDraft({
+      ...draft,
+      budgetMax: seekerIntent.budgetMax ?? draft?.budgetMax,
+      preferredLocations: seekerIntent.cities.length ? seekerIntent.cities : draft?.preferredLocations,
+      liquidCapital: seekerIntent.liquidCapital ?? draft?.liquidCapital,
+      netWorth: seekerIntent.netWorth ?? draft?.netWorth,
+      timeCommitment: seekerIntent.timeCommitment || draft?.timeCommitment,
+      industries: franchise.industry ? [franchise.industry] : draft?.industries,
+      enquireFranchiseId: franchise.id,
+    });
+    navigate("/match");
+  };
+
+  const handleEnquireCompare = (franchise: Franchise) => {
+    setEnquiringId(franchise.id);
+    setEnquireFranchise(franchise);
+  };
+
+  const compareSource = useMemo(() => {
+    const byId = new Map(shortlist.map((row) => [row.id, row]));
+    franchises.forEach((row) => {
+      if (compareIds.includes(row.id) && !byId.has(row.id)) byId.set(row.id, row);
+    });
+    return Array.from(byId.values());
+  }, [shortlist, franchises, compareIds]);
+  const compareSlots = buildCompareSlots(compareIds, compareSource);
+  const showCompareTray = compareIds.length > 0 || workspaceOpen;
 
   const handleShare = (franchiseId: string) => {
     const franchise = franchises.find((f) => f.id === franchiseId);
@@ -599,12 +754,38 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
   );
 
   return (
-    <div className={cn("bg-background overflow-x-hidden", className)}>
+    <div className={cn("bg-background overflow-x-hidden", showCompareTray && "pb-28", className)}>
       <SEOHead
         title={currentCategory ? `${currentCategory.name} franchises` : "Franchise opportunities in India"}
         description="Browse public franchise listings by industry, investment, and location. Compare brands and enquire when you find a fit."
         canonicalUrl="/franchises"
       />
+      {workspaceOpen && (
+        <div id="compare-workspace" className="border-b border-border bg-card">
+          <div className="container mx-auto px-4 py-6">
+            <ComparisonFeature
+              slots={compareSlots}
+              seeker={seekerIntent}
+              onRemoveItem={removeCompare}
+              onAddMore={() => {
+                document.getElementById("franchise-results")?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+              onEnquire={handleEnquireCompare}
+              onKeepFit={handleKeepFit}
+              onShare={() => {
+                void handleShareCompare();
+              }}
+              enquiringId={enquiringId}
+              signedIn={Boolean(user)}
+            />
+            <div className="mt-3 flex justify-end">
+              <Button variant="ghost" size="sm" onClick={closeWorkspace}>
+                Hide compare
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="border-b border-border bg-card">
         <div className="container mx-auto px-4 py-2 md:py-8">
           {(currentCategory || currentSubcategory) && (
@@ -614,14 +795,14 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
                 Home
               </Link>
               <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
-              <Link to="/franchises" className="text-muted-foreground hover:text-foreground transition-colors">
+              <Link to={listingsHref({ category: null, industry: null, subcategory: null })} className="text-muted-foreground hover:text-foreground transition-colors">
                 Franchises
               </Link>
               {currentCategory && (
                 <>
                   <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
                   <Link
-                    to={`/franchises?category=${currentCategory.slug}`}
+                    to={listingsHref({ category: currentCategory.slug, subcategory: null })}
                     className={currentSubcategory ? "text-muted-foreground hover:text-foreground transition-colors" : "font-medium text-foreground"}
                   >
                     {currentCategory.name}
@@ -679,7 +860,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
               FRANCHISE_CATEGORIES.map((cat) => (
                 <Link
                   key={cat.id}
-                  to={`/franchises?category=${cat.slug}`}
+                  to={listingsHref({ category: cat.slug, subcategory: null })}
                   className={cn(
                     chipClass,
                     "border-border hover:bg-foreground hover:text-background"
@@ -692,7 +873,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
             {currentCategory && currentCategory.subcategories.length > 0 && (
               <>
                 <Link
-                  to={`/franchises?category=${currentCategory.slug}`}
+                  to={listingsHref({ category: currentCategory.slug, subcategory: null })}
                   className={cn(
                     chipClass,
                     !currentSubcategory
@@ -705,7 +886,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
                 {currentCategory.subcategories.map((sub) => (
                   <Link
                     key={sub.id}
-                    to={`/franchises?category=${currentCategory.slug}&subcategory=${sub.slug}`}
+                    to={listingsHref({ category: currentCategory.slug, subcategory: sub.slug })}
                     className={cn(
                       chipClass,
                       currentSubcategory?.id === sub.id
@@ -749,7 +930,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-2 lg:py-6">
+      <div id="franchise-results" className="container mx-auto px-4 py-2 lg:py-6">
         <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
           {isDesktopFilters && showFilters && (
             <div className="lg:w-80 shrink-0">
@@ -972,7 +1153,20 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
                     onClick={() => {
                       setSelectedInvestmentRange("");
                       setFilters(null);
-                      if (currentCategory || urlCity) navigate("/franchises");
+                      if (currentCategory || urlCity) {
+                        applyListingSearch(
+                          (() => {
+                            const params = new URLSearchParams(searchParams);
+                            params.delete("category");
+                            params.delete("industry");
+                            params.delete("subcategory");
+                            params.delete("city");
+                            params.delete("q");
+                            params.delete("budget");
+                            return params;
+                          })()
+                        );
+                      }
                     }}
                   >
                     Clear All
@@ -1116,46 +1310,61 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
         </div>
       </div>
 
-      {compareIds.length > 0 && (
-        <div className="fixed bottom-20 md:bottom-6 left-4 right-4 md:left-auto md:right-6 md:w-96 z-40">
+      {showCompareTray && (
+        <div className="fixed bottom-20 md:bottom-6 left-4 right-4 md:left-auto md:right-6 md:w-[26rem] z-40">
           <Card className="shadow-xl border-growth-green/30">
             <CardContent className="p-4 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 text-sm font-medium">
                 <Scale className="h-4 w-4 text-growth-green" />
-                {compareIds.length} selected to compare
+                {compareIds.length
+                  ? `${compareIds.length} selected to compare`
+                  : "Compare workspace open"}
               </div>
               <div className="flex gap-2">
-                <Button size="sm" variant="outline" onClick={clearCompare}>
-                  Clear
-                </Button>
-                <Button size="sm" onClick={() => setShowComparePanel(true)}>
-                  Compare
-                </Button>
+                {compareIds.length > 0 && (
+                  <Button size="sm" variant="outline" onClick={clearCompare}>
+                    Clear
+                  </Button>
+                )}
+                {workspaceOpen ? (
+                  <Button size="sm" variant="outline" onClick={closeWorkspace}>
+                    Hide
+                  </Button>
+                ) : (
+                  <Button size="sm" onClick={openWorkspace}>
+                    Compare
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
         </div>
       )}
 
-      {showComparePanel && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
-          <div className="container mx-auto max-w-6xl py-8">
-            <ComparisonFeature
-              items={compareItems}
-              onRemoveItem={(id) => {
-                removeCompare(id);
-              }}
-              onAddMore={() => setShowComparePanel(false)}
-              className="bg-background"
-            />
-            <div className="mt-4 flex justify-end">
-              <Button variant="outline" onClick={() => setShowComparePanel(false)}>
-                Close
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <InquiryDialog
+        open={Boolean(enquireFranchise)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEnquireFranchise(null);
+            setEnquiringId(null);
+          }
+        }}
+        listingId={enquireFranchise?.id || ""}
+        listingType="franchise"
+        listingName={enquireFranchise?.brandName || enquireFranchise?.brand_name || "Franchise"}
+        ownerId=""
+        storeFormats={enquireFranchise ? getStoreFormatsFromFranchise(enquireFranchise) : []}
+        qualificationDefaults={
+          enquireFranchise
+            ? {
+                investmentCapacity: budgetToCapacity(seekerIntent.budgetMax),
+                preferredLocation: seekerIntent.cities[0] || "",
+                openingTimeline: "3_6_months",
+                relevantExperience: timeToExperience(seekerIntent.timeCommitment),
+              }
+            : undefined
+        }
+      />
     </div>
   );
 }

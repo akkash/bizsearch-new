@@ -76,6 +76,10 @@ export interface Franchise {
     franchise_fee?: number;
     royaltyPercentage?: number;
     royalty_percentage?: number;
+    minimumLiquidCapital?: number;
+    minimum_liquid_capital?: number;
+    minimumNetWorth?: number;
+    minimum_net_worth?: number;
     outlets?: number;
     total_outlets?: number;
     territories?: string[];

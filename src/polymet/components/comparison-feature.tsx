@@ -1,739 +1,222 @@
-import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+import { Plus, Scale, Share2, X } from "lucide-react";
+import type { Franchise } from "@/types/listings";
 import {
-  X,
-  Plus,
-  Scale,
-  TrendingUp,
-  MapPin,
-  Calendar,
-  Users,
-  IndianRupee,
-  Building,
-  Star,
-  Shield,
-} from "lucide-react";
-import { Business, Franchise } from "@/types/listings";
-import {
-  getFranchiseInvestmentRange,
-  getStoreFormatsFromFranchise,
-  formatStoreFormatSpace,
-} from "@/lib/store-formats";
-import { ListingBrandHero } from "@/components/listing-brand-hero";
-import { listingCoverUrl, listingLogoUrl } from "@/lib/listing-media";
-import { formatINR } from "@/lib/format-currency";
-import { hasUnitEconomics, isPlatformVerified, mappedTerritoryCount } from "@/lib/listing-trust";
-
-function enquireHref(item: ComparisonItem): string {
-  const data = item.data as { slug?: string; id?: string };
-  const id = data.slug || data.id || item.id;
-  return item.type === "franchise" ? `/franchise/${id}?contact=true` : `/business/${id}?contact=true`;
-}
-
-function isEmptyCompareValue(value: unknown): boolean {
-  if (value == null) return true;
-  const text = String(value).trim();
-  return (
-    text === "" ||
-    text === "Not provided" ||
-    text === "N/A" ||
-    text === "—" ||
-    text === "Space not provided" ||
-    text === "Not shown without unit P&L"
-  );
-}
-
-function ValueOrAsk({ item, value }: { item: ComparisonItem; value: unknown }) {
-  if (!isEmptyCompareValue(value)) {
-    return <>{String(value)}</>;
-  }
-  return (
-    <Link
-      to={enquireHref(item)}
-      className="inline-flex min-h-11 items-center font-semibold text-trust-blue underline-offset-4 hover:underline"
-    >
-      {item.type === "franchise" ? "Ask franchisor" : "Ask seller"}
-    </Link>
-  );
-}
-
-interface ComparisonItem {
-  id: string;
-  type: "business" | "franchise";
-  data: Business | Franchise;
-}
+  buildCompareRows,
+  MAX_COMPARE,
+  type CompareSeeker,
+  type CompareSlot,
+  type CompareTone,
+} from "@/lib/franchise-compare";
+import { cn } from "@/lib/utils";
 
 interface ComparisonFeatureProps {
-  items: ComparisonItem[];
+  slots: CompareSlot[];
+  seeker: CompareSeeker;
   onRemoveItem: (id: string) => void;
   onAddMore: () => void;
+  onEnquire: (franchise: Franchise) => void;
+  onKeepFit: (franchise: Franchise) => void;
+  onShare: () => void;
+  enquiringId?: string | null;
+  signedIn?: boolean;
   className?: string;
 }
 
+function toneClass(tone: CompareTone): string {
+  if (tone === "best") return "text-growth-green";
+  if (tone === "mismatch") return "text-amber-700 dark:text-amber-400";
+  if (tone === "unpublished") return "text-muted-foreground";
+  return "";
+}
+
 export function ComparisonFeature({
-  items,
+  slots,
+  seeker,
   onRemoveItem,
   onAddMore,
+  onEnquire,
+  onKeepFit,
+  onShare,
+  enquiringId,
+  signedIn,
   className,
 }: ComparisonFeatureProps) {
-  const [activeTab, setActiveTab] = useState<
-    "overview" | "financials" | "details"
-  >("overview");
-
-  if (items.length === 0) {
-    return (
-      <Card className={`${className}`}>
-        <CardContent className="flex flex-col items-center justify-center py-12">
-          <Scale className="h-12 w-12 text-muted-foreground mb-4" />
-
-          <h3 className="text-lg font-semibold mb-2">Start Comparing</h3>
-          <p className="text-muted-foreground text-center mb-4">
-            Add up to 3 franchises to compare investment, fees, and requirements side-by-side
-          </p>
-          <Button onClick={onAddMore}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Items to Compare
-          </Button>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const formatCurrency = (value: number) => {
-    if (value >= 10000000) return `₹${(value / 10000000).toFixed(1)}Cr`;
-    if (value >= 100000) return `₹${(value / 100000).toFixed(1)}L`;
-    return `₹${value.toLocaleString()}`;
-  };
-
-  const getBusinessName = (item: ComparisonItem) => {
-    if (item.type === "business") {
-      return (item.data as Business).name;
-    }
-    const franchise = item.data as Franchise;
-    return franchise.brandName || franchise.brand_name || "Franchise";
-  };
-
-  const getPrice = (item: ComparisonItem): number | null => {
-    if (item.type === "business") {
-      return (item.data as Business).price ?? null;
-    }
-    const franchise = item.data as Franchise;
-    const range = getFranchiseInvestmentRange(franchise);
-    return range.min ?? franchise.investmentMin ?? franchise.total_investment_min ?? null;
-  };
-
-  const getFranchiseFormatsLabel = (item: ComparisonItem): string => {
-    if (item.type !== "franchise") return "—";
-    const formats = getStoreFormatsFromFranchise(item.data as Franchise);
-    if (!formats.length) return "Single format";
-    return formats.map((f) => f.name).join(", ");
-  };
-
-  const getFranchiseInvestmentLabel = (item: ComparisonItem): string => {
-    if (item.type !== "franchise") {
-      const price = getPrice(item);
-      return price != null ? formatCurrency(price) : "—";
-    }
-    const range = getFranchiseInvestmentRange(item.data as Franchise);
-    if (range.min == null && range.max == null) return "—";
-    if (range.min != null && range.max != null && range.max !== range.min) {
-      return `${formatCurrency(range.min)}–${formatCurrency(range.max)}`;
-    }
-    return formatCurrency(range.min ?? range.max!);
-  };
-
-  const getFranchiseFee = (item: ComparisonItem): number | null => {
-    if (item.type !== "franchise") return null;
-    const franchise = item.data as Franchise;
-    return franchise.franchiseFee ?? franchise.franchise_fee ?? null;
-  };
-
-  const getRoyalty = (item: ComparisonItem): number | null => {
-    if (item.type !== "franchise") return null;
-    const franchise = item.data as Franchise;
-    return franchise.royaltyPercentage ?? franchise.royalty_percentage ?? null;
-  };
-
-  const getRevenue = (item: ComparisonItem): number | null => {
-    if (item.type === "business") {
-      return (item.data as Business).revenue ?? null;
-    }
-    const franchise = item.data as Franchise;
-    return franchise.average_unit_revenue ?? null;
-  };
-
-  const getLocation = (item: ComparisonItem) => {
-    if (item.type === "business") {
-      return (item.data as Business).location || "N/A";
-    }
-    const franchise = item.data as Franchise;
-    const city = (franchise as Record<string, unknown>).headquarters_city as string | undefined;
-    const state = (franchise as Record<string, unknown>).headquarters_state as string | undefined;
-    if (city && state) return `${city}, ${state}`;
-    if (city || state) return city || state;
-    const territories = franchise.territories || franchise.expansion_territories;
-    if (Array.isArray(territories) && territories.length > 0) {
-      return String(territories[0]);
-    }
-    return "Contact for territories";
-  };
-
-  const getIndustry = (item: ComparisonItem) => {
-    return item.type === "business"
-      ? (item.data as Business).industry
-      : (item.data as Franchise).industry;
-  };
-
-  const getEstablished = (item: ComparisonItem) => {
-    if (item.type === "business") {
-      return (item.data as Business).establishedYear ?? (item.data as Business).established_year ?? "N/A";
-    }
-    const franchise = item.data as Franchise;
-    return franchise.establishedYear ?? franchise.established_year ?? "N/A";
-  };
-
-  const getEmployees = (item: ComparisonItem) => {
-    if (item.type === "business") {
-      return (item.data as Business).employees ?? "N/A";
-    }
-    const franchise = item.data as Franchise;
-    return franchise.outlets ?? franchise.total_outlets ?? "N/A";
-  };
-
-  const getBadges = (item: ComparisonItem) => {
-    const badges = item.type === "business"
-      ? (item.data as Business).badges
-      : (item.data as Franchise).badges;
-    return Array.isArray(badges) ? badges : [];
-  };
-
-  const formatOptionalCurrency = (value: number | null) => {
-    if (value === null || value === undefined) return "Not provided";
-    return formatCurrency(value);
-  };
-
-  const formatOptionalText = (value: unknown) => {
-    if (value === null || value === undefined || value === '') return "Not provided";
-    return String(value);
-  };
-
-  const getMarketingFee = (item: ComparisonItem): number | null => {
-    if (item.type !== "franchise") return null;
-    const franchise = item.data as Franchise;
-    return franchise.marketingFeePercentage ?? franchise.marketing_fee_percentage ?? null;
-  };
-
-  const getSpaceRequirement = (item: ComparisonItem) => {
-    if (item.type !== "franchise") return "Not provided";
-    const franchise = item.data as Franchise;
-    const formats = getStoreFormatsFromFranchise(franchise);
-    if (formats[0]) return formatStoreFormatSpace(formats[0]);
-    const sqft = franchise.spaceRequiredSqft ?? franchise.space_required_sqft;
-    return sqft ? `${sqft} sq ft` : "Not provided";
-  };
-
-  const franchiseItems = items.filter((item) => item.type === "franchise");
-
-  const getLiquidCapital = (item: ComparisonItem): number | null => {
-    if (item.type !== "franchise") return null;
-    const franchise = item.data as Franchise;
-    return franchise.minimumLiquidCapital ?? franchise.minimum_liquid_capital ?? null;
-  };
-
-  const getTraining = (item: ComparisonItem) => {
-    if (item.type !== "franchise") return "Not provided";
-    const franchise = item.data as Franchise;
-    if (franchise.trainingProvided || franchise.training_provided) {
-      const days = franchise.trainingDurationDays ?? franchise.training_duration_days;
-      return days ? `${days} days training` : "Provided";
-    }
-    return "Not provided";
-  };
-
-  const getSupport = (item: ComparisonItem) => {
-    if (item.type !== "franchise") return "Not provided";
-    const franchise = item.data as Franchise;
-    const support = franchise.supportProvided ?? franchise.support_provided;
-    if (Array.isArray(support) && support.length > 0) return support.slice(0, 2).join(', ');
-    if (franchise.marketingSupport || franchise.marketing_support) return "Marketing support";
-    return "Not provided";
-  };
-
-  const getTerritoryLabel = (item: ComparisonItem) => {
-    if (item.type !== "franchise") return "—";
-    const franchise = item.data as Franchise;
-    const count = mappedTerritoryCount(franchise);
-    if (count === 0) return "No city-level rows";
-    const available = Array.isArray(franchise.territory_availability || franchise.territoryAvailability)
-      ? (franchise.territory_availability || franchise.territoryAvailability || []).filter(
-          (row: unknown) =>
-            row &&
-            typeof row === "object" &&
-            String((row as { status?: string }).status || "").toLowerCase() === "available"
-        ).length
-      : 0;
-    return available > 0 ? `${count} cities · ${available} available` : `${count} city rows`;
-  };
-
-  const getVerificationLabel = (item: ComparisonItem) => {
-    if (item.type !== "franchise") return "—";
-    const franchise = item.data as Franchise;
-    if (isPlatformVerified(franchise)) {
-      const verifiedAt = franchise.verified_at || franchise.verifiedAt;
-      return verifiedAt ? `Platform verified ${String(verifiedAt).slice(0, 10)}` : "Platform verified";
-    }
-    return "Franchisor-provided";
-  };
-
-  const getRiskFlags = (item: ComparisonItem): string[] => {
-    if (item.type !== "franchise") return [];
-    const franchise = item.data as Franchise;
-    const flags: string[] = [];
-    if (!isPlatformVerified(franchise)) flags.push("Not platform verified");
-    if (mappedTerritoryCount(franchise) === 0) flags.push("No city territory rows");
-    if (!hasUnitEconomics(franchise)) flags.push("Unit economics unpublished");
-    if (!Array.isArray(franchise.documents) || franchise.documents.length === 0) {
-      flags.push("No documents");
-    }
-    return flags;
-  };
-
-  const getFinancing = (item: ComparisonItem) => {
-    if (item.type !== "franchise") return "Not provided";
-    const franchise = item.data as Franchise;
-    const badges = franchise.badges || [];
-    if (badges.includes("Financing Available")) return "Available";
-    return "Not provided";
-  };
+  const filled = slots.filter((slot) => slot.franchise);
+  const rows = buildCompareRows(slots, seeker);
+  const empty = filled.length === 0 && !slots.some((slot) => slot.missing);
 
   return (
-    <Card className={`${className}`}>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Scale className="h-5 w-5" />
-          Compare Opportunities ({items.length})
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onAddMore}
-            className="ml-auto"
-            disabled={items.length >= 3}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add More
-          </Button>
-        </CardTitle>
+    <Card className={className}>
+      <CardHeader className="space-y-3">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <CardTitle className="flex items-center gap-2">
+            <Scale className="h-5 w-5" />
+            Compare franchises
+            <span className="text-sm font-normal text-muted-foreground">
+              ({filled.length}/{MAX_COMPARE})
+            </span>
+          </CardTitle>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" onClick={onShare} disabled={!filled.length}>
+              <Share2 className="h-4 w-4 mr-2" />
+              Share link
+            </Button>
+            <Button variant="outline" size="sm" onClick={onAddMore} disabled={filled.length >= MAX_COMPARE}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add from list
+            </Button>
+          </div>
+        </div>
+        {empty ? (
+          <p className="text-sm text-muted-foreground">
+            Pick 2–3 brands from this list. Compare investment, territory, and requirements before you enquire.
+          </p>
+        ) : filled.length === 1 ? (
+          <p className="text-sm text-muted-foreground">
+            One brand selected. Add 1–2 more from the list below to compare side by side.
+          </p>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Yes / No / unpublished only from listing fields. Nothing is invented.
+          </p>
+        )}
       </CardHeader>
 
-      <CardContent className="space-y-6">
-        {franchiseItems.length >= 2 && (
-          <div className="overflow-x-auto border border-border">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-secondary/50 border-b border-border">
-                  <th className="text-left p-3 text-xs uppercase tracking-widest text-muted-foreground">Metric</th>
-                  {franchiseItems.map((item) => (
-                    <th key={item.id} className="text-left p-3 font-display font-bold uppercase">
-                      {getBusinessName(item)}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                <tr>
-                  <td className="p-3 text-muted-foreground">Investment</td>
-                  {franchiseItems.map((item) => (
-                    <td key={`${item.id}-inv`} className="p-3 font-mono font-semibold">
-                      <ValueOrAsk item={item} value={getFranchiseInvestmentLabel(item)} />
-                    </td>
-                  ))}
-                </tr>
-                <tr>
-                  <td className="p-3 text-muted-foreground">Franchise fee</td>
-                  {franchiseItems.map((item) => (
-                    <td key={`${item.id}-fee`} className="p-3 font-mono font-semibold">
-                      <ValueOrAsk item={item} value={formatOptionalCurrency(getFranchiseFee(item))} />
-                    </td>
-                  ))}
-                </tr>
-                <tr>
-                  <td className="p-3 text-muted-foreground">Royalty</td>
-                  {franchiseItems.map((item) => (
-                    <td key={`${item.id}-roy`} className="p-3 font-mono font-semibold">
-                      <ValueOrAsk item={item} value={getRoyalty(item) != null ? `${getRoyalty(item)}%` : null} />
-                    </td>
-                  ))}
-                </tr>
-                <tr>
-                  <td className="p-3 text-muted-foreground">Area required</td>
-                  {franchiseItems.map((item) => (
-                    <td key={`${item.id}-area`} className="p-3 font-mono font-semibold">
-                      <ValueOrAsk item={item} value={getSpaceRequirement(item)} />
-                    </td>
-                  ))}
-                </tr>
-                <tr>
-                  <td className="p-3 text-muted-foreground">Expected revenue</td>
-                  {franchiseItems.map((item) => (
-                    <td key={`${item.id}-rev`} className="p-3 font-mono font-semibold">
-                      <ValueOrAsk item={item} value={(item.data as Franchise).average_unit_revenue != null ? formatINR((item.data as Franchise).average_unit_revenue) : null} />
-                    </td>
-                  ))}
-                </tr>
-                <tr>
-                  <td className="p-3 text-muted-foreground">Payback / ROI</td>
-                  {franchiseItems.map((item) => {
-                    const franchise = item.data as Franchise;
-                    const months = franchise.payback_period_months;
-                    const breakeven = franchise.breakeven_period || franchise.breakevenPeriod;
-                    const roi = franchise.expected_roi_percentage ?? franchise.expectedRoiPercentage;
-                    return (
-                      <td key={`${item.id}-pay`} className="p-3 font-mono font-semibold">
-                        <ValueOrAsk item={item} value={months ? `${months} mo` : breakeven || null} />
-                        {roi != null && roi !== "" ? ` · ${roi}%` : null}
-                      </td>
-                    );
-                  })}
-                </tr>
-                <tr>
-                  <td className="p-3 text-muted-foreground">Territory</td>
-                  {franchiseItems.map((item) => (
-                    <td key={`${item.id}-ter`} className="p-3 font-semibold">
-                      {getTerritoryLabel(item)}
-                    </td>
-                  ))}
-                </tr>
-                <tr>
-                  <td className="p-3 text-muted-foreground">Verification</td>
-                  {franchiseItems.map((item) => (
-                    <td key={`${item.id}-ver`} className="p-3 font-semibold">
-                      {getVerificationLabel(item)}
-                    </td>
-                  ))}
-                </tr>
-                <tr>
-                  <td className="p-3 text-muted-foreground">Support</td>
-                  {franchiseItems.map((item) => (
-                    <td key={`${item.id}-sup`} className="p-3">
-                      <ValueOrAsk item={item} value={getSupport(item)} />
-                    </td>
-                  ))}
-                </tr>
-                <tr>
-                  <td className="p-3 text-muted-foreground">Risk flags</td>
-                  {franchiseItems.map((item) => {
-                    const flags = getRiskFlags(item);
-                    return (
-                      <td key={`${item.id}-risk`} className="p-3 text-xs text-muted-foreground">
-                        {flags.length ? flags.join(" · ") : "None from published fields"}
-                      </td>
-                    );
-                  })}
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* Tabs */}
-        <div className="flex border-b">
-          {["overview", "financials", "details"].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab as any)}
-              className={`px-4 py-2 text-sm font-medium capitalize border-b-2 transition-colors ${activeTab === tab
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
-                }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-
-        {/* Comparison Table */}
-        <div className="overflow-x-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 min-w-full">
-            {items.map((item, index) => (
-              <Card key={item.id} className="relative overflow-hidden">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute top-2 right-2 h-6 w-6 z-10 bg-white/90 dark:bg-card/90"
-                  onClick={() => onRemoveItem(item.id)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-
-                <ListingBrandHero
-                  brandName={getBusinessName(item)}
-                  logoUrl={listingLogoUrl(item.data)}
-                  coverUrl={listingCoverUrl(item.data)}
-                  variant="compact"
-                />
-
-                <CardContent className="pt-4 space-y-4">
-                  {/* Header */}
-                  <div className="space-y-2">
-                    <Badge
-                      variant={
-                        item.type === "business" ? "default" : "secondary"
-                      }
+      <CardContent className="space-y-4">
+        <div className="overflow-x-auto border border-border rounded-lg">
+          <table className="w-full min-w-[640px] text-sm border-separate border-spacing-0">
+            <thead>
+              <tr className="bg-secondary">
+                <th className="text-left p-3 text-xs uppercase tracking-widest text-muted-foreground sticky left-0 bg-secondary border-b border-r border-border min-w-[9rem]">
+                  Metric
+                </th>
+                {slots.map((slot, index) => (
+                  <th
+                    key={slot.id || `empty-${index}`}
+                    className="text-left p-3 border-b border-r last:border-r-0 border-border align-top min-w-[12rem]"
+                  >
+                    {slot.franchise ? (
+                      <div className="space-y-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <Link
+                            to={`/franchise/${slot.franchise.slug || slot.franchise.id}`}
+                            className="font-display font-bold uppercase hover:text-growth-green line-clamp-2"
+                          >
+                            {slot.franchise.brandName || slot.franchise.brand_name}
+                          </Link>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 shrink-0"
+                            onClick={() => onRemoveItem(slot.franchise!.id)}
+                            aria-label={`Remove ${slot.franchise.brandName || slot.franchise.brand_name}`}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <p className="text-xs uppercase tracking-widest text-muted-foreground">
+                          {slot.franchise.industry || "Franchise"}
+                        </p>
+                        <div className="flex flex-col gap-2 pt-1">
+                          <Button
+                            size="sm"
+                            disabled={enquiringId === slot.franchise.id}
+                            onClick={() => onEnquire(slot.franchise!)}
+                          >
+                            {enquiringId === slot.franchise.id
+                              ? "Opening enquiry…"
+                              : signedIn
+                                ? "Enquire"
+                                : "Enquire with your profile"}
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => onKeepFit(slot.franchise!)}>
+                            Keep this fit
+                          </Button>
+                        </div>
+                      </div>
+                    ) : slot.missing ? (
+                      <p className="text-sm text-muted-foreground">No details found in the table.</p>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={onAddMore}
+                        className="w-full min-h-[7rem] rounded-lg border border-dashed border-border text-sm text-muted-foreground hover:border-growth-green hover:text-foreground"
+                      >
+                        Empty slot — add a brand
+                      </button>
+                    )}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row) => (
+                <tr key={row.key}>
+                  <td className="p-3 text-muted-foreground font-medium sticky left-0 bg-card border-b border-r border-border">
+                    {row.label}
+                  </td>
+                  {row.cells.map((cell, index) => (
+                    <td
+                      key={`${row.key}-${slots[index]?.id || index}`}
+                      className={cn(
+                        "p-3 border-b border-r last:border-r-0 border-border font-semibold",
+                        toneClass(cell.tone)
+                      )}
                     >
-                      {item.type === "business" ? "Business" : "Franchise"}
-                    </Badge>
-                    <h4 className="font-semibold text-lg leading-tight">
-                      {getBusinessName(item)}
-                    </h4>
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                      <MapPin className="h-3 w-3" />
-
-                      {getLocation(item)}
-                    </div>
-                  </div>
-
-                  {activeTab === "overview" && (
-                    <div className="space-y-3">
-                      <div className="grid grid-cols-2 gap-3 text-sm">
-                        <div>
-                          <div className="text-muted-foreground">Industry</div>
-                          <div className="font-medium">{getIndustry(item)}</div>
-                        </div>
-                        <div>
-                          <div className="text-muted-foreground">
-                            Established
-                          </div>
-                          <div className="font-medium">
-                            {getEstablished(item)}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-wrap gap-1">
-                        {getBadges(item)
-                          .slice(0, 3)
-                          .map((badge) => (
-                            <Badge
-                              key={badge}
-                              variant="outline"
-                              className="text-xs"
-                            >
-                              {badge === "Verified" && (
-                                <Shield className="h-3 w-3 mr-1" />
-                              )}
-                              {badge}
-                            </Badge>
-                          ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {activeTab === "financials" && (
-                    <div className="space-y-3">
-                      <div>
-                        <div className="text-muted-foreground text-sm">
-                          {item.type === "business"
-                            ? "Asking Price"
-                            : "Investment Required"}
-                        </div>
-                        <div className="font-semibold text-lg text-primary">
-                          <ValueOrAsk
-                            item={item}
-                            value={item.type === "franchise"
-                              ? getFranchiseInvestmentLabel(item)
-                              : formatOptionalCurrency(getPrice(item))}
-                          />
-                        </div>
-                      </div>
-
-                      {item.type === "franchise" && (
-                        <div>
-                          <div className="text-muted-foreground text-sm">
-                            Outlet formats
-                          </div>
-                          <div className="font-medium text-sm">
-                            {getFranchiseFormatsLabel(item)}
-                          </div>
-                        </div>
+                      <span className="font-mono">{cell.text}</span>
+                      {cell.tone === "best" && (
+                        <Badge variant="outline" className="ml-2 text-[10px] border-growth-green text-growth-green">
+                          Best
+                        </Badge>
                       )}
-
-                      <div>
-                        <div className="text-muted-foreground text-sm">
-                          {item.type === "business"
-                            ? "Annual Revenue"
-                            : "Avg. Unit Revenue"}
-                        </div>
-                        <div className="font-semibold text-lg text-foreground">
-                          <ValueOrAsk item={item} value={formatOptionalCurrency(getRevenue(item))} />
-                        </div>
-                      </div>
-
-                      {item.type === "franchise" && (
-                        <>
-                          <div>
-                            <div className="text-muted-foreground text-sm">
-                              Franchise Fee
-                            </div>
-                            <div className="font-medium">
-                              <ValueOrAsk item={item} value={formatOptionalCurrency(getFranchiseFee(item))} />
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-muted-foreground text-sm">
-                              Royalty
-                            </div>
-                            <div className="font-medium">
-                              <ValueOrAsk item={item} value={getRoyalty(item) != null ? `${getRoyalty(item)}%` : null} />
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-muted-foreground text-sm">
-                              Marketing Fee
-                            </div>
-                            <div className="font-medium">
-                              <ValueOrAsk item={item} value={getMarketingFee(item) != null ? `${getMarketingFee(item)}%` : null} />
-                            </div>
-                          </div>
-                        </>
+                      {cell.tone === "mismatch" && (
+                        <Badge variant="outline" className="ml-2 text-[10px] border-amber-600 text-amber-700 dark:text-amber-400">
+                          Mismatch
+                        </Badge>
                       )}
-                    </div>
-                  )}
-
-                  {activeTab === "details" && (
-                    <div className="space-y-3">
-                      <div className="grid grid-cols-2 gap-3 text-sm">
-                        <div>
-                          <div className="text-muted-foreground">
-                            {item.type === "business" ? "Employees" : "Outlets"}
-                          </div>
-                          <div className="font-medium">
-                            <ValueOrAsk item={item} value={getEmployees(item)} />
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-muted-foreground">Type</div>
-                          <div className="font-medium">
-                            <ValueOrAsk
-                              item={item}
-                              value={item.type === "business"
-                                ? (item.data as Business).businessType || (item.data as Business).business_type || null
-                                : (item.data as Franchise).experience_required || (item.data as Record<string, unknown>).experienceRequired || null}
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      {item.type === "franchise" && (
-                        <>
-                          <div>
-                            <div className="text-muted-foreground text-sm">
-                              Space Requirement
-                            </div>
-                            <div className="font-medium"><ValueOrAsk item={item} value={getSpaceRequirement(item)} /></div>
-                          </div>
-                          <div>
-                            <div className="text-muted-foreground text-sm">
-                              Liquid Capital
-                            </div>
-                            <div className="font-medium">
-                              <ValueOrAsk item={item} value={formatOptionalCurrency(getLiquidCapital(item))} />
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-muted-foreground text-sm">
-                              Experience
-                            </div>
-                            <div className="font-medium">
-                              <ValueOrAsk
-                                item={item}
-                                value={formatOptionalText(
-                                  (item.data as Franchise).experienceRequired ??
-                                    (item.data as Franchise).experience_required
-                                )}
-                              />
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-muted-foreground text-sm">
-                              Training
-                            </div>
-                            <div className="font-medium"><ValueOrAsk item={item} value={getTraining(item)} /></div>
-                          </div>
-                          <div>
-                            <div className="text-muted-foreground text-sm">
-                              Support
-                            </div>
-                            <div className="font-medium"><ValueOrAsk item={item} value={getSupport(item)} /></div>
-                          </div>
-                          <div>
-                            <div className="text-muted-foreground text-sm">
-                              Financing
-                            </div>
-                            <div className="font-medium"><ValueOrAsk item={item} value={getFinancing(item)} /></div>
-                          </div>
-                        </>
+                      {cell.tone === "unpublished" && cell.text !== "Add a brand from the list below" && (
+                        <Badge variant="outline" className="ml-2 text-[10px]">
+                          Not published
+                        </Badge>
                       )}
-                    </div>
-                  )}
-
-                  {/* Action Buttons */}
-                  <div className="pt-3 border-t">
-                    <Button size="sm" className="w-full">
-                      View Details
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-
-            {/* Add More Slot */}
-            {items.length < 3 && (
-              <Card className="border-dashed border-2">
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <Plus className="h-8 w-8 text-muted-foreground mb-2" />
-
-                  <Button variant="ghost" onClick={onAddMore}>
-                    Add Another
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-          </div>
+                    </td>
+                  ))}
+                </tr>
+              ))}
+              <tr>
+                <td className="p-3 text-muted-foreground font-medium sticky left-0 bg-card">Next step</td>
+                {slots.map((slot, index) => (
+                  <td key={`cta-${slot.id || index}`} className="p-3">
+                    {slot.franchise ? (
+                      <div className="flex flex-col gap-2">
+                        <Button
+                          size="sm"
+                          disabled={enquiringId === slot.franchise.id}
+                          onClick={() => onEnquire(slot.franchise!)}
+                        >
+                          {enquiringId === slot.franchise.id
+                            ? "Opening enquiry…"
+                            : signedIn
+                              ? "Enquire"
+                              : "Enquire with your profile"}
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => onKeepFit(slot.franchise!)}>
+                          Keep this fit
+                        </Button>
+                      </div>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">—</span>
+                    )}
+                  </td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
         </div>
-
-        {/* Comparison Summary */}
-        {items.length >= 2 && (
-          <div className="p-4 bg-muted/30 rounded-lg">
-            <h4 className="font-semibold mb-3 flex items-center gap-2">
-              <TrendingUp className="h-4 w-4" />
-              Quick Comparison
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-              <div>
-                <div className="text-muted-foreground">Lowest Investment</div>
-                <div className="font-semibold">
-                  {formatCurrency(Math.min(...items.map(getPrice)))}
-                </div>
-              </div>
-              <div>
-                <div className="text-muted-foreground">Highest Revenue</div>
-                <div className="font-semibold">
-                  {formatCurrency(Math.max(...items.map(getRevenue)))}
-                </div>
-              </div>
-              <div>
-                <div className="text-muted-foreground">Most Established</div>
-                <div className="font-semibold">
-                  {Math.min(...items.map(getEstablished))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </CardContent>
     </Card>
   );

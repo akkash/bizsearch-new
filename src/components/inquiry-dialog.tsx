@@ -61,6 +61,13 @@ interface InquiryDialogProps {
   askingPrice?: number;
   storeFormats?: StoreFormat[];
   initialFormatId?: string | null;
+  qualificationDefaults?: {
+    investmentCapacity?: string;
+    preferredLocation?: string;
+    openingTimeline?: string;
+    fundsAvailable?: string;
+    relevantExperience?: string;
+  };
 }
 
 export function InquiryDialog({
@@ -69,10 +76,11 @@ export function InquiryDialog({
   listingId,
   listingType,
   listingName,
-  ownerId,
+  ownerId: _ownerId,
   askingPrice,
   storeFormats = [],
   initialFormatId = null,
+  qualificationDefaults,
 }: InquiryDialogProps) {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
@@ -102,18 +110,33 @@ export function InquiryDialog({
       name: profile?.display_name || draft?.form.name || prev.name,
       email: user?.email || profile?.email || draft?.form.email || prev.email,
       phone: profile?.phone || draft?.form.phone || prev.phone,
-      investmentCapacity: draft?.form.investmentCapacity || prev.investmentCapacity,
-      preferredLocation: draft?.form.preferredLocation || prev.preferredLocation,
-      openingTimeline: draft?.form.openingTimeline || prev.openingTimeline,
-      fundsAvailable: draft?.form.fundsAvailable || prev.fundsAvailable,
-      relevantExperience: draft?.form.relevantExperience || prev.relevantExperience,
+      investmentCapacity:
+        draft?.form.investmentCapacity ||
+        qualificationDefaults?.investmentCapacity ||
+        prev.investmentCapacity,
+      preferredLocation:
+        draft?.form.preferredLocation ||
+        qualificationDefaults?.preferredLocation ||
+        prev.preferredLocation,
+      openingTimeline:
+        draft?.form.openingTimeline ||
+        qualificationDefaults?.openingTimeline ||
+        prev.openingTimeline,
+      fundsAvailable:
+        draft?.form.fundsAvailable ||
+        qualificationDefaults?.fundsAvailable ||
+        prev.fundsAvailable,
+      relevantExperience:
+        draft?.form.relevantExperience ||
+        qualificationDefaults?.relevantExperience ||
+        prev.relevantExperience,
       message: draft?.form.message || prev.message,
       acceptNDA: draft?.form.acceptNDA || prev.acceptNDA,
     }));
     setSelectedFormatId(
       draft?.selectedFormatId || initialFormatId || storeFormats[0]?.id || null
     );
-  }, [open, user, profile, initialFormatId, storeFormats, listingId]);
+  }, [open, user, profile, initialFormatId, storeFormats, listingId, qualificationDefaults]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

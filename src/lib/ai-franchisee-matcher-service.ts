@@ -1,4 +1,4 @@
-import { generateGeminiContent } from './gemini-proxy-client';
+import { COMMAND_CODE_MATCH_MODEL, generateGeminiContent } from './gemini-proxy-client';
 import { getListingRequirements } from './store-formats';
 import { supabase } from './supabase';
 
@@ -67,6 +67,7 @@ export interface FranchiseeMatch {
   recommendation: string;
   expectedROI?: { year1: number; year3: number; year5: number };
   estimatedBreakEven?: number; // months
+  scoredBy?: 'command-code' | 'rules';
 }
 
 function normalizeMatchText(value: string): string {
@@ -122,8 +123,8 @@ export class AIFranchiseeMatcherService {
     const matches: FranchiseeMatch[] = [];
 
     for (const franchise of franchiseOpportunities) {
-      const match = await this.scoreMatch(franchiseeProfile, franchise);
-      if (match.matchScore >= 40) { // Only include reasonable matches
+      const match = this.scoreMatch(franchiseeProfile, franchise);
+      if (match.matchScore >= 40) {
         matches.push(match);
       }
     }
@@ -133,54 +134,47 @@ export class AIFranchiseeMatcherService {
   }
 
   /**
-   * Score a single franchisee-franchise match
+   * Score a single franchisee-franchise match from published fields only.
    */
-  private static async scoreMatch(
+  private static scoreMatch(
     franchisee: FranchiseeProfile,
-    franchise: FranchiseOpportunity
-  ): Promise<FranchiseeMatch> {
-    // Calculate individual scores
+    franchise: FranchiseOpportunity,
+    scoredBy: FranchiseeMatch['scoredBy'] = 'rules'
+  ): FranchiseeMatch {
     const financialFitScore = this.calculateFinancialFit(franchisee, franchise);
     const experienceFitScore = this.calculateExperienceFit(franchisee, franchise);
     const personalityFitScore = this.calculatePersonalityFit(franchisee, franchise);
     const commitmentFitScore = this.calculateCommitmentFit(franchisee, franchise);
     const locationFitScore = this.calculateLocationFit(franchisee, franchise);
 
-    const matchScore = Math.round(
-      financialFitScore * 0.30 +
-      experienceFitScore * 0.25 +
-      locationFitScore * 0.20 +
-      commitmentFitScore * 0.15 +
-      personalityFitScore * 0.10
-    );
-
-    const analysis = this.generateExplainableReasons(franchisee, franchise, {
-      financialFitScore,
-      experienceFitScore,
-      personalityFitScore,
-      commitmentFitScore,
-      locationFitScore,
-      matchScore,
+    const matchScore = this.weightedScore({
+      financial: financialFitScore,
+      experience: experienceFitScore,
+      location: locationFitScore,
+      commitment: commitmentFitScore,
+      personality: personalityFitScore,
     });
 
-    const matchLevel = this.getMatchLevel(matchScore);
-    const successProbability = this.calculateSuccessProbability(
+    const analysis = this.generateExplainableReasons(franchisee, franchise, {
+      financialFitScore: financialFitScore ?? 0,
+      experienceFitScore,
+      personalityFitScore: personalityFitScore ?? 0,
+      commitmentFitScore: commitmentFitScore ?? 0,
+      locationFitScore: locationFitScore ?? 0,
       matchScore,
-      franchisee,
-      franchise
-    );
+    });
 
     return {
       franchiseeId: franchisee.userId,
       franchise,
       matchScore,
-      financialFitScore,
+      financialFitScore: financialFitScore ?? 0,
       experienceFitScore,
-      personalityFitScore,
-      commitmentFitScore,
-      locationFitScore,
-      successProbability,
-      matchLevel,
+      personalityFitScore: personalityFitScore ?? 0,
+      commitmentFitScore: commitmentFitScore ?? 0,
+      locationFitScore: locationFitScore ?? 0,
+      successProbability: this.calculateSuccessProbability(matchScore, franchisee, franchise),
+      matchLevel: this.getMatchLevel(matchScore),
       strengths: analysis.strengths,
       concerns: analysis.concerns,
       recommendation: analysis.recommendation,
@@ -192,7 +186,44 @@ export class AIFranchiseeMatcherService {
           }
         : undefined,
       estimatedBreakEven: undefined,
+      scoredBy,
     };
+  }
+
+  private static weightedScore(dims: {
+    financial: number | null;
+    experience: number | null;
+    location: number | null;
+    commitment: number | null;
+    personality: number | null;
+  }): number {
+    const weights = {
+      financial: 0.35,
+      location: 0.25,
+      experience: 0.22,
+      commitment: 0.18,
+      personality: 0.1,
+    };
+    let total = 0;
+    let weight = 0;
+    (Object.keys(weights) as Array<keyof typeof weights>).forEach((key) => {
+      const value = dims[key];
+      if (value == null) return;
+      total += value * weights[key];
+      weight += weights[key];
+    });
+    return weight > 0 ? Math.round(total / weight) : 0;
+  }
+
+  private static normalizeScore(value: unknown, fallback: number, scaleFraction = false): number {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return fallback;
+    if (scaleFraction && n >= 0 && n <= 1) return Math.round(n * 100);
+    return this.clamp(n, 0, 100);
+  }
+
+  private static clamp(value: number, min: number, max: number): number {
+    return Math.min(max, Math.max(min, Math.round(value)));
   }
 
   /**
@@ -201,52 +232,37 @@ export class AIFranchiseeMatcherService {
   private static calculateFinancialFit(
     franchisee: FranchiseeProfile,
     franchise: FranchiseOpportunity
-  ): number {
+  ): number | null {
     let score = 0;
 
-    // Budget vs total investment (40 points)
-    if (franchisee.budget) {
-      const maxInvestment = franchise.totalInvestment.max;
+    // Budget vs total investment (only when both exist)
+    if (franchisee.budget?.max && franchise.totalInvestment.min) {
+      const maxInvestment = franchise.totalInvestment.max || franchise.totalInvestment.min;
       const budgetMax = franchisee.budget.max;
 
       if (budgetMax >= maxInvestment) {
-        score += 40;
-      } else if (budgetMax >= maxInvestment * 0.8) {
-        score += 30;
-      } else if (budgetMax >= maxInvestment * 0.6) {
-        score += 20;
+        score += 70;
+      } else if (budgetMax >= franchise.totalInvestment.min) {
+        score += 50;
+      } else if (budgetMax >= franchise.totalInvestment.min * 0.8) {
+        score += 28;
       } else {
-        score += 10;
+        score += 8;
       }
+    } else {
+      return null;
     }
 
-    // Liquid capital (30 points)
     if (franchisee.liquidCapital && franchise.minimumLiquidCapital) {
       const ratio = franchisee.liquidCapital / franchise.minimumLiquidCapital;
-      if (ratio >= 1.5) score += 30;
-      else if (ratio >= 1.2) score += 25;
-      else if (ratio >= 1.0) score += 20;
+      if (ratio >= 1.0) score += 20;
       else if (ratio >= 0.8) score += 10;
-    } else {
-      score += 15; // Partial credit if data missing
     }
 
-    // Net worth (20 points)
     if (franchisee.netWorth && franchise.minimumNetWorth) {
       const ratio = franchisee.netWorth / franchise.minimumNetWorth;
-      if (ratio >= 2.0) score += 20;
-      else if (ratio >= 1.5) score += 15;
-      else if (ratio >= 1.0) score += 10;
+      if (ratio >= 1.0) score += 10;
       else if (ratio >= 0.8) score += 5;
-    } else {
-      score += 10; // Partial credit if data missing
-    }
-
-    // Credit score (10 points)
-    if (franchisee.creditScore) {
-      if (franchisee.creditScore >= 750) score += 10;
-      else if (franchisee.creditScore >= 700) score += 7;
-      else if (franchisee.creditScore >= 650) score += 4;
     }
 
     return Math.min(100, score);
@@ -343,8 +359,9 @@ export class AIFranchiseeMatcherService {
   private static calculatePersonalityFit(
     franchisee: FranchiseeProfile,
     franchise: FranchiseOpportunity
-  ): number {
-    let score = 50; // Base score
+  ): number | null {
+    if (!franchisee.personalityTraits?.length) return null;
+    let score = 50;
 
     // This is a simplified version - in production, you'd use personality assessments
     if (franchisee.personalityTraits && franchisee.personalityTraits.length > 0) {
@@ -388,28 +405,29 @@ export class AIFranchiseeMatcherService {
   private static calculateCommitmentFit(
     franchisee: FranchiseeProfile,
     franchise: FranchiseOpportunity
-  ): number {
-    let score = 40;
+  ): number | null {
+    if (!franchisee.timeCommitment) return null;
+    let score = 0;
 
     if (franchise.ownerOperatorRequired) {
       switch (franchisee.timeCommitment) {
         case 'full-time':
-          score += 50;
+          score += 90;
           break;
         case 'semi-absentee':
-          score += 18;
+          score += 28;
           break;
         case 'part-time':
-          score += 10;
+          score += 16;
           break;
         case 'absentee':
-          score += 4;
+          score += 8;
           break;
         default:
-          score += 12;
+          score += 20;
       }
     } else if (franchisee.timeCommitment === 'full-time') {
-      score += 45;
+      score += 80;
     } else if (franchisee.timeCommitment === 'semi-absentee') {
       score += franchise.successRate && franchise.successRate >= 80 ? 32 : 22;
     } else if (franchisee.timeCommitment === 'part-time') {
@@ -433,15 +451,11 @@ export class AIFranchiseeMatcherService {
   private static calculateLocationFit(
     franchisee: FranchiseeProfile,
     franchise: FranchiseOpportunity
-  ): number {
+  ): number | null {
     const cities = listingLocations(franchise);
-    let score = 55;
+    if (!franchisee.preferredLocations?.length || !cities.length) return null;
 
-    if (franchisee.preferredLocations?.length && cities.length) {
-      score = anyTextOverlap(franchisee.preferredLocations, cities) ? 90 : 32;
-    } else if (!franchisee.preferredLocations?.length) {
-      score = 60;
-    }
+    let score = anyTextOverlap(franchisee.preferredLocations, cities) ? 90 : 28;
 
     if (franchisee.spaceAvailable && franchise.minAreaSqft) {
       if (franchisee.spaceAvailable >= franchise.minAreaSqft) {
@@ -459,62 +473,225 @@ export class AIFranchiseeMatcherService {
   }
 
   /**
-   * AI-powered detailed match analysis
+   * Rank live listings with Command Code. Facts from the listing always clamp the score.
    */
-  private static async analyzeMatchWithAI(
+  private static async rankWithCommandCode(
+    franchisee: FranchiseeProfile,
+    opportunities: FranchiseOpportunity[]
+  ): Promise<FranchiseeMatch[] | null> {
+    const listings = opportunities.slice(0, 20).map((franchise) => ({
+      id: franchise.franchiseId,
+      brand: franchise.brandName,
+      industry: franchise.industry,
+      fee: franchise.franchiseFee || null,
+      investmentMin: franchise.totalInvestment.min || null,
+      investmentMax: franchise.totalInvestment.max || null,
+      royalty: franchise.royaltyPercentage || null,
+      cities: listingLocations(franchise).slice(0, 12),
+      minSqft: franchise.minAreaSqft || null,
+      maxSqft: franchise.maxAreaSqft || null,
+      liquidMin: franchise.minimumLiquidCapital || null,
+      netWorthMin: franchise.minimumNetWorth || null,
+      ownerOperator: Boolean(franchise.ownerOperatorRequired),
+      experience: franchise.requiredExperience || null,
+    }));
+
+    const prompt = `Return ONLY compact JSON. No thinking. No markdown.
+Score this Indian franchise seeker against published listing fields only.
+Never invent investment, territory, or revenue. Missing fields = concerns, not bonus points.
+
+SEEKER:
+${JSON.stringify({
+  budgetMin: franchisee.budget?.min || null,
+  budgetMax: franchisee.budget?.max || null,
+  cities: franchisee.preferredLocations || [],
+  industries: franchisee.industries || [],
+  liquidCapital: franchisee.liquidCapital || null,
+  netWorth: franchisee.netWorth || null,
+  managementYears: franchisee.managementExperience || null,
+  franchiseExperience: franchisee.franchiseExperience || null,
+  timeCommitment: franchisee.timeCommitment || null,
+  spaceSqft: franchisee.spaceAvailable || null,
+})}
+
+LISTINGS:
+${JSON.stringify(listings)}
+
+JSON shape:
+{"matches":[{"id":"<listing id>","matchScore":72,"financialFitScore":80,"experienceFitScore":55,"locationFitScore":90,"commitmentFitScore":70,"strengths":["..."],"concerns":["..."],"recommendation":"..."}]}
+Include every listing. Scores are integers from 0 to 100, not 0 to 1.`;
+
+    const text = await generateGeminiContent(prompt, {
+      model: COMMAND_CODE_MATCH_MODEL,
+      featureFlag: 'ai_matching',
+      responseFormat: 'json',
+      generationConfig: { temperature: 0, maxOutputTokens: 4000 },
+    });
+    const parsed = this.parseJsonObject(text) as {
+      matches?: Array<{
+        id?: string;
+        brand?: string;
+        matchScore?: number;
+        financialFitScore?: number;
+        experienceFitScore?: number;
+        locationFitScore?: number;
+        commitmentFitScore?: number;
+        strengths?: string[];
+        concerns?: string[];
+        recommendation?: string;
+      }>;
+    };
+    if (!Array.isArray(parsed.matches) || parsed.matches.length === 0) return null;
+
+    const byId = new Map(opportunities.map((item) => [item.franchiseId, item]));
+    const byBrand = new Map(
+      opportunities.map((item) => [item.brandName.trim().toLowerCase(), item])
+    );
+    const scaleFraction = parsed.matches.every((row) => {
+      const n = Number(row.matchScore);
+      return !Number.isFinite(n) || (n >= 0 && n <= 1);
+    });
+    const ranked: FranchiseeMatch[] = [];
+    for (const row of parsed.matches) {
+      const franchise =
+        (row.id && byId.get(row.id)) ||
+        (row.brand && byBrand.get(row.brand.trim().toLowerCase())) ||
+        (row.id && byBrand.get(row.id.trim().toLowerCase()));
+      if (!franchise) continue;
+      const factual = this.scoreMatch(franchisee, franchise, 'command-code');
+      const matchScore = this.clampToFacts(
+        franchisee,
+        franchise,
+        this.normalizeScore(row.matchScore, factual.matchScore, scaleFraction)
+      );
+      ranked.push({
+        ...factual,
+        matchScore,
+        financialFitScore: this.normalizeScore(row.financialFitScore, factual.financialFitScore, scaleFraction),
+        experienceFitScore: this.normalizeScore(row.experienceFitScore, factual.experienceFitScore, scaleFraction),
+        locationFitScore: this.normalizeScore(row.locationFitScore, factual.locationFitScore, scaleFraction),
+        commitmentFitScore: this.normalizeScore(row.commitmentFitScore, factual.commitmentFitScore, scaleFraction),
+        matchLevel: this.getMatchLevel(matchScore),
+        successProbability: this.calculateSuccessProbability(matchScore, franchisee, franchise),
+        strengths: Array.isArray(row.strengths) && row.strengths.length ? row.strengths.slice(0, 4) : factual.strengths,
+        concerns: Array.isArray(row.concerns) ? row.concerns.slice(0, 3) : factual.concerns,
+        recommendation: row.recommendation || factual.recommendation,
+        scoredBy: 'command-code',
+      });
+    }
+    if (!ranked.length) return null;
+    return ranked.sort((a, b) => b.matchScore - a.matchScore);
+  }
+
+  private static clampToFacts(
     franchisee: FranchiseeProfile,
     franchise: FranchiseOpportunity,
-    scores: any
-  ): Promise<{
-    strengths: string[];
-    concerns: string[];
-    recommendation: string;
-    expectedROI?: { year1: number; year3: number; year5: number };
-    estimatedBreakEven?: number;
-  }> {
-    const prompt = `As a franchise matching expert, analyze this franchisee-franchise match:
-
-FRANCHISEE PROFILE:
-- Experience: ${franchisee.managementExperience || 0} years management, ${franchisee.industryExperience || 0} years in industry
-- Education: ${franchisee.educationLevel || 'not specified'}
-- Budget: ₹${franchisee.budget?.min?.toLocaleString() || 'N/A'} - ₹${franchisee.budget?.max?.toLocaleString() || 'N/A'}
-- Liquid Capital: ₹${franchisee.liquidCapital?.toLocaleString() || 'N/A'}
-- Net Worth: ₹${franchisee.netWorth?.toLocaleString() || 'N/A'}
-- Time Commitment: ${franchisee.timeCommitment || 'not specified'}
-- Multi-unit Interest: ${franchisee.multiUnitInterest ? 'Yes' : 'No'}
-
-FRANCHISE OPPORTUNITY:
-- Brand: ${franchise.brandName}
-- Industry: ${franchise.industry}
-- Franchise Fee: ₹${franchise.franchiseFee.toLocaleString()}
-- Total Investment: ₹${franchise.totalInvestment.min.toLocaleString()} - ₹${franchise.totalInvestment.max.toLocaleString()}
-- Royalty: ${franchise.royaltyPercentage}%
-- Required Net Worth: ₹${franchise.minimumNetWorth?.toLocaleString() || 'N/A'}
-- Success Rate: ${franchise.successRate || 'N/A'}%
-- Average ROI: ${franchise.averageROI || 'N/A'}%
-
-MATCH SCORES:
-- Financial Fit: ${scores.financialFitScore}/100
-- Experience Fit: ${scores.experienceFitScore}/100
-- Personality Fit: ${scores.personalityFitScore}/100
-- Overall Match: ${scores.matchScore}/100
-
-Provide analysis in EXACT JSON format (no markdown):
-{
-  "strengths": ["strength 1", "strength 2", "strength 3"],
-  "concerns": ["concern 1", "concern 2"],
-  "recommendation": "One clear recommendation",
-  "expectedROI": {"year1": <number>, "year3": <number>, "year5": <number>},
-  "estimatedBreakEven": <months as number>
-}`;
-
-    try {
-      const text = (await generateGeminiContent(prompt)).replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-      return JSON.parse(text);
-    } catch (error) {
-      console.error('AI analysis error:', error);
-      return this.generateFallbackAnalysis(franchisee, franchise, scores);
+    score: number
+  ): number {
+    let next = score;
+    if (
+      franchisee.budget?.max &&
+      franchise.totalInvestment.min &&
+      franchisee.budget.max < franchise.totalInvestment.min
+    ) {
+      next = Math.min(next, 48);
     }
+    const cities = listingLocations(franchise);
+    if (
+      franchisee.preferredLocations?.length &&
+      cities.length &&
+      !anyTextOverlap(franchisee.preferredLocations, cities)
+    ) {
+      next = Math.min(next, 58);
+    }
+    if (franchise.ownerOperatorRequired && franchisee.timeCommitment && franchisee.timeCommitment !== 'full-time') {
+      next = Math.min(next, 52);
+    }
+    return next;
+  }
+
+  private static parseJsonObject(text: string): Record<string, unknown> {
+    const cleaned = text
+      .replace(/<think>[\s\S]*?<\/think>/gi, ' ')
+      .replace(/```json/gi, '')
+      .replace(/```/g, '')
+      .trim();
+    const candidates = [cleaned];
+    const objectStart = cleaned.indexOf('{');
+    const objectEnd = cleaned.lastIndexOf('}');
+    if (objectStart >= 0 && objectEnd > objectStart) {
+      candidates.push(cleaned.slice(objectStart, objectEnd + 1));
+    }
+    const matchesStart = cleaned.search(/\{\s*"matches"/);
+    if (matchesStart >= 0 && objectEnd > matchesStart) {
+      candidates.push(cleaned.slice(matchesStart, objectEnd + 1));
+    }
+    const arrayStart = cleaned.indexOf('[');
+    const arrayEnd = cleaned.lastIndexOf(']');
+    if (arrayStart >= 0 && arrayEnd > arrayStart) {
+      candidates.push(cleaned.slice(arrayStart, arrayEnd + 1));
+    }
+    for (const candidate of candidates) {
+      try {
+        const parsed = JSON.parse(candidate) as unknown;
+        if (Array.isArray(parsed)) return { matches: parsed };
+        if (parsed && typeof parsed === 'object') {
+          const record = parsed as Record<string, unknown>;
+          if (Array.isArray(record.matches)) return record;
+          if (Array.isArray(record.results)) return { matches: record.results };
+          return record;
+        }
+      } catch {
+        /* try next */
+      }
+    }
+    const salvaged = this.salvageMatchRows(cleaned);
+    if (salvaged.length) return { matches: salvaged };
+    console.error('Command Code JSON parse failed. Preview:', cleaned.slice(0, 400));
+    throw new Error('Command Code did not return JSON');
+  }
+
+  private static salvageMatchRows(text: string): Array<Record<string, unknown>> {
+    const marker = text.indexOf('"matches"');
+    const start = marker >= 0 ? text.indexOf('[', marker) : text.indexOf('[');
+    if (start < 0) return [];
+    const rows: Array<Record<string, unknown>> = [];
+    let i = start + 1;
+    while (i < text.length && rows.length < 20) {
+      const objStart = text.indexOf('{', i);
+      if (objStart < 0) break;
+      let depth = 0;
+      let inString = false;
+      let escape = false;
+      let closed = -1;
+      for (let j = objStart; j < text.length; j += 1) {
+        const ch = text[j];
+        if (inString) {
+          if (escape) escape = false;
+          else if (ch === '\\') escape = true;
+          else if (ch === '"') inString = false;
+          continue;
+        }
+        if (ch === '"') inString = true;
+        else if (ch === '{') depth += 1;
+        else if (ch === '}') {
+          depth -= 1;
+          if (depth === 0) {
+            closed = j;
+            break;
+          }
+        }
+      }
+      if (closed < 0) break;
+      try {
+        const row = JSON.parse(text.slice(objStart, closed + 1)) as Record<string, unknown>;
+        if (row && typeof row === 'object') rows.push(row);
+      } catch {
+        /* skip broken object */
+      }
+      i = closed + 1;
+    }
+    return rows;
   }
 
   /**
@@ -776,7 +953,16 @@ Provide analysis in EXACT JSON format (no markdown):
         };
       });
 
-      // Match and return top results
+      let aiMatches: FranchiseeMatch[] | null = null;
+      try {
+        aiMatches = await this.rankWithCommandCode(franchiseeProfile, opportunities);
+      } catch (error) {
+        console.error('Command Code matching failed, using field-based scores:', error);
+      }
+      if (aiMatches?.length) {
+        return aiMatches.slice(0, limit);
+      }
+
       const matches = await this.matchFranchisee(franchiseeProfile, opportunities);
       return matches.slice(0, limit);
     } catch (error) {

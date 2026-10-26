@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { GoogleGenerativeAI } from "https://esm.sh/@google/generative-ai@0.24.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,6 +9,8 @@ const corsHeaders = {
 
 const MAX_PROMPT_LENGTH = 32000;
 const MAX_HISTORY_MESSAGES = 20;
+const COMMAND_CODE_CHAT_URL = "https://api.commandcode.ai/provider/v1/chat/completions";
+const DEFAULT_MODEL = "deepseek/deepseek-v4-flash-fast";
 
 interface ChatMessage {
   role: "user" | "model";
@@ -43,10 +44,7 @@ serve(async (req: Request) => {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return jsonResponse({ error: "Unauthorized" }, 401);
-    }
+    const { data: { user } } = await supabase.auth.getUser();
 
     const body = await req.json();
     const featureFlag =
@@ -60,27 +58,23 @@ serve(async (req: Request) => {
       return jsonResponse({ error: "This AI feature is turned off." }, 403);
     }
 
-    const { data: quotaOk, error: quotaError } = await supabase.rpc(
-      "consume_gemini_quota",
-      { p_max: 20 }
-    );
-    if (quotaError) {
-      console.error("Gemini quota check failed:", quotaError);
-    } else if (quotaOk === false) {
-      return jsonResponse({ error: "Daily AI limit reached. Try again tomorrow." }, 429);
+    if (user) {
+      const { data: quotaOk, error: quotaError } = await supabase.rpc(
+        "consume_gemini_quota",
+        { p_max: 20 }
+      );
+      if (quotaError) {
+        console.error("Command Code quota check failed:", quotaError);
+      } else if (quotaOk === false) {
+        return jsonResponse({ error: "Daily AI limit reached. Try again tomorrow." }, 429);
+      }
     }
 
     const action = body.action as string;
-    const modelName = typeof body.model === "string" ? body.model : "gemini-pro";
-    const generationConfig = body.generationConfig ?? {
-      temperature: 0.7,
-      topK: 40,
-      topP: 0.95,
-      maxOutputTokens: 2048,
-    };
-
-    const genAI = new GoogleGenerativeAI(cmdApiKey);
-    const model = genAI.getGenerativeModel({ model: modelName });
+    const modelName = resolveModel(typeof body.model === "string" ? body.model : DEFAULT_MODEL);
+    const generationConfig = body.generationConfig ?? {};
+    const temperature = Number(generationConfig.temperature ?? 0.2);
+    const maxTokens = Number(generationConfig.maxOutputTokens ?? 2048);
 
     if (action === "generateContent") {
       const prompt = sanitizeText(body.prompt);
@@ -88,15 +82,32 @@ serve(async (req: Request) => {
         return jsonResponse({ error: "Prompt is required" }, 400);
       }
 
-      const result = await model.generateContent({
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        generationConfig,
-      });
+      const jsonMode = body.responseFormat === "json";
+      const messages: { role: "system" | "user" | "assistant"; content: string }[] = [];
+      if (jsonMode) {
+        messages.push({
+          role: "system",
+          content: "Return only a valid JSON object. No markdown fences. No thinking. No prose.",
+        });
+      }
+      messages.push({ role: "user", content: prompt });
 
-      return jsonResponse({ text: result.response.text() });
+      const text = await commandCodeChat(
+        cmdApiKey,
+        modelName,
+        messages,
+        temperature,
+        maxTokens,
+        jsonMode
+      );
+
+      return jsonResponse({ text });
     }
 
     if (action === "chat") {
+      if (!user) {
+        return jsonResponse({ error: "Unauthorized" }, 401);
+      }
       const message = sanitizeText(body.message);
       if (!message) {
         return jsonResponse({ error: "Message is required" }, 400);
@@ -104,30 +115,127 @@ serve(async (req: Request) => {
 
       const systemPrompt = sanitizeText(body.systemPrompt ?? "");
       const history = normalizeHistory(body.history);
+      const messages: { role: "system" | "user" | "assistant"; content: string }[] = [];
+      if (systemPrompt) {
+        messages.push({ role: "system", content: systemPrompt });
+      }
+      for (const entry of history) {
+        messages.push({
+          role: entry.role === "model" ? "assistant" : "user",
+          content: entry.parts,
+        });
+      }
+      messages.push({ role: "user", content: message });
 
-      const chat = model.startChat({
-        history: history.map((entry) => ({
-          role: entry.role,
-          parts: [{ text: entry.parts }],
-        })),
-        generationConfig,
-      });
-
-      const fullMessage =
-        history.length === 0 && systemPrompt
-          ? `${systemPrompt}\n\nUser: ${message}`
-          : message;
-
-      const result = await chat.sendMessage(fullMessage);
-      return jsonResponse({ text: result.response.text() });
+      const text = await commandCodeChat(cmdApiKey, modelName, messages, temperature, maxTokens);
+      return jsonResponse({ text });
     }
 
     return jsonResponse({ error: "Invalid action" }, 400);
   } catch (error) {
-    console.error("Gemini proxy error:", error);
+    console.error("Command Code proxy error:", error);
     return jsonResponse({ error: "AI service error" }, 500);
   }
 });
+
+function resolveModel(name: string): string {
+  const trimmed = name.trim();
+  if (
+    !trimmed ||
+    trimmed === "gemini-pro" ||
+    trimmed.startsWith("gemini-1.") ||
+    trimmed.startsWith("gemini-2.")
+  ) {
+    return DEFAULT_MODEL;
+  }
+  return trimmed;
+}
+
+async function commandCodeChat(
+  apiKey: string,
+  model: string,
+  messages: { role: "system" | "user" | "assistant"; content: string }[],
+  temperature: number,
+  maxTokens: number,
+  jsonMode = false
+): Promise<string> {
+  const payload = await requestCommandCode(apiKey, {
+    model,
+    messages,
+    temperature,
+    max_tokens: maxTokens,
+    ...(jsonMode ? { response_format: { type: "json_object" } } : {}),
+  });
+
+  const text = extractMessageText(payload);
+  if (!text) {
+    throw new Error("Command Code returned an empty response.");
+  }
+  return text;
+}
+
+async function requestCommandCode(
+  apiKey: string,
+  body: Record<string, unknown>
+): Promise<Record<string, unknown>> {
+  const send = async (payload: Record<string, unknown>) => {
+    const response = await fetch(COMMAND_CODE_CHAT_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        "User-Agent": "BizSearch/1.0 (commandcode-provider)",
+      },
+      body: JSON.stringify(payload),
+    });
+    const data = await response.json();
+    return { ok: response.ok, status: response.status, data };
+  };
+
+  let result = await send(body);
+  if (
+    !result.ok &&
+    body.response_format &&
+    (result.status === 400 || result.status === 422)
+  ) {
+    const { response_format: _ignored, ...withoutFormat } = body;
+    result = await send(withoutFormat);
+  }
+  if (!result.ok) {
+    const message =
+      (result.data as { error?: { message?: string }; message?: string })?.error?.message ||
+      (result.data as { message?: string })?.message ||
+      `Command Code HTTP ${result.status}`;
+    throw new Error(message);
+  }
+  return result.data as Record<string, unknown>;
+}
+
+function extractMessageText(payload: Record<string, unknown>): string {
+  const choices = payload?.choices;
+  const message = Array.isArray(choices) ? (choices[0] as { message?: Record<string, unknown> })?.message || {} : {};
+  const chunks: string[] = [];
+  const push = (value: unknown) => {
+    if (typeof value === "string" && value.trim()) chunks.push(value.trim());
+  };
+  const content = message.content;
+  if (typeof content === "string") {
+    push(content);
+  } else if (Array.isArray(content)) {
+    for (const part of content) {
+      if (typeof part === "string") push(part);
+      else if (part && typeof part === "object") {
+        push((part as { text?: unknown }).text);
+        push((part as { content?: unknown }).content);
+      }
+    }
+  }
+  if (chunks.length) return chunks.join("\n");
+  push(message.reasoning);
+  push(message.reasoning_content);
+  return chunks.join("\n");
+}
 
 function sanitizeText(value: unknown): string {
   if (typeof value !== "string") return "";

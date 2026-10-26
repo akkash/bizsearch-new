@@ -13,6 +13,7 @@ import {
 import { listingLogoUrl } from "@/lib/listing-media";
 import { netMarginPct } from "@/lib/franchise-roi-model";
 import { useFranchiseCompare } from "@/hooks/use-franchise-compare";
+import { compareWorkspacePath } from "@/lib/franchise-compare";
 import { cn } from "@/lib/utils";
 
 const EMPTY = "No details found in the table.";
@@ -40,7 +41,7 @@ function marginLabel(franchise: Franchise): string {
 export function HomeCompareTable({ className }: { className?: string }) {
   const [franchises, setFranchises] = useState<Franchise[]>([]);
   const [loading, setLoading] = useState(true);
-  const { toggleCompare, isCompared } = useFranchiseCompare();
+  const { toggleCompare, replaceCompare, isCompared } = useFranchiseCompare();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -77,10 +78,9 @@ export function HomeCompareTable({ className }: { className?: string }) {
   }, [franchises]);
 
   const openCompare = () => {
-    cohort.brands.forEach((brand) => {
-      if (!isCompared(brand.id)) toggleCompare(brand.id);
-    });
-    navigate("/franchises?compare=1");
+    const ids = cohort.brands.slice(0, 3).map((brand) => brand.id);
+    replaceCompare(ids);
+    navigate(compareWorkspacePath(ids));
   };
 
   return (
@@ -95,8 +95,8 @@ export function HomeCompareTable({ className }: { className?: string }) {
               Royalty, area, and returns for competing franchises in the same category.
             </p>
           </div>
-          <Button variant="outline" asChild>
-            <Link to="/franchises?compare=1">Open full compare</Link>
+          <Button variant="outline" onClick={openCompare}>
+            Open full compare
           </Button>
         </div>
 

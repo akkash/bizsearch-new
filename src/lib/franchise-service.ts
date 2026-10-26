@@ -297,6 +297,53 @@ export class FranchiseService {
     return ownerId === viewerUserId ? franchise : null;
   }
 
+  /** Load compare shortlist by id or slug, independent of catalog filters. */
+  static async getFranchisesByTokens(tokens: string[]): Promise<Franchise[]> {
+    const unique = [...new Set(tokens.map((token) => token.trim()).filter(Boolean))];
+    if (!unique.length) return [];
+
+    const uuids = unique.filter((token) =>
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(token)
+    );
+    const slugs = unique
+      .filter((token) => !uuids.includes(token))
+      .map((token) => sanitizeSlug(token))
+      .filter(Boolean);
+
+    const [idResult, slugResult] = await Promise.all([
+      uuids.length
+        ? supabase.from('franchise_public').select(FRANCHISE_PUBLIC_COLUMNS).in('id', uuids)
+        : Promise.resolve({ data: [], error: null }),
+      slugs.length
+        ? supabase.from('franchise_public').select(FRANCHISE_PUBLIC_COLUMNS).in('slug', slugs)
+        : Promise.resolve({ data: [], error: null }),
+    ]);
+
+    if (idResult.error) console.error('Compare shortlist id fetch failed:', idResult.error);
+    if (slugResult.error) console.error('Compare shortlist slug fetch failed:', slugResult.error);
+
+    const mapped = mapFranchisesFromDb([
+      ...((idResult.data || []) as Record<string, unknown>[]),
+      ...((slugResult.data || []) as Record<string, unknown>[]),
+    ]);
+    const byId = new Map(mapped.map((row) => [row.id, row]));
+    const bySlug = new Map(mapped.map((row) => [String(row.slug || '').toLowerCase(), row]));
+
+    const ordered: Franchise[] = [];
+    const seen = new Set<string>();
+    for (const token of unique) {
+      const match =
+        byId.get(token) ||
+        bySlug.get(token.toLowerCase()) ||
+        bySlug.get(sanitizeSlug(token).toLowerCase());
+      if (match && !seen.has(match.id)) {
+        seen.add(match.id);
+        ordered.push(match);
+      }
+    }
+    return ordered;
+  }
+
   /**
    * Get featured franchises - using direct fetch
    */

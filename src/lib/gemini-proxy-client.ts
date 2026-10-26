@@ -2,6 +2,7 @@ import { supabase } from './supabase';
 import FeatureFlagsService from './feature-flags-service';
 
 const GEMINI_PROXY_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/gemini-proxy`;
+export const COMMAND_CODE_MATCH_MODEL = 'deepseek/deepseek-v4-flash-fast';
 
 export interface GeminiChatMessage {
   role: 'user' | 'model';
@@ -27,16 +28,16 @@ async function callGeminiProxy(body: Record<string, unknown>): Promise<string> {
   }
 
   const { data: { session } } = await supabase.auth.getSession();
-
-  if (!session?.access_token) {
-    throw new Error('You must be signed in to use AI features.');
+  const accessToken = session?.access_token || import.meta.env.VITE_SUPABASE_ANON_KEY;
+  if (!accessToken) {
+    throw new Error('AI service is not configured.');
   }
 
   const response = await fetch(GEMINI_PROXY_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${session.access_token}`,
+      Authorization: `Bearer ${accessToken}`,
       apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
     },
     body: JSON.stringify(body),
@@ -62,14 +63,16 @@ export async function generateGeminiContent(
     model?: string;
     generationConfig?: GeminiGenerationConfig;
     featureFlag?: string;
+    responseFormat?: 'json' | 'text';
   }
 ): Promise<string> {
   return callGeminiProxy({
     action: 'generateContent',
     prompt,
-    model: options?.model ?? 'gemini-pro',
+    model: options?.model ?? COMMAND_CODE_MATCH_MODEL,
     generationConfig: options?.generationConfig,
     featureFlag: options?.featureFlag ?? 'ai_matching',
+    responseFormat: options?.responseFormat ?? 'text',
   });
 }
 
@@ -88,7 +91,7 @@ export async function sendGeminiChat(
     message,
     systemPrompt: options?.systemPrompt,
     history: options?.history ?? [],
-    model: options?.model ?? 'gemini-pro',
+    model: options?.model ?? COMMAND_CODE_MATCH_MODEL,
     generationConfig: options?.generationConfig,
     featureFlag: options?.featureFlag ?? 'ai_chat_advisor',
   });
