@@ -184,7 +184,7 @@ export function OrganizationSchema() {
         ],
         contactPoint: {
             '@type': 'ContactPoint',
-            telephone: '+91-XXXXXXXXXX',
+            telephone: '+91-40-4567-8900',
             contactType: 'customer service',
             areaServed: 'IN',
             availableLanguage: ['English', 'Hindi'],

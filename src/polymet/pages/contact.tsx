@@ -25,10 +25,11 @@ import {
   Send,
   CheckCircle,
   HelpCircle,
+  Building2,
 } from "lucide-react";
 import { PageHero } from "@/components/page-hero";
 import { SEOHead } from "@/components/seo-head";
-import { CONTACT_EMAIL, CONTACT_OFFICE, CONTACT_PHONE } from "@/lib/site-config";
+import { COMPANY_NAME, CONTACT_CITY, CONTACT_EMAIL, CONTACT_OFFICE, CONTACT_PHONE } from "@/lib/site-config";
 
 export function ContactPage({ className }: { className?: string }) {
   const [formData, setFormData] = useState({
@@ -237,47 +238,50 @@ export function ContactPage({ className }: { className?: string }) {
                   <CardTitle className="text-base">Direct contact</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4 text-sm">
-                  {CONTACT_PHONE ? (
-                    <div className="flex items-start gap-3">
-                      <Phone className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                      <div>
-                        <p className="font-medium">Phone</p>
-                        <a
-                          href={`tel:${CONTACT_PHONE.replace(/\s/g, "")}`}
-                          className="text-muted-foreground hover:text-foreground"
-                        >
-                          {CONTACT_PHONE}
-                        </a>
-                        <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          Mon–Sat, 9 AM – 7 PM
-                        </p>
-                      </div>
+                  <div className="flex items-start gap-3">
+                    <Building2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                    <div>
+                      <p className="font-medium">Company</p>
+                      <p className="text-muted-foreground">{COMPANY_NAME}</p>
                     </div>
-                  ) : null}
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <MapPin className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                    <div>
+                      <p className="font-medium">City</p>
+                      <p className="text-muted-foreground leading-relaxed">
+                        {CONTACT_OFFICE || CONTACT_CITY}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Phone className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                    <div>
+                      <p className="font-medium">Phone</p>
+                      <a
+                        href={`tel:${CONTACT_PHONE.replace(/\s/g, "")}`}
+                        className="text-muted-foreground hover:text-foreground normal-case"
+                      >
+                        {CONTACT_PHONE}
+                      </a>
+                      <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        Mon–Sat, 9 AM – 7 PM
+                      </p>
+                    </div>
+                  </div>
                   <div className="flex items-start gap-3">
                     <Mail className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                     <div>
                       <p className="font-medium">Email</p>
                       <a
                         href={`mailto:${CONTACT_EMAIL}`}
-                        className="text-muted-foreground hover:text-foreground"
+                        className="text-muted-foreground hover:text-foreground normal-case tracking-normal"
                       >
                         {CONTACT_EMAIL}
                       </a>
                     </div>
                   </div>
-                  {CONTACT_OFFICE ? (
-                    <div className="flex items-start gap-3">
-                      <MapPin className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                      <div>
-                        <p className="font-medium">Office</p>
-                        <p className="text-muted-foreground leading-relaxed">
-                          {CONTACT_OFFICE}
-                        </p>
-                      </div>
-                    </div>
-                  ) : null}
                 </CardContent>
               </Card>
             </div>

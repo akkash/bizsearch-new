@@ -170,6 +170,11 @@ export interface Franchise {
     data_completeness_score?: number;
     dataCompletenessScore?: number;
     headquartersCity?: string;
+    headquarters_city?: string;
+    headquartersState?: string;
+    headquarters_state?: string;
+    operatingLocations?: unknown;
+    operating_locations?: unknown;
     last_activity_at?: string;
     workingCapital?: number;
     working_capital?: number;

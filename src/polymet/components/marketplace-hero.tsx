@@ -119,15 +119,15 @@ export function MarketplaceHero({ className }: MarketplaceHeroProps) {
           className="rounded-xl border border-border bg-card shadow-sm overflow-hidden"
         >
           <div className="grid grid-cols-1 md:grid-cols-[1fr_1.15fr_1.2fr_auto] md:items-stretch">
-            <label className="flex flex-col justify-center border-b md:border-b-0 md:border-r border-border">
-              <span className="px-4 pt-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+            <label htmlFor="hero-category" className="flex flex-col justify-center border-b md:border-b-0 md:border-r border-border">
+              <span className="px-4 pt-3 text-[10px] font-bold normal-case tracking-normal text-muted-foreground">
                 Category
               </span>
               <select
+                id="hero-category"
                 value={industry}
                 onChange={(e) => setIndustry(e.target.value)}
                 className={fieldClass}
-                aria-label="Industry"
               >
                 <option value="">Any industry</option>
                 {categories.map((opt) => (
@@ -137,8 +137,8 @@ export function MarketplaceHero({ className }: MarketplaceHeroProps) {
                 ))}
               </select>
             </label>
-            <label className="flex flex-col justify-center px-4 py-3 border-b md:border-b-0 md:border-r border-border">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+            <label htmlFor="hero-budget" className="flex flex-col justify-center px-4 py-3 border-b md:border-b-0 md:border-r border-border">
+              <span id="hero-budget-label" className="text-[10px] font-bold normal-case tracking-normal text-muted-foreground">
                 Budget
               </span>
               <div className="flex items-baseline justify-between gap-2 mb-1.5">
@@ -148,19 +148,21 @@ export function MarketplaceHero({ className }: MarketplaceHeroProps) {
                 </span>
               </div>
               <Slider
+                id="hero-budget"
                 min={BUDGET_MIN}
                 max={BUDGET_MAX}
                 step={100000}
                 value={[budget]}
                 onValueChange={(v) => setBudget(v[0] ?? 5000000)}
-                aria-label="Maximum liquid capital"
+                aria-labelledby="hero-budget-label"
               />
             </label>
-            <label className="flex flex-col justify-center border-b md:border-b-0 md:border-r border-border">
-              <span className="px-4 pt-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+            <label htmlFor="hero-city" className="flex flex-col justify-center border-b md:border-b-0 md:border-r border-border">
+              <span className="px-4 pt-3 text-[10px] font-bold normal-case tracking-normal text-muted-foreground">
                 City / search
               </span>
               <input
+                id="hero-city"
                 list="hero-cities"
                 value={city || phrase}
                 onChange={(e) => {
@@ -175,7 +177,6 @@ export function MarketplaceHero({ className }: MarketplaceHeroProps) {
                 }}
                 placeholder={PLACEHOLDERS[placeholderIndex]}
                 className={fieldClass}
-                aria-label="City or franchise search"
               />
               <datalist id="hero-cities">
                 {CITIES.map((name) => (

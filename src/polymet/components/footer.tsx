@@ -63,12 +63,18 @@ export function Footer() {
               </p>
             </div>
             <form onSubmit={handleSubscribe} className="flex gap-2 w-full">
+              <label htmlFor="listing-alerts-email" className="sr-only">
+                Email for new franchise alerts
+              </label>
               <Input
+                id="listing-alerts-email"
                 type="email"
+                name="email"
+                autoComplete="email"
                 placeholder="Enter email for new franchise alerts"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="bg-transparent border border-background/20 text-background placeholder:text-background/50 w-full shadow-none rounded-lg"
+                className="bg-transparent border border-background/20 text-background placeholder:text-background/50 w-full shadow-none rounded-lg h-11"
               />
               <Button
                 type="submit"

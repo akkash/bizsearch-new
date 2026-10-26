@@ -47,10 +47,10 @@ export function BusinessCard({
     (business as any).profit ||
     business.financials?.[0]?.profit;
   const isVerified = business.verification_status === "verified";
-  const hasFinancials =
-    Boolean(business.revenue) ||
-    Boolean(profit) ||
-    (Array.isArray(business.badges) && business.badges.includes("Verified"));
+  const hasFinancials = Boolean(business.revenue) || Boolean(profit);
+  const showVerification =
+    business.verification_status === "verified" ||
+    business.verification_status === "pending";
   const coverUrl = listingCoverUrl(business);
   const logoUrl = listingLogoUrl(business);
 
@@ -95,15 +95,18 @@ export function BusinessCard({
             <h3 className="font-semibold text-base md:text-lg leading-snug line-clamp-1">
               {business.name}
             </h3>
-            <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground">
-              <MapPin className="h-3 w-3 shrink-0" aria-hidden="true" />
-              <span className="line-clamp-1">
-                {business.city && business.state
-                  ? `${business.city}, ${business.state}`
-                  : business.location}
-              </span>
-              <span className="text-border">·</span>
-              <span className="line-clamp-1">{business.industry}</span>
+            <div className="mt-1 space-y-0.5 text-sm text-muted-foreground">
+              {(business.city || business.location) && (
+                <div className="flex items-start gap-1.5">
+                  <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0" aria-hidden="true" />
+                  <span>
+                    {business.city && business.state
+                      ? `${business.city}, ${business.state}`
+                      : business.location}
+                  </span>
+                </div>
+              )}
+              {business.industry && <div className="pl-5">{business.industry}</div>}
             </div>
           </div>
 
@@ -163,9 +166,9 @@ export function BusinessCard({
           </div>
           )}
 
-          {/* Verification */}
+          {(showVerification || isVerified || hasFinancials) && (
           <div className="flex flex-wrap items-center gap-2 text-xs">
-            {business.verification_status && (
+            {showVerification && (
               <VerificationBadge
                 status={business.verification_status as VerificationStatus}
                 verifiedAt={business.verified_at}
@@ -185,6 +188,7 @@ export function BusinessCard({
               </span>
             )}
           </div>
+          )}
 
           {/* Actions */}
           <div className="flex gap-2 pt-1">

@@ -953,16 +953,8 @@ Include every listing. Scores are integers from 0 to 100, not 0 to 1.`;
         };
       });
 
-      let aiMatches: FranchiseeMatch[] | null = null;
-      try {
-        aiMatches = await this.rankWithCommandCode(franchiseeProfile, opportunities);
-      } catch (error) {
-        console.error('Command Code matching failed, using field-based scores:', error);
-      }
-      if (aiMatches?.length) {
-        return aiMatches.slice(0, limit);
-      }
-
+      // Score from published listing fields. Waiting on the model kept this over 10s
+      // and could disagree with the budget the seeker just entered.
       const matches = await this.matchFranchisee(franchiseeProfile, opportunities);
       return matches.slice(0, limit);
     } catch (error) {

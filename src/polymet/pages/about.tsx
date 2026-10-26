@@ -22,7 +22,7 @@ import {
 import { Link } from "react-router-dom";
 import { PageHero } from "@/components/page-hero";
 import { SEOHead } from "@/components/seo-head";
-import { CONTACT_EMAIL, CONTACT_OFFICE, CONTACT_PHONE } from "@/lib/site-config";
+import { COMPANY_NAME, CONTACT_CITY, CONTACT_EMAIL, CONTACT_OFFICE, CONTACT_PHONE } from "@/lib/site-config";
 
 export function AboutPage({ className }: { className?: string }) {
   const howSteps = [
@@ -249,23 +249,23 @@ export function AboutPage({ className }: { className?: string }) {
 
       <section className="py-8 border-t border-border">
         <div className="container mx-auto px-4">
-          <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
-            {CONTACT_PHONE ? (
-              <a href={`tel:${CONTACT_PHONE.replace(/\s/g, "")}`} className="flex items-center gap-2 hover:text-foreground">
-                <Phone className="h-4 w-4" />
-                {CONTACT_PHONE}
-              </a>
-            ) : null}
-            <a href={`mailto:${CONTACT_EMAIL}`} className="flex items-center gap-2 hover:text-foreground">
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <Building2 className="h-4 w-4" />
+              {COMPANY_NAME}
+            </div>
+            <div className="flex items-center gap-2">
+              <MapPin className="h-4 w-4" />
+              {CONTACT_OFFICE || CONTACT_CITY}
+            </div>
+            <a href={`tel:${CONTACT_PHONE.replace(/\s/g, "")}`} className="flex items-center gap-2 hover:text-foreground normal-case">
+              <Phone className="h-4 w-4" />
+              {CONTACT_PHONE}
+            </a>
+            <a href={`mailto:${CONTACT_EMAIL}`} className="flex items-center gap-2 hover:text-foreground normal-case tracking-normal">
               <Mail className="h-4 w-4" />
               {CONTACT_EMAIL}
             </a>
-            {CONTACT_OFFICE ? (
-              <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                {CONTACT_OFFICE}
-              </div>
-            ) : null}
           </div>
         </div>
       </section>

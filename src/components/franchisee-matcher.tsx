@@ -51,6 +51,7 @@ export function FranchiseeMatcher({ onClose, className }: FranchiseeMatcherProps
   const [matches, setMatches] = useState<Awaited<ReturnType<typeof AIFranchiseeMatcherService.findBestMatches>>>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [enquiringId, setEnquiringId] = useState<string | null>(null);
+  const [showMore, setShowMore] = useState(false);
 
   useEffect(() => {
     const draft = readMatchDraft();
@@ -278,7 +279,7 @@ export function FranchiseeMatcher({ onClose, className }: FranchiseeMatcherProps
             Franchise Matcher
           </CardTitle>
           <CardDescription>
-            Score live franchise listings with Command Code. Sending a lead still requires an account.
+            Match live franchise listings to your budget, cities, and time. Sending a lead still requires an account.
           </CardDescription>
         </CardHeader>
 
@@ -289,92 +290,46 @@ export function FranchiseeMatcher({ onClose, className }: FranchiseeMatcherProps
             </p>
           )}
           {step === 'profile' ? (
-            <div className="space-y-6">
+            <div className="space-y-4 pb-24 md:pb-0">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label>Budget Range (Min)</Label>
+                  <Label htmlFor="match-budget">Investment budget (₹)</Label>
                   <Input
+                    id="match-budget"
                     type="number"
-                    placeholder="e.g., 1000000"
-                    value={profileData.budget?.min || ''}
-                    onChange={(e) => setProfileData({
-                      ...profileData,
-                      budget: { ...profileData.budget, min: Number(e.target.value), max: profileData.budget?.max || 0 }
-                    })}
-                  />
-                </div>
-                <div>
-                  <Label>Budget Range (Max)</Label>
-                  <Input
-                    type="number"
-                    placeholder="e.g., 5000000"
+                    inputMode="numeric"
+                    placeholder="3000000"
                     value={profileData.budget?.max || ''}
                     onChange={(e) => setProfileData({
                       ...profileData,
-                      budget: { ...profileData.budget, max: Number(e.target.value), min: profileData.budget?.min || 0 }
+                      budget: {
+                        min: profileData.budget?.min || 0,
+                        max: Number(e.target.value) || 0,
+                      },
                     })}
                   />
+                  <p className="text-xs text-muted-foreground mt-1">Enter rupees. 30 lakh is 3000000.</p>
                 </div>
                 <div>
-                  <Label>Liquid Capital Available</Label>
-                  <Input
-                    type="number"
-                    placeholder="Cash available"
-                    value={profileData.liquidCapital || ''}
-                    onChange={(e) => setProfileData({ ...profileData, liquidCapital: Number(e.target.value) })}
-                  />
-                </div>
-                <div>
-                  <Label>Net Worth</Label>
-                  <Input
-                    type="number"
-                    placeholder="Total assets - liabilities"
-                    value={profileData.netWorth || ''}
-                    onChange={(e) => setProfileData({ ...profileData, netWorth: Number(e.target.value) })}
-                  />
-                </div>
-                <div>
-                  <Label>Management Experience (years)</Label>
-                  <Input
-                    type="number"
-                    placeholder="e.g., 5"
-                    value={profileData.managementExperience || ''}
-                    onChange={(e) => setProfileData({ ...profileData, managementExperience: Number(e.target.value) })}
-                  />
-                </div>
-                <div>
-                  <Label>Time Commitment</Label>
+                  <Label htmlFor="match-time">How you will run it</Label>
                   <select
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    id="match-time"
+                    name="timeCommitment"
+                    className="flex h-11 min-h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                     value={profileData.timeCommitment || 'full-time'}
                     onChange={(e) => setProfileData({ ...profileData, timeCommitment: e.target.value as FranchiseeProfile['timeCommitment'] })}
                   >
-                    <option value="full-time">Full-time</option>
+                    <option value="full-time">Full-time, on site</option>
                     <option value="part-time">Part-time</option>
-                    <option value="semi-absentee">Semi-absentee</option>
-                    <option value="absentee">Absentee</option>
+                    <option value="semi-absentee">A few days a week</option>
+                    <option value="absentee">Someone else runs it</option>
                   </select>
                 </div>
-                <div className="md:col-span-2">
-                  <Label>Preferred industries (optional)</Label>
+                <div>
+                  <Label htmlFor="match-cities">Cities</Label>
                   <Input
-                    placeholder="F&B, Education, Retail"
-                    value={(profileData.industries || []).join(', ')}
-                    onChange={(e) =>
-                      setProfileData({
-                        ...profileData,
-                        industries: e.target.value
-                          .split(',')
-                          .map((item) => item.trim())
-                          .filter(Boolean),
-                      })
-                    }
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <Label>Preferred cities</Label>
-                  <Input
-                    placeholder="Chennai, Bangalore, Coimbatore"
+                    id="match-cities"
+                    placeholder="Chennai, Hyderabad"
                     value={(profileData.preferredLocations || []).join(', ')}
                     onChange={(e) =>
                       setProfileData({
@@ -388,15 +343,18 @@ export function FranchiseeMatcher({ onClose, className }: FranchiseeMatcherProps
                   />
                 </div>
                 <div>
-                  <Label>Space available (sq ft, optional)</Label>
+                  <Label htmlFor="match-industries">Industries (optional)</Label>
                   <Input
-                    type="number"
-                    placeholder="e.g., 800"
-                    value={profileData.spaceAvailable || ''}
+                    id="match-industries"
+                    placeholder="Food, Education"
+                    value={(profileData.industries || []).join(', ')}
                     onChange={(e) =>
                       setProfileData({
                         ...profileData,
-                        spaceAvailable: Number(e.target.value) || undefined,
+                        industries: e.target.value
+                          .split(',')
+                          .map((item) => item.trim())
+                          .filter(Boolean),
                       })
                     }
                   />
@@ -404,12 +362,77 @@ export function FranchiseeMatcher({ onClose, className }: FranchiseeMatcherProps
               </div>
 
               <Button
-                onClick={handleFindMatches}
-                disabled={isLoading}
-                className="w-full"
+                type="button"
+                variant="ghost"
+                className="h-auto px-0 text-sm text-muted-foreground"
+                onClick={() => setShowMore((open) => !open)}
               >
-                {isLoading ? 'Finding Matches...' : 'Find Matching Franchises'}
+                {showMore ? 'Hide extra details' : 'Add capital, experience, or space'}
               </Button>
+
+              {showMore && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="match-liquid">Cash you can put in now (₹)</Label>
+                    <Input
+                      id="match-liquid"
+                      type="number"
+                      inputMode="numeric"
+                      placeholder="1000000"
+                      value={profileData.liquidCapital || ''}
+                      onChange={(e) => setProfileData({ ...profileData, liquidCapital: Number(e.target.value) })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="match-worth">Net worth (₹)</Label>
+                    <Input
+                      id="match-worth"
+                      type="number"
+                      inputMode="numeric"
+                      placeholder="5000000"
+                      value={profileData.netWorth || ''}
+                      onChange={(e) => setProfileData({ ...profileData, netWorth: Number(e.target.value) })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="match-years">Years managing a team</Label>
+                    <Input
+                      id="match-years"
+                      type="number"
+                      inputMode="numeric"
+                      placeholder="5"
+                      value={profileData.managementExperience || ''}
+                      onChange={(e) => setProfileData({ ...profileData, managementExperience: Number(e.target.value) })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="match-space">Space available (sq ft)</Label>
+                    <Input
+                      id="match-space"
+                      type="number"
+                      inputMode="numeric"
+                      placeholder="800"
+                      value={profileData.spaceAvailable || ''}
+                      onChange={(e) =>
+                        setProfileData({
+                          ...profileData,
+                          spaceAvailable: Number(e.target.value) || undefined,
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="fixed inset-x-0 bottom-16 z-30 border-t border-border bg-background p-3 md:static md:z-auto md:border-0 md:bg-transparent md:p-0">
+                <Button
+                  onClick={handleFindMatches}
+                  disabled={isLoading}
+                  className="w-full min-h-11"
+                >
+                  {isLoading ? 'Finding matches…' : 'Find matching franchises'}
+                </Button>
+              </div>
             </div>
           ) : (
             <div className="space-y-4">
@@ -448,7 +471,6 @@ export function FranchiseeMatcher({ onClose, className }: FranchiseeMatcherProps
                         </Badge>
                         <p className="text-xs text-muted-foreground mt-1">
                           {match.matchLevel}
-                          {match.scoredBy === 'command-code' ? ' · Command Code' : ''}
                         </p>
                       </div>
                     </div>
@@ -503,22 +525,30 @@ export function FranchiseeMatcher({ onClose, className }: FranchiseeMatcherProps
                       </div>
                     </div>
 
-                    {(match.strengths.length > 0 || match.concerns.length > 0) && (
+                    {(() => {
+                      const budgetSet = (profileData.budget?.max || 0) > 0;
+                      const contradictsBudget = (line: string) =>
+                        budgetSet && /no budget|budget (is |was )?not (provided|set|given)|without a budget/i.test(line);
+                      const strengths = match.strengths.filter((line) => !contradictsBudget(line)).slice(0, 4);
+                      const concerns = match.concerns.filter((line) => !contradictsBudget(line)).slice(0, 2);
+                      if (strengths.length === 0 && concerns.length === 0) return null;
+                      return (
                       <div className="mt-3 pt-3 border-t space-y-2">
-                        {match.strengths.slice(0, 4).map((strength, i) => (
+                        {strengths.map((strength, i) => (
                           <div key={`s-${i}`} className="text-xs flex items-start gap-1">
                             <span className="text-foreground">✓</span>
                             <span>{strength}</span>
                           </div>
                         ))}
-                        {match.concerns.slice(0, 2).map((concern, i) => (
+                        {concerns.map((concern, i) => (
                           <div key={`c-${i}`} className="text-xs flex items-start gap-1">
                             <span className="text-amber-600">△</span>
                             <span>{concern}</span>
                           </div>
                         ))}
                       </div>
-                    )}
+                      );
+                    })()}
 
                     <div className="flex flex-col sm:flex-row gap-2 mt-3">
                       <Button

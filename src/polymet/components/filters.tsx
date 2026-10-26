@@ -338,7 +338,7 @@ export function Filters({
                   <Badge
                     key={category.id}
                     variant={filters.industry.includes(category.name) ? "default" : "outline"}
-                    className="cursor-pointer hover:bg-primary/90 px-3 py-1.5 text-sm"
+                    className="cursor-pointer hover:bg-primary/90 px-3 py-1.5 text-sm normal-case tracking-normal font-medium"
                     onClick={() => {
                       const isSelected = filters.industry.includes(category.name);
                       const newIndustry = isSelected
@@ -386,7 +386,7 @@ export function Filters({
                     <Badge
                       key={subcategory.id}
                       variant={filters.subcategory.includes(subcategory.name) ? "default" : "outline"}
-                      className="cursor-pointer hover:bg-primary/90 px-3 py-1.5 text-xs"
+                      className="cursor-pointer hover:bg-primary/90 px-3 py-1.5 text-xs normal-case tracking-normal font-medium"
                       onClick={() => toggleArrayFilter("subcategory", subcategory.name)}
                     >
                       {subcategory.name}
@@ -431,7 +431,7 @@ export function Filters({
                   <Badge
                     key={state}
                     variant={filters.state.includes(state) ? "default" : "outline"}
-                    className="cursor-pointer hover:bg-primary/90 px-3 py-1.5 text-sm"
+                    className="cursor-pointer hover:bg-primary/90 px-3 py-1.5 text-sm normal-case tracking-normal font-medium"
                     onClick={() => {
                       const isSelected = filters.state.includes(state);
                       const newState = isSelected
@@ -492,7 +492,7 @@ export function Filters({
                     <Badge
                       key={city}
                       variant={filters.city.includes(city) ? "default" : "outline"}
-                      className="cursor-pointer hover:bg-primary/90 px-3 py-1.5 text-sm"
+                      className="cursor-pointer hover:bg-primary/90 px-3 py-1.5 text-sm normal-case tracking-normal font-medium"
                       onClick={() => toggleArrayFilter("city", city)}
                     >
                       {city}
@@ -629,7 +629,7 @@ export function Filters({
                     <Badge
                       key={model}
                       variant={filters.formatModel.includes(model) ? "default" : "outline"}
-                      className="cursor-pointer px-3 py-1.5"
+                      className="cursor-pointer px-3 py-1.5 normal-case tracking-normal font-medium"
                       onClick={() => toggleArrayFilter("formatModel", model)}
                     >
                       {model}
@@ -759,7 +759,7 @@ export function Filters({
                     <Badge
                       key={bType}
                       variant={filters.businessType.includes(bType) ? "default" : "outline"}
-                      className="cursor-pointer hover:bg-primary/90 px-3 py-1.5 text-xs"
+                      className="cursor-pointer hover:bg-primary/90 px-3 py-1.5 text-xs normal-case tracking-normal font-medium"
                       onClick={() => toggleArrayFilter("businessType", bType)}
                     >
                       {bType}
@@ -779,7 +779,7 @@ export function Filters({
                     <Badge
                       key={verification}
                       variant={filters.verification.includes(verification) ? "default" : "outline"}
-                      className="cursor-pointer hover:bg-primary/90 px-3 py-1.5 text-xs"
+                      className="cursor-pointer hover:bg-primary/90 px-3 py-1.5 text-xs normal-case tracking-normal font-medium"
                       onClick={() => toggleArrayFilter("verification", verification)}
                     >
                       {verification}

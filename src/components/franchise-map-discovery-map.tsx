@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { LocationWithFranchise } from '@/lib/franchise-map-discovery-service';
@@ -8,6 +8,15 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { MapPin, X, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+
+function escapeHtml(value: string | null | undefined): string {
+    return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
 
 // Fix default marker icons for Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -29,9 +38,13 @@ export function FranchiseMapDiscoveryMap({ locations, onLocationClick }: Franchi
     const [selectedLocation, setSelectedLocation] = useState<LocationWithFranchise | null>(null);
     const markersRef = useRef<L.Marker[]>([]);
 
-    // Generate brand colors based on unique franchise IDs
-    const brandColors = FranchiseMapDiscoveryService.getBrandColors(
-        [...new Set(locations.map(l => l.franchise_id))]
+    const franchiseIds = useMemo(
+        () => [...new Set(locations.map((location) => location.franchise_id))],
+        [locations]
+    );
+    const brandColors = useMemo(
+        () => FranchiseMapDiscoveryService.getBrandColors(franchiseIds),
+        [franchiseIds]
     );
 
     useEffect(() => {
@@ -44,6 +57,8 @@ export function FranchiseMapDiscoveryMap({ locations, onLocationClick }: Franchi
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map.current);
+
+        requestAnimationFrame(() => map.current?.invalidateSize());
 
         return () => {
             map.current?.remove();
@@ -111,21 +126,22 @@ export function FranchiseMapDiscoveryMap({ locations, onLocationClick }: Franchi
                 .addTo(map.current!);
 
             // Add popup with brand info
+            const brandName = escapeHtml(location.franchise.brand_name);
             const popupContent = `
         <div style="min-width: 220px;">
           <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
             ${location.franchise.logo_url
-                    ? `<img src="${location.franchise.logo_url}" alt="${location.franchise.brand_name}" style="width: 32px; height: 32px; object-fit: contain; border-radius: 4px;" />`
-                    : `<div style="width: 32px; height: 32px; background: ${brandColor}; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">${location.franchise.brand_name.charAt(0)}</div>`
+                    ? `<img src="${escapeHtml(location.franchise.logo_url)}" alt="${brandName}" style="width: 32px; height: 32px; object-fit: contain; border-radius: 4px;" />`
+                    : `<div style="width: 32px; height: 32px; background: ${brandColor}; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">${brandName.charAt(0)}</div>`
                 }
             <div>
-              <strong>${location.franchise.brand_name}</strong><br/>
-              <small style="color: #6B7280;">${location.franchise.industry}</small>
+              <strong>${brandName}</strong><br/>
+              <small style="color: #6B7280;">${escapeHtml(location.franchise.industry)}</small>
             </div>
           </div>
           <div style="margin-bottom: 8px;">
-            <strong>${location.location_name || `${location.city} Location`}</strong><br/>
-            <small>${location.city}, ${location.state}</small>
+            <strong>${escapeHtml(location.location_name || `${location.city} Location`)}</strong><br/>
+            <small>${escapeHtml(location.city)}, ${escapeHtml(location.state)}</small>
           </div>
           <span style="
             display: inline-block;
@@ -158,6 +174,7 @@ export function FranchiseMapDiscoveryMap({ locations, onLocationClick }: Franchi
             const bounds = L.latLngBounds(
                 validLocations.map((loc) => [loc.latitude!, loc.longitude!] as L.LatLngTuple)
             );
+            map.current.invalidateSize();
             map.current.fitBounds(bounds, { padding: [50, 50], maxZoom: 12 });
         }
     }, [locations, brandColors, onLocationClick]);

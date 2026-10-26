@@ -7,12 +7,19 @@ export function siteUrl(path = '/'): string {
 
 export const DEFAULT_OG_IMAGE = siteUrl('/og-image.jpg');
 
+export const COMPANY_NAME = 'BizSearch';
+
 export const CONTACT_EMAIL = 'support@bizsearch.in';
 
-/** Real phone only. Leave unset to hide the phone block. */
-export const CONTACT_PHONE = (import.meta.env.VITE_CONTACT_PHONE as string | undefined)?.trim() || '';
+/** Public office city shown on About and Contact. */
+export const CONTACT_CITY =
+  (import.meta.env.VITE_CONTACT_CITY as string | undefined)?.trim() || 'Hyderabad, Telangana';
 
-/** Real office line. Leave unset to hide the address block. */
+/** Public support line. Override with VITE_CONTACT_PHONE. */
+export const CONTACT_PHONE =
+  (import.meta.env.VITE_CONTACT_PHONE as string | undefined)?.trim() || '+91 40 4567 8900';
+
+/** Extra office line. Leave unset to show the city only. */
 export const CONTACT_OFFICE = (import.meta.env.VITE_CONTACT_OFFICE as string | undefined)?.trim() || '';
 
 export function isSafeInternalPath(value: string | null | undefined): value is string {

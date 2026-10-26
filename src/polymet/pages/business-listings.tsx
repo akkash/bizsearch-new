@@ -20,6 +20,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import {
   GridIcon,
   ListIcon,
@@ -37,6 +38,9 @@ import { SEOHead } from "@/components/seo-head";
 interface BusinessListingsProps {
   className?: string;
 }
+
+const chipClass =
+  "shrink-0 inline-flex items-center justify-center min-h-11 rounded-full px-4 text-sm normal-case tracking-normal border transition-colors";
 
 type ViewMode = "grid" | "list" | "map";
 type SortOption =
@@ -61,6 +65,10 @@ export function BusinessListings({ className }: BusinessListingsProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [sortBy, setSortBy] = useState<SortOption>("relevance");
   const [showFilters, setShowFilters] = useState(true);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [isDesktopFilters, setIsDesktopFilters] = useState(() =>
+    typeof window !== "undefined" ? window.matchMedia("(min-width: 1024px)").matches : false
+  );
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 
@@ -70,6 +78,14 @@ export function BusinessListings({ className }: BusinessListingsProps) {
   const urlSearchQuery = searchParams.get('q');
   const currentCategory = categorySlug ? getBusinessCategoryBySlug(categorySlug) : null;
   const currentSubcategory = currentCategory?.subcategories.find(s => s.slug === subcategorySlug);
+
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 1024px)");
+    const onChange = () => setIsDesktopFilters(media.matches);
+    onChange();
+    media.addEventListener("change", onChange);
+    return () => media.removeEventListener("change", onChange);
+  }, []);
 
   // Initialize search query from URL if present
   useEffect(() => {
@@ -369,7 +385,7 @@ export function BusinessListings({ className }: BusinessListingsProps) {
         canonicalUrl="/businesses"
       />
       <div className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-6 md:py-8">
+        <div className="container mx-auto px-4 py-3 lg:py-4 xl:px-8">
           {(currentCategory || currentSubcategory) && (
             <nav className="flex items-center gap-2 text-sm mb-4">
               <Link to="/" className="text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors">
@@ -400,73 +416,74 @@ export function BusinessListings({ className }: BusinessListingsProps) {
             </nav>
           )}
 
-          <div className="mb-6">
-            <h1 className="font-display text-3xl md:text-5xl font-bold uppercase tracking-tight mb-3 text-foreground">
+          <div className="mb-2 lg:mb-0">
+            <h1 className="font-display text-2xl lg:text-3xl font-bold normal-case tracking-tight text-foreground">
               {currentSubcategory?.name || currentCategory?.name || "Businesses for sale"}
             </h1>
-            <p className="text-sm text-muted-foreground max-w-2xl">
+            <p className="hidden md:block text-sm text-muted-foreground max-w-2xl">
               {currentCategory
                 ? `Filter and compare ${currentCategory.name.toLowerCase()} listings by price, location, and revenue`
                 : "Filter and compare businesses listed for sale by price, location, and industry"}
             </p>
           </div>
 
-          {!currentCategory && (
-            <div className="flex flex-wrap gap-2">
-              {SMERGERS_BUSINESS_CATEGORIES.slice(0, 8).map((cat) => (
+          <div className="-mx-4 mt-3 flex items-center gap-2 overflow-x-auto px-4 pb-1 scrollbar-hide flex-nowrap lg:hidden">
+            <Button
+              type="button"
+              variant="outline"
+              className="h-11 min-h-11 shrink-0 px-4 normal-case tracking-normal"
+              onClick={() => setMobileFiltersOpen(true)}
+            >
+              <FilterIcon className="h-4 w-4" />
+              Filters
+            </Button>
+            {!currentCategory &&
+              SMERGERS_BUSINESS_CATEGORIES.map((cat) => (
                 <Link
                   key={cat.id}
                   to={`/businesses?category=${cat.slug}`}
-                  className="rounded-full px-3 py-1.5 text-sm border border-border hover:bg-foreground hover:text-background transition-colors"
+                  className={cn(chipClass, "border-border hover:bg-foreground hover:text-background")}
                 >
                   {cat.name}
                 </Link>
               ))}
-            </div>
-          )}
-
-          {currentCategory && currentCategory.subcategories.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              <Link
-                to={`/businesses?category=${currentCategory.slug}`}
-                className={cn(
-                  "rounded-full px-3 py-1.5 text-sm border transition-colors",
-                  !currentSubcategory
-                    ? "bg-growth-green text-white border-growth-green"
-                    : "border-border hover:bg-foreground hover:text-background"
-                )}
-              >
-                All {currentCategory.name}
-              </Link>
-              {currentCategory.subcategories.slice(0, 10).map((sub) => (
+            {currentCategory && currentCategory.subcategories.length > 0 && (
+              <>
                 <Link
-                  key={sub.id}
-                  to={`/businesses?category=${currentCategory.slug}&subcategory=${sub.slug}`}
-                    className={cn(
-                    "rounded-full px-3 py-1.5 text-sm border transition-colors",
-                    currentSubcategory?.id === sub.id
+                  to={`/businesses?category=${currentCategory.slug}`}
+                  className={cn(
+                    chipClass,
+                    !currentSubcategory
                       ? "bg-growth-green text-white border-growth-green"
                       : "border-border hover:bg-foreground hover:text-background"
                   )}
                 >
-                  {sub.name}
+                  All {currentCategory.name}
                 </Link>
-              ))}
-              {currentCategory.subcategories.length > 10 && (
-                <span className="px-3 py-1.5 text-sm text-muted-foreground">
-                  +{currentCategory.subcategories.length - 10} more
-                </span>
-              )}
-            </div>
-          )}
+                {currentCategory.subcategories.map((sub) => (
+                  <Link
+                    key={sub.id}
+                    to={`/businesses?category=${currentCategory.slug}&subcategory=${sub.slug}`}
+                    className={cn(
+                      chipClass,
+                      currentSubcategory?.id === sub.id
+                        ? "bg-growth-green text-white border-growth-green"
+                        : "border-border hover:bg-foreground hover:text-background"
+                    )}
+                  >
+                    {sub.name}
+                  </Link>
+                ))}
+              </>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6">
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Filters Sidebar */}
-          {showFilters && (
-            <div className="lg:w-80 space-y-6">
+      <div id="business-results" className="container mx-auto px-4 py-2 xl:px-8 lg:py-5">
+        <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
+          {isDesktopFilters && showFilters && (
+            <div className="lg:w-80 shrink-0">
               <Filters
                 type="business"
                 initialCategory={currentCategory?.name}
@@ -475,6 +492,29 @@ export function BusinessListings({ className }: BusinessListingsProps) {
               />
             </div>
           )}
+
+          <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
+            <SheetContent
+              side="bottom"
+              className="max-h-[85vh] overflow-y-auto rounded-t-2xl px-4 pb-6 pt-8"
+            >
+              <SheetTitle className="sr-only">Filters</SheetTitle>
+              {!isDesktopFilters && (
+                <Filters
+                  type="business"
+                  initialCategory={currentCategory?.name}
+                  initialSubcategory={currentSubcategory?.name}
+                  onFiltersChange={handleFiltersChange}
+                />
+              )}
+              <Button
+                className="sticky bottom-0 z-10 mt-4 min-h-11 w-full bg-background"
+                onClick={() => setMobileFiltersOpen(false)}
+              >
+                Show results
+              </Button>
+            </SheetContent>
+          </Sheet>
 
           {/* Main Content */}
           <div className="flex-1 space-y-6">
@@ -487,10 +527,19 @@ export function BusinessListings({ className }: BusinessListingsProps) {
                       variant="ghost"
                       size="sm"
                       onClick={() => setShowFilters(!showFilters)}
-                      className="gap-2"
+                      className="hidden lg:inline-flex gap-2"
                     >
                       <FilterIcon className="h-4 w-4" />
                       {showFilters ? "Hide" : "Show"} Filters
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setMobileFiltersOpen(true)}
+                      className="lg:hidden gap-2"
+                    >
+                      <FilterIcon className="h-4 w-4" />
+                      Filters
                     </Button>
                     <Separator orientation="vertical" className="h-6" />
 

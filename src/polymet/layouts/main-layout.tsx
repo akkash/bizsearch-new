@@ -61,14 +61,10 @@ export function MainLayout({ children }: MainLayoutProps) {
   const { user, profile, signOut } = useAuth();
   const { savedCount } = useSavedListings();
   const { unreadCount } = useNotifications();
-  const isFranchiseMapEnabled = useFeatureFlag("franchise_map");
   const isAIChatEnabled = useFeatureFlag("ai_chat_advisor");
   const toolsLinks = TOOLS_LINKS.filter((tool) => {
     if (tool.href === "/pipeline") {
       return profileHasAnyRole(profile, ["franchisor", "seller"]);
-    }
-    if (tool.href === "/franchise-map") {
-      return isFranchiseMapEnabled;
     }
     return true;
   });
@@ -284,7 +280,7 @@ export function MainLayout({ children }: MainLayoutProps) {
                 <div className="hidden md:flex items-center gap-6 ml-2">
                   <Link
                     to="/login"
-                    className="text-sm font-bold uppercase tracking-widest hover:text-trust-blue"
+                    className="text-sm font-bold normal-case tracking-normal hover:text-trust-blue"
                   >
                     Sign In
                   </Link>

@@ -67,8 +67,8 @@ export function buildMatchFitChecks(
       pass: budgetOk,
       detail:
         budgetMax > 0
-          ? `₹${Math.round(budgetMax / 100000)}L vs listing from ₹${Math.round(match.franchise.totalInvestment.min / 100000)}L`
-          : 'Budget not set',
+          ? `Your budget ₹${Math.round(budgetMax / 100000)}L, listing from ₹${Math.round(match.franchise.totalInvestment.min / 100000)}L`
+          : 'Add a budget to compare investment',
     },
     {
       label: 'Location',

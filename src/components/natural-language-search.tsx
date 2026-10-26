@@ -123,11 +123,16 @@ export function NaturalLanguageSearch({ initialQuery = "" }: { initialQuery?: st
             {/* Search Input */}
             <div className="relative">
                 <div className="relative flex items-center">
+                    <label htmlFor="smart-search" className="sr-only">
+                        Describe the franchise you want
+                    </label>
                     <div className="absolute left-4 flex items-center gap-2 text-muted-foreground">
-                        <Search className="h-5 w-5 text-muted-foreground" />
+                        <Search className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
                     </div>
                     <Input
+                        id="smart-search"
                         ref={inputRef}
+                        name="q"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                         onKeyDown={handleKeyDown}

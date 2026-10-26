@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
 import {
   ArrowLeftIcon,
   HeartIcon,
@@ -178,15 +177,8 @@ export function BusinessDetail({ className }: BusinessDetailProps) {
                 className="shrink-0"
               >
                 <ArrowLeftIcon className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">Back</span>
+                Back
               </Button>
-              <Separator orientation="vertical" className="h-6 hidden sm:block" />
-              <div className="min-w-0 hidden sm:block">
-                <h1 className="text-base font-semibold truncate">{business.name}</h1>
-                <p className="text-xs text-muted-foreground truncate">
-                  {business.industry} · {business.location}
-                </p>
-              </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <Button variant="outline" size="sm" onClick={handleSave} className="hidden sm:inline-flex">
@@ -205,7 +197,7 @@ export function BusinessDetail({ className }: BusinessDetailProps) {
               <Button
                 size="sm"
                 onClick={handleContact}
-                className="bg-growth-green hover:bg-growth-green/90 text-white"
+                className="hidden md:inline-flex bg-growth-green hover:bg-growth-green/90 text-white"
               >
                 <PhoneIcon className="h-4 w-4 mr-2" />
                 Contact Seller

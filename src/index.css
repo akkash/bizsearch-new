@@ -150,6 +150,15 @@ h1,
   letter-spacing: -0.04em;
 }
 
+/* Page titles and email addresses stay in the case they are written. */
+h1.uppercase,
+h2.uppercase,
+h3.uppercase,
+a[href^="mailto:"] {
+  text-transform: none;
+  letter-spacing: normal;
+}
+
 p,
 .text-body {
   line-height: 1.65;
@@ -188,6 +197,18 @@ body {
   background-color: hsl(var(--secondary));
 }
 
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  background: hsl(var(--secondary));
+}
+
+.leaflet-container img {
+  max-width: none;
+  max-height: none;
+}
+
 /* ===================================
    INTERACTIVE STATES
    =================================== */
@@ -222,8 +243,9 @@ button:active:not(:disabled) {
   background: hsl(var(--growth-green));
   color: hsl(var(--primary-foreground));
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
+  text-transform: none;
+  letter-spacing: normal;
+  min-height: 2.75rem;
 }
 
 .btn-growth:hover {

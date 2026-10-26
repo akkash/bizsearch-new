@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,7 +11,6 @@ import {
     TrendingUp,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useFeatureFlag } from '@/contexts/FeatureFlagsContext';
 import { FranchiseMapFilters } from '@/components/franchise-map-filters';
 import { FranchiseMapDiscoveryMap } from '@/components/franchise-map-discovery-map';
 import {
@@ -39,13 +37,8 @@ export function FranchiseMapDiscoveryPage({ className }: FranchiseMapDiscoveryPa
     const [loading, setLoading] = useState(true);
     const [showMobileFilters, setShowMobileFilters] = useState(false);
 
-    // Feature flag
-    const isFranchiseMapEnabled = useFeatureFlag('franchise_map');
-
     // Load available filters on mount
     useEffect(() => {
-        if (!isFranchiseMapEnabled) return;
-
         const loadFilters = async () => {
             try {
                 const available = await FranchiseMapDiscoveryService.getAvailableFilters();
@@ -55,12 +48,10 @@ export function FranchiseMapDiscoveryPage({ className }: FranchiseMapDiscoveryPa
             }
         };
         loadFilters();
-    }, [isFranchiseMapEnabled]);
+    }, []);
 
     // Load locations when filters change
     useEffect(() => {
-        if (!isFranchiseMapEnabled) return;
-
         const loadLocations = async () => {
             setLoading(true);
             try {
@@ -77,16 +68,12 @@ export function FranchiseMapDiscoveryPage({ className }: FranchiseMapDiscoveryPa
             }
         };
         loadLocations();
-    }, [filters, isFranchiseMapEnabled]);
+    }, [filters]);
 
     const handleFiltersChange = (newFilters: DiscoveryFilters) => {
         setFilters(newFilters);
         setShowMobileFilters(false);
     };
-
-    if (!isFranchiseMapEnabled) {
-        return <Navigate to="/franchises" replace />;
-    }
 
     return (
         <div className={cn('min-h-screen bg-background', className)}>
@@ -208,9 +195,11 @@ export function FranchiseMapDiscoveryPage({ className }: FranchiseMapDiscoveryPa
                                     <div className="h-[600px] flex items-center justify-center bg-muted/20">
                                         <div className="text-center">
                                             <MapPin className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
-                                            <h3 className="text-lg font-semibold mb-2">No Locations Found</h3>
+                                            <h3 className="text-lg font-semibold mb-2">No details found in the table.</h3>
                                             <p className="text-muted-foreground mb-4">
-                                                Try adjusting your filters to see more locations
+                                                {Object.keys(filters).length > 0
+                                                    ? 'Try adjusting your filters to see more locations'
+                                                    : 'Published franchises will appear here when they have a city or state.'}
                                             </p>
                                             <Button variant="outline" onClick={() => setFilters({})}>
                                                 Clear Filters

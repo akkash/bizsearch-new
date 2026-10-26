@@ -148,15 +148,18 @@ export function BusinessBentoView({ business, className }: BusinessBentoViewProp
                         <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
                             {business.name || 'Business'}
                         </h1>
+                        {(business.city || business.location) && (
                         <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1.5">
                             <MapPin className="h-3.5 w-3.5" />
-                            {business.city || business.location || 'Location N/A'}
+                            {business.city || business.location}
                             {business.state ? `, ${business.state}` : ''}
                         </p>
+                        )}
                     </div>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6 mb-6">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6">
+                    {askingPrice != null && (
                     <div className="col-span-2 md:col-span-1">
                         <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
                             Asking price
@@ -165,6 +168,8 @@ export function BusinessBentoView({ business, className }: BusinessBentoViewProp
                             {formatCurrency(askingPrice)}
                         </div>
                     </div>
+                    )}
+                    {annualRevenue != null && (
                     <div>
                         <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
                             Revenue
@@ -173,6 +178,8 @@ export function BusinessBentoView({ business, className }: BusinessBentoViewProp
                             {formatCurrency(annualRevenue)}
                         </div>
                     </div>
+                    )}
+                    {annualProfit != null && (
                     <div>
                         <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
                             EBITDA / Profit
@@ -181,70 +188,70 @@ export function BusinessBentoView({ business, className }: BusinessBentoViewProp
                             {formatCurrency(annualProfit)}
                         </div>
                     </div>
+                    )}
+                    {profitMargin !== null && (
                     <div>
                         <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
                             Margin
                         </div>
                         <div className="text-xl md:text-2xl font-semibold font-mono tabular-nums">
-                            {profitMargin !== null ? `${profitMargin}%` : '—'}
+                            {profitMargin}%
                         </div>
                     </div>
+                    )}
+                    {establishedYear && (
                     <div>
                         <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
                             Established
                         </div>
                         <div className="text-xl md:text-2xl font-semibold">
-                            {establishedYear || '—'}
+                            {establishedYear}
                         </div>
                     </div>
+                    )}
                 </div>
 
-                {/* Is this price fair? */}
-                <div className="rounded-md border border-border bg-secondary/40 p-4 md:p-5">
+                {annualProfit != null && fairLow != null && fairHigh != null && (
+                <div className="rounded-md border border-border bg-secondary/40 p-4 md:p-5 mt-6">
                     <div className="text-sm font-semibold mb-3">Is this price fair?</div>
-                    {annualProfit && fairLow && fairHigh ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <div>
-                                <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                                    Asking price
-                                </div>
-                                <div className="text-lg font-semibold font-mono">
-                                    {formatCurrency(askingPrice)}
-                                </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                            <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                                Asking price
                             </div>
-                            <div>
-                                <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                                    Estimated fair value
-                                </div>
-                                <div className="text-lg font-semibold font-mono">
-                                    {formatCurrency(fairLow)}–{formatCurrency(fairHigh)}
-                                </div>
-                            </div>
-                            <div>
-                                <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                                    Price position
-                                </div>
-                                <div className={cn(
-                                    "text-lg font-semibold",
-                                    priceInRange ? "text-growth-green" : "text-warning"
-                                )}>
-                                    {priceInRange
-                                        ? "Within estimated range"
-                                        : askingPrice && askingPrice > fairHigh
-                                            ? "Above estimated range"
-                                            : "Below estimated range"}
-                                </div>
+                            <div className="text-lg font-semibold font-mono">
+                                {formatCurrency(askingPrice)}
                             </div>
                         </div>
-                    ) : (
-                        <p className="text-sm text-muted-foreground">
-                            Valuation is unavailable because financial data is incomplete.
-                        </p>
-                    )}
+                        <div>
+                            <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                                Estimated fair value
+                            </div>
+                            <div className="text-lg font-semibold font-mono">
+                                {formatCurrency(fairLow)}–{formatCurrency(fairHigh)}
+                            </div>
+                        </div>
+                        <div>
+                            <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                                Price position
+                            </div>
+                            <div className={cn(
+                                "text-lg font-semibold",
+                                priceInRange ? "text-growth-green" : "text-warning"
+                            )}>
+                                {priceInRange
+                                    ? "Within estimated range"
+                                    : askingPrice && askingPrice > fairHigh
+                                        ? "Above estimated range"
+                                        : "Below estimated range"}
+                            </div>
+                        </div>
+                    </div>
                     <p className="text-xs text-muted-foreground mt-3">
                         Indicative range based on uploaded profit and common SME multiples — not a formal appraisal.
                     </p>
                 </div>
+                )}
             </div>
 
             {/* Gallery */}
@@ -278,7 +285,7 @@ export function BusinessBentoView({ business, className }: BusinessBentoViewProp
                 </div>
             )}
 
-            {/* ============ CARD A: PROOF OF PROFIT ============ */}
+            {(annualRevenue != null || annualProfit != null || business.employees) && (
             <Card className="overflow-hidden border-border">
                 <CardHeader className="bg-secondary/50 pb-2">
                     <div className="flex items-center gap-2">
@@ -287,15 +294,17 @@ export function BusinessBentoView({ business, className }: BusinessBentoViewProp
                     </div>
                 </CardHeader>
                 <CardContent className="p-0">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-border">
-                        {/* LEFT: Financial Performance with YoY Trends */}
+                    <div className={cn(
+                        "grid grid-cols-1 divide-y lg:divide-y-0 divide-border",
+                        annualProfit != null && "lg:grid-cols-2 lg:divide-x"
+                    )}>
                         <div className="p-6">
                             <div className="flex items-center gap-2 mb-4">
                                 <Wallet className="h-4 w-4 text-trust-blue" />
                                 <span className="text-sm font-medium text-muted-foreground">Financial Performance</span>
                             </div>
 
-                            {/* Revenue with YoY */}
+                            {annualRevenue != null && (
                             <div className="flex items-center justify-between mb-4 p-3 bg-secondary rounded-lg">
                                 <div>
                                     <div className="text-xs text-muted-foreground">Annual Revenue</div>
@@ -313,15 +322,15 @@ export function BusinessBentoView({ business, className }: BusinessBentoViewProp
                                     </div>
                                 )}
                             </div>
+                            )}
 
-                            {/* Profit (EBITDA/SDE) with YoY */}
+                            {annualProfit != null && (
                             <div className="flex items-center justify-between mb-4 p-3 bg-accent/30 rounded-lg border border-accent-foreground/10">
                                 <div>
-                                    <div className="text-xs text-muted-foreground flex items-center gap-1">
-                                        SDE (Seller Discretionary Earnings)
-                                        <span className="text-[10px] bg-muted px-1 rounded">?</span>
+                                    <div className="text-xs text-muted-foreground">
+                                        SDE (owner&apos;s earnings)
                                     </div>
-                                    <div className={cn("text-2xl font-bold", annualProfit ? "text-growth-green" : "text-muted-foreground")}>
+                                    <div className="text-2xl font-bold text-growth-green">
                                         {formatCurrency(annualProfit)}
                                     </div>
                                 </div>
@@ -337,89 +346,93 @@ export function BusinessBentoView({ business, className }: BusinessBentoViewProp
                                     </div>
                                 )}
                             </div>
+                            )}
 
-                            {/* Monthly breakdown */}
                             <div className="grid grid-cols-2 gap-3 text-sm">
+                                {annualRevenue != null && (
                                 <div className="p-2 bg-secondary rounded">
                                     <div className="text-xs text-muted-foreground">Monthly Revenue</div>
-                                    <div className="font-semibold">{annualRevenue ? formatCurrency(annualRevenue / 12) : 'N/A'}</div>
+                                    <div className="font-semibold">{formatCurrency(annualRevenue / 12)}</div>
                                 </div>
+                                )}
+                                {annualProfit != null && (
                                 <div className="p-2 bg-secondary rounded">
                                     <div className="text-xs text-muted-foreground">Monthly SDE</div>
-                                    <div className={cn("font-semibold", annualProfit ? "text-growth-green" : "")}>
-                                        {annualProfit ? formatCurrency(annualProfit / 12) : 'N/A'}
+                                    <div className="font-semibold text-growth-green">
+                                        {formatCurrency(annualProfit / 12)}
                                     </div>
                                 </div>
+                                )}
+                                {profitMargin !== null && (
                                 <div className="p-2 bg-secondary rounded">
                                     <div className="text-xs text-muted-foreground">Profit Margin</div>
-                                    <div className="font-semibold">{profitMargin !== null ? `${profitMargin}%` : 'N/A'}</div>
+                                    <div className="font-semibold">{profitMargin}%</div>
                                 </div>
+                                )}
+                                {business.employees ? (
                                 <div className="p-2 bg-secondary rounded">
                                     <div className="text-xs text-muted-foreground">Employees</div>
-                                    <div className="font-semibold">{business.employees || 'N/A'}</div>
+                                    <div className="font-semibold">{business.employees}</div>
                                 </div>
+                                ) : null}
                             </div>
                         </div>
 
-                        {/* RIGHT: Valuation Check */}
+                        {annualProfit != null && (
                         <div className="p-6 bg-accent/20">
                             <div className="flex items-center gap-2 mb-4">
                                 <TrendingUp className="h-4 w-4 text-growth-green" />
                                 <span className="text-sm font-medium text-muted-foreground">Valuation Check</span>
                             </div>
 
-                            {/* Asking Price */}
+                            {askingPrice != null && (
                             <div className="text-center mb-4">
                                 <div className="text-xs text-muted-foreground">Asking Price</div>
                                 <div className="text-3xl font-bold">{formatCurrency(askingPrice)}</div>
                             </div>
+                            )}
 
-                            {/* Payback Period - PROMINENT */}
+                            {paybackMonths != null && (
                             <div className="bg-accent rounded-xl p-4 mb-4 text-center border border-accent-foreground/20">
-                                {paybackMonths ? (
-                                    <>
-                                        <Badge className="bg-growth-green text-white text-lg px-4 py-1 mb-1">
-                                            <Clock className="h-4 w-4 mr-2" />
-                                            Payback: {paybackMonths} months
-                                        </Badge>
-                                        <p className="text-xs text-accent-foreground">
-                                            Based on current cash flow
-                                        </p>
-                                    </>
-                                ) : (
-                                    <div className="text-muted-foreground">
-                                        <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                                        <p>Payback period cannot be calculated</p>
-                                        <p className="text-xs">Profit data required</p>
-                                    </div>
-                                )}
+                                <Badge className="bg-growth-green text-white text-lg px-4 py-1 mb-1">
+                                    <Clock className="h-4 w-4 mr-2" />
+                                    Payback: {paybackMonths} months
+                                </Badge>
+                                <p className="text-xs text-accent-foreground">
+                                    Based on current cash flow
+                                </p>
                             </div>
+                            )}
 
-                            {/* Multiples */}
                             <div className="grid grid-cols-2 gap-3">
+                                {profitMultiple && (
                                 <div className="text-center p-3 bg-card rounded-lg border border-border">
-                                    <div className="text-2xl font-bold">{profitMultiple ? `${profitMultiple}x` : 'N/A'}</div>
+                                    <div className="text-2xl font-bold">{profitMultiple}x</div>
                                     <div className="text-xs text-muted-foreground">SDE Multiple</div>
                                 </div>
+                                )}
+                                {cashOnCashReturn != null && (
                                 <div className="text-center p-3 bg-card rounded-lg border border-border">
-                                    <div className={cn("text-2xl font-bold", cashOnCashReturn ? "text-growth-green" : "")}>
-                                        {cashOnCashReturn ? `${cashOnCashReturn}%` : 'N/A'}
+                                    <div className="text-2xl font-bold text-growth-green">
+                                        {cashOnCashReturn}%
                                     </div>
                                     <div className="text-xs text-muted-foreground">Cash-on-Cash ROI</div>
                                 </div>
+                                )}
                             </div>
 
-                            {/* Cash Flow Status */}
-                            {annualProfit && annualProfit > 0 && (
+                            {annualProfit > 0 && (
                                 <div className="mt-4 flex items-center justify-center gap-2 text-growth-green">
                                     <CheckCircle className="h-4 w-4" />
                                     <span className="text-sm font-medium">Cash Flow Positive</span>
                                 </div>
                             )}
                         </div>
+                        )}
                     </div>
                 </CardContent>
             </Card>
+            )}
 
             {/* ============ CARD B: RISK & OPPORTUNITY ============ */}
             <Card className="overflow-hidden border-border">
@@ -578,33 +591,41 @@ export function BusinessBentoView({ business, className }: BusinessBentoViewProp
                             </div>
 
                             {/* Business Stats */}
+                            {(establishedYear || business.employees || (business.city && business.state)) && (
                             <div className="space-y-2 text-sm">
+                                {establishedYear && (
                                 <div className="flex items-center justify-between p-2 bg-secondary rounded">
                                     <div className="flex items-center gap-2">
                                         <Calendar className="h-4 w-4 text-muted-foreground" />
                                         <span>Established</span>
                                     </div>
                                     <span className="font-medium">
-                                        {establishedYear ? `${establishedYear} (${yearsInBusiness} years)` : 'N/A'}
+                                        {establishedYear}{yearsInBusiness != null ? ` (${yearsInBusiness} years)` : ''}
                                     </span>
                                 </div>
+                                )}
+                                {business.employees ? (
                                 <div className="flex items-center justify-between p-2 bg-secondary rounded">
                                     <div className="flex items-center gap-2">
                                         <Users className="h-4 w-4 text-muted-foreground" />
                                         <span>Employees</span>
                                     </div>
-                                    <span className="font-medium">{business.employees || 'N/A'}</span>
+                                    <span className="font-medium">{business.employees}</span>
                                 </div>
+                                ) : null}
+                                {business.city && business.state && (
                                 <div className="flex items-center justify-between p-2 bg-secondary rounded">
                                     <div className="flex items-center gap-2">
                                         <MapPin className="h-4 w-4 text-muted-foreground" />
                                         <span>Location</span>
                                     </div>
                                     <span className="font-medium">
-                                        {business.city && business.state ? `${business.city}, ${business.state}` : 'N/A'}
+                                        {business.city}, {business.state}
                                     </span>
                                 </div>
+                                )}
                             </div>
+                            )}
 
                             {/* Verification */}
                             <div className="mt-4 pt-3 border-t border-border">

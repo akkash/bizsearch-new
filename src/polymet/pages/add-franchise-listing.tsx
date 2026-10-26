@@ -610,7 +610,7 @@ export function AddFranchiseListingPage({
             {
               question: "How much does it cost to list my franchise?",
               answer:
-                "Basic listings are free. Featured placement is not billed yet.",
+                "Basic listings are free. Featured placement is free during launch.",
             },
             {
               question: "How long does the approval process take?",

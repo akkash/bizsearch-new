@@ -54,7 +54,7 @@ export function ListYourFranchisePage() {
           List your franchise
         </h1>
         <p className="mt-4 text-base md:text-lg text-muted-foreground max-w-2xl">
-          Put your brand in front of people who want to invest. Basic listings are free. Featured placement is not billed yet.
+          Put your brand in front of people who want to invest. Basic listings are free. Featured placement is free during launch.
         </p>
         <div className="mt-6 flex flex-col sm:flex-row gap-3">
           <Button asChild className="min-h-11">
@@ -105,7 +105,7 @@ export function ListYourFranchisePage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
-            <p>Basic listings are free. Featured placement is not billed yet.</p>
+            <p>Basic listings are free. Featured placement is free during launch.</p>
             <p>
               You will be asked for your franchise disclosure document, financial statements, brand assets, and legal registration documents.
             </p>
