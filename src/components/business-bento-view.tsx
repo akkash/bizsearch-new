@@ -462,7 +462,7 @@ export function BusinessBentoView({ business, className }: BusinessBentoViewProp
                                         )}
                                     </div>
                                     <div className="aspect-video rounded-lg overflow-hidden bg-muted">
-                                        <img src={images[galleryIndex]} alt="" className="w-full h-full object-cover" />
+                                        <img src={images[galleryIndex]} alt={business.name || "Business"} className="w-full h-full object-cover" />
                                     </div>
                                 </div>
                             )}

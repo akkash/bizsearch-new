@@ -673,7 +673,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
           description="Browse public franchise listings by industry, investment, and location. Compare brands and enquire when you find a fit."
           canonicalUrl="/franchises"
         />
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-8 xl:px-8">
           <h1 className="font-display text-3xl md:text-5xl font-bold uppercase tracking-tight mb-6">
             Franchise Opportunities
           </h1>
@@ -692,7 +692,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
           description="Browse public franchise listings by industry, investment, and location."
           canonicalUrl="/franchises"
         />
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-8 xl:px-8">
           <EmptyState
             type="error"
             title="No details found in the table."
@@ -721,7 +721,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
           description="Browse public franchise listings by industry, investment, and location."
           canonicalUrl="/franchises"
         />
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-8 xl:px-8">
           <EmptyState
             type="no-data"
             title="No details found in the table."
@@ -762,7 +762,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
       />
       {workspaceOpen && (
         <div id="compare-workspace" className="border-b border-border bg-card">
-          <div className="container mx-auto px-4 py-6">
+          <div className="container mx-auto px-4 py-6 xl:px-8">
             <ComparisonFeature
               slots={compareSlots}
               seeker={seekerIntent}
@@ -787,7 +787,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
         </div>
       )}
       <div className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-2 md:py-8">
+        <div className="container mx-auto px-4 py-3 xl:px-8 lg:py-4">
           {(currentCategory || currentSubcategory) && (
             <nav className="mb-2 flex items-center gap-2 text-xs md:mb-4 md:text-sm">
               <Link to="/" className="text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors">
@@ -818,8 +818,8 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
             </nav>
           )}
 
-          <div className="mb-2 md:mb-6">
-            <h1 className="font-display text-2xl md:text-5xl font-bold normal-case md:uppercase tracking-tight md:mb-3 text-foreground">
+          <div className="mb-2 lg:mb-0">
+            <h1 className="font-display text-2xl lg:text-3xl font-bold normal-case tracking-tight text-foreground">
               {(() => {
                 const categoryName = currentSubcategory?.name || currentCategory?.name || '';
                 const locationName = filters?.city?.length
@@ -845,7 +845,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
             </p>
           </div>
 
-          <div className="-mx-4 flex items-center gap-2 overflow-x-auto px-4 pb-1 scrollbar-hide flex-nowrap lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0">
+          <div className="-mx-4 mt-3 flex items-center gap-2 overflow-x-auto px-4 pb-1 scrollbar-hide flex-nowrap lg:hidden">
             <Button
               type="button"
               variant="outline"
@@ -900,7 +900,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
               </>
             )}
 
-            <span className="hidden lg:inline-flex shrink-0 items-center gap-2 text-sm font-medium text-muted-foreground">
+            <span className="inline-flex shrink-0 items-center gap-2 text-sm font-medium text-muted-foreground">
               <TrendingUpIcon className="h-4 w-4 text-growth-green" />
               Investment range
             </span>
@@ -930,7 +930,7 @@ export function FranchiseListings({ className }: FranchiseListingsProps) {
         </div>
       </div>
 
-      <div id="franchise-results" className="container mx-auto px-4 py-2 lg:py-6">
+      <div id="franchise-results" className="container mx-auto px-4 py-2 xl:px-8 lg:py-5">
         <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
           {isDesktopFilters && showFilters && (
             <div className="lg:w-80 shrink-0">

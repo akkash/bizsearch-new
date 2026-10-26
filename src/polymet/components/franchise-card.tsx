@@ -48,7 +48,7 @@ export function FranchiseCard({
   const formats = getStoreFormatsFromFranchise(franchise);
   const investRange = getFranchiseInvestmentRange(franchise);
   const royalty = franchise.royalty_percentage ?? franchise.royaltyPercentage;
-  const outlets = franchise.total_outlets ?? franchise.outlets;
+  const outlets = Number(franchise.total_outlets ?? franchise.outlets);
   const termYears =
     (franchise as { franchise_term_years?: number }).franchise_term_years ??
     (franchise as { term_years?: number }).term_years;
@@ -70,7 +70,7 @@ export function FranchiseCard({
     termYears != null && termYears !== 0
       ? { label: "Term", value: `${termYears} Years` }
       : null,
-    outlets != null ? { label: "Outlets", value: `${outlets}+` } : null,
+    Number.isFinite(outlets) && outlets > 0 ? { label: "Outlets", value: `${outlets}+` } : null,
   ].filter((spec): spec is { label: string; value: string } => spec != null);
 
   return (

@@ -146,7 +146,7 @@ export function ListingBrandHero({
         <div className="absolute bottom-3 left-3 h-14 w-14 md:h-16 md:w-16 rounded-lg bg-white dark:bg-card border border-border shadow-sm p-1.5 flex items-center justify-center">
           <img
             src={logo}
-            alt=""
+            alt={brandName}
             className="max-h-full max-w-full object-contain"
             loading="lazy"
             decoding="async"

@@ -122,7 +122,7 @@ export function HomeCompareTable({ className }: { className?: string }) {
                           {listingLogoUrl(brand) && (
                             <img
                               src={listingLogoUrl(brand)!}
-                              alt=""
+                              alt={brand.brand_name || brand.brandName || "Franchise"}
                               className="h-8 w-8 object-contain rounded-lg border border-border bg-white dark:bg-card p-0.5"
                             />
                           )}

@@ -15,13 +15,6 @@ import {
     Star,
     Search,
     IndianRupee,
-    GraduationCap,
-    Headphones,
-    Package,
-    Megaphone,
-    Palette,
-    Settings,
-    Users,
     Award,
     MapIcon,
     AlertCircle,
@@ -198,20 +191,9 @@ export function FranchiseBentoView({
         },
     ].filter(Boolean);
 
-    // Support features - these are static as they represent standard franchise support
-    const preOpeningSupport = [
-        { name: 'Site Selection', icon: MapPin },
-        { name: 'Store Design & Layout', icon: Palette },
-        { name: 'Equipment Setup', icon: Settings },
-        { name: 'Initial Training', icon: GraduationCap },
-    ];
-
-    const postOpeningSupport = [
-        { name: 'Marketing Launch', icon: Megaphone },
-        { name: 'Supply Chain Access', icon: Package },
-        { name: 'Ongoing Training', icon: Users },
-        { name: 'Support Helpline', icon: Headphones },
-    ];
+    const supportItems = (Array.isArray(franchise.support_provided) ? franchise.support_provided : [])
+        .map((item: unknown) => (typeof item === 'string' ? item.trim() : ''))
+        .filter(Boolean);
 
     // Territories - from database. Hide the checker unless mapped cities exist.
     const allTerritories = franchise.territories || franchise.territory_availability || [];
@@ -261,7 +243,16 @@ export function FranchiseBentoView({
     const awards = franchise.awards || [];
     const hasAwards = awards.length > 0;
 
-    const totalOutlets = franchise.outlets || franchise.total_outlets;
+    const outletCount = Number(franchise.outlets || franchise.total_outlets);
+    const hasOutlets = Number.isFinite(outletCount) && outletCount > 0;
+    const networkFacts = [
+        yearsExperience ? `${yearsExperience}+ years` : null,
+        establishedYear ? `Est. ${establishedYear}` : null,
+        franchise.countries_operating > 1 ? `${franchise.countries_operating} countries` : null,
+    ].filter((fact): fact is string => Boolean(fact));
+    const showNetwork = hasOutlets || networkFacts.length > 0;
+    const showCredibility = brandSlides.length > 0 || showNetwork || hasAwards;
+    const showOperations = supportItems.length > 0 || hasTerritoriesData;
     const availableTerritories = franchise.availableTerritories || franchise.available_territories_count;
 
     const brandName = franchise.brandName || franchise.brand_name || 'Franchise';
@@ -313,11 +304,15 @@ export function FranchiseBentoView({
                             )}
                         </div>
                         <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{brandName}</h1>
-                        <p className="text-sm text-muted-foreground mt-1">
-                            {establishedYear ? `Est. ${establishedYear}` : 'Established year not listed'}
-                            {totalOutlets ? ` · ${totalOutlets} outlets` : ''}
-                            {selectedFormat ? ` · ${selectedFormat.name}` : ''}
+                        {(establishedYear || hasOutlets || selectedFormat) && (
+                        <p className="text-base text-foreground mt-1">
+                            {[
+                                establishedYear ? `Est. ${establishedYear}` : null,
+                                hasOutlets ? `${outletCount} outlets` : null,
+                                selectedFormat?.name || null,
+                            ].filter(Boolean).join(' · ')}
                         </p>
+                        )}
                         {platformVerified && (verifiedAt || nextReviewAt) && (
                             <p className="text-[11px] text-muted-foreground mt-1">
                                 {verifiedAt ? `Verified ${String(verifiedAt).slice(0, 10)}` : 'Platform verified'}
@@ -503,48 +498,48 @@ export function FranchiseBentoView({
                             </div>
                         </div>
 
-                        <div className="p-6 bg-accent/30">
+                        <div className="p-6 bg-secondary text-foreground">
                             <div className="flex items-center gap-2 mb-4">
                                 <TrendingUp className="h-4 w-4 text-growth-green" />
-                                <span className="text-sm font-medium text-muted-foreground">Returns</span>
+                                <span className="text-base font-semibold text-foreground">Returns</span>
                             </div>
 
                             <div className="space-y-4">
                                 <div>
-                                    <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
+                                    <div className="text-sm font-medium text-foreground">
                                         Break-even
                                     </div>
                                     {breakEvenLabel ? (
-                                        <div className="text-xl font-semibold">{breakEvenLabel}</div>
+                                        <div className="text-xl font-semibold text-foreground">{breakEvenLabel}</div>
                                     ) : (
                                         <AskFranchisor onEnquire={onEnquire} />
                                     )}
                                 </div>
                                 <div>
-                                    <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">
+                                    <div className="text-sm font-medium text-foreground">
                                         Stated annual ROI
                                     </div>
                                     {roiLabel ? (
-                                        <div className="text-xl font-semibold text-growth-green">{roiLabel}</div>
+                                        <div className="text-xl font-semibold text-foreground">{roiLabel}</div>
                                     ) : (
                                         <AskFranchisor onEnquire={onEnquire} />
                                     )}
                                 </div>
                                 {(breakEvenLabel || roiLabel) && !unitEconomicsKnown && (
-                                    <p className="text-sm text-muted-foreground">
+                                    <p className="text-base text-foreground">
                                         Stated by the franchisor. Unit revenue and profit are not in this listing.
                                     </p>
                                 )}
                             </div>
                         </div>
                     </div>
-                    <p className="px-6 py-4 border-t border-border text-sm text-muted-foreground">
+                    <p className="px-6 py-4 border-t border-border text-base text-foreground">
                         {reviewLine}
                     </p>
                 </CardContent>
             </Card>
 
-            {/* ============ CARD B: CREDIBILITY ============ */}
+            {showCredibility && (
             <Card className="overflow-hidden border-border">
                 <CardHeader className="bg-secondary pb-2">
                     <div className="flex items-center gap-2">
@@ -553,8 +548,11 @@ export function FranchiseBentoView({
                     </div>
                 </CardHeader>
                 <CardContent className="p-0">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-border">
-                        {/* LEFT: Brand Story Carousel */}
+                    <div className={cn(
+                        "grid grid-cols-1 divide-y divide-border",
+                        brandSlides.length > 0 && (showNetwork || hasAwards) && "lg:grid-cols-2 lg:divide-y-0 lg:divide-x"
+                    )}>
+                        {brandSlides.length > 0 && (
                         <div className="p-6">
                             <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center gap-2">
@@ -591,7 +589,7 @@ export function FranchiseBentoView({
                                         <Badge variant="outline" className="mb-2 text-xs border-primary text-primary">
                                             {brandSlides[brandSlideIndex].title}
                                         </Badge>
-                                        <p className="text-sm text-muted-foreground leading-relaxed">
+                                        <p className="text-base leading-relaxed text-foreground">
                                             {brandSlides[brandSlideIndex].content}
                                         </p>
                                     </div>
@@ -612,34 +610,27 @@ export function FranchiseBentoView({
                                         </div>
                                     )}
                                 </>
-                            ) : (
-                                <div className="min-h-[120px] flex items-center justify-center text-muted-foreground">
-                                    <div className="text-center">
-                                        <Building2 className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                                        <p>Brand story not available</p>
-                                    </div>
-                                </div>
-                            )}
+                            ) : null}
                         </div>
+                        )}
 
-                        {/* RIGHT: Network Map + Awards */}
+                        {(showNetwork || hasAwards) && (
                         <div className="p-6">
-                            {/* Network with visual dots */}
+                            {showNetwork && (
                             <div className="mb-4">
                                 <div className="flex items-center gap-2 mb-2">
                                     <MapIcon className="h-4 w-4 text-trust-blue" />
                                     <span className="font-medium">Network Presence</span>
                                 </div>
                                 <div className="bg-secondary rounded-lg p-3">
-                                    {totalOutlets ? (
+                                    {hasOutlets && (
                                         <>
                                             <div className="flex items-center justify-between mb-2">
-                                                <span className="text-2xl font-bold">{totalOutlets}+</span>
-                                                <span className="text-sm text-muted-foreground">Outlets Pan-India</span>
+                                                <span className="text-2xl font-bold">{outletCount}+</span>
+                                                <span className="text-base text-foreground">Outlets Pan-India</span>
                                             </div>
-                                            {/* Visual dot cluster */}
                                             <div className="flex flex-wrap gap-0.5 mb-2">
-                                                {Array(Math.min(60, totalOutlets)).fill(0).map((_, i) => (
+                                                {Array(Math.min(60, outletCount)).fill(0).map((_, i) => (
                                                     <div
                                                         key={i}
                                                         className={cn(
@@ -650,124 +641,78 @@ export function FranchiseBentoView({
                                                 ))}
                                             </div>
                                         </>
-                                    ) : (
-                                        <div className="text-center py-2 text-muted-foreground">
-                                            <p>Outlet count not specified</p>
-                                        </div>
                                     )}
-                                    <div className="flex gap-4 text-xs text-muted-foreground">
-                                        {yearsExperience && <span>{yearsExperience}+ years</span>}
-                                        {establishedYear && <><span>•</span><span>Est. {establishedYear}</span></>}
-                                        {franchise.countries_operating > 1 && (
-                                            <>
-                                                <span>•</span>
-                                                <span>{franchise.countries_operating} countries</span>
-                                            </>
-                                        )}
+                                    {networkFacts.length > 0 && (
+                                    <div className="flex gap-4 text-base text-foreground">
+                                        {networkFacts.map((fact) => (
+                                            <span key={fact}>{fact}</span>
+                                        ))}
                                     </div>
+                                    )}
                                 </div>
                             </div>
+                            )}
 
-                            {/* Awards/Recognition */}
+                            {hasAwards && (
                             <div>
                                 <div className="flex items-center gap-2 mb-2">
                                     <Award className="h-4 w-4 text-amber-500" />
                                     <span className="font-medium">Recognition</span>
                                 </div>
-                                {hasAwards ? (
-                                    <div className="space-y-2">
-                                        {awards.slice(0, 2).map((award: any, i: number) => (
-                                            <div key={i} className="flex items-center gap-2 bg-amber-50 dark:bg-amber-950/30 rounded-md p-2">
-                                                <Star className="h-4 w-4 text-amber-500 flex-shrink-0" />
-                                                <div className="min-w-0">
-                                                    <div className="text-sm font-medium truncate">{award.name}</div>
-                                                    <div className="text-xs text-muted-foreground">{award.org}</div>
-                                                </div>
+                                <div className="space-y-2">
+                                    {awards.slice(0, 2).map((award: any, i: number) => (
+                                        <div key={i} className="flex items-center gap-2 bg-amber-50 dark:bg-amber-950/30 rounded-md p-2">
+                                            <Star className="h-4 w-4 text-amber-500 flex-shrink-0" />
+                                            <div className="min-w-0">
+                                                <div className="text-base font-medium truncate">{award.name}</div>
+                                                <div className="text-sm text-foreground">{award.org}</div>
                                             </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="text-center py-2 text-muted-foreground bg-muted/50 rounded-md">
-                                        <p className="text-sm">No awards listed</p>
-                                    </div>
-                                )}
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
+                            )}
                         </div>
+                        )}
                     </div>
                 </CardContent>
             </Card>
+            )}
 
-            {/* ============ CARD C: OPERATIONS ============ */}
+            {showOperations && (
             <Card className="overflow-hidden border-border">
-                <CardHeader className="bg-accent pb-2">
+                <CardHeader className="bg-secondary pb-2">
                     <div className="flex items-center gap-2">
-                        <Package className="h-5 w-5 text-accent-foreground" />
-                        <CardTitle className="text-lg text-accent-foreground">What Do I Get?</CardTitle>
+                        <CheckCircle className="h-5 w-5 text-growth-green" />
+                        <CardTitle className="text-lg">What Do I Get?</CardTitle>
                     </div>
                 </CardHeader>
                 <CardContent className="p-0">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-border">
-                        {/* LEFT: Support Checklist (Pre/Post Opening) */}
+                    <div className={cn(
+                        "grid grid-cols-1 divide-y divide-border",
+                        supportItems.length > 0 && hasTerritoriesData && "lg:grid-cols-2 lg:divide-y-0 lg:divide-x"
+                    )}>
+                        {supportItems.length > 0 && (
                         <div className="p-6">
                             <div className="flex items-center gap-2 mb-3">
-                                <GraduationCap className="h-4 w-4 text-growth-green" />
                                 <span className="font-medium">Support & Training</span>
-                                <Badge variant="outline" className="ml-auto text-xs text-muted-foreground">
-                                    Typical categories — not verified
-                                </Badge>
                             </div>
-
-                            {/* Pre-Opening */}
-                            <div className="mb-4">
-                                <div className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">Pre-Opening</div>
-                                <div className="grid grid-cols-2 gap-3">
-                                    {preOpeningSupport.map((item) => {
-                                        const Icon = item.icon;
-                                        return (
-                                            <div key={item.name} className="rounded-xl border border-border bg-card p-3 shadow-sm">
-                                                <div className="flex items-start justify-between gap-2 mb-2">
-                                                    <Icon className="h-5 w-5 text-growth-green" />
-                                                    <CheckCircle className="h-4 w-4 text-growth-green" />
-                                                </div>
-                                                <span className="text-sm font-medium leading-snug">{item.name}</span>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-
-                            {/* Post-Opening */}
-                            <div>
-                                <div className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">Post-Opening</div>
-                                <div className="grid grid-cols-2 gap-3">
-                                    {postOpeningSupport.map((item) => {
-                                        const Icon = item.icon;
-                                        return (
-                                            <div key={item.name} className="rounded-xl border border-border bg-card p-3 shadow-sm">
-                                                <div className="flex items-start justify-between gap-2 mb-2">
-                                                    <Icon className="h-5 w-5 text-growth-green" />
-                                                    <CheckCircle className="h-4 w-4 text-growth-green" />
-                                                </div>
-                                                <span className="text-sm font-medium leading-snug">{item.name}</span>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
+                            <ul className="space-y-2">
+                                {supportItems.map((item) => (
+                                    <li key={item} className="text-base text-foreground">{item}</li>
+                                ))}
+                            </ul>
                         </div>
+                        )}
 
-                        {/* RIGHT: Territory Search Tool — hidden unless mapped cities exist */}
+                        {hasTerritoriesData && (
                         <div className="p-6">
                             <div className="flex items-center gap-2 mb-3">
                                 <MapPin className="h-4 w-4 text-growth-green" />
-                                <span className="font-medium">
-                                    {hasTerritoriesData ? 'Check Territory Availability' : 'Territory'}
-                                </span>
+                                <span className="font-medium">Check Territory Availability</span>
                             </div>
 
-                            {hasTerritoriesData ? (
-                                <>
-                                    <form
+                                <form
                                         className="flex gap-2 mb-4"
                                         onSubmit={(e) => {
                                             e.preventDefault();
@@ -837,25 +782,19 @@ export function FranchiseBentoView({
                                             </div>
                                         )}
                                     </div>
-                                </>
-                            ) : (
-                                <p className="text-sm text-muted-foreground">
-                                    This brand has not published city-level availability. We do not guess whether you can open in a given city.
-                                </p>
-                            )}
 
-                            {hasTerritoriesData && (
-                            <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-sm">
+                            <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-base">
                                 <span className="text-muted-foreground">Mapped available cities:</span>
                                 <span className="font-semibold text-growth-green">
                                     {availableTerritories ? `${availableTerritories} cities` : `${mappedTerritoryCount(franchise)} listed`}
                                 </span>
                             </div>
-                            )}
                         </div>
+                        )}
                     </div>
                 </CardContent>
             </Card>
+            )}
         </div>
     );
 }

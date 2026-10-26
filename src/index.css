@@ -185,15 +185,7 @@ body {
 }
 
 .listing-hero-pattern {
-  background-color: hsl(var(--muted));
-  background-image:
-    radial-gradient(circle at 18% 22%, hsl(var(--growth-green) / 0.14) 0 26%, transparent 28%),
-    radial-gradient(circle at 86% 8%, hsl(var(--growth-green) / 0.1) 0 22%, transparent 24%),
-    repeating-linear-gradient(
-      135deg,
-      hsl(var(--border) / 0.7) 0 1px,
-      transparent 1px 14px
-    );
+  background-color: hsl(var(--secondary));
 }
 
 /* ===================================
@@ -263,9 +255,12 @@ button:active:not(:disabled) {
   transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 }
 
-.card-hover-lift:hover {
-  box-shadow: var(--shadow-md);
-  border-color: hsl(var(--foreground) / 0.2);
+@media (hover: hover) {
+  .card-hover-lift:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px rgb(15 23 42 / 0.12);
+    border-color: hsl(var(--foreground) / 0.45);
+  }
 }
 
 .glass {

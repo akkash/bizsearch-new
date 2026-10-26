@@ -386,7 +386,9 @@ export function HomeFranchiseInventory({ className }: { className?: string }) {
       setLoading(true);
       try {
         const data = (await FranchiseService.getFeaturedFranchises(6)) || [];
-        if (!cancelled) setItems((Array.isArray(data) ? data : []).slice(0, 6));
+        const rows = Array.isArray(data) ? data : [];
+        const count = rows.length >= 6 ? 6 : Math.min(rows.length, 3);
+        if (!cancelled) setItems(rows.slice(0, count));
       } catch (err) {
         console.error("Home franchise inventory failed:", err);
         if (!cancelled) setItems([]);
@@ -442,7 +444,7 @@ export function HomeFranchiseInventory({ className }: { className?: string }) {
           />
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {items.map((f) => {
               const brand = f.brand_name || f.brandName || "Franchise";
               const formats = getStoreFormatsFromFranchise(f);

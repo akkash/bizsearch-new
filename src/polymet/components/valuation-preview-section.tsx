@@ -121,7 +121,7 @@ export function ValuationPreviewSection({
                       {listingLogoUrl(selected) && (
                         <img
                           src={listingLogoUrl(selected)!}
-                          alt=""
+                          alt={brandName}
                           className="h-10 w-10 object-contain rounded-lg border border-border bg-white dark:bg-card p-1"
                         />
                       )}
@@ -221,29 +221,17 @@ export function ValuationPreviewSection({
 
                 <div>
                   <div className="grid sm:grid-cols-2 gap-3 mb-6">
-                    {metric("Estimated investment", formatINR(model.investment))}
-                    {metric(
-                      "Monthly gross",
-                      model.monthlyGross != null ? formatINR(model.monthlyGross) : "Not provided"
-                    )}
-                    {metric(
-                      "Monthly net",
-                      model.monthlyNet != null ? formatINR(model.monthlyNet) : "Not provided"
-                    )}
-                    {metric(
-                      "Net margin",
-                      margin != null ? `${margin.toFixed(0)}%` : "Not provided"
-                    )}
-                    {metric(
-                      "Breakeven",
-                      model.paybackMonths != null
-                        ? `${Math.max(6, model.paybackMonths - 3)}–${model.paybackMonths + 3} mo`
-                        : "Not provided"
-                    )}
-                    {metric(
-                      "Working capital buffer",
-                      model.workingCapital != null ? formatINR(model.workingCapital) : "Not provided"
-                    )}
+                    {model.investment != null && metric("Estimated investment", formatINR(model.investment))}
+                    {model.monthlyGross != null && metric("Monthly gross", formatINR(model.monthlyGross))}
+                    {model.monthlyNet != null && metric("Monthly net", formatINR(model.monthlyNet))}
+                    {margin != null && metric("Net margin", `${margin.toFixed(0)}%`)}
+                    {model.paybackMonths != null &&
+                      metric(
+                        "Breakeven",
+                        `${Math.max(6, model.paybackMonths - 3)}–${model.paybackMonths + 3} mo`
+                      )}
+                    {model.workingCapital != null &&
+                      metric("Working capital buffer", formatINR(model.workingCapital))}
                   </div>
 
                   <p className="text-[11px] text-muted-foreground mb-6 flex items-start gap-2">
