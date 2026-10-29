@@ -14,6 +14,7 @@ export interface AdminUser {
     state: string | null;
     phone: string | null;
     is_banned?: boolean;
+    is_catalog_account?: boolean;
 }
 
 export interface AdminListing {
@@ -922,4 +923,175 @@ export class AdminService {
         if (error) throw error;
         await this.logAction('announcement_deleted', 'platform_announcement', id);
     }
+
+    static async getCatalogFranchises(): Promise<CatalogFranchise[]> {
+        const { data, error } = await supabase
+            .from('franchises')
+            .select('id, brand_name, status, industry, slug, franchisor_id, profiles!franchisor_id!inner(display_name, email, is_catalog_account)')
+            .eq('profiles.is_catalog_account', true)
+            .order('brand_name', { ascending: true });
+
+        if (error) {
+            console.error('Error fetching catalog franchises:', error);
+            throw error;
+        }
+
+        const rows = data || [];
+        const ids = rows.map((row) => row.id);
+        const enquiryCounts = new Map<string, number>();
+
+        if (ids.length > 0) {
+            const { data: inquiries, error: inquiryError } = await supabase
+                .from('inquiries')
+                .select('listing_id')
+                .eq('listing_type', 'franchise')
+                .in('listing_id', ids);
+
+            if (inquiryError) {
+                console.error('Error counting franchise enquiries:', inquiryError);
+                throw inquiryError;
+            }
+
+            for (const inquiry of inquiries || []) {
+                const listingId = String(inquiry.listing_id);
+                enquiryCounts.set(listingId, (enquiryCounts.get(listingId) || 0) + 1);
+            }
+        }
+
+        return rows.map((row) => {
+            const owner = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
+            return {
+                id: row.id,
+                brand_name: row.brand_name,
+                status: row.status,
+                industry: row.industry,
+                slug: row.slug,
+                franchisor_id: row.franchisor_id,
+                owner_email: owner?.email || '',
+                owner_name: owner?.display_name || null,
+                enquiry_count: enquiryCounts.get(row.id) || 0,
+            };
+        });
+    }
+
+    static async findProfileByEmail(email: string): Promise<AdminUser | null> {
+        const normalized = email.trim().toLowerCase().replace(/[%_]/g, '');
+        if (!normalized) return null;
+
+        const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .ilike('email', normalized)
+            .maybeSingle();
+
+        if (error) {
+            console.error('Error looking up profile by email:', error);
+            throw error;
+        }
+
+        return data;
+    }
+
+    static async mapFranchiseOwner(
+        franchiseId: string,
+        ownerId: string
+    ): Promise<FranchiseOwnerMapResult> {
+        const { data, error } = await supabase.rpc('admin_map_franchise_owner', {
+            p_franchise_id: franchiseId,
+            p_new_owner_id: ownerId,
+        });
+
+        if (error) {
+            console.error('Error mapping franchise owner:', error);
+            throw error;
+        }
+
+        return data as FranchiseOwnerMapResult;
+    }
+
+    static async inviteAndMapFranchiseOwner(
+        franchiseId: string,
+        email: string,
+        displayName: string
+    ): Promise<InviteFranchiseOwnerResult> {
+        const { data, error } = await supabase.functions.invoke('map-franchise-owner', {
+            body: {
+                franchiseId,
+                email: email.trim().toLowerCase(),
+                displayName: displayName.trim(),
+                redirectTo: `${window.location.origin}/reset-password`,
+            },
+        });
+
+        if (error) {
+            const message = await readFunctionError(error, data);
+            console.error('Error inviting franchise owner:', error);
+            throw new Error(message);
+        }
+
+        if (data?.error) {
+            throw new Error(String(data.error));
+        }
+
+        return data as InviteFranchiseOwnerResult;
+    }
+
+    static async setCatalogAccount(userId: string, isCatalog: boolean): Promise<void> {
+        const { error } = await supabase
+            .from('profiles')
+            .update({ is_catalog_account: isCatalog })
+            .eq('id', userId);
+
+        if (error) {
+            console.error('Error updating catalog account flag:', error);
+            throw error;
+        }
+
+        await this.logAction(
+            isCatalog ? 'catalog_account_enabled' : 'catalog_account_disabled',
+            'profile',
+            userId
+        );
+    }
+}
+
+export interface CatalogFranchise {
+    id: string;
+    brand_name: string;
+    status: string;
+    industry: string | null;
+    slug: string | null;
+    franchisor_id: string;
+    owner_email: string;
+    owner_name: string | null;
+    enquiry_count: number;
+}
+
+export interface FranchiseOwnerMapResult {
+    franchise_id: string;
+    previous_owner_id: string;
+    new_owner_id: string;
+    inquiries_moved: number;
+    conversations_moved: number;
+}
+
+export interface InviteFranchiseOwnerResult {
+    ownerId: string;
+    invited: boolean;
+    inquiriesMoved: number;
+    conversationsMoved: number;
+}
+
+async function readFunctionError(
+    error: { message?: string; context?: { json?: () => Promise<{ error?: string }> } },
+    data: { error?: string } | null
+): Promise<string> {
+    if (data?.error) return data.error;
+    try {
+        const body = await error.context?.json?.();
+        if (body?.error) return body.error;
+    } catch {
+        // Response body was already read.
+    }
+    return 'Could not map the franchise';
 }

@@ -66,6 +66,7 @@ const AdminContentManagement = lazyExport(() => import("@/polymet/pages/admin/ad
 const AdminSettings = lazyExport(() => import("@/polymet/pages/admin/admin-settings"), "AdminSettings");
 const AdminFeatureFlags = lazyExport(() => import("@/polymet/pages/admin/admin-feature-flags"), "AdminFeatureFlags");
 const AdminVerification = lazyExport(() => import("@/polymet/pages/admin/admin-verification"), "AdminVerification");
+const AdminFranchiseHandoff = lazyExport(() => import("@/polymet/pages/admin/admin-franchise-handoff"), "AdminFranchiseHandoff");
 const AdvisorLayout = lazyExport(() => import("@/polymet/layouts/advisor-layout"), "AdvisorLayout");
 const AdvisorDashboard = lazyExport(() => import("@/polymet/pages/advisor/advisor-dashboard"), "AdvisorDashboard");
 const AdvisorClients = lazyExport(() => import("@/polymet/pages/advisor/advisor-clients"), "AdvisorClients");
@@ -530,6 +531,7 @@ export default function BizSearchApp() {
                       <Route path="settings" element={<AdminSettings />} />
                       <Route path="feature-flags" element={<AdminFeatureFlags />} />
                       <Route path="verification" element={<AdminVerification />} />
+                      <Route path="franchise-handoff" element={<AdminFranchiseHandoff />} />
                     </Route>
 
                     {/* Franchise Application - Protected */}

@@ -29,6 +29,7 @@ import {
     Building2,
     FileCheck,
     Flag,
+    ArrowRightLeft,
 } from 'lucide-react';
 
 const sidebarItems = [
@@ -47,6 +48,11 @@ const sidebarItems = [
         title: 'Listings',
         icon: Building2,
         href: '/admin/listings'
+    },
+    {
+        title: 'Franchise handoff',
+        icon: ArrowRightLeft,
+        href: '/admin/franchise-handoff'
     },
     {
         title: 'Verification',

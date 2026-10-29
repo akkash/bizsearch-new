@@ -47,6 +47,8 @@ export interface Database {
           support: Json | null
           phone_verified: boolean
           phone_verified_at: string | null
+          is_banned: boolean
+          is_catalog_account: boolean
         }
         Insert: {
           id: string
@@ -82,6 +84,8 @@ export interface Database {
           support?: Json | null
           phone_verified?: boolean
           phone_verified_at?: string | null
+          is_banned?: boolean
+          is_catalog_account?: boolean
         }
         Update: {
           id?: string
@@ -117,6 +121,8 @@ export interface Database {
           support?: Json | null
           phone_verified?: boolean
           phone_verified_at?: string | null
+          is_banned?: boolean
+          is_catalog_account?: boolean
         }
       }
       verification_documents: {

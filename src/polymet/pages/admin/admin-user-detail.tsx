@@ -109,6 +109,29 @@ export function AdminUserDetail() {
         }
     };
 
+    const handleToggleCatalog = async () => {
+        if (!user) return;
+        const enabling = !user.is_catalog_account;
+        const confirmed = window.confirm(
+            enabling
+                ? `Mark ${user.display_name || user.email} as a catalog account? Franchises they hold can be mapped to real owners.`
+                : `Remove the catalog flag from ${user.display_name || user.email}?`
+        );
+        if (!confirmed) return;
+
+        setActionLoading(true);
+        try {
+            await AdminService.setCatalogAccount(user.id, enabling);
+            toast.success(enabling ? 'Marked as catalog account' : 'Catalog flag removed');
+            await loadUser();
+        } catch (error) {
+            console.error('Catalog flag update failed:', error);
+            toast.error('Failed to update catalog account');
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
     const handleChangeRole = async () => {
         if (!user || !newRole) return;
         if (newRole === 'admin') {
@@ -178,6 +201,9 @@ export function AdminUserDetail() {
                                 {user.is_banned && (
                                     <Badge variant="destructive">Banned</Badge>
                                 )}
+                                {user.is_catalog_account && (
+                                    <Badge variant="secondary">Catalog</Badge>
+                                )}
                             </div>
                             {user.verified && (
                                 <div className="flex items-center justify-center gap-1 mt-2 text-foreground">
@@ -225,6 +251,14 @@ export function AdminUserDetail() {
                             >
                                 <Shield className="h-4 w-4 mr-2" />
                                 Change Role
+                            </Button>
+                            <Button
+                                variant="outline"
+                                className="w-full"
+                                onClick={handleToggleCatalog}
+                                disabled={actionLoading}
+                            >
+                                {user.is_catalog_account ? 'Unmark catalog account' : 'Mark as catalog account'}
                             </Button>
                             <Button
                                 variant="outline"
